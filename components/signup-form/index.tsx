@@ -3,15 +3,15 @@ import Link from "next/link";
 
 import * as S from "./styles";
 
-export default function LoginForm() {
+export default function SignupForm() {
   const onFinish = (values: any) => {
     console.log({ values });
   };
 
   return (
     <S.Wrapper>
-      <S.Title>Login</S.Title>
-      <S.LoginForm
+      <S.Title>Signup</S.Title>
+      <S.SignupForm
         name="login"
         layout="vertical"
         initialValues={{ remember: true }}
@@ -41,14 +41,12 @@ export default function LoginForm() {
 
         <Form.Item>
           <Button type="primary" htmlType="submit" block>
-            Login
+            Signup
           </Button>
         </Form.Item>
-      </S.LoginForm>
-      <Link href="/signup" passHref>
-        <Typography.Link>
-          Don&apos;t have an account yet? Go to signup
-        </Typography.Link>
+      </S.SignupForm>
+      <Link href="/login" passHref>
+        <Typography.Link>Already have an account? Go to login</Typography.Link>
       </Link>
     </S.Wrapper>
   );
