@@ -1,0 +1,4 @@
+{
+  "pages/**/*.{js,ts,jsx,tsx}": ["eslint --fix", "prettier --write"],
+  "components/**/*.{js,ts,jsx,tsx}": ["eslint --fix", "prettier --write"]
+}
