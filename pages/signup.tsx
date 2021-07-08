@@ -1,5 +1,5 @@
 import { useRouter } from "next/router";
-import Head from "next/head";
+import Header from "components/header";
 import SignupForm from "components/signup-form";
 import { useAuth, Credentials } from "hooks/useAuth";
 import { message } from "antd";
@@ -11,23 +11,19 @@ export default function Signup() {
   const handleSignup = async ({ email, password }: Credentials) => {
     try {
       await signup({ email, password });
-      router.push("/");
+      router.push("/org-account");
     } catch (error) {
       message.error(error.message);
     }
   };
 
   return (
-    <div>
-      <Head>
-        <title>Calculator Signup</title>
-        <meta name="description" content="Upstream Calculator Signup" />
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
+    <>
+      <Header title="Signup" />
 
       <main>
         <SignupForm onSubmit={handleSignup as (values: unknown) => void} />
       </main>
-    </div>
+    </>
   );
 }

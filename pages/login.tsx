@@ -1,5 +1,5 @@
 import { useRouter } from "next/router";
-import Head from "next/head";
+import Header from "components/header";
 import LoginForm from "components/login-form";
 import { useAuth, Credentials } from "hooks/useAuth";
 import { message } from "antd";
@@ -18,16 +18,12 @@ export default function Login() {
   };
 
   return (
-    <div>
-      <Head>
-        <title>Calculator Login</title>
-        <meta name="description" content="Upstream Calculator Login" />
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
+    <>
+      <Header title="Login" />
 
       <main>
         <LoginForm onSubmit={handleLogin as (values: unknown) => void} />
       </main>
-    </div>
+    </>
   );
 }
