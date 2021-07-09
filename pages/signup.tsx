@@ -12,7 +12,7 @@ export default function Signup() {
   const handleSignup = async ({ email, password }: Credentials) => {
     try {
       await signup({ email, password });
-      router.push("/org-account");
+      router.push("/email-verification");
     } catch (error) {
       message.error(error.message);
     }
@@ -21,7 +21,7 @@ export default function Signup() {
   const handleLoginWithProvider = async (provider: FirebaseAuthProvider) => {
     try {
       await loginWithProvider(provider);
-      router.push("/org-account");
+      router.push("/email-verification");
     } catch (error) {
       message.error(error.message);
     }

@@ -1,3 +1,4 @@
+import { GetServerSideProps } from "next";
 import { useCallback } from "react";
 import { useRouter } from "next/router";
 import OrgAccountForm from "components/org-account-form";
@@ -5,6 +6,20 @@ import Header from "components/header";
 import { message } from "antd";
 import { useMutation } from "react-query";
 import { useAuth } from "hooks/useAuth";
+import nookies from "nookies";
+
+export const getServerSideProps: GetServerSideProps = async (context) => {
+  const { emailVerified } = nookies.get(context);
+
+  if (!emailVerified) {
+    context.res.writeHead(302, { location: "/email-verification" });
+    context.res.end();
+
+    return { props: { emailVerified: false } };
+  }
+
+  return { props: { emailVerified: true } };
+};
 
 type OrgAccountFields = {
   title: string;
