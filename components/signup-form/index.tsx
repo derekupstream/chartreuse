@@ -1,13 +1,15 @@
 import { Form, Input, Button, Typography } from "antd";
+import { FirebaseAuthProvider, googleProvider } from "lib/firebaseClient";
 import Link from "next/link";
 
 import * as S from "./styles";
 
 type Props = {
   onSubmit: (values: unknown) => void;
+  onSubmitWithProvider: (provider: FirebaseAuthProvider) => void;
 };
 
-export default function SignupForm({ onSubmit }: Props) {
+export default function SignupForm({ onSubmit, onSubmitWithProvider }: Props) {
   return (
     <S.Wrapper>
       <S.Title>Signup</S.Title>
@@ -48,6 +50,13 @@ export default function SignupForm({ onSubmit }: Props) {
       <Link href="/login" passHref>
         <Typography.Link>Already have an account? Go to login</Typography.Link>
       </Link>
+      <Button
+        onClick={() => onSubmitWithProvider(googleProvider)}
+        type="primary"
+        block
+      >
+        Signup with Google
+      </Button>
     </S.Wrapper>
   );
 }

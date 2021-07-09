@@ -3,9 +3,10 @@ import Header from "components/header";
 import LoginForm from "components/login-form";
 import { useAuth, Credentials } from "hooks/useAuth";
 import { message } from "antd";
+import { FirebaseAuthProvider } from "lib/firebaseClient";
 
 export default function Login() {
-  const { login } = useAuth();
+  const { login, loginWithProvider } = useAuth();
   const router = useRouter();
 
   const handleLogin = async ({ email, password }: Credentials) => {
@@ -17,12 +18,24 @@ export default function Login() {
     }
   };
 
+  const handleLoginWithProvider = async (provider: FirebaseAuthProvider) => {
+    try {
+      await loginWithProvider(provider);
+      router.push("/");
+    } catch (error) {
+      message.error(error.message);
+    }
+  };
+
   return (
     <>
       <Header title="Login" />
 
       <main>
-        <LoginForm onSubmit={handleLogin as (values: unknown) => void} />
+        <LoginForm
+          onSubmit={handleLogin as (values: unknown) => void}
+          onSubmitWithProvider={handleLoginWithProvider}
+        />
       </main>
     </>
   );
