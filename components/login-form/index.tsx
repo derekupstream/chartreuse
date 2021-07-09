@@ -3,11 +3,11 @@ import Link from "next/link";
 
 import * as S from "./styles";
 
-export default function LoginForm() {
-  const onFinish = (values: any) => {
-    console.log({ values });
-  };
+type Props = {
+  onSubmit: (values: unknown) => void;
+};
 
+export default function LoginForm({ onSubmit }: Props) {
   return (
     <S.Wrapper>
       <S.Title>Login</S.Title>
@@ -15,7 +15,7 @@ export default function LoginForm() {
         name="login"
         layout="vertical"
         initialValues={{ remember: true }}
-        onFinish={onFinish}
+        onFinish={onSubmit}
       >
         <Form.Item
           label="Email"
