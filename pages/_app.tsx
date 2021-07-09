@@ -1,7 +1,7 @@
 import type { AppProps } from "next/app";
 import { AuthProvider } from "lib/auth";
 import { QueryClient, QueryClientProvider } from "react-query";
-import "antd/dist/antd.css";
+import "styles/antd.less";
 
 const queryClient = new QueryClient();
 
