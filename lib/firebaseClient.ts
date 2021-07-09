@@ -1,5 +1,7 @@
 import firebaseApp from "firebase/app";
 
+export type User = firebaseApp.User;
+
 export const firebase = !firebaseApp.apps.length
   ? firebaseApp.initializeApp({
       apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
