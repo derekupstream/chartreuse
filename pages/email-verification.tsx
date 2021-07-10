@@ -1,10 +1,11 @@
-import { message, Space, Typography } from "antd";
+import { message } from "antd";
 import Header from "components/header";
 import PageLoader from "components/page-loader";
 import { useAuth } from "hooks/useAuth";
 import { useRouter } from "next/router";
 import { destroyCookie, setCookie } from "nookies";
 import { useEffect } from "react";
+import EmailVerificationPage from "components/email-verification-page";
 
 export default function EmailVerification() {
   const { user } = useAuth();
@@ -46,13 +47,7 @@ export default function EmailVerification() {
       <Header title="Email verification" />
 
       <main>
-        <Space direction="vertical">
-          <Typography.Title level={2}>Got it!</Typography.Title>
-          <Typography.Text strong>
-            Check your email for a confirmation, and link to continue setting up
-            your organization.
-          </Typography.Text>
-        </Space>
+        <EmailVerificationPage />
       </main>
     </>
   );

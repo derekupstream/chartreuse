@@ -1,4 +1,6 @@
-import { Form, Input, Button, Typography } from "antd";
+import { RightOutlined } from "@ant-design/icons";
+import { Form, Input, Button, Select } from "antd";
+import { Option } from "antd/lib/mentions";
 
 import * as S from "./styles";
 
@@ -10,7 +12,6 @@ type Props = {
 export default function OrgAccountForm({ onSubmit, isLoading }: Props) {
   return (
     <S.Wrapper>
-      <S.Title>Create Org Account</S.Title>
       <S.OrgAccountForm
         name="orgAccount"
         layout="vertical"
@@ -18,7 +19,7 @@ export default function OrgAccountForm({ onSubmit, isLoading }: Props) {
         onFinish={onSubmit}
       >
         <Form.Item
-          label="Name"
+          label="Your name"
           name="name"
           rules={[
             {
@@ -27,20 +28,39 @@ export default function OrgAccountForm({ onSubmit, isLoading }: Props) {
             },
           ]}
         >
-          <Input />
+          <Input placeholder="Your name" />
         </Form.Item>
 
         <Form.Item
-          label="Title"
+          label="Your job title"
           name="title"
           rules={[{ required: true, message: "Please input your title!" }]}
         >
-          <Input />
+          <Input placeholder="Your job title" />
+        </Form.Item>
+
+        <Form.Item label="Your contact phone number" name="phone">
+          <Input placeholder="(720) 555-1234" />
+        </Form.Item>
+
+        <Form.Item label="Organization name" name="orgName">
+          <Input placeholder="Organization name" />
+        </Form.Item>
+
+        <Form.Item
+          label="Number of client accounts"
+          name="numberOfClientAccounts"
+        >
+          <Select defaultValue="1">
+            <Option value="1">1</Option>
+            <Option value="2">2</Option>
+            <Option value="3">3</Option>
+          </Select>
         </Form.Item>
 
         <Form.Item>
           <Button type="primary" htmlType="submit" block loading={isLoading}>
-            Get started
+            Create Organization <RightOutlined />
           </Button>
         </Form.Item>
       </S.OrgAccountForm>

@@ -7,6 +7,7 @@ import { message } from "antd";
 import { useMutation } from "react-query";
 import { useAuth } from "hooks/useAuth";
 import nookies from "nookies";
+import FormPageTemplate from "components/form-page-template";
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const { emailVerified } = nookies.get(context);
@@ -71,10 +72,15 @@ export default function OrgAccount() {
       <Header title="Org Account" />
 
       <main>
-        <OrgAccountForm
-          onSubmit={handleOrgAccountCreation as (values: unknown) => void}
-          isLoading={createOrgAccount.isLoading}
-        />
+        <FormPageTemplate
+          title="Setup your Organization"
+          subtitle="Next, let’s setup your Organization. An Organization could be a company that has multiple customers with multiple locations, or just a single business with a single location."
+        >
+          <OrgAccountForm
+            onSubmit={handleOrgAccountCreation as (values: unknown) => void}
+            isLoading={createOrgAccount.isLoading}
+          />
+        </FormPageTemplate>
       </main>
     </>
   );

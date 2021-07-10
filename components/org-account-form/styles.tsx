@@ -3,14 +3,13 @@ import { Form, Typography } from "antd";
 
 export const OrgAccountForm = styled(Form)`
   width: 100%;
+
+  .ant-select-selection-item {
+    text-align: left;
+  }
 `;
 
 export const Wrapper = styled.div`
-  width: 300px;
+  width: 317px;
   margin: 0 auto;
-  padding-top: 20vh;
-`;
-
-export const Title = styled(Typography.Title)`
-  text-align: center;
 `;

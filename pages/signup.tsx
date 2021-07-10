@@ -4,6 +4,7 @@ import SignupForm from "components/signup-form";
 import { useAuth, Credentials } from "hooks/useAuth";
 import { message } from "antd";
 import { FirebaseAuthProvider } from "lib/firebaseClient";
+import FormPageTemplate from "components/form-page-template";
 
 export default function Signup() {
   const { signup, loginWithProvider } = useAuth();
@@ -29,13 +30,18 @@ export default function Signup() {
 
   return (
     <>
-      <Header title="Signup" />
+      <Header title="Sign up" />
 
       <main>
-        <SignupForm
-          onSubmit={handleSignup as (values: unknown) => void}
-          onSubmitWithProvider={handleLoginWithProvider}
-        />
+        <FormPageTemplate
+          title="Welcome to ReuseIT"
+          subtitle="First, create a user account with your email, or use your Google account."
+        >
+          <SignupForm
+            onSubmit={handleSignup as (values: unknown) => void}
+            onSubmitWithProvider={handleLoginWithProvider}
+          />
+        </FormPageTemplate>
       </main>
     </>
   );

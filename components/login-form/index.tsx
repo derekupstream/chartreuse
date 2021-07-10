@@ -1,6 +1,7 @@
-import { Form, Input, Button, Typography } from "antd";
+import { Form, Input, Button, Typography, Divider, Space } from "antd";
 import { FirebaseAuthProvider, googleProvider } from "lib/firebaseClient";
 import Link from "next/link";
+import { GoogleOutlined } from "@ant-design/icons";
 
 import * as S from "./styles";
 
@@ -12,7 +13,6 @@ type Props = {
 export default function LoginForm({ onSubmit, onSubmitWithProvider }: Props) {
   return (
     <S.Wrapper>
-      <S.Title>Login</S.Title>
       <S.LoginForm
         name="login"
         layout="vertical"
@@ -25,12 +25,15 @@ export default function LoginForm({ onSubmit, onSubmitWithProvider }: Props) {
           rules={[
             {
               required: true,
+              message: "Email is required!",
+            },
+            {
               type: "email",
               message: "Please input a valid email!",
             },
           ]}
         >
-          <Input type="email" />
+          <Input type="email" placeholder="Your email" />
         </Form.Item>
 
         <Form.Item
@@ -38,27 +41,35 @@ export default function LoginForm({ onSubmit, onSubmitWithProvider }: Props) {
           name="password"
           rules={[{ required: true, message: "Please input your password!" }]}
         >
-          <Input.Password />
+          <Input.Password placeholder="Your password" />
         </Form.Item>
 
         <Form.Item>
           <Button type="primary" htmlType="submit" block>
-            Signin
+            Sign in
           </Button>
         </Form.Item>
       </S.LoginForm>
-      <Link href="/signup" passHref>
-        <Typography.Link>
-          Don&apos;t have an account yet? Go to signup
-        </Typography.Link>
-      </Link>
-      <Button
-        onClick={() => onSubmitWithProvider(googleProvider)}
-        type="primary"
-        block
-      >
-        Signin with Google
-      </Button>
+      <Space direction="vertical" size="large" style={{ width: "100%" }}>
+        <Divider>
+          <Typography.Text strong>OR</Typography.Text>
+        </Divider>
+        <Button
+          onClick={() => onSubmitWithProvider(googleProvider)}
+          type="default"
+          block
+        >
+          <GoogleOutlined /> Sign in with Google
+        </Button>
+        <Typography.Text>
+          <Space>
+            Don&apos;t have an account yet?
+            <Link href="/signup" passHref>
+              <Typography.Link underline>Sign up</Typography.Link>
+            </Link>
+          </Space>
+        </Typography.Text>
+      </Space>
     </S.Wrapper>
   );
 }

@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@ant-design/icons": "^4.6.2",
     "@prisma/client": "^2.26.0",
     "antd": "^4.16.6",
     "firebase": "^8.7.0",
