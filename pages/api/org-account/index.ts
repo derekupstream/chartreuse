@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "lib/prisma";
-import { User } from ".prisma/client";
+import { User, Prisma } from "@prisma/client";
 
 type Response = {
   user?: User;
@@ -16,7 +16,7 @@ export default async function handler(
       const { id, name, email, title, orgName, numberOfClientAccounts } =
         req.body;
 
-      const user = await prisma.user.create({
+      const user = await prisma.user.create<Prisma.UserCreateArgs>({
         data: {
           id,
           name,
