@@ -17,4 +17,15 @@ model User {
   title     String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  org       Org?     @relation(fields: [orgId], references: [id])
+  orgId     String?
+}
+
+model Org {
+  id        String   @id @default(uuid())
+  name      String
+  metadata  Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  users     User[]
 }

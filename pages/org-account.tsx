@@ -25,6 +25,9 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 type OrgAccountFields = {
   title: string;
   name: string;
+  phone: string;
+  orgName: string;
+  numberOfClientAccounts: string;
 };
 
 export default function OrgAccount() {
@@ -42,7 +45,13 @@ export default function OrgAccount() {
   });
 
   const handleOrgAccountCreation = useCallback(
-    async ({ title, name }: OrgAccountFields) => {
+    async ({
+      title,
+      name,
+      phone,
+      orgName,
+      numberOfClientAccounts,
+    }: OrgAccountFields) => {
       try {
         createOrgAccount.mutate(
           {
@@ -50,6 +59,9 @@ export default function OrgAccount() {
             email: user?.email,
             title,
             name,
+            phone,
+            orgName,
+            numberOfClientAccounts,
           },
           {
             onSuccess: () => {

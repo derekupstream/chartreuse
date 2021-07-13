@@ -13,13 +13,21 @@ export default async function handler(
 ) {
   if (req.method === "POST") {
     try {
-      const { id, name, email, title } = req.body;
+      const { id, name, email, title, orgName, numberOfClientAccounts } =
+        req.body;
+
       const user = await prisma.user.create({
         data: {
           id,
           name,
           email,
           title,
+          org: {
+            create: {
+              name: orgName,
+              metadata: { numberOfClientAccounts },
+            },
+          },
         },
       });
 
