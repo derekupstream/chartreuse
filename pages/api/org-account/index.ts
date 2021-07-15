@@ -13,7 +13,7 @@ export default async function handler(
 ) {
   if (req.method === "POST") {
     try {
-      const { id, name, email, title, orgName, numberOfClientAccounts } =
+      const { id, name, email, title, orgName, numberOfClientAccounts, phone } =
         req.body;
 
       const user = await prisma.user.create<Prisma.UserCreateArgs>({
@@ -22,6 +22,7 @@ export default async function handler(
           name,
           email,
           title,
+          phone,
           org: {
             create: {
               name: orgName,

@@ -19,6 +19,7 @@ model User {
   updatedAt DateTime @updatedAt
   org       Org?     @relation(fields: [orgId], references: [id])
   orgId     String?
+  phone     String?
 }
 
 model Org {

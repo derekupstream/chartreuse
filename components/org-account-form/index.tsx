@@ -39,11 +39,29 @@ export default function OrgAccountForm({ onSubmit, isLoading }: Props) {
           <Input placeholder="Your job title" />
         </Form.Item>
 
-        <Form.Item label="Your contact phone number" name="phone">
+        <Form.Item
+          label="Your contact phone number"
+          name="phone"
+          rules={[
+            {
+              required: true,
+              message: "Please input your phone!",
+            },
+          ]}
+        >
           <Input placeholder="(720) 555-1234" />
         </Form.Item>
 
-        <Form.Item label="Organization name" name="orgName">
+        <Form.Item
+          label="Organization name"
+          name="orgName"
+          rules={[
+            {
+              required: true,
+              message: "Please input your organization name!",
+            },
+          ]}
+        >
           <Input placeholder="Organization name" />
         </Form.Item>
 
