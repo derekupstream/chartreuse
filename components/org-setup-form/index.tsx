@@ -9,10 +9,10 @@ type Props = {
   isLoading?: boolean;
 };
 
-export default function OrgAccountForm({ onSubmit, isLoading }: Props) {
+export default function OrgSetupForm({ onSubmit, isLoading }: Props) {
   return (
     <S.Wrapper>
-      <S.OrgAccountForm
+      <S.OrgSetupForm
         name="orgAccount"
         layout="vertical"
         initialValues={{ remember: true }}
@@ -81,7 +81,7 @@ export default function OrgAccountForm({ onSubmit, isLoading }: Props) {
             Create Organization <RightOutlined />
           </Button>
         </Form.Item>
-      </S.OrgAccountForm>
+      </S.OrgSetupForm>
     </S.Wrapper>
   );
 }

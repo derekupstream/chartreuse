@@ -22,11 +22,11 @@ export default function EmailVerification() {
 
       if (user?.emailVerified) {
         setCookie(null, "emailVerified", "true");
-        router.push("/org-account");
+        router.push("/org-setup");
       } else {
         try {
           await user?.sendEmailVerification({
-            url: `${origin}/org-account`,
+            url: `${origin}/org-setup`,
           });
           setCookie(null, "emailVerified", "true");
         } catch (error) {

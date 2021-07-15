@@ -1,7 +1,7 @@
 import { GetServerSideProps } from "next";
 import { useCallback } from "react";
 import { useRouter } from "next/router";
-import OrgAccountForm from "components/org-account-form";
+import OrgSetupForm from "components/org-setup-form";
 import Header from "components/header";
 import { message } from "antd";
 import { useMutation } from "react-query";
@@ -22,7 +22,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   return { props: { emailVerified: true } };
 };
 
-type OrgAccountFields = {
+type OrgSetupFields = {
   title: string;
   name: string;
   phone: string;
@@ -30,12 +30,12 @@ type OrgAccountFields = {
   numberOfClientAccounts: string;
 };
 
-export default function OrgAccount() {
+export default function OrgSetup() {
   const router = useRouter();
   const { user } = useAuth();
 
-  const createOrgAccount = useMutation((data: any) => {
-    return fetch("/api/org-account", {
+  const createOrgSetup = useMutation((data: any) => {
+    return fetch("/api/org-setup", {
       method: "POST",
       body: JSON.stringify(data),
       headers: {
@@ -44,16 +44,16 @@ export default function OrgAccount() {
     });
   });
 
-  const handleOrgAccountCreation = useCallback(
+  const handleOrgSetupCreation = useCallback(
     async ({
       title,
       name,
       phone,
       orgName,
       numberOfClientAccounts,
-    }: OrgAccountFields) => {
+    }: OrgSetupFields) => {
       try {
-        createOrgAccount.mutate(
+        createOrgSetup.mutate(
           {
             id: user?.uid,
             email: user?.email,
@@ -76,7 +76,7 @@ export default function OrgAccount() {
         message.error(error.message);
       }
     },
-    [createOrgAccount, router, user?.email, user?.uid]
+    [createOrgSetup, router, user?.email, user?.uid]
   );
 
   return (
@@ -88,9 +88,9 @@ export default function OrgAccount() {
           title="Setup your Organization"
           subtitle="Next, let’s setup your Organization. An Organization could be a company that has multiple customers with multiple locations, or just a single business with a single location."
         >
-          <OrgAccountForm
-            onSubmit={handleOrgAccountCreation as (values: unknown) => void}
-            isLoading={createOrgAccount.isLoading}
+          <OrgSetupForm
+            onSubmit={handleOrgSetupCreation as (values: unknown) => void}
+            isLoading={createOrgSetup.isLoading}
           />
         </FormPageTemplate>
       </main>

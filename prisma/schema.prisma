@@ -19,14 +19,34 @@ model User {
   updatedAt DateTime @updatedAt
   org       Org?     @relation(fields: [orgId], references: [id])
   orgId     String?
+  account   Account? @relation(fields: [accountId], references: [id])
+  accountId String?
   phone     String?
+  role      Role     @default(ORG_ADMIN)
 }
 
 model Org {
+  id        String    @id @default(uuid())
+  name      String
+  metadata  Json?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  users     User[]
+  accounts  Account[]
+}
+
+model Account {
   id        String   @id @default(uuid())
   name      String
   metadata  Json?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  org       Org?     @relation(fields: [orgId], references: [id])
+  orgId     String?
   users     User[]
+}
+
+enum Role {
+  ORG_ADMIN
+  ACCOUNT_ADMIN
 }

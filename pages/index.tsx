@@ -20,7 +20,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     });
 
     if (!user) {
-      context.res.writeHead(302, { location: "/org-account" });
+      context.res.writeHead(302, { location: "/org-setup" });
       context.res.end();
 
       return { props: { user: null } };

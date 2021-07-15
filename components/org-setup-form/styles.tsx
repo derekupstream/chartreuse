@@ -1,7 +1,7 @@
 import styled from "styled-components";
-import { Form, Typography } from "antd";
+import { Form } from "antd";
 
-export const OrgAccountForm = styled(Form)`
+export const OrgSetupForm = styled(Form)`
   width: 100%;
 
   .ant-select-selection-item {

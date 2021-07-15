@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "lib/prisma";
-import { User, Prisma } from "@prisma/client";
+import { User, Prisma, Role } from "@prisma/client";
 
 type Response = {
   user?: User;
@@ -23,6 +23,7 @@ export default async function handler(
           email,
           title,
           phone,
+          role: Role.ORG_ADMIN,
           org: {
             create: {
               name: orgName,
