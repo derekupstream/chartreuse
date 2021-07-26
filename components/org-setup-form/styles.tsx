@@ -1,13 +1,11 @@
 import styled from "styled-components";
 import { Form } from "antd";
 
-export const SignupForm = styled(Form)`
+export const OrgSetupForm = styled(Form)`
   width: 100%;
 
-  .ant-form-item-explain {
+  .ant-select-selection-item {
     text-align: left;
-    font-style: italic;
-    padding-top: 0.5rem;
   }
 `;
 

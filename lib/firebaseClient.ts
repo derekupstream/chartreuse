@@ -1,4 +1,10 @@
 import firebaseApp from "firebase/app";
+import "firebase/auth";
+
+export type User = firebaseApp.User;
+export type FirebaseAuthProvider = firebaseApp.auth.AuthProvider;
+
+export const googleProvider = new firebaseApp.auth.GoogleAuthProvider();
 
 export const firebase = !firebaseApp.apps.length
   ? firebaseApp.initializeApp({

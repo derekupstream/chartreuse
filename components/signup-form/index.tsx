@@ -1,18 +1,20 @@
-import { Form, Input, Button, Typography } from "antd";
+import { Form, Input, Button, Typography, Divider, Space } from "antd";
+import { FirebaseAuthProvider, googleProvider } from "lib/firebaseClient";
 import Link from "next/link";
+import { GoogleOutlined } from "@ant-design/icons";
 
 import * as S from "./styles";
 
 type Props = {
   onSubmit: (values: unknown) => void;
+  onSubmitWithProvider: (provider: FirebaseAuthProvider) => void;
 };
 
-export default function SignupForm({ onSubmit }: Props) {
+export default function SignupForm({ onSubmit, onSubmitWithProvider }: Props) {
   return (
     <S.Wrapper>
-      <S.Title>Signup</S.Title>
       <S.SignupForm
-        name="login"
+        name="signup"
         layout="vertical"
         initialValues={{ remember: true }}
         onFinish={onSubmit}
@@ -23,31 +25,63 @@ export default function SignupForm({ onSubmit }: Props) {
           rules={[
             {
               required: true,
+              message: "Email is required!",
+            },
+            {
               type: "email",
               message: "Please input a valid email!",
             },
           ]}
         >
-          <Input type="email" />
+          <Input type="email" placeholder="Your email" />
         </Form.Item>
 
-        <Form.Item
-          label="Password"
-          name="password"
-          rules={[{ required: true, message: "Please input your password!" }]}
-        >
-          <Input.Password />
-        </Form.Item>
+        <Space direction="vertical" size="large">
+          <Form.Item
+            label="Password"
+            name="password"
+            rules={[
+              {
+                required: true,
+                message: "Password is required!",
+              },
+              {
+                pattern: new RegExp("^(?=.*[@#$%^&+=])(?=\\S+$).{8,}$"),
+                message: "Please input a valid pasword!",
+              },
+            ]}
+            help="Must be at least 8 characters, and contain at least 1 special character."
+          >
+            <Input.Password placeholder="Your password" />
+          </Form.Item>
 
-        <Form.Item>
-          <Button type="primary" htmlType="submit" block>
-            Signup
-          </Button>
-        </Form.Item>
+          <Form.Item>
+            <Button type="primary" htmlType="submit" block>
+              Get started
+            </Button>
+          </Form.Item>
+        </Space>
       </S.SignupForm>
-      <Link href="/login" passHref>
-        <Typography.Link>Already have an account? Go to login</Typography.Link>
-      </Link>
+      <Space direction="vertical" size="large" style={{ width: "100%" }}>
+        <Divider>
+          <Typography.Text strong>OR</Typography.Text>
+        </Divider>
+        <Button
+          onClick={() => onSubmitWithProvider(googleProvider)}
+          type="default"
+          block
+        >
+          <GoogleOutlined /> Sign up with Google
+        </Button>
+        <Typography.Text>
+          <Space>
+            Already have an account?
+            <Link href="/login" passHref>
+              <Typography.Link underline>Sign in</Typography.Link>
+            </Link>
+          </Space>
+        </Typography.Text>
+      </Space>
     </S.Wrapper>
   );
 }

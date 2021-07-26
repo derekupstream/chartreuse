@@ -1,38 +1,57 @@
 import { GetServerSideProps } from "next";
 import { useRouter } from "next/router";
-import Head from "next/head";
+import Header from "components/header";
 import { Button, Typography, Space, message } from "antd";
 import { useAuth } from "hooks/useAuth";
 import nookies from "nookies";
 import { verifyIdToken } from "lib/firebaseAdmin";
 import PageLoader from "components/page-loader";
+import prisma from "lib/prisma";
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
   try {
     const cookies = nookies.get(context);
     const token = await verifyIdToken(cookies.token);
 
+    const user = await prisma.user.findUnique({
+      where: {
+        id: token.uid,
+      },
+    });
+
+    if (!user) {
+      context.res.writeHead(302, { location: "/org-setup" });
+      context.res.end();
+
+      return { props: { user: null } };
+    }
+
     return {
       props: {
-        token,
+        user: {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+        },
       },
     };
   } catch (error) {
     context.res.writeHead(302, { location: "/login" });
     context.res.end();
 
-    return { props: { token: null } };
+    return { props: { user: null } };
   }
 };
 
 type Props = {
-  token: {
+  user: {
+    id: string;
     email: string;
-    uid: string;
+    name: string;
   };
 };
 
-export default function Home({ token }: Props) {
+export default function Home({ user }: Props) {
   const { signout } = useAuth();
   const router = useRouter();
 
@@ -45,24 +64,20 @@ export default function Home({ token }: Props) {
     }
   };
 
-  if (!token) return <PageLoader />;
+  if (!user) return <PageLoader />;
 
   return (
-    <div>
-      <Head>
-        <title>Calculator</title>
-        <meta name="description" content="Upstream Calculator" />
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
+    <>
+      <Header title="Home" />
 
       <main>
         <Space>
-          <Typography.Text>Hey {token?.email}</Typography.Text>
+          <Typography.Text>Hey {user?.name}</Typography.Text>
           <Button onClick={handleLogout} type="primary">
             Logout
           </Button>
         </Space>
       </main>
-    </div>
+    </>
   );
 }
