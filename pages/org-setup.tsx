@@ -65,7 +65,7 @@ export default function OrgSetup() {
           },
           {
             onSuccess: () => {
-              router.push("/");
+              router.push("/account-setup");
             },
             onError: (err) => {
               message.error((err as Error)?.message);

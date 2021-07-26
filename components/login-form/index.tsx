@@ -13,12 +13,7 @@ type Props = {
 export default function LoginForm({ onSubmit, onSubmitWithProvider }: Props) {
   return (
     <S.Wrapper>
-      <S.LoginForm
-        name="login"
-        layout="vertical"
-        initialValues={{ remember: true }}
-        onFinish={onSubmit}
-      >
+      <S.LoginForm name="login" layout="vertical" onFinish={onSubmit}>
         <Form.Item
           label="Email"
           name="email"
