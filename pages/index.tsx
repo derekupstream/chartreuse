@@ -25,10 +25,12 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     });
 
     if (!user) {
-      context.res.writeHead(302, { location: "/org-setup" });
-      context.res.end();
-
-      return { props: { user: null } };
+      return {
+        redirect: {
+          permanent: false,
+          destination: "/org-setup",
+        },
+      };
     }
 
     return {
@@ -37,10 +39,12 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       },
     };
   } catch (error) {
-    context.res.writeHead(302, { location: "/login" });
-    context.res.end();
-
-    return { props: { user: null } };
+    return {
+      redirect: {
+        permanent: false,
+        destination: "/login",
+      },
+    };
   }
 };
 
