@@ -1,5 +1,15 @@
 This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
+## Documentation
+
+You can either [view the docs on Github](calculator/tree/main/kerbs) or view them with a local [kerbs](https://kerbs.netlify.app/) server:
+
+```bash
+npm run docs
+# or
+yarn docs
+```
+
 ## Getting Started
 
 First, run the development server:
