@@ -13,10 +13,12 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   const { emailVerified } = nookies.get(context);
 
   if (!emailVerified) {
-    context.res.writeHead(302, { location: "/email-verification" });
-    context.res.end();
-
-    return { props: { emailVerified: false } };
+    return {
+      redirect: {
+        permanent: false,
+        destination: "/email-verification"
+      }
+    };
   }
 
   return { props: { emailVerified: true } };
