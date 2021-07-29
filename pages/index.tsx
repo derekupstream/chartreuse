@@ -1,12 +1,10 @@
 import { GetServerSideProps } from "next";
-import { useRouter } from "next/router";
 import Header from "components/header";
-import { Button, Typography, Space, message } from "antd";
-import { useAuth } from "hooks/useAuth";
 import nookies from "nookies";
 import { verifyIdToken } from "lib/firebaseAdmin";
 import PageLoader from "components/page-loader";
 import prisma from "lib/prisma";
+import Dashboard, { Props } from "components/dashboard";
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
   try {
@@ -16,6 +14,13 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     const user = await prisma.user.findUnique({
       where: {
         id: token.uid,
+      },
+      include: {
+        org: {
+          include: {
+            accounts: true,
+          },
+        },
       },
     });
 
@@ -28,11 +33,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
     return {
       props: {
-        user: {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-        },
+        user: JSON.parse(JSON.stringify(user)),
       },
     };
   } catch (error) {
@@ -43,41 +44,13 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   }
 };
 
-type Props = {
-  user: {
-    id: string;
-    email: string;
-    name: string;
-  };
-};
-
-export default function Home({ user }: Props) {
-  const { signout } = useAuth();
-  const router = useRouter();
-
-  const handleLogout = async () => {
-    try {
-      await signout();
-      router.push("/login");
-    } catch (error) {
-      message.error(error.message);
-    }
-  };
-
+export default function DashboardPage({ user }: Props) {
   if (!user) return <PageLoader />;
 
   return (
     <>
-      <Header title="Home" />
-
-      <main>
-        <Space>
-          <Typography.Text>Hey {user?.name}</Typography.Text>
-          <Button onClick={handleLogout} type="primary">
-            Logout
-          </Button>
-        </Space>
-      </main>
+      <Header title="Dashboard" />
+      <Dashboard user={user} />
     </>
   );
 }
