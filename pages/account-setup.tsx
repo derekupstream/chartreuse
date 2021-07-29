@@ -82,8 +82,7 @@ export default function AccountSetup({ org, user }: Props) {
         await createAccount.mutate(
           {
             name,
-            // TODO: use the given email onve we have a paid mailgun plan
-            email: "rn.schiehll@gmail.com",
+            email,
             useOrgEmail,
             orgId: org.id,
             userId: user.id,

@@ -61,7 +61,7 @@ export default async function handler(
         );
 
         await mailgun.messages().send({
-          from: "ReuseIT <rn.schiehll@gmail.com>",
+          from: "ReuseIT",
           to: email,
           subject: `Invite from ${invite.sentBy.name} to join ReuseIT`,
           template: "invite",
