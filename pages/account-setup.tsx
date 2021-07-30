@@ -10,6 +10,8 @@ import { verifyIdToken } from "lib/firebaseAdmin";
 import PageLoader from "components/page-loader";
 import prisma from "lib/prisma";
 import { useRouter } from "next/router";
+import Link from "next/link";
+import { ArrowLeftOutlined } from "@ant-design/icons";
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
   try {
@@ -67,7 +69,7 @@ export default function AccountSetup({ org, user }: Props) {
   const router = useRouter();
 
   const createAccount = useMutation((data: any) => {
-    return fetch("/api/account-setup", {
+    return fetch("/api/account", {
       method: "POST",
       body: JSON.stringify(data),
       headers: {
@@ -109,6 +111,8 @@ export default function AccountSetup({ org, user }: Props) {
 
   if (!org) return <PageLoader />;
 
+  const fromDashboard = !!parseInt(router.query.dashboard as string, 10);
+
   return (
     <>
       <Header title="Org Account" />
@@ -117,6 +121,15 @@ export default function AccountSetup({ org, user }: Props) {
         <FormPageTemplate
           title="Setup a company account"
           subtitle="Create an account for any of your clients. Don’t have client accounts? You can use your organization information for the account section."
+          navBackLink={
+            fromDashboard ? (
+              <Link href="/">
+                <a>
+                  <ArrowLeftOutlined /> back to dashboard
+                </a>
+              </Link>
+            ) : undefined
+          }
         >
           <AccountSetupForm
             onSubmit={handleAccountSetupCreation as (values: unknown) => void}

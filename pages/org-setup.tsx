@@ -37,7 +37,7 @@ export default function OrgSetup() {
   const { user } = useAuth();
 
   const createOrgSetup = useMutation((data: any) => {
-    return fetch("/api/org-setup", {
+    return fetch("/api/org", {
       method: "POST",
       body: JSON.stringify(data),
       headers: {

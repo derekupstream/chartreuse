@@ -15,7 +15,6 @@ export default async function handler(
   if (req.method === "POST") {
     try {
       const { name, email, useOrgEmail, orgId, userId } = req.body;
-      const usingOrgEmail = useOrgEmail === "true";
 
       const account = await prisma.account.create<Prisma.AccountCreateArgs>({
         data: {
@@ -26,7 +25,7 @@ export default async function handler(
               id: orgId,
             },
           },
-          ...(usingOrgEmail
+          ...(useOrgEmail
             ? {}
             : {
                 invites: {
@@ -55,13 +54,13 @@ export default async function handler(
         },
       });
 
-      if (!usingOrgEmail) {
+      if (!useOrgEmail) {
         const invite = ((account as any).invites || []).find(
           (i: Invite) => i.email === email
         );
 
         await mailgun.messages().send({
-          from: "ReuseIT",
+          from: "ReuseIT <rn.schiehll@gmail.com>",
           to: email,
           subject: `Invite from ${invite.sentBy.name} to join ReuseIT`,
           template: "invite",

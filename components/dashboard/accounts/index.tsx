@@ -1,0 +1,143 @@
+import { useRouter } from "next/router";
+import {
+  Button,
+  Space,
+  Table,
+  Tag,
+  Typography,
+  Popconfirm,
+  message,
+} from "antd";
+import { DeleteOutlined, EditOutlined, PlusOutlined } from "@ant-design/icons";
+import { Props } from "components/dashboard";
+import { useMutation } from "react-query";
+import { useCallback } from "react";
+
+import * as S from "../styles";
+
+export default function Accounts({ user }: Props) {
+  const router = useRouter();
+
+  const deleteAccount = useMutation((id: string) => {
+    return fetch(`/api/account/${id}`, {
+      method: "DELETE",
+      headers: {
+        "content-type": "application/json",
+      },
+    });
+  });
+
+  const handleAccountDeletion = useCallback(
+    async (id: string) => {
+      try {
+        deleteAccount.mutate(id, {
+          onSuccess: () => {
+            message.success(`Account deleted`);
+          },
+          onError: (err) => {
+            message.error((err as Error)?.message);
+          },
+        });
+      } catch (error) {
+        message.error(error.message);
+      }
+    },
+    [deleteAccount]
+  );
+
+  const columns = [
+    {
+      title: "Name",
+      dataIndex: "name",
+      key: "name",
+    },
+    {
+      title: "Contact",
+      dataIndex: "contact",
+      key: "contact",
+      // eslint-disable-next-line react/display-name
+      render: (text: string, record: any) => {
+        return (
+          <Space size="small">
+            {text}
+            {record.invitingPending ? (
+              <Tag color="orange">Pending</Tag>
+            ) : (
+              <Tag color="blue">Active</Tag>
+            )}
+          </Space>
+        );
+      },
+    },
+    {
+      title: "Actions",
+      key: "actions",
+      // eslint-disable-next-line react/display-name
+      render: (_: any, record: any) => {
+        return (
+          <Space size="middle">
+            <Button
+              onClick={() => console.log("edit", { record })}
+              icon={<EditOutlined />}
+            />
+            <Popconfirm
+              title={
+                <Space direction="vertical" size="small">
+                  <Typography.Title level={4}>
+                    Are you sure you want to delete the account &quot;
+                    {record.name}&quot;?
+                  </Typography.Title>
+                  <Typography.Text>
+                    You will lose any Account Admins, and Projects associated
+                    with {record.name}.
+                  </Typography.Text>
+                </Space>
+              }
+              onConfirm={() => handleAccountDeletion(record.id)}
+            >
+              <Button
+                icon={<DeleteOutlined />}
+                loading={deleteAccount.isLoading}
+              />
+            </Popconfirm>
+          </Space>
+        );
+      },
+    },
+  ];
+
+  const data = user.org.accounts.map((account) => {
+    return {
+      key: account.id,
+      name: account.name,
+      contact: account.accountContactEmail,
+      invitingPending: !!account.invites.find(
+        (i) => i.email === account.accountContactEmail && !i.accepted
+      ),
+    };
+  });
+
+  const handleAddAcount = () => {
+    router.push("/account-setup?dashboard=1");
+  };
+
+  return (
+    <Space direction="vertical" size="large" style={{ width: "100%" }}>
+      <S.SpaceBetween>
+        <Typography.Title>Accounts</Typography.Title>
+        <Button onClick={handleAddAcount} icon={<PlusOutlined />}>
+          Add account
+        </Button>
+      </S.SpaceBetween>
+      {data.length > 0 && (
+        <Table columns={columns} dataSource={data} pagination={false} />
+      )}
+      {data.length === 0 && (
+        <Typography.Text>
+          You have no active accounts in your organization. Click ‘+ Add
+          account’ above to get started.
+        </Typography.Text>
+      )}
+    </Space>
+  );
+}

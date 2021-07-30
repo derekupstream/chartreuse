@@ -1,12 +1,13 @@
 import { useRouter } from "next/router";
 import Image from "next/image";
-import { Button, Dropdown, message } from "antd";
+import { Button, Dropdown, message, Space, Typography } from "antd";
 import { useAuth } from "hooks/useAuth";
 import { Layout, Menu } from "antd";
 import Logo from "assets/images/logo-inverted.png";
 import { DownOutlined } from "@ant-design/icons";
 import { useState } from "react";
 import { MenuClickEventHandler, MenuInfo } from "rc-menu/lib/interface";
+import SelectedItem, { itemMap } from "components/dashboard/selected-item";
 
 import * as S from "./styles";
 
@@ -16,9 +17,15 @@ export type Props = {
     email: string;
     name: string;
     org: {
+      name: string;
       accounts: {
         id: string;
         name: string;
+        accountContactEmail: string;
+        invites: {
+          email: string;
+          accepted: boolean;
+        }[];
       }[];
     };
   };
@@ -53,18 +60,26 @@ export default function Dashboard({ user }: Props) {
   return (
     <Layout>
       <S.Sider>
-        <div style={{ padding: "1rem" }}>
+        <S.SiderWrapper>
           <Image src={Logo} alt="upstream logo" objectFit="contain" />
-        </div>
+        </S.SiderWrapper>
+        <S.SiderWrapper>
+          <Space direction="vertical" size="small">
+            <Typography.Text>Organization</Typography.Text>
+            <Typography.Title level={3} type="secondary">
+              {user.org.name}
+            </Typography.Title>
+          </Space>
+        </S.SiderWrapper>
         <Menu
           theme="dark"
           mode="inline"
           defaultSelectedKeys={[INITIAL_SELECTED_MENU_ITEM]}
           onClick={handleMenuClick}
         >
-          <Menu.Item key="accounts">Accounts</Menu.Item>
-          <Menu.Item key="members">Members</Menu.Item>
-          <Menu.Item key="projects">Projects</Menu.Item>
+          <S.MenuItem key="accounts">Accounts</S.MenuItem>
+          <S.MenuItem key="members">Members</S.MenuItem>
+          <S.MenuItem key="projects">Projects</S.MenuItem>
         </Menu>
       </S.Sider>
       <Layout style={{ marginLeft: 200 }}>
@@ -85,11 +100,10 @@ export default function Dashboard({ user }: Props) {
           </Dropdown>
         </S.LayoutHeader>
         <S.Content>
-          {selectedItem === "accounts"
-            ? user.org.accounts.map((account) => {
-                return <div key={account.id}>{account.name}</div>;
-              })
-            : selectedItem}
+          <SelectedItem
+            item={selectedItem as keyof typeof itemMap}
+            user={user}
+          />
         </S.Content>
       </Layout>
     </Layout>

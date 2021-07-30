@@ -18,7 +18,11 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       include: {
         org: {
           include: {
-            accounts: true,
+            accounts: {
+              include: {
+                invites: true,
+              },
+            },
           },
         },
       },
