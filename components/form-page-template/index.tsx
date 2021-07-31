@@ -21,7 +21,7 @@ const FormPageTemplate: React.FC<Props> = ({
   return (
     <Container>
       <S.Wrapper>
-        <Space direction="vertical" size={54}>
+        <Space direction="vertical" size={54} style={{ width: "100%" }}>
           {!navBackLink && <Image src={Logo} alt="upstream logo" />}
           {navBackLink && (
             <S.LogoWithNavBackLink>

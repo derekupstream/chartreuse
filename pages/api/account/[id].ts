@@ -27,6 +27,21 @@ export default async function handler(
     } catch (error) {
       return res.status(500).json({ error: error.message });
     }
+  } else if (req.method === "PATCH") {
+    try {
+      const account = await prisma.account.update<Prisma.AccountUpdateArgs>({
+        where: {
+          id: req.query.id as string,
+        },
+        data: {
+          name: req.body.name,
+        },
+      });
+
+      return res.status(200).json({ account });
+    } catch (error) {
+      return res.status(500).json({ error: error.message });
+    }
   }
 
   // Handle any other HTTP method

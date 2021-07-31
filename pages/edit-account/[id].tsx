@@ -1,5 +1,4 @@
 import { useCallback } from "react";
-import AccountSetupForm from "components/account-setup-form";
 import Header from "components/header";
 import { message } from "antd";
 import FormPageTemplate from "components/form-page-template";
@@ -12,18 +11,41 @@ import prisma from "lib/prisma";
 import { useRouter } from "next/router";
 import Link from "next/link";
 import { ArrowLeftOutlined } from "@ant-design/icons";
+import AccountEditForm from "components/account-edit-form";
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
   try {
     const cookies = nookies.get(context);
     const token = await verifyIdToken(cookies.token);
 
+    const { id } = context.query;
+
+    if (!id) {
+      return {
+        redirect: {
+          permanent: false,
+          destination: "/",
+        },
+      };
+    }
+
     const user = await prisma.user.findUnique({
       where: {
         id: token.uid,
       },
       include: {
-        org: true,
+        org: {
+          include: {
+            accounts: {
+              where: {
+                id: id as string,
+              },
+              include: {
+                users: true,
+              },
+            },
+          },
+        },
       },
     });
 
@@ -31,7 +53,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       return {
         redirect: {
           permanent: false,
-          destination: "/org-setup",
+          destination: "/",
         },
       };
     }
@@ -48,16 +70,14 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     return {
       redirect: {
         permanent: false,
-        destination: "/login",
+        destination: "/",
       },
     };
   }
 };
 
-type AccountSetupFields = {
+type AccountEditFields = {
   name: string;
-  email: string;
-  useOrgEmail: boolean;
 };
 
 type Props = {
@@ -66,38 +86,39 @@ type Props = {
   };
   org: {
     id: string;
+    accounts: {
+      id: string;
+      name: string;
+    }[];
   };
 };
 
 export default function AccountSetup({ org, user }: Props) {
   const router = useRouter();
 
-  const createAccount = useMutation((data: any) => {
-    return fetch("/api/account", {
-      method: "POST",
-      body: JSON.stringify(data),
-      headers: {
-        "content-type": "application/json",
-      },
-    });
-  });
+  const updateAccount = useMutation(
+    ({ id, data }: { id: string; data: any }) => {
+      return fetch(`/api/account/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify(data),
+        headers: {
+          "content-type": "application/json",
+        },
+      });
+    }
+  );
 
-  const handleAccountSetupCreation = useCallback(
-    async ({ name, email, useOrgEmail }: AccountSetupFields) => {
+  const handleAccountUpdate = useCallback(
+    async ({ name }: AccountEditFields) => {
       try {
-        await createAccount.mutate(
+        await updateAccount.mutate(
           {
-            name,
-            email,
-            useOrgEmail,
-            orgId: org.id,
-            userId: user.id,
+            id: org.accounts[0].id,
+            data: { name },
           },
           {
             onSuccess: () => {
-              if (!useOrgEmail) {
-                message.success("Account contact invited.");
-              }
+              message.success("Account edited with success.");
 
               router.push("/");
             },
@@ -110,34 +131,31 @@ export default function AccountSetup({ org, user }: Props) {
         message.error(error.message);
       }
     },
-    [createAccount, org.id, router, user.id]
+    [org.accounts, router, updateAccount]
   );
 
   if (!org) return <PageLoader />;
 
-  const fromDashboard = !!parseInt(router.query.dashboard as string, 10);
-
   return (
     <>
-      <Header title="Org Account" />
+      <Header title="Edit Company Account" />
 
       <main>
         <FormPageTemplate
-          title="Setup a company account"
-          subtitle="Create an account for any of your clients. Don’t have client accounts? You can use your organization information for the account section."
+          title="Edit company account"
           navBackLink={
-            fromDashboard ? (
-              <Link href="/">
-                <a>
-                  <ArrowLeftOutlined /> back to dashboard
-                </a>
-              </Link>
-            ) : undefined
+            <Link href="/">
+              <a>
+                <ArrowLeftOutlined /> back to dashboard
+              </a>
+            </Link>
           }
         >
-          <AccountSetupForm
-            onSubmit={handleAccountSetupCreation as (values: unknown) => void}
-            isLoading={createAccount.isLoading}
+          <AccountEditForm
+            onSubmit={handleAccountUpdate as (values: unknown) => void}
+            onCancel={() => router.push("/")}
+            isLoading={updateAccount.isLoading}
+            initialValues={{ name: org.accounts[0].name }}
           />
         </FormPageTemplate>
       </main>

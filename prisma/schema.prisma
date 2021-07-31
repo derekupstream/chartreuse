@@ -7,7 +7,8 @@ datasource db {
 }
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["referentialActions"]
 }
 
 model User {
@@ -52,7 +53,7 @@ model Account {
 model Invite {
   id           String   @id @default(uuid())
   email        String
-  account      Account  @relation(fields: [accountId], references: [id])
+  account      Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
   accountId    String
   accepted     Boolean  @default(false)
   createdAt    DateTime @default(now())

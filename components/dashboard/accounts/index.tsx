@@ -33,6 +33,7 @@ export default function Accounts({ user }: Props) {
         deleteAccount.mutate(id, {
           onSuccess: () => {
             message.success(`Account deleted`);
+            router.replace(router.asPath);
           },
           onError: (err) => {
             message.error((err as Error)?.message);
@@ -42,7 +43,7 @@ export default function Accounts({ user }: Props) {
         message.error(error.message);
       }
     },
-    [deleteAccount]
+    [deleteAccount, router]
   );
 
   const columns = [
@@ -77,7 +78,7 @@ export default function Accounts({ user }: Props) {
         return (
           <Space size="middle">
             <Button
-              onClick={() => console.log("edit", { record })}
+              onClick={() => router.push(`/edit-account/${record.key}`)}
               icon={<EditOutlined />}
             />
             <Popconfirm
@@ -93,7 +94,7 @@ export default function Accounts({ user }: Props) {
                   </Typography.Text>
                 </Space>
               }
-              onConfirm={() => handleAccountDeletion(record.id)}
+              onConfirm={() => handleAccountDeletion(record.key)}
             >
               <Button
                 icon={<DeleteOutlined />}
