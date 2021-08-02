@@ -12,17 +12,17 @@ export const WARM_MATERIALS = [
   { name: "Aluminum Ingot" }
 ] as const;
 
-export type WarmMaterialType = typeof WARM_MATERIALS[number]['name'];
+export type WarmMaterialType = typeof WARM_MATERIALS[number]["name"];
 
-export type ProductMaterial = "Paper" | "Corrugated Cardboard" | "Molded Fiber (Paper)" | "Molded Fiber (Plant)" | "Wood" | "Plastic (#1 PET)" | "Plastic (#5 PP)" | "Plastic (#6 PS)" | "Plastic (LDPE)" | "Compostable Plastic (PLA)" | "EPS Foam" | "Aluminum";
+export type BoxMaterial = "Paper" | "Corrugated Cardboard" | "Molded Fiber (Paper)" | "Molded Fiber (Plant)" | "Wood" | "Plastic (#1 PET)" | "Plastic (#5 PP)" | "Plastic (#6 PS)" | "Plastic (LDPE)" | "Compostable Plastic (PLA)" | "EPS Foam" | "Aluminum";
 
-interface ProductMaterialOption {
-  name: ProductMaterial;
+interface BoxMaterialOption {
+  name: BoxMaterial;
   proxy: WarmMaterialType;
   mtco2ePerLb: number
 }
 
-export const PRODUCT_MATERIALS: ProductMaterialOption[] = [
+export const BOX_MATERIALS: BoxMaterialOption[] = [
   { name: "Paper", proxy: "Office Paper (100% Virgin)", mtco2ePerLb: -0.004594117 },
   { name: "Corrugated Cardboard", proxy: "Corrugated Containers", mtco2ePerLb: -0.0014315 },
   { name: "Molded Fiber (Paper)", proxy: "Office Paper (100% PCR)", mtco2ePerLb: -0.004380952 },

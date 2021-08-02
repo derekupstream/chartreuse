@@ -1,14 +1,15 @@
-import { ProductMaterial } from "./materials";
+import { BoxMaterial } from "./materials";
 import { SingleUseCategory, ReusableCategory } from "./categories";
 
 export interface SingleUseItem {
   id: string;
-  caseCost: number;
+  boxMaterial: BoxMaterial;
+  boxWeight: number; // pounds
   caseCount: number; // units per case
   category: SingleUseCategory;
-  netCaseWeight: number; // pounds
+  grossCaseWeight: number; // pounds
   description?: string;
-  material: ProductMaterial;
+  material: string;
   title: string;
   size: string;
 }
