@@ -4,10 +4,10 @@ import { SingleUseCategory, ReusableCategory } from "./categories";
 export interface SingleUseItem {
   id: string;
   boxMaterial: BoxMaterial;
-  boxWeight: number; // pounds
+  boxWeightPounds: number; // pounds
   caseCount: number; // units per case
   category: SingleUseCategory;
-  grossCaseWeight: number; // pounds
+  grossCaseWeightPounds: number; // pounds
   description?: string;
   material: string;
   title: string;
