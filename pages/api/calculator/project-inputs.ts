@@ -1,12 +1,16 @@
-import { USState } from "./utility-rates";
-import { AdditionalCostType } from "./additional-costs";
-import { DishwasherType, FuelType, TemperatureType } from "./dishwasher";
+import { USState } from "./config/utility-rates";
+import { AdditionalCostType } from "./config/additional-costs";
+import {
+  DishwasherType,
+  FuelType,
+  TemperatureType,
+} from "./config/dishwashers";
 
 export const FREQUENCIES = [
   { name: "Daily", annualOccurence: 365 },
   { name: "Weekly", annualOccurence: 52 },
   { name: "Monthly", annualOccurence: 12 },
-  { name: "Annually", annualOccurence: 1 }
+  { name: "Annually", annualOccurence: 1 },
 ];
 
 type Frequency = typeof FREQUENCIES[number]["name"];
@@ -20,16 +24,17 @@ export interface SingleUseLineItem {
   casesPurchased: number;
   productId: string;
   frequency: Frequency;
-};
+}
 
 export interface ReusableLineItem {
   casesPurchased: number;
   reusableProductId: string;
   singleUseProductId: string;
   annualRepurchasePercentage: number; // how much do they replace for lost, broken, etc.
-};
+}
 
 export interface AdditionalCost {
+  recurringAnnually: boolean;
   type: AdditionalCostType;
 }
 
