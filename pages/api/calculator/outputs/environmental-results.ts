@@ -24,6 +24,6 @@ interface EnvironmentalResults {
   annualWaste: AnnualWasteResults;
 }
 
-export async function getEnvironmentalResults(
+export function getEnvironmentalResults(
   project: ProjectCalculatorInput
-): Promise<EnvironmentalResults> {}
+): EnvironmentalResults {}

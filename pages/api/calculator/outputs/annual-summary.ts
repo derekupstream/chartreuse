@@ -7,6 +7,6 @@ interface AnnualSummary {
   reducedEmissionsMTCO2e: number; // MTCO2e
 }
 
-export async function getAnnualSummary(
+export function getAnnualSummary(
   project: ProjectCalculatorInput
-): Promise<AnnualSummary> {}
+): AnnualSummary {}

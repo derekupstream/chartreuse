@@ -30,6 +30,6 @@ interface FinancialResults {
   summary: FinancialSummary;
 }
 
-export async function getFinancialResults(
+export function getFinancialResults(
   project: ProjectCalculatorInput
-): Promise<FinancialResults> {}
+): FinancialResults {}

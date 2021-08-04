@@ -13,10 +13,10 @@ export async function getProjections(projectId: string) {
     state: "California",
   };
 
-  const annualSummary = await getAnnualSummary(project);
-  const environmentalResults = await getEnvironmentalResults(project);
-  const financialResults = await getFinancialResults(project);
-  const singleUseProductResults = await getSingleUseProductResults(project);
+  const annualSummary = getAnnualSummary(project);
+  const environmentalResults = getEnvironmentalResults(project);
+  const financialResults = getFinancialResults(project);
+  const singleUseProductResults = getSingleUseProductResults(project);
 
   return {
     annualSummary,

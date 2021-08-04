@@ -28,6 +28,6 @@ interface SingleUseProductResults {
   products: SingleUseProductLineItem[];
 }
 
-export async function getSingleUseProductResults(
+export function getSingleUseProductResults(
   project: ProjectCalculatorInput
-): Promise<SingleUseProductResults> {}
+): SingleUseProductResults {}
