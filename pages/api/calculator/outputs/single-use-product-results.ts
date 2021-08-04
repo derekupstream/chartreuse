@@ -1,4 +1,4 @@
-import { SingleUseItem } from "../products";
+import { ProjectCalculatorInput } from "../models";
 
 interface AnnualSingleUseProductSummary {
   productTypeCount: number;
@@ -28,4 +28,6 @@ interface SingleUseProductResults {
   products: SingleUseProductLineItem[];
 }
 
-export async function getSingleUseProductResults(): Promise<SingleUseProductResults> {}
+export async function getSingleUseProductResults(
+  project: ProjectCalculatorInput
+): Promise<SingleUseProductResults> {}

@@ -1,4 +1,4 @@
-import { SingleUseItem } from "../products";
+import { ProjectCalculatorInput } from "../models";
 
 // all values in dollars
 interface OneTimeCosts {
@@ -30,4 +30,6 @@ interface FinancialResults {
   summary: FinancialSummary;
 }
 
-export async function getFinancialResults(): Promise<FinancialResults> {}
+export async function getFinancialResults(
+  project: ProjectCalculatorInput
+): Promise<FinancialResults> {}

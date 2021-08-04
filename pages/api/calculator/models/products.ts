@@ -1,5 +1,5 @@
-import { BoxMaterial } from "./config/materials";
-import { SingleUseCategory, ReusableCategory } from "./config/categories";
+import { BoxMaterial } from "../config/materials";
+import { SingleUseCategory, ReusableCategory } from "../config/categories";
 
 export interface SingleUseItem {
   id: string;

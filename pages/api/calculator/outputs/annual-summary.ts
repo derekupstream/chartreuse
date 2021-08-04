@@ -1,4 +1,4 @@
-import { SingleUseItem } from "../products";
+import { ProjectCalculatorInput } from "../models";
 
 interface AnnualSummary {
   savingsDollars: number; // dollars
@@ -7,4 +7,6 @@ interface AnnualSummary {
   reducedEmissionsMTCO2e: number; // MTCO2e
 }
 
-export async function getAnnualSummary(): Promise<AnnualSummary> {}
+export async function getAnnualSummary(
+  project: ProjectCalculatorInput
+): Promise<AnnualSummary> {}

@@ -1,4 +1,4 @@
-import { SingleUseItem } from "../products";
+import { ProjectCalculatorInput } from "../models";
 
 // all values in MTCO2e
 interface AnnualGasEmissionIncreases {
@@ -24,4 +24,6 @@ interface EnvironmentalResults {
   annualWaste: AnnualWasteResults;
 }
 
-export async function getEnvironmentalResults(): Promise<EnvironmentalResults> {}
+export async function getEnvironmentalResults(
+  project: ProjectCalculatorInput
+): Promise<EnvironmentalResults> {}
