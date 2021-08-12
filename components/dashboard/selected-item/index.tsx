@@ -1,10 +1,11 @@
 import Accounts from "components/dashboard/accounts";
+import Members from "components/dashboard/members";
 import { Props } from "components/dashboard";
 
 export const itemMap = {
   accounts: Accounts,
   // eslint-disable-next-line react/display-name
-  members: () => <div>Members</div>,
+  members: Members,
   // eslint-disable-next-line react/display-name
   projects: () => <div>Projects</div>,
 };

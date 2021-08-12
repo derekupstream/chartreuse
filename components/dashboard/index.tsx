@@ -11,6 +11,31 @@ import SelectedItem, { itemMap } from "components/dashboard/selected-item";
 
 import * as S from "./styles";
 
+export type AccountDataType = {
+  id: string;
+  name: string;
+  accountContactEmail: string;
+  invites: {
+    id: string;
+    email: string;
+    accepted: boolean;
+    account: {
+      id: string;
+      name: string;
+    };
+  }[];
+  users: {
+    id: string;
+    email: string;
+    name: string;
+    title: string;
+    account: {
+      id: string;
+      name: string;
+    };
+  }[];
+};
+
 export type Props = {
   user: {
     id: string;
@@ -18,15 +43,7 @@ export type Props = {
     name: string;
     org: {
       name: string;
-      accounts: {
-        id: string;
-        name: string;
-        accountContactEmail: string;
-        invites: {
-          email: string;
-          accepted: boolean;
-        }[];
-      }[];
+      accounts: AccountDataType[];
     };
   };
 };

@@ -5,13 +5,14 @@ import { verifyIdToken } from "lib/firebaseAdmin";
 import PageLoader from "components/page-loader";
 import prisma from "lib/prisma";
 import Dashboard, { Props } from "components/dashboard";
+import { Prisma } from "@prisma/client";
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
   try {
     const cookies = nookies.get(context);
     const token = await verifyIdToken(cookies.token);
 
-    const user = await prisma.user.findUnique({
+    const user = await prisma.user.findUnique<Prisma.UserFindUniqueArgs>({
       where: {
         id: token.uid,
       },
@@ -20,7 +21,16 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
           include: {
             accounts: {
               include: {
-                invites: true,
+                invites: {
+                  include: {
+                    account: true,
+                  },
+                },
+                users: {
+                  include: {
+                    account: true,
+                  },
+                },
               },
             },
           },
