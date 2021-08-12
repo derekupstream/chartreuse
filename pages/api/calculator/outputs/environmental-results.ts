@@ -1,4 +1,4 @@
-import { ProjectCalculatorInput } from "../models";
+import { CalculatorInput } from "../input";
 
 // all values in MTCO2e
 interface AnnualGasEmissionIncreases {
@@ -25,5 +25,5 @@ interface EnvironmentalResults {
 }
 
 export function getEnvironmentalResults(
-  project: ProjectCalculatorInput
+  project: CalculatorInput
 ): EnvironmentalResults {}

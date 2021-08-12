@@ -1,45 +1,47 @@
-import { USState } from "../config/utility-rates";
-import { AdditionalCostType } from "../config/additional-costs";
-import { Frequency } from "../config/frequency";
+import { USState } from "../constants/utility-rates";
+import { AdditionalCostType } from "../constants/additional-costs";
+import { Frequency } from "../constants/frequency";
 import {
   DishwasherType,
   FuelType,
   TemperatureType,
-} from "../config/dishwashers";
-import { SingleUseItem } from "./products";
-
-export interface ProjectCalculatorInput {
-  state: USState;
-  additionalCosts: AdditionalCost[];
-  reusableItems: SingleUseItem[];
-  singleUseItems: SingleUseItem[];
-}
+} from "../constants/dishwashers";
 
 export interface Project {
+  id: string;
   state: USState;
+  useDishwasherUtilities: boolean; // capture if they want to calculate utilities instead of putting in themselves
+  gasRate: number;
+  electricRate: number;
+  waterRate: number;
 }
 
 // single-use products are recurring
 export interface SingleUseLineItem {
   caseCost: number;
-  casesPurchased: number;
+  caseCount: number;
   projectId: string;
   frequency: Frequency;
   singleUseProductId: string;
+  // these could be in another DB, but at the moment we just need one new set of values
+  newCaseCost: number;
+  newCaseCount: number;
 }
 
 // recurring products are purchased once except for lost or broken items that need repurchase
 export interface ReusableLineItem {
   annualRepurchasePercentage: number;
-  casesPurchased: number;
+  caseCost: number;
+  caseCount: number;
   projectId: string;
   reusableProductId: string;
-  singleUseProductId: string;
+  // singleUseProductId: string; not sure we need to link these
 }
 
 export interface AdditionalCost {
   projectId: string;
-  recurringAnnually: boolean;
+  cost: number;
+  frequency: Frequency | "One Time";
   type: AdditionalCostType;
 }
 
@@ -53,4 +55,28 @@ export interface DishWasher {
   projectId: string;
   temperature: TemperatureType;
   type: DishwasherType;
+}
+
+// monthly utilities and costs
+export interface UtilitiesAndCosts {
+  gasCost: number;
+  gasUsage: number;
+  electricCost: number;
+  electricUsage: number;
+  projectId: string;
+  waterCost: number;
+  waterUsage: number;
+}
+
+type WasteStream = "Garbage" | "Recycling" | "Organics" | "Additional Charges";
+type ServiceType = "Bin" | "Cart" | "Roll Off Bin" | "Additional Charges";
+
+export interface WasteHaulingService {
+  collectionTimesPerWeek: number;
+  monthlyCost: number; // used for calculating financial results
+  size: number;
+  unitCount: number;
+  wasteStream: WasteStream;
+  serviceType: ServiceType;
+  projectId: string;
 }

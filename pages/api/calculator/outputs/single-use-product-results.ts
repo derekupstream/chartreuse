@@ -1,4 +1,4 @@
-import { ProjectCalculatorInput } from "../models";
+import { CalculatorInput } from "../input";
 
 interface AnnualSingleUseProductSummary {
   productTypeCount: number;
@@ -29,5 +29,5 @@ interface SingleUseProductResults {
 }
 
 export function getSingleUseProductResults(
-  project: ProjectCalculatorInput
+  project: CalculatorInput
 ): SingleUseProductResults {}

@@ -1,4 +1,4 @@
-import { ProjectCalculatorInput } from "../models";
+import { CalculatorInput } from "../input";
 
 interface AnnualSummary {
   savingsDollars: number; // dollars
@@ -7,6 +7,4 @@ interface AnnualSummary {
   reducedEmissionsMTCO2e: number; // MTCO2e
 }
 
-export function getAnnualSummary(
-  project: ProjectCalculatorInput
-): AnnualSummary {}
+export function getAnnualSummary(project: CalculatorInput): AnnualSummary {}

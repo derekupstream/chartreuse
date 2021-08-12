@@ -1,5 +1,8 @@
-import { BoxMaterial } from "../config/materials";
-import { SingleUseCategory, ReusableCategory } from "../config/categories";
+import {
+  BoxMaterial,
+  SingleUseCategory,
+  ReusableCategory,
+} from "../constants/products";
 
 export interface SingleUseItem {
   id: string;
@@ -14,6 +17,7 @@ export interface SingleUseItem {
   size: string;
 }
 
+// case count and cost are used to determine one-time costs
 export interface ReusableItem {
   id: string;
   caseCount: number; // units per case
