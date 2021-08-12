@@ -8,3 +8,9 @@ export const Wrapper = styled.div`
     margin-bottom: 0;
   }
 `;
+
+export const LogoWithNavBackLink = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+`;

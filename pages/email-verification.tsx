@@ -5,7 +5,7 @@ import { useAuth } from "hooks/useAuth";
 import { useRouter } from "next/router";
 import { destroyCookie, setCookie } from "nookies";
 import { useEffect } from "react";
-import EmailVerificationPage from "components/email-verification-page";
+import MessagePage from "components/message-page";
 
 export default function EmailVerification() {
   const { user } = useAuth();
@@ -47,7 +47,11 @@ export default function EmailVerification() {
       <Header title="Email verification" />
 
       <main>
-        <EmailVerificationPage />
+        <MessagePage
+          title="Got it!"
+          message="Check your email for a link to continue setting up your
+            organization."
+        />
       </main>
     </>
   );

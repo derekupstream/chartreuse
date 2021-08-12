@@ -1,5 +1,5 @@
 import { RightOutlined } from "@ant-design/icons";
-import { Form, Input, Button, Select } from "antd";
+import { Form, Input, Button } from "antd";
 
 import * as S from "./styles";
 
@@ -8,10 +8,14 @@ type Props = {
   isLoading?: boolean;
 };
 
-export default function OrgSetupForm({ onSubmit, isLoading }: Props) {
+export default function InviteProfileForm({ onSubmit, isLoading }: Props) {
   return (
     <S.Wrapper>
-      <S.OrgSetupForm name="orgAccount" layout="vertical" onFinish={onSubmit}>
+      <S.InviteProfileForm
+        name="orgAccount"
+        layout="vertical"
+        onFinish={onSubmit}
+      >
         <Form.Item
           label="Your name"
           name="name"
@@ -46,36 +50,12 @@ export default function OrgSetupForm({ onSubmit, isLoading }: Props) {
           <Input placeholder="(720) 555-1234" />
         </Form.Item>
 
-        <Form.Item
-          label="Organization name"
-          name="orgName"
-          rules={[
-            {
-              required: true,
-              message: "Please input your organization name!",
-            },
-          ]}
-        >
-          <Input placeholder="Organization name" />
-        </Form.Item>
-
-        <Form.Item
-          label="Number of client accounts"
-          name="numberOfClientAccounts"
-        >
-          <Select placeholder="Select the number of client accounts">
-            <Select.Option value="1">1</Select.Option>
-            <Select.Option value="2">2</Select.Option>
-            <Select.Option value="3">3</Select.Option>
-          </Select>
-        </Form.Item>
-
         <Form.Item>
           <Button type="primary" htmlType="submit" block loading={isLoading}>
-            Create Organization <RightOutlined />
+            Create Account <RightOutlined />
           </Button>
         </Form.Item>
-      </S.OrgSetupForm>
+      </S.InviteProfileForm>
     </S.Wrapper>
   );
 }

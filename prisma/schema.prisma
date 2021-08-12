@@ -7,22 +7,24 @@ datasource db {
 }
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["referentialActions"]
 }
 
 model User {
-  id        String   @id
-  name      String?
-  email     String?
-  title     String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  org       Org?     @relation(fields: [orgId], references: [id])
-  orgId     String?
-  account   Account? @relation(fields: [accountId], references: [id])
-  accountId String?
-  phone     String?
-  role      Role     @default(ORG_ADMIN)
+  id          String   @id
+  name        String?
+  email       String?  @unique
+  title       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  org         Org?     @relation(fields: [orgId], references: [id])
+  orgId       String?
+  account     Account? @relation(fields: [accountId], references: [id])
+  accountId   String?
+  phone       String?
+  role        Role     @default(ORG_ADMIN)
+  invitesSent Invite[]
 }
 
 model Org {
@@ -36,14 +38,28 @@ model Org {
 }
 
 model Account {
-  id        String   @id @default(uuid())
-  name      String
-  metadata  Json?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  org       Org?     @relation(fields: [orgId], references: [id])
-  orgId     String?
-  users     User[]
+  id                  String   @id @default(uuid())
+  name                String
+  metadata            Json?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  org                 Org?     @relation(fields: [orgId], references: [id])
+  orgId               String?
+  users               User[]
+  accountContactEmail String
+  invites             Invite[]
+}
+
+model Invite {
+  id           String   @id @default(uuid())
+  email        String
+  account      Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  accountId    String
+  accepted     Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  sentBy       User     @relation(fields: [sentByUserId], references: [id])
+  sentByUserId String
 }
 
 enum Role {
