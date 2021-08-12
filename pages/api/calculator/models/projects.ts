@@ -1,4 +1,4 @@
-import { USState } from "../constants/utility-rates";
+import { USState } from "../constants/utilities";
 import { AdditionalCostType } from "../constants/additional-costs";
 import { Frequency } from "../constants/frequency";
 import {

@@ -1,4 +1,4 @@
-import { USState } from "./constants/utility-rates";
+import { USState, UTILITY_RATE_SELECTION } from "./constants/utilities";
 import {
   AdditionalCost,
   DishWasher,
@@ -28,4 +28,23 @@ export interface CalculatorInput {
   newUtilities?: UtilitiesAndCosts;
   wasteHauling: WasteHaulingService[];
   newWasteHauling: WasteHaulingService[];
+}
+
+// TODO: retrieve project data from database
+export async function getCalculatorInput(
+  projectId: string
+): Promise<CalculatorInput> {
+  return {
+    additionalCosts: [],
+    reusableItems: [],
+    singleUseItems: [],
+    state: "California",
+    utilityRates: {
+      gas: UTILITY_RATE_SELECTION.gas,
+      electric: UTILITY_RATE_SELECTION.electric,
+      water: UTILITY_RATE_SELECTION.water,
+    },
+    wasteHauling: [],
+    newWasteHauling: [],
+  };
 }
