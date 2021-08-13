@@ -11,7 +11,7 @@ import prisma from "lib/prisma";
 import { useRouter } from "next/router";
 import Link from "next/link";
 import { ArrowLeftOutlined } from "@ant-design/icons";
-import AccountEditForm from "components/account-edit-form";
+import MemberEditForm from "components/member-edit-form";
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
   try {
@@ -29,27 +29,29 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       };
     }
 
-    const user = await prisma.user.findUnique({
+    const admin = await prisma.user.findUnique({
       where: {
         id: token.uid,
       },
       include: {
         org: {
           include: {
-            accounts: {
-              where: {
-                id: id as string,
-              },
-              include: {
-                users: true,
-              },
-            },
+            accounts: true,
           },
         },
       },
     });
 
-    if (!user) {
+    const user = await prisma.user.findUnique({
+      where: {
+        id: id as string,
+      },
+      include: {
+        account: true,
+      },
+    });
+
+    if (!admin || !user) {
       return {
         redirect: {
           permanent: false,
@@ -61,7 +63,8 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     return {
       props: JSON.parse(
         JSON.stringify({
-          org: user.org,
+          user: user,
+          org: admin.org,
         })
       ),
     };
@@ -75,11 +78,25 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   }
 };
 
-type AccountEditFields = {
+type MemberEditFields = {
   name: string;
+  email: string;
+  title: string;
+  phone: string;
+  accountId: string;
 };
 
 type Props = {
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    title: string;
+    phone: string;
+    account: {
+      id: string;
+    };
+  };
   org: {
     id: string;
     accounts: {
@@ -89,12 +106,12 @@ type Props = {
   };
 };
 
-export default function EditAccount({ org }: Props) {
+export default function EditMemberProfile({ org, user }: Props) {
   const router = useRouter();
 
   const updateAccount = useMutation(
     ({ id, data }: { id: string; data: any }) => {
-      return fetch(`/api/account/${id}`, {
+      return fetch(`/api/profile/${id}`, {
         method: "PATCH",
         body: JSON.stringify(data),
         headers: {
@@ -105,16 +122,16 @@ export default function EditAccount({ org }: Props) {
   );
 
   const handleAccountUpdate = useCallback(
-    async ({ name }: AccountEditFields) => {
+    async (data: MemberEditFields) => {
       try {
         await updateAccount.mutate(
           {
-            id: org.accounts[0].id,
-            data: { name },
+            id: user.id,
+            data,
           },
           {
             onSuccess: () => {
-              message.success("Account edited with success.");
+              message.success("Account member edited with success.");
 
               router.push("/");
             },
@@ -127,18 +144,18 @@ export default function EditAccount({ org }: Props) {
         message.error(error.message);
       }
     },
-    [org.accounts, router, updateAccount]
+    [router, updateAccount, user.id]
   );
 
   if (!org) return <PageLoader />;
 
   return (
     <>
-      <Header title="Edit Company Account" />
+      <Header title="Edit Account Member" />
 
       <main>
         <FormPageTemplate
-          title="Edit company account"
+          title="Edit account member"
           navBackLink={
             <Link href="/">
               <a>
@@ -147,11 +164,18 @@ export default function EditAccount({ org }: Props) {
             </Link>
           }
         >
-          <AccountEditForm
+          <MemberEditForm
             onSubmit={handleAccountUpdate as (values: unknown) => void}
             onCancel={() => router.push("/")}
             isLoading={updateAccount.isLoading}
-            initialValues={{ name: org.accounts[0].name }}
+            initialValues={{
+              name: user.name,
+              email: user.email,
+              title: user.title,
+              phone: user.phone,
+              accountId: user.account.id,
+            }}
+            accounts={org.accounts}
           />
         </FormPageTemplate>
       </main>

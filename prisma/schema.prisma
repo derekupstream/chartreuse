@@ -58,7 +58,7 @@ model Invite {
   accepted     Boolean  @default(false)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
-  sentBy       User     @relation(fields: [sentByUserId], references: [id])
+  sentBy       User     @relation(fields: [sentByUserId], references: [id], onDelete: Cascade)
   sentByUserId String
 }
 
