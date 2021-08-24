@@ -4,7 +4,6 @@ import {
   DishWasher,
   ReusableLineItem,
   SingleUseLineItem,
-  UtilitiesAndCosts,
   WasteHaulingService,
 } from "./models/projects";
 
@@ -24,8 +23,6 @@ export interface CalculatorInput {
     electric: number;
     water: number;
   };
-  utilities?: UtilitiesAndCosts;
-  newUtilities?: UtilitiesAndCosts;
   wasteHauling: WasteHaulingService[];
   newWasteHauling: WasteHaulingService[];
 }

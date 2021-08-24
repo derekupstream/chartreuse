@@ -1,3 +1,9 @@
+
+export const BTU_TO_KWH = 3413;
+export const BTU_TO_THERMS = 100000;
+export const DENSITY_OF_WATER = 8.2; // lb/gallon
+export const SPECIFIC_HEAT_OF_WATER = 1.0; // Btu/pound/degrees F
+
 export const DISHWASHER_TYPES = [
   { name: "Under Counter" },
   { name: "Stationary Single Tank Door" },
@@ -10,13 +16,51 @@ export const FUEL_TYPES = [{ name: "Electric" }, { name: "Gas" }] as const;
 
 export const TEMPERATURES = [{ name: "High" }, { name: "Low" }] as const;
 
+// See Hidden: Dishwasher calculations: Assumptions
+export const BUILDING_WATER_HEATER = {
+  electricEfficiency: 0.98,
+  gasEfficiency: 0.8,
+  tempIncrease: 70, // degrees F
+  // calculated below
+  electricEnergyUsage: 0, // kWh/gallon
+  gasEnergyUsage: 0 // therm/gallon
+};
+
+export const BOOSTER_WATER_HEATER = {
+  electricEfficiency: 0.98,
+  gasEfficiency: 0.8,
+  tempIncrease: 40, // degrees F
+  // calculated below
+  electricEnergyUsage: 0, // kWh/gallon
+  gasEnergyUsage: 0 // therm/gallon
+};
+
+// See Hidden: Dishwasher calculations: C42, C43, D42, D43
+BUILDING_WATER_HEATER.electricEnergyUsage = calculateEnergyUsage(BUILDING_WATER_HEATER.tempIncrease, BUILDING_WATER_HEATER.electricEfficiency);
+BUILDING_WATER_HEATER.gasEnergyUsage = calculateEnergyUsage(BUILDING_WATER_HEATER.tempIncrease, BUILDING_WATER_HEATER.gasEfficiency);
+BOOSTER_WATER_HEATER.electricEnergyUsage = calculateEnergyUsage(BOOSTER_WATER_HEATER.tempIncrease, BOOSTER_WATER_HEATER.electricEfficiency);
+BOOSTER_WATER_HEATER.gasEnergyUsage = calculateEnergyUsage(BOOSTER_WATER_HEATER.tempIncrease, BOOSTER_WATER_HEATER.gasEfficiency);
+
+function calculateEnergyUsage (tempIncrease: number, electricEfficiency: number) {
+  return (
+    tempIncrease
+    * SPECIFIC_HEAT_OF_WATER
+    * DENSITY_OF_WATER
+    / electricEfficiency
+    / BTU_TO_KWH
+  );
+}
+
 interface ConsumptionItem {
   type: DishwasherType;
   temperature: TemperatureType;
   energyStar: boolean;
-  electric: number;
-  gas: number;
-  water: number;
+  values: {
+    washTimeMinutes: number;
+    waterUsePerRack: number; // gallons
+    idlePowerDraw: number; // kW
+    lifetimeYears: number;
+  };
 }
 
 export const ANNUAL_DISHWASHER_CONSUMPTION: ConsumptionItem[] = [
@@ -24,151 +68,330 @@ export const ANNUAL_DISHWASHER_CONSUMPTION: ConsumptionItem[] = [
     type: "Under Counter",
     temperature: "Low",
     energyStar: false,
-    electric: 8645,
-    gas: 0,
-    water: 50378,
+    values: {
+      washTimeMinutes: 2,
+      waterUsePerRack: 1.73,
+      idlePowerDraw: 0.5,
+      lifetimeYears: 10
+    }
   },
   {
     type: "Under Counter",
     temperature: "Low",
     energyStar: true,
-    electric: 5947,
-    gas: 0,
-    water: 34653,
+    values: {
+      washTimeMinutes: 2,
+      waterUsePerRack: 1.19,
+      idlePowerDraw: 0.5,
+      lifetimeYears: 10
+    }
   },
   {
     type: "Under Counter",
     temperature: "High",
     energyStar: false,
-    electric: 5447,
-    gas: 0,
-    water: 31741,
+    values: {
+      washTimeMinutes: 2,
+      waterUsePerRack: 1.09,
+      idlePowerDraw: 0.76,
+      lifetimeYears: 10
+    }
   },
   {
     type: "Under Counter",
     temperature: "High",
     energyStar: true,
-    electric: 4298,
-    gas: 0,
-    water: 25043,
-  },
-
-  {
-    type: "Stationary Single Tank Door",
-    temperature: "Low",
-    energyStar: false,
-    electric: 10494,
-    gas: 0,
-    water: 61152,
+    values: {
+      washTimeMinutes: 2,
+      waterUsePerRack: 0.86,
+      idlePowerDraw: 0.5,
+      lifetimeYears: 10
+    }
   },
   {
     type: "Stationary Single Tank Door",
     temperature: "Low",
+    energyStar: false,
+    values: {
+      washTimeMinutes: 1.5,
+      waterUsePerRack: 2.1,
+      idlePowerDraw: 0.6,
+      lifetimeYears: 15
+    }
+  },
+  {
+    type: "Stationary Single Tank Door",
+    temperature: "Low",
     energyStar: true,
-    electric: 5897,
-    gas: 0,
-    water: 34362,
+    values: {
+      washTimeMinutes: 1.5,
+      waterUsePerRack: 1.18,
+      idlePowerDraw: 0.6,
+      lifetimeYears: 15
+    }
   },
   {
     type: "Stationary Single Tank Door",
     temperature: "High",
     energyStar: false,
-    electric: 10130,
-    gas: 0,
-    water: 37565,
+    values: {
+      washTimeMinutes: 1,
+      waterUsePerRack: 1.29,
+      idlePowerDraw: 0.87,
+      lifetimeYears: 15
+    }
   },
   {
     type: "Stationary Single Tank Door",
     temperature: "High",
     energyStar: true,
-    electric: 6989,
-    gas: 0,
-    water: 25917,
-  },
-
-  {
-    type: "Single Tank Conveyer",
-    temperature: "Low",
-    energyStar: false,
-    electric: 6547,
-    gas: 0,
-    water: 38147,
+    values: {
+      washTimeMinutes: 1,
+      waterUsePerRack: 0.89,
+      idlePowerDraw: 0.7,
+      lifetimeYears: 15
+    }
   },
   {
     type: "Single Tank Conveyer",
     temperature: "Low",
+    energyStar: false,
+    values: {
+      washTimeMinutes: 0.3,
+      waterUsePerRack: 1.31,
+      idlePowerDraw: 1.6,
+      lifetimeYears: 20
+    }
+  },
+  {
+    type: "Single Tank Conveyer",
+    temperature: "Low",
     energyStar: true,
-    electric: 3948,
-    gas: 0,
-    water: 23005,
+    values: {
+      washTimeMinutes: 0.3,
+      waterUsePerRack: 0.79,
+      idlePowerDraw: 1.5,
+      lifetimeYears: 20
+    }
   },
   {
     type: "Single Tank Conveyer",
     temperature: "High",
     energyStar: false,
-    electric: 6832,
-    gas: 0,
-    water: 25334,
+    values: {
+      washTimeMinutes: 0.3,
+      waterUsePerRack: 0.87,
+      idlePowerDraw: 1.93,
+      lifetimeYears: 20
+    }
   },
   {
     type: "Single Tank Conveyer",
     temperature: "High",
     energyStar: true,
-    electric: 5497,
-    gas: 0,
-    water: 20384,
-  },
-
-  {
-    type: "Multi Tank Conveyer",
-    temperature: "Low",
-    energyStar: false,
-    electric: 5197,
-    gas: 0,
-    water: 30285,
+    values: {
+      washTimeMinutes: 0.3,
+      waterUsePerRack: 0.7,
+      idlePowerDraw: 1.5,
+      lifetimeYears: 20
+    }
   },
   {
     type: "Multi Tank Conveyer",
     temperature: "Low",
+    energyStar: false,
+    values: {
+      washTimeMinutes: 0.3,
+      waterUsePerRack: 1.04,
+      idlePowerDraw: 2,
+      lifetimeYears: 20
+    }
+  },
+  {
+    type: "Multi Tank Conveyer",
+    temperature: "Low",
     energyStar: true,
-    electric: 2699,
-    gas: 0,
-    water: 15725,
+    values: {
+      washTimeMinutes: 0.3,
+      waterUsePerRack: 1.54,
+      idlePowerDraw: 2,
+      lifetimeYears: 20
+    }
   },
   {
     type: "Multi Tank Conveyer",
     temperature: "High",
     energyStar: false,
-    electric: 7617,
-    gas: 0,
-    water: 28246,
+    values: {
+      washTimeMinutes: 0.2,
+      waterUsePerRack: 0.97,
+      idlePowerDraw: 2.59,
+      lifetimeYears: 20
+    }
   },
   {
     type: "Multi Tank Conveyer",
     temperature: "High",
     energyStar: true,
-    electric: 4241,
-    gas: 0,
-    water: 15725,
-  },
-
-  {
-    type: "Pot, Pan, and Utensil",
-    temperature: "High",
-    energyStar: false,
-    electric: 5497,
-    gas: 0,
-    water: 20384,
-  },
-  {
-    type: "Pot, Pan, and Utensil",
-    temperature: "High",
-    energyStar: true,
-    electric: 4555,
-    gas: 0,
-    water: 16890,
-  },
+    values: {
+      washTimeMinutes: 0.2,
+      waterUsePerRack: 0.54,
+      idlePowerDraw: 2.25,
+      lifetimeYears: 20
+    }
+  }
 ];
+
+// export const ANNUAL_DISHWASHER_CONSUMPTION: ConsumptionItem[] = [
+//   {
+//     type: "Under Counter",
+//     temperature: "Low",
+//     energyStar: false,
+//     electric: 8645,
+//     gas: 0,
+//     water: 50378,
+//   },
+//   {
+//     type: "Under Counter",
+//     temperature: "Low",
+//     energyStar: true,
+//     electric: 5947,
+//     gas: 0,
+//     water: 34653,
+//   },
+//   {
+//     type: "Under Counter",
+//     temperature: "High",
+//     energyStar: false,
+//     electric: 5447,
+//     gas: 0,
+//     water: 31741,
+//   },
+//   {
+//     type: "Under Counter",
+//     temperature: "High",
+//     energyStar: true,
+//     electric: 4298,
+//     gas: 0,
+//     water: 25043,
+//   },
+
+//   {
+//     type: "Stationary Single Tank Door",
+//     temperature: "Low",
+//     energyStar: false,
+//     electric: 10494,
+//     gas: 0,
+//     water: 61152,
+//   },
+//   {
+//     type: "Stationary Single Tank Door",
+//     temperature: "Low",
+//     energyStar: true,
+//     electric: 5897,
+//     gas: 0,
+//     water: 34362,
+//   },
+//   {
+//     type: "Stationary Single Tank Door",
+//     temperature: "High",
+//     energyStar: false,
+//     electric: 10130,
+//     gas: 0,
+//     water: 37565,
+//   },
+//   {
+//     type: "Stationary Single Tank Door",
+//     temperature: "High",
+//     energyStar: true,
+//     electric: 6989,
+//     gas: 0,
+//     water: 25917,
+//   },
+
+//   {
+//     type: "Single Tank Conveyer",
+//     temperature: "Low",
+//     energyStar: false,
+//     electric: 6547,
+//     gas: 0,
+//     water: 38147,
+//   },
+//   {
+//     type: "Single Tank Conveyer",
+//     temperature: "Low",
+//     energyStar: true,
+//     electric: 3948,
+//     gas: 0,
+//     water: 23005,
+//   },
+//   {
+//     type: "Single Tank Conveyer",
+//     temperature: "High",
+//     energyStar: false,
+//     electric: 6832,
+//     gas: 0,
+//     water: 25334,
+//   },
+//   {
+//     type: "Single Tank Conveyer",
+//     temperature: "High",
+//     energyStar: true,
+//     electric: 5497,
+//     gas: 0,
+//     water: 20384,
+//   },
+
+//   {
+//     type: "Multi Tank Conveyer",
+//     temperature: "Low",
+//     energyStar: false,
+//     electric: 5197,
+//     gas: 0,
+//     water: 30285,
+//   },
+//   {
+//     type: "Multi Tank Conveyer",
+//     temperature: "Low",
+//     energyStar: true,
+//     electric: 2699,
+//     gas: 0,
+//     water: 15725,
+//   },
+//   {
+//     type: "Multi Tank Conveyer",
+//     temperature: "High",
+//     energyStar: false,
+//     electric: 7617,
+//     gas: 0,
+//     water: 28246,
+//   },
+//   {
+//     type: "Multi Tank Conveyer",
+//     temperature: "High",
+//     energyStar: true,
+//     electric: 4241,
+//     gas: 0,
+//     water: 15725,
+//   },
+
+//   {
+//     type: "Pot, Pan, and Utensil",
+//     temperature: "High",
+//     energyStar: false,
+//     electric: 5497,
+//     gas: 0,
+//     water: 20384,
+//   },
+//   {
+//     type: "Pot, Pan, and Utensil",
+//     temperature: "High",
+//     energyStar: true,
+//     electric: 4555,
+//     gas: 0,
+//     water: 16890,
+//   },
+// ];
 
 export type DishwasherType = typeof DISHWASHER_TYPES[number]["name"];
 export type FuelType = typeof FUEL_TYPES[number]["name"];

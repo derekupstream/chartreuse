@@ -1,5 +1,5 @@
 import { Frequency, getAnnualOccurence } from "../constants/frequency";
-import { ANNUAL_DISHWASHER_CONSUMPTION } from "../constants/dishwashers";
+import { ANNUAL_DISHWASHER_CONSUMPTION, BUILDING_WATER_HEATER, BOOSTER_WATER_HEATER } from "../constants/dishwashers";
 import { CalculatorInput } from "../input";
 import { DishWasher, UtilitiesAndCosts } from "../models/projects";
 
@@ -76,14 +76,9 @@ function calculateAnnualCosts(project: CalculatorInput): AnnualCostChanges {
   }, 0);
   const singleUseProducts = baseSingleUseCosts - followUpSingleUseCosts;
 
-  let utilities = 0;
-  if (project.dishwasher) {
-    utilities = dishwasherAnnualCost(project.dishwasher, project.utilityRates);
-  } else if (project.utilities && project.newUtilities) {
-    utilities =
-      utilitiesAnnualCost(project.newUtilities) -
-      utilitiesAnnualCost(project.utilities);
-  }
+  const utilities = project.dishwasher
+    ? dishwasherAnnualCost(project.dishwasher, project.utilityRates)
+    : 0;
 
   const wasteHauling = wasteHaulingAnnualCost(project);
 
@@ -114,17 +109,11 @@ function singleUseAnnualCost(item: {
   return item.caseCost * item.caseCount * frequencyVal;
 }
 
-function utilitiesAnnualCost(utilities: UtilitiesAndCosts) {
-  return (
-    12 * (utilities.gasCost + utilities.electricCost + utilities.waterCost)
-  );
-}
-
 function dishwasherAnnualCost(
   dishwasher: DishWasher,
   rates: CalculatorInput["utilityRates"]
 ) {
-  // calculate HIDDEN: Dishwasher Calculations'!C85
+
   const usageConfig = ANNUAL_DISHWASHER_CONSUMPTION.find((conf) => {
     return (
       dishwasher.temperature === conf.temperature &&
@@ -132,15 +121,42 @@ function dishwasherAnnualCost(
       dishwasher.energyStarCertified === conf.energyStar
     );
   });
-  const electricUsage = usageConfig ? usageConfig.electric : 0;
-  const electricCost = electricUsage * rates.electric;
-  const gasUsage = usageConfig ? usageConfig.gas : 0;
-  const gasCost = gasUsage * rates.gas;
-  const waterUsage = usageConfig ? usageConfig.water : 0;
+
+  if (!usageConfig) {
+    throw new Error("Invalid dishwasher configuration");
+  }
+
+  const waterUsage = usageConfig.values.waterUsePerRack * dishwasher.additionalRacksPerDay * dishwasher.operatingDays; // gallons per year
   const waterCost = (waterUsage * rates.water) / 1000;
+
+  // Hidden: dishwasher calulcations: C85, C86
+  let electricUsage = 0;
+  let gasUsage = 0;
+
+  if (dishwasher.buildingWaterHeaterFuelType === "Electric") {
+    electricUsage = waterUsage * BUILDING_WATER_HEATER.electricEnergyUsage; // kWh per year
+    // add booster energy, if applicable
+    if (dishwasher.temperature === 'High') {
+      const boosterConsumption = waterUsage * BOOSTER_WATER_HEATER.electricEnergyUsage;
+      electricUsage += boosterConsumption;
+    }
+  }
+  else if (dishwasher.buildingWaterHeaterFuelType === 'Gas') {
+    gasUsage = waterUsage * BUILDING_WATER_HEATER.gasEnergyUsage; // therm per year
+    // add booster energy, if applicable
+    if (dishwasher.temperature === 'High') {
+      const boosterConsumption = waterUsage * BOOSTER_WATER_HEATER.gasEnergyUsage;
+      gasUsage += boosterConsumption;
+    }
+  }
+
+  const electricCost = electricUsage * rates.electric;
+  const gasCost = gasUsage * rates.gas;
 
   return electricCost + gasCost + waterCost;
 }
+
+
 
 function wasteHaulingAnnualCost(project: CalculatorInput) {
   const baseWasteHaulingCost = project.wasteHauling.reduce(

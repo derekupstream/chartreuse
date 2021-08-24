@@ -47,8 +47,7 @@ export interface AdditionalCost {
 
 export interface DishWasher {
   additionalRacksPerDay: number; // reusables need additional racks
-  boosterWaterHeater: boolean;
-  boosterWaterHeaterFuelType: FuelType;
+  boosterWaterHeaterFuelType: FuelType; // a booster is included for high temp models
   buildingWaterHeaterFuelType: FuelType;
   energyStarCertified: boolean;
   operatingDays: 1 | 2 | 3 | 4 | 5 | 6 | 7;
