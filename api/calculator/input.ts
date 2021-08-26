@@ -5,7 +5,7 @@ import {
   ReusableLineItem,
   SingleUseLineItem,
   WasteHaulingService,
-} from "./models/projects";
+} from "./types/projects";
 
 /**
  *

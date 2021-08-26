@@ -1,7 +1,7 @@
 import { Frequency, getAnnualOccurence } from "../constants/frequency";
 import { ANNUAL_DISHWASHER_CONSUMPTION, BUILDING_WATER_HEATER, BOOSTER_WATER_HEATER } from "../constants/dishwashers";
 import { CalculatorInput } from "../input";
-import { DishWasher, UtilitiesAndCosts } from "../models/projects";
+import { DishWasher, UtilitiesAndCosts } from "../types/projects";
 
 interface FinancialResults {
   annualCostChanges: AnnualCostChanges;
@@ -12,6 +12,7 @@ interface FinancialResults {
 export function getFinancialResults(
   project: CalculatorInput
 ): FinancialResults {
+
   const annualCostChanges = calculateAnnualCosts(project);
   const oneTimeCosts = calculateOneTimeCosts(project);
   const summary = calculateSummary(project);
@@ -58,7 +59,7 @@ function calculateAnnualCosts(project: CalculatorInput): AnnualCostChanges {
       sum +
       singleUseAnnualCost({
         caseCost: item.caseCost,
-        caseCount: item.caseCount,
+        casesPurchased: item.casesPurchased,
         frequency: item.frequency,
       })
     );
@@ -69,7 +70,7 @@ function calculateAnnualCosts(project: CalculatorInput): AnnualCostChanges {
       sum +
       singleUseAnnualCost({
         caseCost: item.newCaseCost,
-        caseCount: item.newCaseCount,
+        casesPurchased: item.newCasesPurchased,
         frequency: item.frequency,
       })
     );
@@ -102,11 +103,11 @@ function calculateAnnualCosts(project: CalculatorInput): AnnualCostChanges {
 // =$J5*L5*INDEX(HIDDEN_Purchase_Frequency_Table,MATCH($I5,HIDDEN_Purchase_Frequency_Options,0),2)
 function singleUseAnnualCost(item: {
   caseCost: number;
-  caseCount: number;
+  casesPurchased: number;
   frequency: Frequency;
 }) {
   const frequencyVal = getAnnualOccurence(item.frequency);
-  return item.caseCost * item.caseCount * frequencyVal;
+  return item.caseCost * item.casesPurchased * frequencyVal;
 }
 
 function dishwasherAnnualCost(
@@ -114,7 +115,19 @@ function dishwasherAnnualCost(
   rates: CalculatorInput["utilityRates"]
 ) {
 
-  const usageConfig = ANNUAL_DISHWASHER_CONSUMPTION.find((conf) => {
+  const { electricUsage, gasUsage, waterUsage } = dishwasherUtilityUsage(dishwasher);
+
+  const electricCost = electricUsage * rates.electric;
+  const gasCost = gasUsage * rates.gas;
+  const waterCost = (waterUsage * rates.water) / 1000;
+
+  return electricCost + gasCost + waterCost;
+}
+
+// Hidden: dishwasher calulcations: C85, C86
+export function dishwasherUtilityUsage (dishwasher: DishWasher) {
+
+  const washerProfile = ANNUAL_DISHWASHER_CONSUMPTION.find((conf) => {
     return (
       dishwasher.temperature === conf.temperature &&
       dishwasher.type === conf.type &&
@@ -122,12 +135,11 @@ function dishwasherAnnualCost(
     );
   });
 
-  if (!usageConfig) {
-    throw new Error("Invalid dishwasher configuration");
+  if (!washerProfile) {
+    throw new Error("Unidentified dishwasher configuration");
   }
 
-  const waterUsage = usageConfig.values.waterUsePerRack * dishwasher.additionalRacksPerDay * dishwasher.operatingDays; // gallons per year
-  const waterCost = (waterUsage * rates.water) / 1000;
+  const waterUsage = washerProfile.values.waterUsePerRack * dishwasher.additionalRacksPerDay * dishwasher.operatingDays; // gallons per year
 
   // Hidden: dishwasher calulcations: C85, C86
   let electricUsage = 0;
@@ -150,12 +162,8 @@ function dishwasherAnnualCost(
     }
   }
 
-  const electricCost = electricUsage * rates.electric;
-  const gasCost = gasUsage * rates.gas;
-
-  return electricCost + gasCost + waterCost;
+  return { electricUsage, gasUsage, waterUsage };
 }
-
 
 
 function wasteHaulingAnnualCost(project: CalculatorInput) {

@@ -16,16 +16,21 @@ export interface Project {
   waterRate: number;
 }
 
+export interface SingleUseProduct {
+  id: number;
+  boxWeight: number; // lbs
+}
+
 // single-use products are recurring
 export interface SingleUseLineItem {
   caseCost: number;
-  caseCount: number;
+  casesPurchased: number;
   projectId: string;
   frequency: Frequency;
-  singleUseProductId: string;
+  singleUseProductId: SingleUseProduct['id'];
   // these could be in another DB, but at the moment we just need one new set of values
   newCaseCost: number;
-  newCaseCount: number;
+  newCasesPurchased: number;
 }
 
 // recurring products are purchased once except for lost or broken items that need repurchase
