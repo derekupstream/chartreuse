@@ -3,8 +3,7 @@
 import { SingleUseItem } from '../types/products';
 
 const products: SingleUseItem[] = [
-  { id: 1, boxWeight: 1.3, secondaryMaterial: 'Aluminum', secondaryMaterialWeightPerUnit: 0.1 },
-  { id: 2, boxWeight: 1.53, secondaryMaterial: 'Aluminum', secondaryMaterialWeightPerUnit: 0.1 }
+  { id: 1, boxWeight: 1.3, itemWeight: 0, unitsPerCase: 1000, primaryMaterial: 'Aluminum', primaryMaterialWeightPerUnit: 0.1, secondaryMaterial: 'Aluminum', secondaryMaterialWeightPerUnit: 0.1 }
 ];
 
 export function getProductById (id: number) {
