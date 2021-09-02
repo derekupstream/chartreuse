@@ -18,9 +18,8 @@ import * as S from "../styles";
 export default function Members({ user }: Props) {
   const router = useRouter();
 
-  // TODO: Figure out what to do when deleting members
   const deleteAccount = useMutation((id: string) => {
-    return fetch(`/api/invite/${id}`, {
+    return fetch(`/api/profile/${id}`, {
       method: "DELETE",
       headers: {
         "content-type": "application/json",
