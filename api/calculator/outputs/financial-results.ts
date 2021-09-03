@@ -1,7 +1,8 @@
-import { Frequency, getAnnualOccurence } from "../constants/frequency";
+import { getAnnualOccurence } from "../constants/frequency";
 import { ANNUAL_DISHWASHER_CONSUMPTION, BUILDING_WATER_HEATER, BOOSTER_WATER_HEATER } from "../constants/dishwashers";
 import { CalculatorInput } from "../input";
-import { DishWasher, UtilitiesAndCosts } from "../types/projects";
+import { DishWasher } from "../types/projects";
+import { getSingleUseProductSummary } from "./single-use-product-results";
 
 interface FinancialResults {
   annualCostChanges: AnnualCostChanges;
@@ -52,30 +53,8 @@ function calculateAnnualCosts(project: CalculatorInput): AnnualCostChanges {
     return sum + oneTimeCost * item.annualRepurchasePercentage;
   }, 0);
 
-  // for each single use item, calculate difference in annual cost
-  const { singleUseItems } = project;
-  const baseSingleUseCosts = singleUseItems.reduce((sum, item) => {
-    return (
-      sum +
-      singleUseAnnualCost({
-        caseCost: item.caseCost,
-        casesPurchased: item.casesPurchased,
-        frequency: item.frequency,
-      })
-    );
-  }, 0);
-
-  const followUpSingleUseCosts = singleUseItems.reduce((sum, item) => {
-    return (
-      sum +
-      singleUseAnnualCost({
-        caseCost: item.newCaseCost,
-        casesPurchased: item.newCasesPurchased,
-        frequency: item.frequency,
-      })
-    );
-  }, 0);
-  const singleUseProductChange = baseSingleUseCosts - followUpSingleUseCosts;
+  const singleUseProductSummary = getSingleUseProductSummary(project);
+  const singleUseProductChange = singleUseProductSummary.annualCost.change;
 
   const utilities = project.dishwasher
     ? dishwasherAnnualCost(project.dishwasher, project.utilityRates)
@@ -98,16 +77,6 @@ function calculateAnnualCosts(project: CalculatorInput): AnnualCostChanges {
     wasteHauling,
     total,
   };
-}
-
-// =$J5*L5*INDEX(HIDDEN_Purchase_Frequency_Table,MATCH($I5,HIDDEN_Purchase_Frequency_Options,0),2)
-function singleUseAnnualCost(item: {
-  caseCost: number;
-  casesPurchased: number;
-  frequency: Frequency;
-}) {
-  const frequencyVal = getAnnualOccurence(item.frequency);
-  return item.caseCost * item.casesPurchased * frequencyVal;
 }
 
 function dishwasherAnnualCost(

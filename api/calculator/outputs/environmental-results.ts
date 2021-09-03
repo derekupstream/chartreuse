@@ -6,6 +6,7 @@ import { BoxMaterial } from "../constants/products";
 import { getProductById } from "../database/upstream-products";
 import { CalculatorInput } from "../input";
 import { SingleUseLineItem } from "../types/projects";
+import { getChangeSummaryRow } from "../utils";
 import { dishwasherUtilityUsage } from "./financial-results";
 
 interface EnvironmentalResults {
@@ -195,9 +196,9 @@ function getAnnualWasteChanges (project: CalculatorInput): AnnualWasteResults {
   }));
   const followup = getAnnualWaste(followupItems);
 
-  const disposableProductWeight = getWasteSummaryRow(baseline.productWeight, followup.productWeight);
-  const disposableShippingBoxWeight = getWasteSummaryRow(baseline.shippingBoxWeight, followup.shippingBoxWeight);
-  const total = getWasteSummaryRow(
+  const disposableProductWeight = getChangeSummaryRow(baseline.productWeight, followup.productWeight);
+  const disposableShippingBoxWeight = getChangeSummaryRow(baseline.shippingBoxWeight, followup.shippingBoxWeight);
+  const total = getChangeSummaryRow(
     baseline.productWeight + baseline.shippingBoxWeight,
     followup.productWeight + followup.shippingBoxWeight
   );
@@ -229,13 +230,4 @@ function getAnnualWaste (lineItems: { casesPurchased: number, frequency: Frequen
       shippingBoxWeight: sums.shippingBoxWeight + boxAnnualWeight
     };
   }, { productWeight: 0, shippingBoxWeight: 0 });
-}
-
-function getWasteSummaryRow (baseline: number, followup: number): AnnualWasteSummaryRow {
-  return {
-    baseline,
-    followup,
-    change: followup - baseline,
-    changePercent: baseline === 0 ? 0 : (followup - baseline) / baseline * 100
-  };
 }

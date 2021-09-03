@@ -5,7 +5,7 @@ import { getSingleUseProductResults } from "./single-use-product-results";
 
 interface AnnualSummary {
   dollarCost: number; // dollars
-  singleUseProducts: number; // count
+  singleUseProductCount: number;
   greenhouseGasEmissions: number; // MTCO2e
   wasteWeight: number; // pounds
 }
@@ -18,7 +18,7 @@ export function getAnnualSummary(project: CalculatorInput): AnnualSummary {
 
   return {
     dollarCost: financeResults.annualCostChanges.total,
-    singleUseProducts: singleUseProductResults.summary.unitCount.change,
+    singleUseProductCount: singleUseProductResults.summary.annualUnits.change,
     greenhouseGasEmissions: environmentalResults.annualGasEmissionChanges.total,
     wasteWeight: environmentalResults.annualWasteChanges.total.change
   }
