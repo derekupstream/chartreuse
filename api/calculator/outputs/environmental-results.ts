@@ -9,20 +9,20 @@ import { SingleUseLineItem } from "../types/projects";
 import { dishwasherUtilityUsage } from "./financial-results";
 
 interface EnvironmentalResults {
-  annualGasEmissionIncrease: AnnualGasEmissionIncreases;
-  annualWasteIncrease: AnnualWasteResults;
+  annualGasEmissionChanges: AnnualGasEmissionChanges;
+  annualWasteChanges: AnnualWasteResults;
 }
 
 export function getEnvironmentalResults(
   project: CalculatorInput
 ): EnvironmentalResults {
 
-  const annualGasEmissionIncrease = getAnnualGasEmissionIncrease(project);
-  const annualWasteIncrease = getAnnualWasteIncrease(project);
+  const annualGasEmissionChanges = getAnnualGasEmissionChanges(project);
+  const annualWasteChanges = getAnnualWasteChanges(project);
 
   return {
-    annualGasEmissionIncrease,
-    annualWasteIncrease
+    annualGasEmissionChanges,
+    annualWasteChanges
   };
 }
 
@@ -31,13 +31,13 @@ interface LineItemWaste {
 }
 
 // all values in MTCO2e
-interface AnnualGasEmissionIncreases {
+interface AnnualGasEmissionChanges {
   landfillWaste: number;
   dishwashing: number;
   total: number;
 }
 
-function getAnnualGasEmissionIncrease (project: CalculatorInput): AnnualGasEmissionIncreases {
+function getAnnualGasEmissionChanges (project: CalculatorInput): AnnualGasEmissionChanges {
   const lineItems: LineItemWaste[] = project.singleUseItems.map(singleUseItemGasEmissions);
   const landfillWaste = lineItems.reduce((sum, item) => sum + item.totalGHGReductions, 0);
 
@@ -166,7 +166,7 @@ function calculateAnnualWeight (casesPurchased: number, annualOccurence: number,
 }
 
 // all values in pounds
-interface AnnualWasteSummary {
+interface AnnualWasteSummaryRow {
   baseline: number,
   followup: number,
   change: number,
@@ -174,12 +174,12 @@ interface AnnualWasteSummary {
 }
 
 interface AnnualWasteResults {
-  disposableProductWeight: AnnualWasteSummary;
-  disposableShippingBoxWeight: AnnualWasteSummary;
-  total: AnnualWasteSummary;
+  disposableProductWeight: AnnualWasteSummaryRow;
+  disposableShippingBoxWeight: AnnualWasteSummaryRow;
+  total: AnnualWasteSummaryRow;
 }
 
-function getAnnualWasteIncrease (project: CalculatorInput): AnnualWasteResults {
+function getAnnualWasteChanges (project: CalculatorInput): AnnualWasteResults {
 
   const baselineItems = project.singleUseItems.map(item => ({
     casesPurchased: item.casesPurchased,
@@ -195,9 +195,9 @@ function getAnnualWasteIncrease (project: CalculatorInput): AnnualWasteResults {
   }));
   const followup = getAnnualWaste(followupItems);
 
-  const disposableProductWeight = getAnnualWasteSummary(baseline.productWeight, followup.productWeight);
-  const disposableShippingBoxWeight = getAnnualWasteSummary(baseline.shippingBoxWeight, followup.shippingBoxWeight);
-  const total = getAnnualWasteSummary(
+  const disposableProductWeight = getWasteSummaryRow(baseline.productWeight, followup.productWeight);
+  const disposableShippingBoxWeight = getWasteSummaryRow(baseline.shippingBoxWeight, followup.shippingBoxWeight);
+  const total = getWasteSummaryRow(
     baseline.productWeight + baseline.shippingBoxWeight,
     followup.productWeight + followup.shippingBoxWeight
   );
@@ -231,7 +231,7 @@ function getAnnualWaste (lineItems: { casesPurchased: number, frequency: Frequen
   }, { productWeight: 0, shippingBoxWeight: 0 });
 }
 
-function getAnnualWasteSummary (baseline: number, followup: number): AnnualWasteSummary {
+function getWasteSummaryRow (baseline: number, followup: number): AnnualWasteSummaryRow {
   return {
     baseline,
     followup,

@@ -1,16 +1,5 @@
 import { CalculatorInput } from "../input";
 
-interface AnnualSingleUseProductSummary {
-  productTypeCount: number;
-  totalCost: number;
-  unitCount: number;
-}
-
-interface AnnualSingleUseProductResults {
-  baseline: AnnualSingleUseProductSummary;
-  followup?: AnnualSingleUseProductSummary;
-}
-
 interface SingleUseProductLineItem {
   title: string;
   baselineWeight: number;
@@ -23,8 +12,19 @@ interface SingleUseProductLineItem {
   costReductionPercent: number;
 }
 
+interface PurchasingSummaryRow {
+  baseline: number,
+  followup: number,
+  change: number,
+  changePercent: number
+}
+
 interface SingleUseProductResults {
-  summary: AnnualSingleUseProductResults;
+  summary: {
+    productTypeCount: PurchasingSummaryRow;
+    totalCost: PurchasingSummaryRow;
+    unitCount: PurchasingSummaryRow;
+  };
   products: SingleUseProductLineItem[];
 }
 

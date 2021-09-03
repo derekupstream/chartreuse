@@ -32,7 +32,7 @@ export function getFinancialResults(
 interface AnnualCostChanges {
   additionalCosts: number;
   reusableProducts: number;
-  singleUseProducts: number;
+  singleUseProductChange: number;
   utilities: number;
   wasteHauling: number;
   total: number; // E46
@@ -75,7 +75,7 @@ function calculateAnnualCosts(project: CalculatorInput): AnnualCostChanges {
       })
     );
   }, 0);
-  const singleUseProducts = baseSingleUseCosts - followUpSingleUseCosts;
+  const singleUseProductChange = baseSingleUseCosts - followUpSingleUseCosts;
 
   const utilities = project.dishwasher
     ? dishwasherAnnualCost(project.dishwasher, project.utilityRates)
@@ -86,14 +86,14 @@ function calculateAnnualCosts(project: CalculatorInput): AnnualCostChanges {
   const total =
     additionalCosts +
     reusableProducts +
-    singleUseProducts +
+    singleUseProductChange +
     utilities +
     wasteHauling;
 
   return {
     additionalCosts,
     reusableProducts,
-    singleUseProducts,
+    singleUseProductChange,
     utilities,
     wasteHauling,
     total,
