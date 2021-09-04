@@ -12,7 +12,7 @@ import {
  * Input single-use, reusable items and additional costs per project required to generate outputs
  *
  * */
-export interface CalculatorInput {
+export interface ProjectInput {
   state: USState;
   additionalCosts: AdditionalCost[];
   reusableItems: ReusableLineItem[];
@@ -28,9 +28,9 @@ export interface CalculatorInput {
 }
 
 // TODO: retrieve project data from database
-export async function getCalculatorInput(
+export async function getProjectData(
   projectId: string
-): Promise<CalculatorInput> {
+): Promise<ProjectInput> {
   return {
     additionalCosts: [],
     reusableItems: [],

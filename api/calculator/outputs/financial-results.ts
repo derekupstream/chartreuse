@@ -1,6 +1,6 @@
 import { getAnnualOccurence } from "../constants/frequency";
 import { ANNUAL_DISHWASHER_CONSUMPTION, BUILDING_WATER_HEATER, BOOSTER_WATER_HEATER } from "../constants/dishwashers";
-import { CalculatorInput } from "../input";
+import { ProjectInput } from "../project-input";
 import { DishWasher } from "../types/projects";
 import { getSingleUseProductSummary } from "./single-use-product-results";
 
@@ -11,7 +11,7 @@ interface FinancialResults {
 }
 
 export function getFinancialResults(
-  project: CalculatorInput
+  project: ProjectInput
 ): FinancialResults {
 
   const annualCostChanges = calculateAnnualCosts(project);
@@ -39,7 +39,7 @@ interface AnnualCostChanges {
   total: number; // E46
 }
 
-function calculateAnnualCosts(project: CalculatorInput): AnnualCostChanges {
+function calculateAnnualCosts(project: ProjectInput): AnnualCostChanges {
   const additionalCosts = project.additionalCosts.reduce((sum, item) => {
     if (item.frequency === "One Time") {
       return sum;
@@ -53,7 +53,7 @@ function calculateAnnualCosts(project: CalculatorInput): AnnualCostChanges {
     return sum + oneTimeCost * item.annualRepurchasePercentage;
   }, 0);
 
-  const singleUseProductSummary = getSingleUseProductSummary(project);
+  const singleUseProductSummary = getSingleUseProductSummary(project.singleUseItems);
   const singleUseProductChange = singleUseProductSummary.annualCost.change;
 
   const utilities = project.dishwasher
@@ -81,7 +81,7 @@ function calculateAnnualCosts(project: CalculatorInput): AnnualCostChanges {
 
 function dishwasherAnnualCost(
   dishwasher: DishWasher,
-  rates: CalculatorInput["utilityRates"]
+  rates: ProjectInput["utilityRates"]
 ) {
 
   const { electricUsage, gasUsage, waterUsage } = dishwasherUtilityUsage(dishwasher);
@@ -135,7 +135,7 @@ export function dishwasherUtilityUsage (dishwasher: DishWasher) {
 }
 
 
-function wasteHaulingAnnualCost(project: CalculatorInput) {
+function wasteHaulingAnnualCost(project: ProjectInput) {
   const baseWasteHaulingCost = project.wasteHauling.reduce(
     (sum, item) => sum + item.monthlyCost,
     0
@@ -158,7 +158,7 @@ interface OneTimeCosts {
   total: number; // E38
 }
 
-function calculateOneTimeCosts(project: CalculatorInput): OneTimeCosts {
+function calculateOneTimeCosts(project: ProjectInput): OneTimeCosts {
   const additionalCosts = project.additionalCosts
     .filter((cost) => cost.frequency === "One Time")
     .reduce((sum, item) => sum + item.cost, 0);
@@ -185,7 +185,7 @@ interface FinancialSummary {
   paybackPeriodsMonths: number;
 }
 
-function calculateSummary(project: CalculatorInput): FinancialSummary {
+function calculateSummary(project: ProjectInput): FinancialSummary {
   const annualCost = calculateAnnualCosts(project).total;
   const oneTimeCost = calculateOneTimeCosts(project).total;
 

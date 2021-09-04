@@ -1,4 +1,4 @@
-import { CalculatorInput } from "../input";
+import { ProjectInput } from "../project-input";
 import { getEnvironmentalResults } from "./environmental-results";
 import { getFinancialResults } from "./financial-results";
 import { getSingleUseProductResults } from "./single-use-product-results";
@@ -10,7 +10,7 @@ interface AnnualSummary {
   wasteWeight: number; // pounds
 }
 
-export function getAnnualSummary(project: CalculatorInput): AnnualSummary {
+export function getAnnualSummary(project: ProjectInput): AnnualSummary {
 
   const financeResults = getFinancialResults(project);
   const environmentalResults = getEnvironmentalResults(project);

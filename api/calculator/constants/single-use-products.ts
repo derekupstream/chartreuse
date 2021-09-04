@@ -1,8 +1,8 @@
 // The following is a list of products provided by Upstream. They could also live in a database one day
 
-import { SingleUseItem } from '../types/products';
+import { SingleUseProduct } from '../types/products';
 
-const products: SingleUseItem[] = [
+const products: SingleUseProduct[] = [
   { id: 1, boxWeight: 1.3, itemWeight: 0, unitsPerCase: 1000, primaryMaterial: 'Aluminum', primaryMaterialWeightPerUnit: 0.1, secondaryMaterial: 'Aluminum', secondaryMaterialWeightPerUnit: 0.1 }
 ];
 
