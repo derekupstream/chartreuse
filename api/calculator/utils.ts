@@ -9,7 +9,14 @@ function calculatePercentChange(baseline: number, followup: number) {
   return baseline === 0 ? 0 : round((followup - baseline) / baseline * 100);
 }
 
-export function getChangeSummaryRow (baseline: number, followup: number) {
+export interface ChangeSummary {
+  baseline: number;
+  followup: number;
+  change: number;
+  changePercent: number;
+}
+
+export function getChangeSummaryRow (baseline: number, followup: number): ChangeSummary {
   const change = followup - baseline;
   const changePercent = calculatePercentChange(baseline, followup);
   return { baseline, change, changePercent, followup };

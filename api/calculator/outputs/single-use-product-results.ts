@@ -5,7 +5,7 @@ import { PRODUCT_TYPES } from "../constants/product-types";
 import { getProductById } from "../constants/single-use-products";
 import { ProjectInput } from "../project-input";
 import { SingleUseProduct } from "../types/products";
-import { getChangeSummaryRow } from "../utils";
+import { ChangeSummary, getChangeSummaryRow } from "../utils";
 import { singleUseItemGasEmissions } from "./environmental-results";
 
 interface PurchasingSummaryColumn {
@@ -14,18 +14,11 @@ interface PurchasingSummaryColumn {
   productCount: number;
 }
 
-interface PurchasingSummaryRow {
-  baseline: number,
-  followup: number,
-  change: number,
-  changePercent: number
-}
-
 interface SingleUseProductResults {
   summary: {
-    annualCost: PurchasingSummaryRow;
-    annualUnits: PurchasingSummaryRow;
-    productCount: PurchasingSummaryRow;
+    annualCost: ChangeSummary;
+    annualUnits: ChangeSummary;
+    productCount: ChangeSummary;
   };
   resultsByType: {
     material: {
@@ -48,7 +41,7 @@ export function getSingleUseProductResults(
 ): SingleUseProductResults {
 
   const summary = getSingleUseProductSummary(project.singleUseItems);
-  const resultsByType = getResultsByType(project);
+  const resultsByType = getResultsByType(project.singleUseItems);
 
   return {
     summary,
@@ -137,8 +130,8 @@ interface SingleUseDetailedResult {
   primaryMaterial: SingleUseProduct['primaryMaterial'];
 }
 
-function getDetailedLineItemResults (project: ProjectInput): SingleUseDetailedResult[] {
-  return project.singleUseItems.map(lineItem => {
+function getDetailedLineItemResults (singleUseItems: ProjectInput['singleUseItems']): SingleUseDetailedResult[] {
+  return singleUseItems.map(lineItem => {
     const annualCost = annualSingleUseCost({
       caseCost: lineItem.caseCost,
       casesPurchased: lineItem.casesPurchased,
@@ -175,22 +168,14 @@ function getDetailedLineItemResults (project: ProjectInput): SingleUseDetailedRe
 
 // see HIDDEN: Output Calculations
 interface CombinedLineItemResults {
-  weight: {
-    baseline: number;
-    followup: number;
-    change: number;
-    changePercent: number;
+  weight: ChangeSummary & {
     shareOfReduction: number;
   };
   gasEmissions: {
     reduction: number;
     shareOfReduction: number;
   };
-  cost: {
-    baseline: number;
-    followup: number;
-    change: number;
-    changePercent: number;
+  cost: ChangeSummary & {
     shareOfReduction: number;
   };
 }
@@ -199,9 +184,9 @@ interface CombinedLineItemResultsWithTitle extends CombinedLineItemResults {
   title: string;
 }
 
-function getResultsByType(project: ProjectInput): SingleUseProductResults['resultsByType'] {
+function getResultsByType(singleUseItems: ProjectInput['singleUseItems']): SingleUseProductResults['resultsByType'] {
 
-  const detailedResults = getDetailedLineItemResults(project);
+  const detailedResults = getDetailedLineItemResults(singleUseItems);
 
   const itemsByCategory = PRODUCT_CATEGORIES.map(category => {
     const items = detailedResults.filter(item => item.category === category.id);

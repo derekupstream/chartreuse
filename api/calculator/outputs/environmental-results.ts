@@ -6,7 +6,7 @@ import { getProductById } from "../constants/single-use-products";
 import { ProjectInput } from "../project-input";
 import { BoxMaterial } from "../types/products";
 import { SingleUseLineItem } from "../types/projects";
-import { getChangeSummaryRow } from "../utils";
+import { ChangeSummary, getChangeSummaryRow } from "../utils";
 import { dishwasherUtilityUsage } from "./financial-results";
 import { annualSingleUseWeight } from "./single-use-product-results";
 
@@ -159,18 +159,12 @@ function calculateMaterialGHGReduction (casesPurchased: number, newCasesPurchase
   return GHGReduction;
 }
 
-// all values in pounds
-interface AnnualWasteSummaryRow {
-  baseline: number,
-  followup: number,
-  change: number,
-  changePercent: number
-}
 
+// all values in pounds
 interface AnnualWasteResults {
-  disposableProductWeight: AnnualWasteSummaryRow;
-  disposableShippingBoxWeight: AnnualWasteSummaryRow;
-  total: AnnualWasteSummaryRow;
+  disposableProductWeight: ChangeSummary;
+  disposableShippingBoxWeight: ChangeSummary;
+  total: ChangeSummary;
 }
 
 function getAnnualWasteChanges (project: ProjectInput): AnnualWasteResults {
