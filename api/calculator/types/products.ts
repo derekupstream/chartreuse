@@ -1,13 +1,12 @@
-import { MaterialName } from '../constants/materials';
 
 export interface SingleUseProduct {
   id: number;
   //boxMaterial: Material; it is always corrugated cardboard, and wasnt used in the spreadsheet
   boxWeight: number; // pounds
   itemWeight: number; // pounds
-  primaryMaterial: MaterialName;
+  primaryMaterial: number;
   primaryMaterialWeightPerUnit: number; // pounds
-  secondaryMaterial: MaterialName;
+  secondaryMaterial: number;
   secondaryMaterialWeightPerUnit: number; // pounds
   unitsPerCase: number; // eg 'case count'
   category: number;

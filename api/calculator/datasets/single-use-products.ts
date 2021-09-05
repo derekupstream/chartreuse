@@ -1,7 +1,7 @@
 import neatCsv from 'neat-csv';
 import { readFile } from 'fs';
 import { SingleUseProduct } from '../types/products';
-import { MaterialName } from '../constants/materials';
+import { MaterialName, MATERIALS } from '../constants/materials';
 import { PRODUCT_CATEGORIES } from '../constants/product-categories';
 import { PRODUCT_TYPES } from '../constants/product-types';
 
@@ -50,6 +50,14 @@ function csvRowToSingleUseProduct (csvProduct: CSVRow): SingleUseProduct {
   if (!type) {
     throw new Error('Could not determine product type for CSV row: ' + csvProduct['Product']);
   }
+  const material1 = MATERIALS.find(category => category.name === csvProduct['Primary Material']);
+  if (!material1) {
+    throw new Error('Could not determine 1st material for CSV row: ' + csvProduct['Primary Material']);
+  }
+  const material2 = MATERIALS.find(category => category.name === csvProduct['Secondary Material']);
+  if (csvProduct['Secondary Material'] && !material2) {
+    throw new Error('Could not determine 2nd material for CSV row: ' + csvProduct['Secondary Material']);
+  }
   return {
     id: csvToNumber(csvProduct['Product ID']),
     boxWeight: csvToNumber(csvProduct['Box Weight (lbs)']),
@@ -57,9 +65,9 @@ function csvRowToSingleUseProduct (csvProduct: CSVRow): SingleUseProduct {
     type: type.id,
     itemWeight: csvToNumber(csvProduct['Item Weight (lbs)']),
     unitsPerCase: csvToNumber(csvProduct['Case Count (Units per Case)']),
-    primaryMaterial: csvProduct['Primary Material'] as MaterialName,
+    primaryMaterial: material1.id,
     primaryMaterialWeightPerUnit: csvToNumber(csvProduct['Primary Material Weight per Unit (lbs)']),
-    secondaryMaterial: csvProduct['Secondary Material'] as MaterialName,
+    secondaryMaterial: material2?.id || 0,
     secondaryMaterialWeightPerUnit: csvToNumber(csvProduct['Secondary Material Weight per Unit (lbs)'])
   };
 }

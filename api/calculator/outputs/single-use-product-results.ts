@@ -195,7 +195,7 @@ function getResultsByType(singleUseItems: ProjectInput['singleUseItems']): Singl
   });
 
   const materialRows = MATERIALS.map(material => {
-    const items = detailedResults.filter(item => item.primaryMaterial === material.name);
+    const items = detailedResults.filter(item => item.primaryMaterial === material.id);
     return { title: material.name, items };
   });
 

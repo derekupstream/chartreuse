@@ -139,8 +139,8 @@ export function singleUseItemGasEmissions (item: SingleUseLineItemPopulated): Li
     secondaryGHGReduction = -1 * changeInSecondaryWeight * epaWARMAssumption.mtco2ePerLb;
   }
 */
-function calculateMaterialGHGReduction (casesPurchased: number, newCasesPurchased: number, annualOccurence: number, unitsPerCase: number, material: MaterialName, weightPerUnit: number): number {
-  const epaWARMAssumption = MATERIALS.find(m => m.name === material);
+function calculateMaterialGHGReduction (casesPurchased: number, newCasesPurchased: number, annualOccurence: number, unitsPerCase: number, material: number, weightPerUnit: number): number {
+  const epaWARMAssumption = MATERIALS.find(m => m.id === material);
   if (!epaWARMAssumption) {
     throw new Error('Could not find EPA Warm assumption for material: ' + material);
   }

@@ -130,7 +130,6 @@ const project: ProjectInput = {
 
 export async function getProjectInput (): Promise<ProjectInput> {
   const products = await getProducts();
-  console.log('got products');
   const singleUseItems = project.singleUseItems.map(item => {
     const product = products.find(p => p.id === item.productId);
     if (!product) {
