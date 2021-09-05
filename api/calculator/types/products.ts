@@ -1,26 +1,13 @@
-
-export type BoxMaterial =
-  | "Paper"
-  | "Corrugated Cardboard"
-  | "Molded Fiber (Paper)"
-  | "Molded Fiber (Plant)"
-  | "Wood"
-  | "Plastic (#1 PET)"
-  | "Plastic (#5 PP)"
-  | "Plastic (#6 PS)"
-  | "Plastic (LDPE)"
-  | "Compostable Plastic (PLA)"
-  | "EPS Foam"
-  | "Aluminum";
+import { MaterialName } from '../constants/materials';
 
 export interface SingleUseProduct {
   id: number;
-  //boxMaterial: BoxMaterial;
+  //boxMaterial: Material; it is always corrugated cardboard, and wasnt used in the spreadsheet
   boxWeight: number; // pounds
   itemWeight: number; // pounds
-  primaryMaterial: BoxMaterial;
+  primaryMaterial: MaterialName;
   primaryMaterialWeightPerUnit: number; // pounds
-  secondaryMaterial: BoxMaterial;
+  secondaryMaterial: MaterialName;
   secondaryMaterialWeightPerUnit: number; // pounds
   unitsPerCase: number; // eg 'case count'
   category: number;

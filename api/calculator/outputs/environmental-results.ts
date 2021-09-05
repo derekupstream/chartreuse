@@ -1,14 +1,13 @@
 import { NATURAL_GAS_CO2_EMISSIONS_FACTOR, ELECTRIC_CO2_EMISSIONS_FACTOR } from "../constants/carbon-dioxide-emissions";
 import { POUND_TO_TONNE } from "../constants/conversions";
-import { CORRUGATED_CARDBOARD, BOX_MATERIALS } from "../constants/epa-warm-assumptions";
-import { Frequency, getAnnualOccurence } from "../constants/frequency"
-import { getProductById } from "../constants/single-use-products";
-import { ProjectInput } from "../project-input";
-import { BoxMaterial } from "../types/products";
-import { SingleUseLineItem } from "../types/projects";
+import { CORRUGATED_CARDBOARD, MATERIALS } from "../constants/materials";
+import { Frequency, getAnnualOccurence } from "../constants/frequency";
+import { MaterialName } from '../constants/materials';
+import { SingleUseLineItem, ProjectInput, SingleUseLineItemPopulated } from "../types/projects";
 import { ChangeSummary, getChangeSummaryRow } from "../utils";
 import { dishwasherUtilityUsage } from "./financial-results";
-import { annualSingleUseWeight } from "./single-use-product-results";
+import { annualSingleUseWeight, getSingleUseProductResults } from "./single-use-product-results";
+import { SingleUseProduct } from "../types/products";
 
 interface EnvironmentalResults {
   annualGasEmissionChanges: AnnualGasEmissionChanges;
@@ -68,21 +67,16 @@ function getAnnualGasEmissionChanges (project: ProjectInput): AnnualGasEmissionC
  * Reference: Sheet 5:Detailed Results
  *
  * */
-export function singleUseItemGasEmissions (item: SingleUseLineItem): LineItemWaste {
+export function singleUseItemGasEmissions (item: SingleUseLineItemPopulated): LineItemWaste {
 
   const {
     casesPurchased,
     frequency,
     newCasesPurchased,
-    singleUseProductId
+    product
   } = item;
 
   const annualOccurence = getAnnualOccurence(frequency);
-
-  const product = getProductById(singleUseProductId);
-  if (!product) {
-    throw new Error('Could not identify product by id: ' + singleUseProductId);
-  }
 
   // Column: AS
   const primaryGHGReduction = calculateMaterialGHGReduction(
@@ -128,8 +122,9 @@ export function singleUseItemGasEmissions (item: SingleUseLineItem): LineItemWas
   };
 }
 
-// given a product and change in cases, determine how much gas emissions are reduced
-/*
+/**
+  Given a product and change in cases, determine how much gas emissions are reduced
+
   Example calculations:
 
   // Column: N, V
@@ -144,8 +139,8 @@ export function singleUseItemGasEmissions (item: SingleUseLineItem): LineItemWas
     secondaryGHGReduction = -1 * changeInSecondaryWeight * epaWARMAssumption.mtco2ePerLb;
   }
 */
-function calculateMaterialGHGReduction (casesPurchased: number, newCasesPurchased: number, annualOccurence: number, unitsPerCase: number, material: BoxMaterial, weightPerUnit: number): number {
-  const epaWARMAssumption = BOX_MATERIALS.find(m => m.name === material);
+function calculateMaterialGHGReduction (casesPurchased: number, newCasesPurchased: number, annualOccurence: number, unitsPerCase: number, material: MaterialName, weightPerUnit: number): number {
+  const epaWARMAssumption = MATERIALS.find(m => m.name === material);
   if (!epaWARMAssumption) {
     throw new Error('Could not find EPA Warm assumption for material: ' + material);
   }
@@ -171,14 +166,14 @@ function getAnnualWasteChanges (project: ProjectInput): AnnualWasteResults {
 
   const baselineItems = project.singleUseItems.map(item => ({
     casesPurchased: item.casesPurchased,
-    singleUseProductId: item.singleUseProductId,
+    product: item.product,
     frequency: item.frequency
   }));
   const baseline = getAnnualWaste(baselineItems);
 
   const followupItems = project.singleUseItems.map(item => ({
     casesPurchased: item.newCasesPurchased,
-    singleUseProductId: item.singleUseProductId,
+    product: item.product,
     frequency: item.frequency
   }));
   const followup = getAnnualWaste(followupItems);
@@ -202,14 +197,11 @@ interface AnnualWaste {
   shippingBoxWeight: number;
 }
 
-function getAnnualWaste (lineItems: { casesPurchased: number, frequency: Frequency, singleUseProductId: number }[]): AnnualWaste {
+function getAnnualWaste (lineItems: { casesPurchased: number, frequency: Frequency, product: SingleUseProduct }[]): AnnualWaste {
 
   return lineItems.reduce<AnnualWaste>((sums, lineItem) => {
     const annualOccurence = getAnnualOccurence(lineItem.frequency);
-    const product = getProductById(lineItem.singleUseProductId);
-    if (!product) {
-      throw new Error('Could not identify product by id: ' + lineItem.singleUseProductId);
-    }
+    const product = lineItem.product;
     const annualWeight = annualSingleUseWeight(lineItem.casesPurchased, annualOccurence, product.unitsPerCase, product.itemWeight);
     const boxAnnualWeight = lineItem.casesPurchased * product.boxWeight * annualOccurence;
     return {

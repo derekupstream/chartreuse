@@ -1,31 +1,5 @@
-import { USState, UTILITY_RATE_SELECTION } from "./constants/utilities";
-import {
-  AdditionalCost,
-  DishWasher,
-  ReusableLineItem,
-  SingleUseLineItem,
-  WasteHaulingService,
-} from "./types/projects";
 
-/**
- *
- * Input single-use, reusable items and additional costs per project required to generate outputs
- *
- * */
-export interface ProjectInput {
-  state: USState;
-  additionalCosts: AdditionalCost[];
-  reusableItems: ReusableLineItem[];
-  singleUseItems: SingleUseLineItem[];
-  dishwasher?: DishWasher;
-  utilityRates: {
-    gas: number;
-    electric: number;
-    water: number;
-  };
-  wasteHauling: WasteHaulingService[];
-  newWasteHauling: WasteHaulingService[];
-}
+import { ProjectInput } from "./types/projects";
 
 // TODO: retrieve project data from database
 export async function getProjectData(
@@ -37,9 +11,9 @@ export async function getProjectData(
     singleUseItems: [],
     state: "California",
     utilityRates: {
-      gas: UTILITY_RATE_SELECTION.gas,
-      electric: UTILITY_RATE_SELECTION.electric,
-      water: UTILITY_RATE_SELECTION.water,
+      gas: 0,
+      electric: 0,
+      water: 0,
     },
     wasteHauling: [],
     newWasteHauling: [],

@@ -1,4 +1,4 @@
-import { ProjectInput } from "../project-input";
+import { ProjectInput } from "../types/projects";
 import { getEnvironmentalResults } from "./environmental-results";
 import { getFinancialResults } from "./financial-results";
 import { getSingleUseProductResults } from "./single-use-product-results";

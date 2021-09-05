@@ -6,6 +6,27 @@ import {
   FuelType,
   TemperatureType,
 } from "../constants/dishwashers";
+import { SingleUseProduct } from "./products";
+
+/**
+ *
+ * Data including single-use, reusable items and additional costs per project required to generate outputs
+ *
+ * */
+export interface ProjectInput {
+  state: USState;
+  additionalCosts: AdditionalCost[];
+  reusableItems: ReusableLineItem[];
+  singleUseItems: SingleUseLineItemPopulated[];
+  dishwasher?: DishWasher;
+  utilityRates: {
+    gas: number;
+    electric: number;
+    water: number;
+  };
+  wasteHauling: WasteHaulingService[];
+  newWasteHauling: WasteHaulingService[];
+}
 
 export interface Project {
   id: string;
@@ -16,21 +37,20 @@ export interface Project {
   waterRate: number;
 }
 
-export interface SingleUseProduct {
-  id: number;
-  boxWeight: number; // lbs
-}
-
 // single-use products are recurring
 export interface SingleUseLineItem {
   caseCost: number;
   casesPurchased: number;
   projectId: string;
   frequency: Frequency;
-  singleUseProductId: SingleUseProduct['id'];
-  // these could be in another DB, but at the moment we just need one new set of values
+  productId: SingleUseProduct['id'];
+  // these could be in another DB, but at the moment we just need a single new set of values
   newCaseCost: number;
   newCasesPurchased: number;
+}
+
+export interface SingleUseLineItemPopulated extends SingleUseLineItem {
+  product: SingleUseProduct;
 }
 
 // recurring products are purchased once except for lost or broken items that need repurchase
@@ -39,15 +59,14 @@ export interface ReusableLineItem {
   caseCost: number;
   caseCount: number;
   projectId: string;
-  reusableProductId: string;
-  // singleUseProductId: string; not sure we need to link these
+  productId: string;
 }
 
 export interface AdditionalCost {
   projectId: string;
+  category: AdditionalCostType;
   cost: number;
   frequency: Frequency | "One Time";
-  type: AdditionalCostType;
 }
 
 export interface DishWasher {

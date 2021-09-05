@@ -5,8 +5,6 @@
  *
  * */
 
-import { BoxMaterial } from "../types/products";
-
 // data provided by the EPA WARM Model
 export const CORRUGATED_CARDBOARD = -0.0014315;
 export const WARM_MATERIALS = [
@@ -24,14 +22,28 @@ export const WARM_MATERIALS = [
 
 export type WARMMaterialType = typeof WARM_MATERIALS[number]["name"];
 
-interface BoxMaterialOption {
-  name: BoxMaterial;
+export type MaterialName =
+  | "Paper"
+  | "Corrugated Cardboard"
+  | "Molded Fiber (Paper)"
+  | "Molded Fiber (Plant)"
+  | "Wood"
+  | "Plastic (#1 PET)"
+  | "Plastic (#5 PP)"
+  | "Plastic (#6 PS)"
+  | "Plastic (LDPE)"
+  | "Compostable Plastic (PLA)"
+  | "EPS Foam"
+  | "Aluminum";
+
+interface MaterialOption {
+  name: MaterialName;
   proxy: WARMMaterialType;
   mtco2ePerLb: number;
 }
 
 // Source: HIDDEN: EPA WARM Assumptions, !$B$4:$D$15
-export const BOX_MATERIALS: BoxMaterialOption[] = (<Pick<BoxMaterialOption, 'name' | 'proxy'>[]> [
+export const MATERIALS: MaterialOption[] = (<Pick<MaterialOption, 'name' | 'proxy'>[]> [
   {
     name: "Paper",
     proxy: "Office Paper (100% Virgin)"
@@ -66,3 +78,4 @@ export const BOX_MATERIALS: BoxMaterialOption[] = (<Pick<BoxMaterialOption, 'nam
   ...material,
   mtco2ePerLb: WARM_MATERIALS.find(warmMaterial => warmMaterial.name === material.proxy)!.mtco2ePerLb
 }));
+

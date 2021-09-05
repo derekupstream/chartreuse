@@ -1,7 +1,6 @@
 import { getAnnualOccurence } from "../constants/frequency";
 import { ANNUAL_DISHWASHER_CONSUMPTION, BUILDING_WATER_HEATER, BOOSTER_WATER_HEATER } from "../constants/dishwashers";
-import { ProjectInput } from "../project-input";
-import { DishWasher } from "../types/projects";
+import { DishWasher, ProjectInput } from "../types/projects";
 import { getSingleUseProductSummary } from "./single-use-product-results";
 
 interface FinancialResults {
