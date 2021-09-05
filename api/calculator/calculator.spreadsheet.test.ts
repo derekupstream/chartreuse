@@ -11,7 +11,7 @@ import { getFinancialResults } from './outputs/financial-results';
 import { getSingleUseProductResults } from './outputs/single-use-product-results';
 import { ProjectInput } from './types/projects';
 
-describe('Predictions Calculator: Spreadsheet data', () => {
+describe('Predictions Calculator: Spreadsheet results from Upstream', () => {
 
   let project: ProjectInput;
 
