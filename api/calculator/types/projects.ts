@@ -57,9 +57,9 @@ export interface SingleUseLineItemPopulated extends SingleUseLineItem {
 export interface ReusableLineItem {
   annualRepurchasePercentage: number;
   caseCost: number;
-  caseCount: number;
+  casesPurchased: number;
   projectId: string;
-  productId: string;
+  //productId: string;
 }
 
 export interface AdditionalCost {

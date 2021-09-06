@@ -52,16 +52,17 @@ export function getSingleUseProductResults(
 export function getSingleUseProductSummary (singleUseItems: ProjectInput['singleUseItems']): SingleUseProductResults['summary'] {
 
   const baseline = singleUseItems.reduce<PurchasingSummaryColumn>((column, item) => {
-    const { caseCost, casesPurchased, frequency } = item;
+    const { caseCost, casesPurchased, frequency, product } = item;
     const annualCost = annualSingleUseCost({
       caseCost,
       casesPurchased,
       frequency,
     });
-    const annualUnits = annualSingleUseCount({
+    const annualUnits = product.unitsPerCase * annualSingleUseCaseCount({
       casesPurchased,
       frequency,
     });
+
     return {
       annualUnits: column.annualUnits + annualUnits,
       annualCost: column.annualCost + annualCost,
@@ -70,16 +71,17 @@ export function getSingleUseProductSummary (singleUseItems: ProjectInput['single
   }, { annualCost: 0, annualUnits: 0, productCount: 0 });
 
   const followup = singleUseItems.reduce<PurchasingSummaryColumn>((column, item) => {
-    const { newCaseCost: caseCost, newCasesPurchased: casesPurchased, frequency } = item;
+    const { newCaseCost: caseCost, newCasesPurchased: casesPurchased, frequency, product } = item;
     const annualCost = annualSingleUseCost({
       caseCost,
       casesPurchased,
       frequency,
     });
-    const annualUnits = annualSingleUseCount({
+    const annualUnits = product.unitsPerCase * annualSingleUseCaseCount({
       casesPurchased,
       frequency,
     });
+
     return {
       annualUnits: column.annualUnits + annualUnits,
       annualCost: column.annualCost + annualCost,
@@ -100,11 +102,11 @@ function annualSingleUseCost(item: {
   casesPurchased: number;
   frequency: Frequency;
 }) {
-  return item.caseCost * annualSingleUseCount(item);
+  return item.caseCost * annualSingleUseCaseCount(item);
 }
 
 // Detailed Results, Column N
-function annualSingleUseCount(item: {
+function annualSingleUseCaseCount(item: {
   casesPurchased: number;
   frequency: Frequency;
 }) {
@@ -308,7 +310,7 @@ function combineResultsByCategory (items: { title: string, items: SingleUseDetai
   });
 
   return {
-    rows,
+    rows: rows.filter(row => row.cost.baseline !== 0 || row.cost.followup !== 0),
     totals
   };
 }

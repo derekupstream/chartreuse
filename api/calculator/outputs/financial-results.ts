@@ -2,6 +2,7 @@ import { getAnnualOccurence } from "../constants/frequency";
 import { ANNUAL_DISHWASHER_CONSUMPTION, BUILDING_WATER_HEATER, BOOSTER_WATER_HEATER } from "../constants/dishwashers";
 import { DishWasher, ProjectInput } from "../types/projects";
 import { getSingleUseProductSummary } from "./single-use-product-results";
+import { round } from "../utils";
 
 interface FinancialResults {
   annualCostChanges: AnnualCostChanges;
@@ -31,7 +32,7 @@ export function getFinancialResults(
 // all values in dollars
 interface AnnualCostChanges {
   additionalCosts: number;
-  reusableProducts: number;
+  reusableProductCosts: number;
   singleUseProductChange: number;
   utilities: number;
   wasteHauling: number;
@@ -47,12 +48,13 @@ function calculateAnnualCosts(project: ProjectInput): AnnualCostChanges {
     return sum + annualCost;
   }, 0);
 
-  const reusableProducts = project.reusableItems.reduce((sum, item) => {
-    const oneTimeCost = item.caseCost * item.caseCount;
+  const reusableProductCosts = project.reusableItems.reduce((sum, item) => {
+    const oneTimeCost = item.caseCost * item.casesPurchased;
     return sum + oneTimeCost * item.annualRepurchasePercentage;
   }, 0);
 
   const singleUseProductSummary = getSingleUseProductSummary(project.singleUseItems);
+
   const singleUseProductChange = singleUseProductSummary.annualCost.change;
 
   const utilities = project.dishwasher
@@ -63,18 +65,18 @@ function calculateAnnualCosts(project: ProjectInput): AnnualCostChanges {
 
   const total =
     additionalCosts +
-    reusableProducts +
+    reusableProductCosts +
     singleUseProductChange +
     utilities +
     wasteHauling;
 
   return {
     additionalCosts,
-    reusableProducts,
+    reusableProductCosts,
     singleUseProductChange,
     utilities,
     wasteHauling,
-    total,
+    total: round(total, 2)
   };
 }
 
@@ -89,7 +91,7 @@ function dishwasherAnnualCost(
   const gasCost = gasUsage * rates.gas;
   const waterCost = (waterUsage * rates.water) / 1000;
 
-  return electricCost + gasCost + waterCost;
+  return round(electricCost + gasCost + waterCost, 2);
 }
 
 // Hidden: dishwasher calulcations: C85, C86
@@ -107,7 +109,8 @@ export function dishwasherUtilityUsage (dishwasher: DishWasher) {
     throw new Error("Unidentified dishwasher configuration");
   }
 
-  const waterUsage = washerProfile.values.waterUsePerRack * dishwasher.additionalRacksPerDay * dishwasher.operatingDays; // gallons per year
+  const operatingDaysPerYear = dishwasher.operatingDays * 52;
+  const waterUsage = washerProfile.values.waterUsePerRack * dishwasher.additionalRacksPerDay * operatingDaysPerYear; // gallons per year
 
   // Hidden: dishwasher calulcations: C85, C86
   let electricUsage = 0;
@@ -139,7 +142,7 @@ function wasteHaulingAnnualCost(project: ProjectInput) {
     (sum, item) => sum + item.monthlyCost,
     0
   );
-  const newWasteHaulingCost = project.wasteHauling.reduce(
+  const newWasteHaulingCost = project.newWasteHauling.reduce(
     (sum, item) => sum + item.monthlyCost,
     0
   );
@@ -163,7 +166,7 @@ function calculateOneTimeCosts(project: ProjectInput): OneTimeCosts {
     .reduce((sum, item) => sum + item.cost, 0);
 
   const reusableProductCosts = project.reusableItems.reduce((sum, item) => {
-    return sum + item.caseCost * item.caseCount;
+    return sum + item.caseCost * item.casesPurchased;
   }, 0);
 
   return {
@@ -191,7 +194,7 @@ function calculateSummary(project: ProjectInput): FinancialSummary {
   // =IF(E31<0,ROUND((E38/-E46)*12,1),"--")
   let paybackPeriodsMonths: number = -1; // Ask Sam: what should UI look like if payback period is -1?
   if (annualCost < 0) {
-    paybackPeriodsMonths = (oneTimeCost / -1) * annualCost * 12;
+    paybackPeriodsMonths = Math.ceil(-1 * (oneTimeCost / annualCost) * 12);
   }
 
   // =IF(E38<>0,IF(E38+E46>0,"0%",(-E46-E38)/E38),"0%")
@@ -200,7 +203,7 @@ function calculateSummary(project: ProjectInput): FinancialSummary {
     if (oneTimeCost + annualCost > 0) {
       annualROIPercent = 0;
     } else {
-      annualROIPercent = (-1 * annualCost - oneTimeCost) / oneTimeCost;
+      annualROIPercent = round(100 * ((-1 * annualCost) - oneTimeCost) / oneTimeCost, 2);
     }
   } else {
     annualROIPercent = 0;

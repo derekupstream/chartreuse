@@ -43,16 +43,17 @@ export const singleUseItems: SingleUseLineItem[] = [
   },
   {
     caseCost: 10,
-    casesPurchased: 10,
+    casesPurchased: 0,
     productId: 93,
     projectId,
     frequency: 'Weekly',
     newCaseCost: 10,
-    newCasesPurchased:5
+    newCasesPurchased: 5
   }
 ];
 
 const reusableItems: ReusableLineItem[] = [
+  { projectId, caseCost: 23, casesPurchased: 2, annualRepurchasePercentage: 0.23 },
 ];
 
 const additionalCosts: AdditionalCost[] = [
@@ -120,8 +121,8 @@ const project: ProjectInput = {
   reusableItems,
   dishwasher,
   utilityRates: {
-    gas: .922,
-    electric: .1032,
+    gas: 0.922,
+    electric: 0.1032,
     water: 6.98
   },
   wasteHauling,
@@ -130,13 +131,12 @@ const project: ProjectInput = {
 
 export async function getProjectInput (): Promise<ProjectInput> {
   const products = await getProducts();
-  const singleUseItems = project.singleUseItems.map(item => {
+  const singleUseItemsPopulated = singleUseItems.map(item => {
     const product = products.find(p => p.id === item.productId);
     if (!product) {
       throw new Error("Could not find product for productId: " + item.productId);
     }
-    item.product = product;
-    return item;
+    return { ...item, product };
   });
-  return { ...project, singleUseItems };
+  return { ...project, singleUseItems: singleUseItemsPopulated };
 }

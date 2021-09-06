@@ -16,11 +16,3 @@ export interface SingleUseProduct {
   // title: string;
   // size: string;
 }
-
-// case count and cost are used to determine one-time costs
-export interface ReusableProduct {
-  id: string;
-  caseCount: number; // units per case
-  caseCost: number;
-  title: string;
-}
