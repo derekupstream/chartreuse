@@ -4,8 +4,9 @@ import { PRODUCT_CATEGORIES } from "../constants/product-categories";
 import { PRODUCT_TYPES } from "../constants/product-types";
 import { ProjectInput } from "../types/projects";
 import { SingleUseProduct } from "../types/products";
-import { ChangeSummary, getChangeSummaryRow } from "../utils";
+import { ChangeSummary, getChangeSummaryRow, getChangeSummaryRowRounded, round } from "../utils";
 import { singleUseItemGasEmissions } from "./environmental-results";
+import { CORRUGATED_CARDBOARD_NAME } from "../constants/materials";
 
 interface PurchasingSummaryColumn {
   annualCost: number;
@@ -122,13 +123,18 @@ export function annualSingleUseWeight (casesPurchased: number, annualOccurence: 
 // See Sheet 5: Detailed Results
 interface SingleUseDetailedResult {
   annualCost: number;
+  annualBoxWeight: number;
   annualWeight: number;
   category: SingleUseProduct['category'];
   gasEmissionsReduction: number;
   type: SingleUseProduct['type'];
   followupAnnualCost: number;
   followupAnnualWeight: number;
+  followupAnnualBoxWeight: number;
   primaryMaterial: SingleUseProduct['primaryMaterial'];
+  primaryGasReduction: number;
+  secondaryGasReduction: number;
+  shippingBoxGasReduction: number;
 }
 
 function getDetailedLineItemResults (singleUseItems: ProjectInput['singleUseItems']): SingleUseDetailedResult[] {
@@ -145,19 +151,27 @@ function getDetailedLineItemResults (singleUseItems: ProjectInput['singleUseItem
     });
     const annualOccurence = getAnnualOccurence(lineItem.frequency);
     const product = lineItem.product;
-    const annualWeight = annualSingleUseWeight(lineItem.casesPurchased, annualOccurence, product.unitsPerCase, product.itemWeight);
-    const followupAnnualWeight = annualSingleUseWeight(lineItem.newCasesPurchased, annualOccurence, product.unitsPerCase, product.itemWeight);
+    const annualWeight = annualSingleUseWeight(lineItem.casesPurchased, annualOccurence, product.unitsPerCase, product.primaryMaterialWeightPerUnit);
+    const followupAnnualWeight = annualSingleUseWeight(lineItem.newCasesPurchased, annualOccurence, product.unitsPerCase, product.primaryMaterialWeightPerUnit);
 
-    const { totalGasReductions } = singleUseItemGasEmissions(lineItem);
+    const { primaryGasReduction, secondaryGasReduction, shippingBoxGasReduction, totalGasReductions } = singleUseItemGasEmissions(lineItem);
+
+    const annualBoxWeight = lineItem.casesPurchased * lineItem.product.boxWeight * annualOccurence;
+    const followupAnnualBoxWeight = lineItem.newCasesPurchased * lineItem.product.boxWeight * annualOccurence;
 
     const detailedResult: SingleUseDetailedResult = {
+      annualBoxWeight,
       annualCost,
       annualWeight,
       category: product.category,
       followupAnnualCost,
       followupAnnualWeight,
+      followupAnnualBoxWeight,
       gasEmissionsReduction: totalGasReductions,
       primaryMaterial: product.primaryMaterial,
+      primaryGasReduction,
+      secondaryGasReduction,
+      shippingBoxGasReduction,
       type: product.type
     }
     return detailedResult;
@@ -197,7 +211,15 @@ function getResultsByType(singleUseItems: ProjectInput['singleUseItems']): Singl
   });
 
   const materialRows = MATERIALS.map(material => {
-    const items = detailedResults.filter(item => item.primaryMaterial === material.id);
+    const items = detailedResults.filter(item => {
+      // all products require some cardboard
+      if (material.name === CORRUGATED_CARDBOARD_NAME) {
+        return true;
+      }
+      else {
+        return item.primaryMaterial === material.id;
+      }
+    });
     return { title: material.name, items };
   });
 
@@ -234,10 +256,21 @@ function combineLineItemResults (title: string, items: SingleUseDetailedResult[]
   return items.reduce((result, item) => {
     const baselineCost = result.cost.baseline + item.annualCost;
     const followupCost = result.cost.followup + item.followupAnnualCost;
-    const cost = getChangeSummaryRow(baselineCost, followupCost);
-    const baselineWeight = result.weight.baseline + item.annualWeight;
-    const followupWeight = result.weight.followup + item.followupAnnualWeight;
+    let cost = getChangeSummaryRow(baselineCost, followupCost);
+    let annualWeight = item.annualWeight;
+    let followupAnnualWeight = item.followupAnnualWeight;
+    let gasEmissionsReduction = item.primaryGasReduction;
+    // calculate box weight for cardboard
+    if (title === CORRUGATED_CARDBOARD_NAME) {
+      annualWeight = item.annualBoxWeight;
+      followupAnnualWeight = item.followupAnnualBoxWeight;
+      cost = getChangeSummaryRow(0, 0);
+      gasEmissionsReduction = item.shippingBoxGasReduction;
+    }
+    const baselineWeight = result.weight.baseline + annualWeight;
+    const followupWeight = result.weight.followup + followupAnnualWeight;
     const weight = getChangeSummaryRow(baselineWeight, followupWeight);
+
     return {
       title,
       cost: {
@@ -245,7 +278,7 @@ function combineLineItemResults (title: string, items: SingleUseDetailedResult[]
         shareOfReduction: 0
       },
       gasEmissions: {
-        reduction: result.gasEmissions.reduction + item.gasEmissionsReduction,
+        reduction: result.gasEmissions.reduction + gasEmissionsReduction,
         shareOfReduction: 0
       },
       weight: {
@@ -266,10 +299,11 @@ function combineResultsByCategory (items: { title: string, items: SingleUseDetai
   const totals = rows.reduce((totals, row) => {
     const baselineCost = totals.cost.baseline + row.cost.baseline;
     const followupCost = totals.cost.followup + row.cost.followup;
-    const cost = getChangeSummaryRow(baselineCost, followupCost);
+    const cost = getChangeSummaryRowRounded(baselineCost, followupCost);
     const baselineWeight = totals.weight.baseline + row.weight.baseline;
     const followupWeight = totals.weight.followup + row.weight.followup;
-    const weight = getChangeSummaryRow(baselineWeight, followupWeight);
+    const weight = getChangeSummaryRowRounded(baselineWeight, followupWeight);
+
     return {
       cost: {
         ...cost,
@@ -299,18 +333,23 @@ function combineResultsByCategory (items: { title: string, items: SingleUseDetai
 
   rows.forEach(row => {
     if (row.cost.change < 0) {
-      row.cost.shareOfReduction = row.gasEmissions.reduction / totalCostReduction;
+      row.cost.shareOfReduction = round(row.gasEmissions.reduction / totalCostReduction);
     }
     if (row.gasEmissions.reduction < 0) {
-      row.gasEmissions.shareOfReduction = row.gasEmissions.reduction / totalGasReduction;
+      row.gasEmissions.shareOfReduction = round(row.gasEmissions.reduction / totalGasReduction);
+      row.gasEmissions.reduction = round(row.gasEmissions.reduction, 2);
     }
     if (row.weight.change < 0) {
-      row.weight.shareOfReduction = row.gasEmissions.reduction / totalWeightReduction;
+      row.weight.shareOfReduction = round(row.gasEmissions.reduction / totalWeightReduction);
     }
   });
 
+  totals.gasEmissions.reduction = round(totals.gasEmissions.reduction, 2);
+
+  const nonEmptyRows = rows.filter(row => row.cost.baseline !== 0 || row.cost.followup !== 0 || row.weight.baseline !== 0 || row.weight.followup !== 0);
+
   return {
-    rows: rows.filter(row => row.cost.baseline !== 0 || row.cost.followup !== 0),
+    rows: nonEmptyRows,
     totals
   };
 }

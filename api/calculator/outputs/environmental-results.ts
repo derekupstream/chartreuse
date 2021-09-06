@@ -2,11 +2,10 @@ import { NATURAL_GAS_CO2_EMISSIONS_FACTOR, ELECTRIC_CO2_EMISSIONS_FACTOR } from 
 import { POUND_TO_TONNE } from "../constants/conversions";
 import { CORRUGATED_CARDBOARD, MATERIALS } from "../constants/materials";
 import { Frequency, getAnnualOccurence } from "../constants/frequency";
-import { MaterialName } from '../constants/materials';
-import { SingleUseLineItem, ProjectInput, SingleUseLineItemPopulated } from "../types/projects";
-import { ChangeSummary, getChangeSummaryRow } from "../utils";
+import { ProjectInput, SingleUseLineItemPopulated } from "../types/projects";
+import { ChangeSummary, getChangeSummaryRowRounded, round } from "../utils";
 import { dishwasherUtilityUsage } from "./financial-results";
-import { annualSingleUseWeight, getSingleUseProductResults } from "./single-use-product-results";
+import { annualSingleUseWeight } from "./single-use-product-results";
 import { SingleUseProduct } from "../types/products";
 
 interface EnvironmentalResults {
@@ -27,10 +26,6 @@ export function getEnvironmentalResults(
   };
 }
 
-interface LineItemWaste {
-  totalGasReductions: number;
-}
-
 // all values in MTCO2e
 interface AnnualGasEmissionChanges {
   landfillWaste: number;
@@ -39,8 +34,8 @@ interface AnnualGasEmissionChanges {
 }
 
 function getAnnualGasEmissionChanges (project: ProjectInput): AnnualGasEmissionChanges {
-  const lineItems: LineItemWaste[] = project.singleUseItems.map(singleUseItemGasEmissions);
-  const landfillWaste = lineItems.reduce((sum, item) => sum + item.totalGasReductions, 0);
+  const lineItems = project.singleUseItems.map(singleUseItemGasEmissions);
+  const landfillWaste = round(lineItems.reduce((sum, item) => sum + item.totalGasReductions, 0), 2);
 
   // calculate increased dishwasher emissions
   let dishwashing = 0;
@@ -48,13 +43,13 @@ function getAnnualGasEmissionChanges (project: ProjectInput): AnnualGasEmissionC
     const { electricUsage, gasUsage } = dishwasherUtilityUsage(project.dishwasher);
     const electricGHGEmissions = electricUsage * ELECTRIC_CO2_EMISSIONS_FACTOR;
     const gasGHGEmissions = gasUsage * NATURAL_GAS_CO2_EMISSIONS_FACTOR;
-    dishwashing = POUND_TO_TONNE * (electricGHGEmissions + gasGHGEmissions);
+    dishwashing = round(POUND_TO_TONNE * (electricGHGEmissions + gasGHGEmissions), 2);
   }
 
   return {
     landfillWaste,
     dishwashing,
-    total: landfillWaste + dishwashing
+    total: round(landfillWaste + dishwashing, 2)
   };
 }
 
@@ -67,7 +62,7 @@ function getAnnualGasEmissionChanges (project: ProjectInput): AnnualGasEmissionC
  * Reference: Sheet 5:Detailed Results
  *
  * */
-export function singleUseItemGasEmissions (item: SingleUseLineItemPopulated): LineItemWaste {
+export function singleUseItemGasEmissions (item: SingleUseLineItemPopulated) {
 
   const {
     casesPurchased,
@@ -79,7 +74,7 @@ export function singleUseItemGasEmissions (item: SingleUseLineItemPopulated): Li
   const annualOccurence = getAnnualOccurence(frequency);
 
   // Column: AS
-  const primaryGHGReduction = calculateMaterialGHGReduction(
+  const primaryGasReduction = calculateMaterialGasReduction(
     casesPurchased,
     newCasesPurchased,
     annualOccurence,
@@ -88,8 +83,9 @@ export function singleUseItemGasEmissions (item: SingleUseLineItemPopulated): Li
     product.primaryMaterialWeightPerUnit
   );
 
+
   // Column: AU: calculate secondary material emissions
-  const secondaryGHGReduction = calculateMaterialGHGReduction(
+  const secondaryGasReduction = calculateMaterialGasReduction(
     casesPurchased,
     newCasesPurchased,
     annualOccurence,
@@ -99,7 +95,7 @@ export function singleUseItemGasEmissions (item: SingleUseLineItemPopulated): Li
   );
 
   // Column AW: calculate shipping box emissions
-  let shippingBoxGHGReduction = 0;
+  let shippingBoxGasReduction = 0;
 
   // Columns: X, Y
   const boxWeight = product.boxWeight;
@@ -111,13 +107,16 @@ export function singleUseItemGasEmissions (item: SingleUseLineItemPopulated): Li
   const changeInShippingBoxWeight = followupAnnualBoxWeight - annualBoxWeight;
 
   if (changeInShippingBoxWeight !== 0) {
-    shippingBoxGHGReduction = -1 * changeInShippingBoxWeight * CORRUGATED_CARDBOARD;
+    shippingBoxGasReduction = -1 * changeInShippingBoxWeight * CORRUGATED_CARDBOARD;
   }
 
   // Column: AX
-  const totalGasReductions = primaryGHGReduction + secondaryGHGReduction + shippingBoxGHGReduction;
+  const totalGasReductions = primaryGasReduction + secondaryGasReduction + shippingBoxGasReduction;
 
   return {
+    primaryGasReduction,
+    secondaryGasReduction,
+    shippingBoxGasReduction,
     totalGasReductions
   };
 }
@@ -139,19 +138,19 @@ export function singleUseItemGasEmissions (item: SingleUseLineItemPopulated): Li
     secondaryGHGReduction = -1 * changeInSecondaryWeight * epaWARMAssumption.mtco2ePerLb;
   }
 */
-function calculateMaterialGHGReduction (casesPurchased: number, newCasesPurchased: number, annualOccurence: number, unitsPerCase: number, material: number, weightPerUnit: number): number {
+function calculateMaterialGasReduction (casesPurchased: number, newCasesPurchased: number, annualOccurence: number, unitsPerCase: number, material: number, weightPerUnit: number): number {
   const epaWARMAssumption = MATERIALS.find(m => m.id === material);
   if (!epaWARMAssumption) {
-    throw new Error('Could not find EPA Warm assumption for material: ' + material);
+    throw new Error("Could not find EPA Warm assumption for material: " + material);
   }
   const annualWeight = annualSingleUseWeight(casesPurchased, annualOccurence, unitsPerCase, weightPerUnit);
-  const followupAnnualSecondaryWeight = annualSingleUseWeight(newCasesPurchased, annualOccurence, unitsPerCase, weightPerUnit);
-  const changeInWeight = followupAnnualSecondaryWeight - annualWeight;
-  let GHGReduction = 0;
-  if (changeInWeight > 0) {
-    GHGReduction = -1 * changeInWeight * epaWARMAssumption.mtco2ePerLb;
+  const followupAnnualWeight = annualSingleUseWeight(newCasesPurchased, annualOccurence, unitsPerCase, weightPerUnit);
+  const changeInWeight = followupAnnualWeight - annualWeight;
+  let gasReduction = 0;
+  if (changeInWeight !== 0) {
+    gasReduction = -1 * changeInWeight * epaWARMAssumption.mtco2ePerLb;
   }
-  return GHGReduction;
+  return gasReduction;
 }
 
 
@@ -178,9 +177,9 @@ function getAnnualWasteChanges (project: ProjectInput): AnnualWasteResults {
   }));
   const followup = getAnnualWaste(followupItems);
 
-  const disposableProductWeight = getChangeSummaryRow(baseline.productWeight, followup.productWeight);
-  const disposableShippingBoxWeight = getChangeSummaryRow(baseline.shippingBoxWeight, followup.shippingBoxWeight);
-  const total = getChangeSummaryRow(
+  const disposableProductWeight = getChangeSummaryRowRounded(baseline.productWeight, followup.productWeight);
+  const disposableShippingBoxWeight = getChangeSummaryRowRounded(baseline.shippingBoxWeight, followup.shippingBoxWeight);
+  const total = getChangeSummaryRowRounded(
     baseline.productWeight + baseline.shippingBoxWeight,
     followup.productWeight + followup.shippingBoxWeight
   );

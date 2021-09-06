@@ -21,3 +21,13 @@ export function getChangeSummaryRow (baseline: number, followup: number): Change
   const changePercent = calculatePercentChange(baseline, followup);
   return { baseline, change, changePercent, followup };
 }
+
+export function getChangeSummaryRowRounded (baseline: number, followup: number): ChangeSummary {
+  const { change, changePercent } = getChangeSummaryRow(baseline, followup);
+  return {
+    baseline: round(baseline),
+    followup: round(followup),
+    change: round(change),
+    changePercent: round(changePercent)
+  }
+}

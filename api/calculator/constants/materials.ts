@@ -7,6 +7,7 @@
 
 // data provided by the EPA WARM Model
 export const CORRUGATED_CARDBOARD = -0.0014315;
+export const CORRUGATED_CARDBOARD_NAME = "Corrugated Cardboard";
 export const WARM_MATERIALS = [
   { name: "LDPE", mtco2ePerLb: -0.000909504 },
   { name: "PET", mtco2ePerLb: -0.001110657 },
