@@ -6,7 +6,7 @@ import { PRODUCT_CATEGORIES } from '../constants/product-categories';
 import { PRODUCT_TYPES } from '../constants/product-types';
 
 // These items were provided by Upstream. They could also live in a database one day
-const csvFile = __dirname + '/single-use-products.csv';
+const csvFile = __dirname + '/single-use-products-data.csv';
 
 type CSVColumn =
   | 'Product ID'
