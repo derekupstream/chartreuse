@@ -1,23 +1,35 @@
-import { Form, Input, Button, Typography, Divider, Space } from "antd";
+import {
+  Form,
+  FormProps,
+  Input,
+  Button,
+  Typography,
+  Divider,
+  Space,
+} from "antd";
 import { FirebaseAuthProvider, googleProvider } from "lib/firebaseClient";
 import Link from "next/link";
 import { GoogleOutlined } from "@ant-design/icons";
 
 import * as S from "./styles";
 
-type Props = {
+interface Props extends FormProps {
   onSubmit: (values: unknown) => void;
   onSubmitWithProvider: (provider: FirebaseAuthProvider) => void;
-};
+}
 
-export default function SignupForm({ onSubmit, onSubmitWithProvider }: Props) {
+export default function SignupForm({
+  onSubmit,
+  onSubmitWithProvider,
+  ...rest
+}: Props) {
   return (
     <S.Wrapper>
       <S.SignupForm
         name="signup"
         layout="vertical"
-        initialValues={{ remember: true }}
         onFinish={onSubmit}
+        {...rest}
       >
         <Form.Item
           label="Email"

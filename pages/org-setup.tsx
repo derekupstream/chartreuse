@@ -16,8 +16,8 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     return {
       redirect: {
         permanent: false,
-        destination: "/email-verification"
-      }
+        destination: "/email-verification",
+      },
     };
   }
 
@@ -37,7 +37,7 @@ export default function OrgSetup() {
   const { user } = useAuth();
 
   const createOrgSetup = useMutation((data: any) => {
-    return fetch("/api/org-setup", {
+    return fetch("/api/org", {
       method: "POST",
       body: JSON.stringify(data),
       headers: {
@@ -67,7 +67,7 @@ export default function OrgSetup() {
           },
           {
             onSuccess: () => {
-              router.push("/");
+              router.push("/account-setup");
             },
             onError: (err) => {
               message.error((err as Error)?.message);
