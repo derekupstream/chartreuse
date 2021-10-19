@@ -65,7 +65,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
         })
       ),
     };
-  } catch (error) {
+  } catch (error: any) {
     return {
       redirect: {
         permanent: false,
@@ -123,7 +123,7 @@ export default function EditAccount({ org }: Props) {
             },
           }
         );
-      } catch (error) {
+      } catch (error: any) {
         message.error(error.message);
       }
     },

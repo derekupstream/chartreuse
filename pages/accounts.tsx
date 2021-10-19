@@ -1,32 +1,13 @@
 import { GetServerSideProps } from "next";
-import Header from "components/header";
 import nookies from "nookies";
 import { verifyIdToken } from "lib/firebaseAdmin";
-import PageLoader from "components/page-loader";
 import prisma from "lib/prisma";
-import Dashboard, { Props } from "components/dashboard";
 import { Prisma } from "@prisma/client";
 
-export const UserDataToInclude = {
-  org: {
-    include: {
-      accounts: {
-        include: {
-          invites: {
-            include: {
-              account: true,
-            },
-          },
-          users: {
-            include: {
-              account: true,
-            },
-          },
-        },
-      },
-    },
-  },
-};
+import Accounts from "components/dashboard/accounts";
+import { Props, Template } from "components/dashboard";
+import { PageProps } from "pages/_app";
+import { UserDataToInclude } from "pages";
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
   try {
@@ -64,13 +45,16 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   }
 };
 
-export default function DashboardPage({ user }: Props) {
-  if (!user) return <PageLoader />;
+const AccountsPage = ({ user }: Props) => {
+  return <Accounts user={user} />;
+};
 
+AccountsPage.getLayout = (page: React.ReactNode, pageProps: PageProps) => {
   return (
-    <>
-      <Header title="Dashboard" />
-      <Dashboard user={user} />
-    </>
+    <Template {...pageProps} selectedMenuItem="accounts">
+      {page}
+    </Template>
   );
-}
+};
+
+export default AccountsPage;

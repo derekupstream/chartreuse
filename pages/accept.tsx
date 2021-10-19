@@ -60,7 +60,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
         })
       ),
     };
-  } catch (error) {
+  } catch (error: any) {
     return { props: { user: null, org: null, error: error.message } };
   }
 };
@@ -85,7 +85,7 @@ export default function Accept({ user, email, org, error }: Props) {
     try {
       await signup({ email, password });
       router.push(`/invite-profile-setup?inviteId=${router?.query.inviteId}`);
-    } catch (error) {
+    } catch (error: any) {
       message.error(error.message);
     }
   };
@@ -94,7 +94,7 @@ export default function Accept({ user, email, org, error }: Props) {
     try {
       await loginWithProvider(provider);
       router.push(`/invite-profile-setup?inviteId=${router?.query.inviteId}`);
-    } catch (error) {
+    } catch (error: any) {
       message.error(error.message);
     }
   };

@@ -29,7 +29,7 @@ export default function EmailVerification() {
             url: `${origin}/org-setup`,
           });
           setCookie(null, "emailVerified", "true");
-        } catch (error) {
+        } catch (error: any) {
           message.error(error.message);
         }
       }

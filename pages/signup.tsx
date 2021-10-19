@@ -14,7 +14,7 @@ export default function Signup() {
     try {
       await signup({ email, password });
       router.push("/email-verification");
-    } catch (error) {
+    } catch (error: any) {
       message.error(error.message);
     }
   };
@@ -23,7 +23,7 @@ export default function Signup() {
     try {
       await loginWithProvider(provider);
       router.push("/email-verification");
-    } catch (error) {
+    } catch (error: any) {
       message.error(error.message);
     }
   };

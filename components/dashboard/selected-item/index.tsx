@@ -1,13 +1,12 @@
 import Accounts from "components/dashboard/accounts";
 import Members from "components/dashboard/members";
+import Projects from "components/dashboard/projects";
 import { Props } from "components/dashboard";
 
 export const itemMap = {
   accounts: Accounts,
-  // eslint-disable-next-line react/display-name
   members: Members,
-  // eslint-disable-next-line react/display-name
-  projects: () => <div>Projects</div>,
+  projects: Projects,
 };
 
 export default function SelectedItem({

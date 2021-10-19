@@ -14,7 +14,7 @@ export default function Login() {
     try {
       await login({ email, password });
       router.push("/");
-    } catch (error) {
+    } catch (error: any) {
       message.error(error.message);
     }
   };
@@ -23,7 +23,7 @@ export default function Login() {
     try {
       await loginWithProvider(provider);
       router.push("/");
-    } catch (error) {
+    } catch (error: any) {
       message.error(error.message);
     }
   };

@@ -24,7 +24,7 @@ export default async function handler(
       });
 
       return res.status(200).json({ account });
-    } catch (error) {
+    } catch (error: any) {
       return res.status(500).json({ error: error.message });
     }
   } else if (req.method === "PATCH") {
@@ -39,7 +39,7 @@ export default async function handler(
       });
 
       return res.status(200).json({ account });
-    } catch (error) {
+    } catch (error: any) {
       return res.status(500).json({ error: error.message });
     }
   }

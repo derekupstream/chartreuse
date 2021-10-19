@@ -35,19 +35,21 @@ model Org {
   updatedAt DateTime  @updatedAt
   users     User[]
   accounts  Account[]
+  projects  Project[]
 }
 
 model Account {
-  id                  String   @id @default(uuid())
+  id                  String    @id @default(uuid())
   name                String
   metadata            Json?
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
-  org                 Org?     @relation(fields: [orgId], references: [id])
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  org                 Org?      @relation(fields: [orgId], references: [id])
   orgId               String?
   users               User[]
   accountContactEmail String
   invites             Invite[]
+  projects            Project[]
 }
 
 model Invite {
@@ -60,6 +62,31 @@ model Invite {
   updatedAt    DateTime @updatedAt
   sentBy       User     @relation(fields: [sentByUserId], references: [id], onDelete: Cascade)
   sentByUserId String
+}
+
+model Project {
+  id                String             @id @default(uuid())
+  name              String
+  metadata          Json?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  org               Org?               @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId             String?
+  account           Account?           @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  accountId         String?
+  singleUseProducts SingleUseProduct[]
+}
+
+model SingleUseProduct {
+  id                String   @id @default(uuid())
+  caseCost          Int
+  casesPurchased    Int
+  frequency         String
+  productId         String
+  newCaseCost       Int
+  newCasesPurchased Int
+  project           Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId         String?
 }
 
 enum Role {

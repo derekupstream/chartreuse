@@ -1,9 +1,10 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "lib/prisma";
-import { Prisma, User } from "@prisma/client";
+import { Prisma, Project } from "@prisma/client";
+import { ProjectMetadata } from "components/dashboard/projects/steps/setup";
 
 type Response = {
-  user?: User;
+  project?: Project;
   error?: string;
 };
 
@@ -17,36 +18,41 @@ export default async function handler(
 
   if (req.method === "DELETE") {
     try {
-      const user = await prisma.user.delete<Prisma.UserDeleteArgs>({
+      const project = await prisma.project.delete<Prisma.ProjectDeleteArgs>({
         where: {
           id: req.query.id as string,
         },
       });
 
-      return res.status(200).json({ user });
+      return res.status(200).json({ project });
     } catch (error: any) {
       return res.status(500).json({ error: error.message });
     }
   } else if (req.method === "PATCH") {
     try {
-      const user = await prisma.user.update<Prisma.UserUpdateArgs>({
+      const { name, metadata, accountId, orgId } = req.body;
+
+      const project = await prisma.project.update<Prisma.ProjectUpdateArgs>({
         where: {
           id: req.query.id as string,
         },
         data: {
-          name: req.body.name,
-          email: req.body.email,
-          title: req.body.title,
-          phone: req.body.phone,
+          name,
+          metadata: metadata as ProjectMetadata,
           account: {
             connect: {
-              id: req.body.accountId,
+              id: accountId,
+            },
+          },
+          org: {
+            connect: {
+              id: orgId,
             },
           },
         },
       });
 
-      return res.status(200).json({ user });
+      return res.status(200).json({ project });
     } catch (error: any) {
       return res.status(500).json({ error: error.message });
     }

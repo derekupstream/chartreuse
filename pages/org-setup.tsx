@@ -74,7 +74,7 @@ export default function OrgSetup() {
             },
           }
         );
-      } catch (error) {
+      } catch (error: any) {
         message.error(error.message);
       }
     },

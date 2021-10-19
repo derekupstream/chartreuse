@@ -39,7 +39,7 @@ export default function Members({ user }: Props) {
             message.error((err as Error)?.message);
           },
         });
-      } catch (error) {
+      } catch (error: any) {
         message.error(error.message);
       }
     },

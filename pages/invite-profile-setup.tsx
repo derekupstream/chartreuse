@@ -59,7 +59,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
         })
       ),
     };
-  } catch (error) {
+  } catch (error: any) {
     return { props: { org: null, account: null, error: error.message } };
   }
 };
@@ -119,7 +119,7 @@ export default function InviteProfile({ org, account, error }: Props) {
             },
           }
         );
-      } catch (error) {
+      } catch (error: any) {
         message.error(error.message);
       }
     },

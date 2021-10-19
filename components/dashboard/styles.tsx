@@ -1,24 +1,35 @@
 import styled from "styled-components";
-import { Layout, Menu } from "antd";
-import { blue } from "@ant-design/colors";
+import { Layout, Steps as AntSteps } from "antd";
 
-export const Sider = styled(Layout.Sider)`
-  overflow: auto;
-  height: 100vh;
-  position: fixed;
-  left: 0;
+export const LogoAndMenuWrapper = styled.div`
+  display: flex;
+
+  > ul {
+    margin-left: 20px;
+  }
 `;
 
 export const LayoutHeader = styled(Layout.Header)`
   padding: 0 1rem;
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
   align-items: center;
+  background-color: white;
 `;
 
 export const Content = styled(Layout.Content)`
   min-height: calc(100vh - 64px);
   padding: 2rem;
+  background-color: #f4f3f0;
+`;
+
+export const OrgAndUserWrapper = styled.div`
+  display: flex;
+  align-items: center;
+
+  button {
+    margin-left: 20px;
+  }
 `;
 
 export const SpaceBetween = styled.div`
@@ -35,8 +46,24 @@ export const SiderWrapper = styled.div`
   }
 `;
 
-export const MenuItem = styled(Menu.Item)`
-  &.ant-menu-item-selected {
-    background-color: ${blue[7]} !important;
+export const Steps = styled(AntSteps)`
+  .ant-steps-item-description {
+    min-width: 150px;
   }
+`;
+
+export const ProjectType = styled.div`
+  text-transform: uppercase;
+  font-size: 8px;
+  color: #6b6b6b;
+`;
+
+export const ProjectInfo = styled.div`
+  margin-bottom: 20px;
+`;
+
+export const Actions = styled.div`
+  position: absolute;
+  top: 20px;
+  right: 20px;
 `;
