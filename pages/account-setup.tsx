@@ -83,32 +83,29 @@ export default function AccountSetup({ org, user }: Props) {
   });
 
   const handleAccountSetupCreation = useCallback(
-    async ({ name, email, useOrgEmail }: AccountSetupFields) => {
-      try {
-        await createAccount.mutate(
-          {
-            name,
-            email,
-            useOrgEmail,
-            orgId: org.id,
-            userId: user.id,
+    ({ name, email, useOrgEmail }: AccountSetupFields) => {
+      createAccount.mutate(
+        {
+          name,
+          email,
+          useOrgEmail,
+          orgId: org.id,
+          userId: user.id,
+        },
+        {
+          onSuccess: () => {
+            if (!useOrgEmail) {
+              message.success("Account contact invited.");
+            } else {
+              // send user to first step of the calculator
+              router.push("/projects/new");
+            }
           },
-          {
-            onSuccess: () => {
-              if (!useOrgEmail) {
-                message.success("Account contact invited.");
-              }
-
-              router.push("/");
-            },
-            onError: (err) => {
-              message.error((err as Error)?.message);
-            },
-          }
-        );
-      } catch (error: any) {
-        message.error(error.message);
-      }
+          onError: (err) => {
+            message.error((err as Error)?.message);
+          },
+        }
+      );
     },
     [createAccount, org.id, router, user.id]
   );

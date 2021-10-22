@@ -98,30 +98,26 @@ export default function InviteProfile({ org, account, error }: Props) {
 
   const handleInviteProfileCreation = useCallback(
     async ({ name, title, phone }: InviteProfileFields) => {
-      try {
-        createInviteProfile.mutate(
-          {
-            id: user?.uid,
-            email: user?.email,
-            orgId: org?.id,
-            accountId: account?.id,
-            inviteId: router?.query.inviteId,
-            title,
-            name,
-            phone,
+      createInviteProfile.mutate(
+        {
+          id: user?.uid,
+          email: user?.email,
+          orgId: org?.id,
+          accountId: account?.id,
+          inviteId: router?.query.inviteId,
+          title,
+          name,
+          phone,
+        },
+        {
+          onSuccess: () => {
+            router.push("/");
           },
-          {
-            onSuccess: () => {
-              router.push("/");
-            },
-            onError: (err) => {
-              message.error((err as Error)?.message);
-            },
-          }
-        );
-      } catch (error: any) {
-        message.error(error.message);
-      }
+          onError: (err) => {
+            message.error((err as Error)?.message);
+          },
+        }
+      );
     },
     [account?.id, createInviteProfile, org?.id, router, user?.email, user?.uid]
   );
@@ -141,7 +137,7 @@ export default function InviteProfile({ org, account, error }: Props) {
       <main>
         <FormPageTemplate
           title="Setup your Profile"
-          subtitle={`Setup your profile to accept the invite to join ${org?.name} and ${account?.name} at ReuseIT.`}
+          subtitle={`Setup your profile to accept the invite to join ${org?.name} and ${account?.name} at Chartreuse.`}
         >
           <InviteProfileForm
             onSubmit={handleInviteProfileCreation as (values: unknown) => void}

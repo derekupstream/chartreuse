@@ -28,20 +28,16 @@ export default function Accounts({ user }: Props) {
   });
 
   const handleAccountDeletion = useCallback(
-    async (id: string) => {
-      try {
-        deleteAccount.mutate(id, {
-          onSuccess: () => {
-            message.success(`Account deleted`);
-            router.replace(router.asPath);
-          },
-          onError: (err) => {
-            message.error((err as Error)?.message);
-          },
-        });
-      } catch (error: any) {
-        message.error(error.message);
-      }
+    (id: string) => {
+      deleteAccount.mutate(id, {
+        onSuccess: () => {
+          message.success(`Account deleted`);
+          router.replace(router.asPath);
+        },
+        onError: (err) => {
+          message.error((err as Error)?.message);
+        },
+      });
     },
     [deleteAccount, router]
   );

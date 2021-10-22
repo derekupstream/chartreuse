@@ -6,11 +6,12 @@ import { PRODUCT_CATEGORIES } from '../constants/product-categories';
 import { PRODUCT_TYPES } from '../constants/product-types';
 
 // These items were provided by Upstream. They could also live in a database one day
-const csvFile = __dirname + '/single-use-products-data.csv';
+const csvFile = process.cwd() + '/api/calculator/datasets/single-use-products-data.csv';
 
 type CSVColumn =
   | 'Product ID'
   | 'Product Category'
+  | 'Product Description'
   | 'Product'
   | 'Case Count (Units per Case)'
   | 'Box Weight (lbs)'
@@ -22,6 +23,7 @@ type CSVColumn =
   | 'Primary Material'
   | 'Primary Material Weight per Unit (lbs)'
   | 'Secondary Material (Lining/Wrapper)'
+  | 'Size/Options'
   | 'Second Material Weight per Unit (lbs)';
 
 type CSVRow = {
@@ -63,7 +65,7 @@ function csvRowToSingleUseProduct (csvProduct: CSVRow): SingleUseProduct {
   if (csvProduct['Secondary Material (Lining/Wrapper)'] && !material2) {
     throw new Error('Could not determine 2nd material for CSV row: ' + csvProduct['Secondary Material (Lining/Wrapper)']);
   }
-  const productId = csvToNumber(csvProduct['Product ID']);
+  const productId = csvProduct['Product ID'];
   const unitsPerCase = csvToNumber(csvProduct['Case Count (Units per Case)']);
   const grossCaseWeight = csvToNumber(csvProduct['Gross Case Weight (lbs)']);
   const boxPercentWeight = csvToNumber(csvProduct['Box Weight as % of Gross Weight']) / 100;
@@ -83,7 +85,9 @@ function csvRowToSingleUseProduct (csvProduct: CSVRow): SingleUseProduct {
     primaryMaterial: material1.id,
     primaryMaterialWeightPerUnit,
     secondaryMaterial: material2?.id || 0,
-    secondaryMaterialWeightPerUnit
+    secondaryMaterialWeightPerUnit,
+    size: csvProduct['Size/Options'],
+    title: csvProduct['Product Description']
   };
 }
 

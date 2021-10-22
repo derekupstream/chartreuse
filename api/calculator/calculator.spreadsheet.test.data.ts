@@ -8,7 +8,7 @@ export const singleUseItems: SingleUseLineItem[] = [
   {
     caseCost: 80,
     casesPurchased: 10,
-    productId: 17,
+    productId: '17',
     projectId,
     frequency: "Weekly",
     newCaseCost: 80,
@@ -17,7 +17,7 @@ export const singleUseItems: SingleUseLineItem[] = [
   {
     caseCost: 30,
     casesPurchased: 15,
-    productId: 7,
+    productId: '7',
     projectId,
     frequency: "Weekly",
     newCaseCost: 30,
@@ -26,7 +26,7 @@ export const singleUseItems: SingleUseLineItem[] = [
   {
     caseCost: 20,
     casesPurchased: 20,
-    productId: 3,
+    productId: '3',
     projectId,
     frequency: "Weekly",
     newCaseCost: 20,
@@ -35,7 +35,7 @@ export const singleUseItems: SingleUseLineItem[] = [
   {
     caseCost: 50,
     casesPurchased: 0,
-    productId: 16,
+    productId: '16',
     projectId,
     frequency: "Weekly",
     newCaseCost: 50,
@@ -44,7 +44,7 @@ export const singleUseItems: SingleUseLineItem[] = [
   {
     caseCost: 10,
     casesPurchased: 0,
-    productId: 93,
+    productId: '93',
     projectId,
     frequency: "Weekly",
     newCaseCost: 10,

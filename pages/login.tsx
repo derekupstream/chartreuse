@@ -34,7 +34,7 @@ export default function Login() {
 
       <main>
         <FormPageTemplate
-          title="Welcome to ReuseIT"
+          title="Welcome to Chartreuse"
           subtitle="Sign in with your email and password, or use your Google account."
         >
           <LoginForm

@@ -34,7 +34,7 @@ export default function Signup() {
 
       <main>
         <FormPageTemplate
-          title="Welcome to ReuseIT"
+          title="Welcome to Chartreuse"
           subtitle="First, create a user account with your email, or use your Google account."
         >
           <SignupForm

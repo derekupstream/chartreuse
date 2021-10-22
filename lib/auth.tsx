@@ -1,5 +1,6 @@
 import { createContext, useEffect, useState, useCallback } from "react";
 import { FirebaseAuthProvider, firebase, User } from "lib/firebaseClient";
+import firebaseLib from "firebase";
 import { setCookie, destroyCookie } from "nookies";
 
 export type { User };
@@ -11,18 +12,24 @@ export type Credentials = {
 
 type AuthContextType = {
   user: User | null;
-  login: (credentials: Credentials) => void;
-  loginWithProvider: (provider: FirebaseAuthProvider) => void;
-  signup: (credentials: Credentials) => void;
-  signout: () => void;
+  login: (
+    credentials: Credentials
+  ) => Promise<firebaseLib.auth.UserCredential | null>;
+  loginWithProvider: (
+    provider: FirebaseAuthProvider
+  ) => Promise<firebaseLib.auth.UserCredential | null>;
+  signup: (
+    credentials: Credentials
+  ) => Promise<firebaseLib.auth.UserCredential | null>;
+  signout: () => Promise<void>;
 };
 
 export const AuthContext = createContext<AuthContextType>({
   user: null,
-  login: async (credentials: Credentials) => {},
-  loginWithProvider: async (provider: FirebaseAuthProvider) => {},
-  signup: async (credentials: Credentials) => {},
-  signout: async () => {},
+  login: (credentials: Credentials) => Promise.resolve(null),
+  loginWithProvider: (provider: FirebaseAuthProvider) => Promise.resolve(null),
+  signup: (credentials: Credentials) => Promise.resolve(null),
+  signout: () => Promise.resolve(),
 });
 
 export const AuthProvider: React.FC = ({ children }) => {
@@ -40,7 +47,10 @@ export const AuthProvider: React.FC = ({ children }) => {
 
         setUser(user);
         const token = await user.getIdToken();
-        setCookie(null, "token", token);
+        setCookie(null, "token", token, {
+          maxAge: 30 * 24 * 60 * 60,
+          path: "/",
+        });
       });
 
     return () => unsubscribe();

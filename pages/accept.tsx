@@ -113,8 +113,8 @@ export default function Accept({ user, email, org, error }: Props) {
 
       <main>
         <FormPageTemplate
-          title="Welcome to ReuseIT"
-          subtitle={`${user?.name}, ${user?.title} at ${org?.name} has invited you to create a customer account on ReuseIT.`}
+          title="Welcome to Chartreuse"
+          subtitle={`${user?.name}, ${user?.title} at ${org?.name} has invited you to create a customer account on Chartreuse.`}
         >
           <SignupForm
             onSubmit={handleSignup as (values: unknown) => void}

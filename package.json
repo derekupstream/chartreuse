@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "NODE_OPTIONS='--inspect' next dev",
     "build:production": "yarn prisma migrate deploy && yarn prisma generate && next build",
-    "build": "next build",
+    "build": "yarn prisma generate && next build",
     "start": "next start",
     "test": "jest --watch",
     "test:ci": "jest",

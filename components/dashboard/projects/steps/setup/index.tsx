@@ -64,27 +64,23 @@ const Setup = ({ user, project, onComplete }: SetupProps) => {
     accountId,
     ...metadata
   }: ProjectInputFields) => {
-    try {
-      createProject.mutate(
-        {
-          name,
-          metadata: metadata as ProjectMetadata,
-          accountId,
-          orgId: user.org.id,
+    createProject.mutate(
+      {
+        name,
+        metadata: metadata as ProjectMetadata,
+        accountId,
+        orgId: user.org.id,
+      },
+      {
+        onSuccess: async (data: any) => {
+          const json = await data.json();
+          onComplete(json?.projects?.[0].id);
         },
-        {
-          onSuccess: async (data: any) => {
-            const json = await data.json();
-            onComplete(json?.projects?.[0].id);
-          },
-          onError: (err) => {
-            message.error((err as Error)?.message);
-          },
-        }
-      );
-    } catch (error: any) {
-      message.error(error.message);
-    }
+        onError: (err) => {
+          message.error((err as Error)?.message);
+        },
+      }
+    );
   };
 
   const handleProjectUpdate = async ({
@@ -92,27 +88,23 @@ const Setup = ({ user, project, onComplete }: SetupProps) => {
     accountId,
     ...metadata
   }: ProjectInputFields) => {
-    try {
-      updateProject.mutate(
-        {
-          name,
-          metadata: metadata as ProjectMetadata,
-          accountId,
-          orgId: user.org.id,
+    updateProject.mutate(
+      {
+        name,
+        metadata: metadata as ProjectMetadata,
+        accountId,
+        orgId: user.org.id,
+      },
+      {
+        onSuccess: () => {
+          message.success(`Project Updated`);
+          onComplete(project?.id);
         },
-        {
-          onSuccess: () => {
-            message.success(`Project Updated`);
-            onComplete(project?.id);
-          },
-          onError: (err) => {
-            message.error((err as Error)?.message);
-          },
-        }
-      );
-    } catch (error: any) {
-      message.error(error.message);
-    }
+        onError: (err) => {
+          message.error((err as Error)?.message);
+        },
+      }
+    );
   };
 
   return (

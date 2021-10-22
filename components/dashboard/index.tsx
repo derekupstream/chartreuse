@@ -41,10 +41,11 @@ export type DashboardUser = {
 
 export type Props = {
   user: DashboardUser;
+  products?: any;
   selectedMenuItem?: string;
 };
 
-const INITIAL_SELECTED_MENU_ITEM = "accounts";
+const INITIAL_SELECTED_MENU_ITEM = "projects";
 
 export default function Dashboard({ user }: Props) {
   return (

@@ -47,19 +47,15 @@ const Projects = () => {
   }, [error]);
 
   const handleProjectDeletion = async (projectId: string) => {
-    try {
-      await deleteProject.mutate(projectId, {
-        onSuccess: () => {
-          message.success(`Project deleted`);
-          queryClient.invalidateQueries("projects");
-        },
-        onError: (err) => {
-          message.error((err as Error)?.message);
-        },
-      });
-    } catch (error) {
-      message.error((error as Error)?.message);
-    }
+    deleteProject.mutate(projectId, {
+      onSuccess: () => {
+        message.success(`Project deleted`);
+        queryClient.invalidateQueries("projects");
+      },
+      onError: (err) => {
+        message.error((err as Error)?.message);
+      },
+    });
   };
 
   return (

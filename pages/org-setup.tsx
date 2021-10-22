@@ -47,38 +47,33 @@ export default function OrgSetup() {
   });
 
   const handleOrgSetupCreation = useCallback(
-    async ({
+    ({
       title,
       name,
       phone,
       orgName,
       numberOfClientAccounts,
     }: OrgSetupFields) => {
-      try {
-        createOrgSetup.mutate(
-          {
-            id: user?.uid,
-            email: user?.email,
-            title,
-            name,
-            phone,
-            orgName,
-            numberOfClientAccounts,
+      createOrgSetup.mutate(
+        {
+          id: user?.uid,
+          title,
+          name,
+          phone,
+          orgName,
+          numberOfClientAccounts,
+        },
+        {
+          onSuccess: () => {
+            router.push("/account-setup");
           },
-          {
-            onSuccess: () => {
-              router.push("/account-setup");
-            },
-            onError: (err) => {
-              message.error((err as Error)?.message);
-            },
-          }
-        );
-      } catch (error: any) {
-        message.error(error.message);
-      }
+          onError: (err) => {
+            message.error((err as Error)?.message);
+          },
+        }
+      );
     },
-    [createOrgSetup, router, user?.email, user?.uid]
+    [createOrgSetup, router, user?.uid]
   );
 
   return (

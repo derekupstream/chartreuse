@@ -7,7 +7,11 @@ import { Prisma, Project } from "@prisma/client";
 import ProjectSteps from "components/dashboard/projects/steps";
 import { Props, Template } from "components/dashboard";
 import { PageProps } from "pages/_app";
-import { UserDataToInclude } from "pages";
+import { UserDataToInclude } from "lib/middleware";
+
+type ProjectPageProps = Props & {
+  project: Project;
+};
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
   try {
@@ -51,10 +55,6 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       },
     };
   }
-};
-
-type ProjectPageProps = Props & {
-  project: Project;
 };
 
 const ProjectPage = ({ user, project }: ProjectPageProps) => {

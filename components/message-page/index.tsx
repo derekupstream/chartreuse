@@ -1,6 +1,6 @@
 import Container from "components/container";
 import Image from "next/image";
-import Logo from "assets/images/logo.png";
+import Logo from "public/images/chartreuse-logo.png";
 import { Space, Typography } from "antd";
 import LegalNotice from "components/legal-notice";
 import * as S from "./styles";

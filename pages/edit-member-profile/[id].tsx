@@ -122,27 +122,23 @@ export default function EditMemberProfile({ org, user }: Props) {
   );
 
   const handleAccountUpdate = useCallback(
-    async (data: MemberEditFields) => {
-      try {
-        await updateAccount.mutate(
-          {
-            id: user.id,
-            data,
-          },
-          {
-            onSuccess: () => {
-              message.success("Account member edited with success.");
+    (data: MemberEditFields) => {
+      updateAccount.mutate(
+        {
+          id: user.id,
+          data,
+        },
+        {
+          onSuccess: () => {
+            message.success("Account member edited with success.");
 
-              router.push("/");
-            },
-            onError: (err) => {
-              message.error((err as Error)?.message);
-            },
-          }
-        );
-      } catch (error: any) {
-        message.error(error.message);
-      }
+            router.push("/");
+          },
+          onError: (err) => {
+            message.error((err as Error)?.message);
+          },
+        }
+      );
     },
     [router, updateAccount, user.id]
   );

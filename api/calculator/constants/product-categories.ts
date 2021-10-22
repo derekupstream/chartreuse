@@ -8,3 +8,5 @@ export const PRODUCT_CATEGORIES = [
   { id: 5, name: "Condiments", csvNames: ["Condiment Packets"] }, // Mustard, Creamer, Sugar (in the Raw and regular),
   { id: 6, name: "Napkins", csvNames: ["Napkins"] }
 ] as const;
+
+

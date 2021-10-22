@@ -1,67 +1,11 @@
 import { GetServerSideProps } from "next";
 import Header from "components/header";
-import nookies from "nookies";
-import { verifyIdToken } from "lib/firebaseAdmin";
 import PageLoader from "components/page-loader";
-import prisma from "lib/prisma";
 import Dashboard, { Props } from "components/dashboard";
-import { Prisma } from "@prisma/client";
-
-export const UserDataToInclude = {
-  org: {
-    include: {
-      accounts: {
-        include: {
-          invites: {
-            include: {
-              account: true,
-            },
-          },
-          users: {
-            include: {
-              account: true,
-            },
-          },
-        },
-      },
-    },
-  },
-};
+import { checkLogin } from "lib/middleware";
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
-  try {
-    const cookies = nookies.get(context);
-    const token = await verifyIdToken(cookies.token);
-
-    const user = await prisma.user.findUnique<Prisma.UserFindUniqueArgs>({
-      where: {
-        id: token.uid,
-      },
-      include: UserDataToInclude,
-    });
-
-    if (!user) {
-      return {
-        redirect: {
-          permanent: false,
-          destination: "/org-setup",
-        },
-      };
-    }
-
-    return {
-      props: {
-        user: JSON.parse(JSON.stringify(user)),
-      },
-    };
-  } catch (error: any) {
-    return {
-      redirect: {
-        permanent: false,
-        destination: "/login",
-      },
-    };
-  }
+  return checkLogin(context);
 };
 
 export default function DashboardPage({ user }: Props) {

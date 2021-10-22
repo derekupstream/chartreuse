@@ -74,10 +74,11 @@ model Project {
   orgId             String?
   account           Account?           @relation(fields: [accountId], references: [id], onDelete: Cascade)
   accountId         String?
-  singleUseProducts SingleUseProduct[]
+  singleUseItems    SingleUseLineItem[]
+  reusableItems     ReusableLineItem[]
 }
 
-model SingleUseProduct {
+model SingleUseLineItem {
   id                String   @id @default(uuid())
   caseCost          Int
   casesPurchased    Int
@@ -85,8 +86,19 @@ model SingleUseProduct {
   productId         String
   newCaseCost       Int
   newCasesPurchased Int
+  unitsPerCase      Int
   project           Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  projectId         String?
+  projectId         String
+}
+
+model ReusableLineItem {
+  id                         String   @id @default(uuid())
+  annualRepurchasePercentage Int
+  caseCost                   Int
+  casesPurchased             Int
+  categoryId                 String
+  projectId                  String
+  project                    Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
 }
 
 enum Role {

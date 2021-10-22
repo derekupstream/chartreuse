@@ -2,12 +2,20 @@ import styled from "styled-components";
 import { Form, Radio } from "antd";
 
 export const Wrapper = styled.div`
+  max-width: 1200px;
+  margin: 0 auto;
   width: 100%;
   margin-top: 50px;
 `;
 
 export const SetupForm = styled(Form)`
   width: 460px;
+`;
+
+export const BoxEnd = styled.div`
+  display: flex;
+  justify-content: space-between;
+  margin-top: 4em;
 `;
 
 export const RadioGroup = styled(Radio.Group)`

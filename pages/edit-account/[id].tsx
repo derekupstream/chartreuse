@@ -105,27 +105,23 @@ export default function EditAccount({ org }: Props) {
   );
 
   const handleAccountUpdate = useCallback(
-    async ({ name }: AccountEditFields) => {
-      try {
-        await updateAccount.mutate(
-          {
-            id: org.accounts[0].id,
-            data: { name },
-          },
-          {
-            onSuccess: () => {
-              message.success("Account edited with success.");
+    ({ name }: AccountEditFields) => {
+      updateAccount.mutate(
+        {
+          id: org.accounts[0].id,
+          data: { name },
+        },
+        {
+          onSuccess: () => {
+            message.success("Account edited with success.");
 
-              router.push("/");
-            },
-            onError: (err) => {
-              message.error((err as Error)?.message);
-            },
-          }
-        );
-      } catch (error: any) {
-        message.error(error.message);
-      }
+            router.push("/");
+          },
+          onError: (err) => {
+            message.error((err as Error)?.message);
+          },
+        }
+      );
     },
     [org.accounts, router, updateAccount]
   );

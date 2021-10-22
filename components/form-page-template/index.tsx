@@ -1,6 +1,6 @@
 import Container from "components/container";
 import Image from "next/image";
-import Logo from "assets/images/logo.png";
+import Logo from "public/images/chartreuse-logo-black.png";
 import { Space, Typography } from "antd";
 import LegalNotice from "components/legal-notice";
 
@@ -22,11 +22,13 @@ const FormPageTemplate: React.FC<Props> = ({
     <Container>
       <S.Wrapper>
         <Space direction="vertical" size={54} style={{ width: "100%" }}>
-          {!navBackLink && <Image src={Logo} alt="upstream logo" />}
+          {!navBackLink && (
+            <Image src={Logo} width={300} height={70} alt="Chartreuse" />
+          )}
           {navBackLink && (
             <S.LogoWithNavBackLink>
               {navBackLink}
-              <Image src={Logo} alt="upstream logo" />
+              <Image src={Logo} alt="Chartreuse" />
               <div style={{ visibility: "hidden" }}>{navBackLink}</div>
             </S.LogoWithNavBackLink>
           )}

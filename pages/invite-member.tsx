@@ -90,28 +90,24 @@ export default function InviteMember({ org, user }: Props) {
   });
 
   const handleAccountSetupCreation = useCallback(
-    async ({ email, accountId }: InviteFields) => {
-      try {
-        await createInvite.mutate(
-          {
-            email,
-            accountId,
-            userId: user.id,
-          },
-          {
-            onSuccess: () => {
-              message.success("Account member invited.");
+    ({ email, accountId }: InviteFields) => {
+      createInvite.mutate(
+        {
+          email,
+          accountId,
+          userId: user.id,
+        },
+        {
+          onSuccess: () => {
+            message.success("Account member invited.");
 
-              router.push("/");
-            },
-            onError: (err) => {
-              message.error((err as Error)?.message);
-            },
-          }
-        );
-      } catch (error: any) {
-        message.error(error.message);
-      }
+            router.push("/");
+          },
+          onError: (err) => {
+            message.error((err as Error)?.message);
+          },
+        }
+      );
     },
     [createInvite, router, user.id]
   );

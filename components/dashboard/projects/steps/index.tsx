@@ -6,16 +6,16 @@ import Step, {
 import { Button, Space, Steps } from "antd";
 import { ArrowLeftOutlined } from "@ant-design/icons";
 import { useRouter } from "next/router";
-
 import * as S from "components/dashboard/styles";
-import { Project } from "@prisma/client";
-import { Props } from "components/dashboard";
+import { Project } from ".prisma/client";
+import { DashboardUser } from "components/dashboard";
 
-type ProjectPageProps = Props & {
-  project?: Project;
+export type PageProps = {
+  project?: Project; // project doesnt exist on first step
+  user: DashboardUser;
 };
 
-const ProjectSteps = ({ user, project }: ProjectPageProps) => {
+const ProjectSteps = ({ user, project }: PageProps) => {
   const router = useRouter();
   const stepIndexFromQuery = getStepIndex(router?.query?.step as string);
   const [currentStepIndex, setCurrentStepIndex] = useState<number>(
@@ -42,7 +42,12 @@ const ProjectSteps = ({ user, project }: ProjectPageProps) => {
         <ArrowLeftOutlined />
         Back to projects
       </Button>
-      <S.Steps current={currentStepIndex}>
+      <S.Steps
+        current={currentStepIndex}
+        onChange={(id) => {
+          router.push(`/projects/${project!.id}?step=${getStepByIndex(id)}`);
+        }}
+      >
         <Steps.Step title="Step 1" description="Setup" />
         <Steps.Step title="Step 2" description="Single-use purchasing" />
         <Steps.Step title="Step 3" description="Reusable purchasing" />

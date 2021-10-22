@@ -3,7 +3,7 @@ import Image from "next/image";
 import { Button, Dropdown, message, Typography } from "antd";
 import { useAuth } from "hooks/useAuth";
 import { Layout, Menu } from "antd";
-import Logo from "assets/images/chartreuse.png";
+import Logo from "public/images/chartreuse-logo-icon.png";
 import { DownOutlined } from "@ant-design/icons";
 import { MenuClickEventHandler, MenuInfo } from "rc-menu/lib/interface";
 import { createGlobalStyle } from "styled-components";
@@ -50,17 +50,18 @@ const DashboardTemplate: React.FC<Props> = ({
       <Layout>
         <S.LayoutHeader>
           <S.LogoAndMenuWrapper>
-            <Image src={Logo} alt="upstream logo" objectFit="contain" />
+            <Image src={Logo} alt="Chareuse logo" objectFit="contain" />
             <Menu
               mode="horizontal"
+              disabledOverflow={true}
               defaultSelectedKeys={[
                 selectedMenuItem || INITIAL_SELECTED_MENU_ITEM,
               ]}
               onClick={handleMenuClick}
             >
+              <Menu.Item key="projects">Projects</Menu.Item>
               <Menu.Item key="accounts">Accounts</Menu.Item>
               <Menu.Item key="members">Members</Menu.Item>
-              <Menu.Item key="projects">Projects</Menu.Item>
             </Menu>
           </S.LogoAndMenuWrapper>
           <S.OrgAndUserWrapper>
