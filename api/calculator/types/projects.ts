@@ -47,8 +47,7 @@ export interface SingleUseLineItem {
   // these could be in another DB, but at the moment we just need a single new set of values
   newCaseCost: number;
   newCasesPurchased: number;
-  // TODO: use this in calculations
-  unitsPerCase?: number;
+  unitsPerCase: number;
 }
 
 export interface SingleUseLineItemPopulated extends SingleUseLineItem {

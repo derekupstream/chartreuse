@@ -68,6 +68,7 @@ export function singleUseItemGasEmissions (item: SingleUseLineItemPopulated) {
     casesPurchased,
     frequency,
     newCasesPurchased,
+    unitsPerCase,
     product
   } = item;
 
@@ -78,7 +79,7 @@ export function singleUseItemGasEmissions (item: SingleUseLineItemPopulated) {
     casesPurchased,
     newCasesPurchased,
     annualOccurence,
-    product.unitsPerCase,
+    unitsPerCase,
     product.primaryMaterial,
     product.primaryMaterialWeightPerUnit
   );
@@ -89,7 +90,7 @@ export function singleUseItemGasEmissions (item: SingleUseLineItemPopulated) {
     casesPurchased,
     newCasesPurchased,
     annualOccurence,
-    product.unitsPerCase,
+    unitsPerCase,
     product.secondaryMaterial,
     product.secondaryMaterialWeightPerUnit
   );

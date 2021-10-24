@@ -12,7 +12,8 @@ export const singleUseItems: SingleUseLineItem[] = [
     projectId,
     frequency: "Weekly",
     newCaseCost: 80,
-    newCasesPurchased: 0
+    newCasesPurchased: 0,
+    unitsPerCase: 200,
   },
   {
     caseCost: 30,
@@ -21,7 +22,8 @@ export const singleUseItems: SingleUseLineItem[] = [
     projectId,
     frequency: "Weekly",
     newCaseCost: 30,
-    newCasesPurchased: 5
+    newCasesPurchased: 5,
+    unitsPerCase: 1000,
   },
   {
     caseCost: 20,
@@ -30,7 +32,8 @@ export const singleUseItems: SingleUseLineItem[] = [
     projectId,
     frequency: "Weekly",
     newCaseCost: 20,
-    newCasesPurchased: 10
+    newCasesPurchased: 10,
+    unitsPerCase: 1000,
   },
   {
     caseCost: 50,
@@ -39,7 +42,8 @@ export const singleUseItems: SingleUseLineItem[] = [
     projectId,
     frequency: "Weekly",
     newCaseCost: 50,
-    newCasesPurchased: 2
+    newCasesPurchased: 2,
+    unitsPerCase: 210,
   },
   {
     caseCost: 10,
@@ -48,7 +52,8 @@ export const singleUseItems: SingleUseLineItem[] = [
     projectId,
     frequency: "Weekly",
     newCaseCost: 10,
-    newCasesPurchased: 5
+    newCasesPurchased: 5,
+    unitsPerCase: 2500,
   }
 ];
 
