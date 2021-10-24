@@ -1,52 +1,26 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Chartruese by Upstream
 
-## Documentation
+Chartreuse is an app by Upstream Solutions for calculating the cost savings of switching from disposable food products to reusable products.
 
-You can either [view the docs on Github](calculator/tree/main/kerbs) or view them with a local [kerbs](https://kerbs.netlify.app/) server:
+This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app). It uses [Prisma](prisma.io/) as its ORM for a Postgres database hosted on Heroku. The app itself is deployed to [Vercel](https://vercel.com/upstreamsolutions). The UI elements are built with [Ant Design](https://ant.design/).
 
-```bash
-npm run docs
-# or
-yarn docs
-```
+## Setup
 
-## Getting Started
+1. Get the `.env` file from another developer and put it in the repo.
+2. Use [Postgres.app](https://postgresapp.com/) or your preferred way of creating a Postgres database on your local computer and update the `DATABASE_URL` variable in your `.env` file.
+3. Run `yarn` to install dependencies.
+4. Run `yarn prisma migrate dev` to set up the database locally.
 
-First, run the development server:
+## Running
 
-```bash
-npm run dev
-# or
-yarn dev
-```
+Run `yarn dev` to start the development server and then go to [http://localhost:3000](http://localhost:3000) in your browser.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `pages/index.tsx`. The page auto-updates as you edit the file.
-
-[API routes](https://nextjs.org/docs/api-routes/introduction) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.tsx`.
-
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
-
-## Run Tests
-
-Tests are written using [ts-jest](https://kulshekhar.github.io/ts-jest/docs/). Test files are saved near the code being tested.
+## Tests
 
 ```bash
 yarn test
 ```
 
-## Learn More
+## Migrations
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+Migrations are managed by Prisma - refer to Prisma's migration documentation to run them.
