@@ -52,6 +52,7 @@ export const SiderWrapper = styled.div`
 export const Steps = styled(AntSteps)`
   .ant-steps-item-description {
     min-width: 150px;
+    font-size: 13px;
   }
 `
 
