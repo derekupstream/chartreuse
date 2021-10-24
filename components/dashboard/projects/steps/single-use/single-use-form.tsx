@@ -10,7 +10,7 @@ import { POST } from "lib/http";
 import { GetServerSideProps } from "next";
 
 type SingleUseProps = {
-  lineItem: Partial<SingleUseLineItem>;
+  lineItem: SingleUseLineItem | null;
   onSubmit: () => void;
   projectId: string;
   products: SingleUseProduct[];
@@ -31,7 +31,7 @@ export default function SingleUseForm({
 
   // reset the view whenever line item changes from parent scope
   useEffect(() => {
-    setLineItemInput({ ...lineItemInput, ...lineItem });
+    setLineItemInput({ ...lineItemInput });
     setFormStep(1);
   }, [lineItem]);
 
@@ -61,11 +61,12 @@ export default function SingleUseForm({
     }
   }
 
-  function goBack() {
+  function goBack(params: Partial<SingleUseLineItem> = {}) {
+    setLineItemInput({ ...lineItemInput, ...params });
     setFormStep(formStep - 1);
   }
 
-  const product = products.find((p) => p.id === lineItem.productId);
+  const product = products.find((p) => p.id === lineItemInput?.productId);
 
   return (
     <>

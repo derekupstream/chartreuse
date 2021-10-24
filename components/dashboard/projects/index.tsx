@@ -16,6 +16,7 @@ import { Project } from "@prisma/client";
 import { ProjectMetadata } from "./steps/setup";
 import { useRouter } from "next/router";
 import * as S from "components/dashboard/styles";
+import ContentLoader from "components/content-loader";
 
 const Projects = () => {
   const queryClient = useQueryClient();
@@ -69,7 +70,7 @@ const Projects = () => {
           Add project
         </Button>
       </S.SpaceBetween>
-      {isLoading && "Loading..."}
+      {isLoading && <ContentLoader />}
       {!isLoading && data?.projects?.length === 0 && (
         <Typography.Text>
           You have no active projects. Click ‘+ Add project’ above to get
@@ -80,7 +81,7 @@ const Projects = () => {
         <Row gutter={[20, 20]}>
           {data?.projects?.map((project: Project) => {
             return (
-              <Col xs={24} md={12} lg={8} xl={4} key={project.id}>
+              <Col xs={24} md={12} lg={8} key={project.id}>
                 <Card>
                   <Typography.Title level={3}>{project.name}</Typography.Title>
                   <S.ProjectInfo>

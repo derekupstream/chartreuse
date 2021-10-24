@@ -39,6 +39,7 @@ export interface Project {
 
 // single-use products are recurring
 export interface SingleUseLineItem {
+  id: string;
   caseCost: number;
   casesPurchased: number;
   projectId: string;

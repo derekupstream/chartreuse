@@ -41,14 +41,16 @@ export default async function handler(
     }
   } else if (req.method === "DELETE") {
     try {
-      await prisma.singleUseLineItem.delete<Prisma.SingleUseLineItemDeleteArgs>(
-        {
-          where: {
-            id: projectId,
-          },
-        }
+      console.log(
+        await prisma.singleUseLineItem.delete<Prisma.SingleUseLineItemDeleteArgs>(
+          {
+            where: {
+              id: req.body.id,
+            },
+          }
+        )
       );
-      return res.status(200);
+      return res.end();
     } catch (error: any) {
       return res.status(500).json({ error: error.message });
     }

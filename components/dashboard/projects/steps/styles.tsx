@@ -1,8 +1,8 @@
 import styled from "styled-components";
-import { Form, Radio } from "antd";
+import { Card, Form, Radio } from "antd";
 
 export const Wrapper = styled.div`
-  max-width: 1200px;
+  max-width: 960px;
   margin: 0 auto;
   width: 100%;
   margin-top: 50px;
@@ -28,11 +28,16 @@ export const RadioGroup = styled(Radio.Group)`
 `;
 
 export const OptionSelection = styled(Radio.Group)`
+  & {
+    margin-left: -10px;
+  }
+
   .ant-radio-button-wrapper {
     margin: 10px;
   }
+`;
 
-  .ant-radio-button-wrapper:first-child {
-    margin-left: 0;
-  }
+export const StyledCard = styled(Card)`
+  border-radius: 4px;
+  height: 100%;
 `;

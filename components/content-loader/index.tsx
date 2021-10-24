@@ -1,10 +1,10 @@
 import { Spin, SpinProps } from "antd";
 import * as S from "./styles";
 
-export default function PageLoader(props: SpinProps) {
+export default function Loader(props: SpinProps) {
   return (
     <S.Wrapper>
-      <Spin {...props} />
+      <Spin {...props} size="large" />
     </S.Wrapper>
   );
 }
