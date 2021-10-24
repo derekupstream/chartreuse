@@ -1,12 +1,12 @@
-import neatCsv from 'neat-csv';
-import { readFile } from 'fs';
-import { SingleUseProduct } from '../types/products';
-import { MaterialName, MATERIALS } from '../constants/materials';
-import { PRODUCT_CATEGORIES } from '../constants/product-categories';
-import { PRODUCT_TYPES } from '../constants/product-types';
+import neatCsv from 'neat-csv'
+import { readFile } from 'fs'
+import { SingleUseProduct } from '../types/products'
+import { MaterialName, MATERIALS } from '../constants/materials'
+import { PRODUCT_CATEGORIES } from '../constants/product-categories'
+import { PRODUCT_TYPES } from '../constants/product-types'
 
 // These items were provided by Upstream. They could also live in a database one day
-const csvFile = process.cwd() + '/api/calculator/datasets/single-use-products-data.csv';
+const csvFile = process.cwd() + '/api/calculator/datasets/single-use-products-data.csv'
 
 type CSVColumn =
   | 'Product ID'
@@ -24,56 +24,55 @@ type CSVColumn =
   | 'Primary Material Weight per Unit (lbs)'
   | 'Secondary Material (Lining/Wrapper)'
   | 'Size/Options'
-  | 'Second Material Weight per Unit (lbs)';
+  | 'Second Material Weight per Unit (lbs)'
 
 type CSVRow = {
-  [field in CSVColumn]: string;
+  [field in CSVColumn]: string
 }
 
 // retrieve single use products on startup
 const getProductsPromise = new Promise<SingleUseProduct[]>((resolve, reject) => {
   readFile(csvFile, (err, buffer) => {
-    if (err) return reject(err);
-    neatCsv<CSVRow>(buffer)
-      .then((rows) => {
-        const products = rows.map(csvRowToSingleUseProduct);
-        resolve(products);
-      });
-  });
-});
+    if (err) return reject(err)
+    neatCsv<CSVRow>(buffer).then(rows => {
+      const products = rows.map(csvRowToSingleUseProduct)
+      resolve(products)
+    })
+  })
+})
 
-export async function getProducts (): Promise<SingleUseProduct[]> {
-  return await getProductsPromise;
+export async function getProducts(): Promise<SingleUseProduct[]> {
+  return await getProductsPromise
 }
 
 // dont use the calculated value from spreadsheet since it is rounded to 4 decimals
-function csvRowToSingleUseProduct (csvProduct: CSVRow): SingleUseProduct {
+function csvRowToSingleUseProduct(csvProduct: CSVRow): SingleUseProduct {
   // @ts-ignore csvProduct['Product Category'] is a string and cant be compared to category.csvNames
-  const category = PRODUCT_CATEGORIES.find(category => category.csvNames.includes(csvProduct['Product Category']));
+  const category = PRODUCT_CATEGORIES.find(category => category.csvNames.includes(csvProduct['Product Category']))
   if (!category) {
-    throw new Error('Could not determine product category for CSV row: ' + csvProduct['Product Category']);
+    throw new Error('Could not determine product category for CSV row: ' + csvProduct['Product Category'])
   }
-  const type = PRODUCT_TYPES.find(category => category.name === csvProduct['Product']);
+  const type = PRODUCT_TYPES.find(category => category.name === csvProduct['Product'])
   if (!type) {
-    throw new Error('Could not determine product type for CSV row: ' + csvProduct['Product']);
+    throw new Error('Could not determine product type for CSV row: ' + csvProduct['Product'])
   }
-  const material1 = MATERIALS.find(material => material.name === csvProduct['Primary Material']);
+  const material1 = MATERIALS.find(material => material.name === csvProduct['Primary Material'])
   if (!material1) {
-    throw new Error('Could not determine 1st material for CSV row: ' + csvProduct['Primary Material']);
+    throw new Error('Could not determine 1st material for CSV row: ' + csvProduct['Primary Material'])
   }
-  const material2 = MATERIALS.find(material => material.name === csvProduct['Secondary Material (Lining/Wrapper)']);
+  const material2 = MATERIALS.find(material => material.name === csvProduct['Secondary Material (Lining/Wrapper)'])
   if (csvProduct['Secondary Material (Lining/Wrapper)'] && !material2) {
-    throw new Error('Could not determine 2nd material for CSV row: ' + csvProduct['Secondary Material (Lining/Wrapper)']);
+    throw new Error('Could not determine 2nd material for CSV row: ' + csvProduct['Secondary Material (Lining/Wrapper)'])
   }
-  const productId = csvProduct['Product ID'];
-  const unitsPerCase = csvToNumber(csvProduct['Case Count (Units per Case)']);
-  const grossCaseWeight = csvToNumber(csvProduct['Gross Case Weight (lbs)']);
-  const boxPercentWeight = csvToNumber(csvProduct['Box Weight as % of Gross Weight']) / 100;
-  const boxWeight = grossCaseWeight * boxPercentWeight;
-  const netCaseWeight = grossCaseWeight- boxWeight;
-  const itemWeight = netCaseWeight / unitsPerCase;
-  const secondaryMaterialWeightPerUnit = csvToNumber(csvProduct['Second Material Weight per Unit (lbs)']);
-  const primaryMaterialWeightPerUnit = secondaryMaterialWeightPerUnit > 0 ? (itemWeight - secondaryMaterialWeightPerUnit) : itemWeight;
+  const productId = csvProduct['Product ID']
+  const unitsPerCase = csvToNumber(csvProduct['Case Count (Units per Case)'])
+  const grossCaseWeight = csvToNumber(csvProduct['Gross Case Weight (lbs)'])
+  const boxPercentWeight = csvToNumber(csvProduct['Box Weight as % of Gross Weight']) / 100
+  const boxWeight = grossCaseWeight * boxPercentWeight
+  const netCaseWeight = grossCaseWeight - boxWeight
+  const itemWeight = netCaseWeight / unitsPerCase
+  const secondaryMaterialWeightPerUnit = csvToNumber(csvProduct['Second Material Weight per Unit (lbs)'])
+  const primaryMaterialWeightPerUnit = secondaryMaterialWeightPerUnit > 0 ? itemWeight - secondaryMaterialWeightPerUnit : itemWeight
 
   return {
     id: productId,
@@ -87,11 +86,11 @@ function csvRowToSingleUseProduct (csvProduct: CSVRow): SingleUseProduct {
     secondaryMaterial: material2?.id || 0,
     secondaryMaterialWeightPerUnit,
     size: csvProduct['Size/Options'],
-    title: csvProduct['Product Description']
-  };
+    title: csvProduct['Product Description'],
+  }
 }
 
-function csvToNumber (value: string = ''): number {
-  value = value.replace(/[^0-9.]/g, '').trim();
-  return value ? parseFloat(value) : 0;
+function csvToNumber(value: string = ''): number {
+  value = value.replace(/[^0-9.]/g, '').trim()
+  return value ? parseFloat(value) : 0
 }

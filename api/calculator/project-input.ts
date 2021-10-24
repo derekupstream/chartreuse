@@ -1,15 +1,12 @@
-
-import { ProjectInput } from "./types/projects";
+import { ProjectInput } from './types/projects'
 
 // TODO: retrieve project data from database
-export async function getProjectData(
-  projectId: string
-): Promise<ProjectInput> {
+export async function getProjectData(projectId: string): Promise<ProjectInput> {
   return {
     additionalCosts: [],
     reusableItems: [],
     singleUseItems: [],
-    state: "California",
+    state: 'California',
     utilityRates: {
       gas: 0,
       electric: 0,
@@ -17,5 +14,5 @@ export async function getProjectData(
     },
     wasteHauling: [],
     newWasteHauling: [],
-  };
+  }
 }

@@ -1,16 +1,16 @@
-import { RightOutlined } from "@ant-design/icons";
-import { Form, Input, Button, Select } from "antd";
+import { RightOutlined } from '@ant-design/icons'
+import { Form, Input, Button, Select } from 'antd'
 
-import * as S from "./styles";
+import * as S from './styles'
 
 type Props = {
-  onSubmit: (values: unknown) => void;
-  isLoading?: boolean;
+  onSubmit: (values: unknown) => void
+  isLoading?: boolean
   accounts: {
-    id: string;
-    name: string;
-  }[];
-};
+    id: string
+    name: string
+  }[]
+}
 
 export default function InviteForm({ onSubmit, isLoading, accounts }: Props) {
   return (
@@ -22,17 +22,17 @@ export default function InviteForm({ onSubmit, isLoading, accounts }: Props) {
           rules={[
             {
               required: true,
-              message: "Account is required!",
+              message: 'Account is required!',
             },
           ]}
         >
           <Select placeholder="Account name">
-            {accounts.map((account) => {
+            {accounts.map(account => {
               return (
                 <Select.Option key={account.id} value={account.id}>
                   {account.name}
                 </Select.Option>
-              );
+              )
             })}
           </Select>
         </Form.Item>
@@ -43,11 +43,11 @@ export default function InviteForm({ onSubmit, isLoading, accounts }: Props) {
           rules={[
             {
               required: true,
-              message: "Email is required!",
+              message: 'Email is required!',
             },
             {
-              type: "email",
-              message: "Please input a valid email!",
+              type: 'email',
+              message: 'Please input a valid email!',
             },
           ]}
         >
@@ -61,5 +61,5 @@ export default function InviteForm({ onSubmit, isLoading, accounts }: Props) {
         </Form.Item>
       </S.InviteForm>
     </S.Wrapper>
-  );
+  )
 }

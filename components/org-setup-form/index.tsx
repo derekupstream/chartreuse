@@ -1,12 +1,12 @@
-import { RightOutlined } from "@ant-design/icons";
-import { Form, Input, Button, Select } from "antd";
+import { RightOutlined } from '@ant-design/icons'
+import { Form, Input, Button, Select } from 'antd'
 
-import * as S from "./styles";
+import * as S from './styles'
 
 type Props = {
-  onSubmit: (values: unknown) => void;
-  isLoading?: boolean;
-};
+  onSubmit: (values: unknown) => void
+  isLoading?: boolean
+}
 
 export default function OrgSetupForm({ onSubmit, isLoading }: Props) {
   return (
@@ -18,18 +18,14 @@ export default function OrgSetupForm({ onSubmit, isLoading }: Props) {
           rules={[
             {
               required: true,
-              message: "Please input your name!",
+              message: 'Please input your name!',
             },
           ]}
         >
           <Input placeholder="Your name" />
         </Form.Item>
 
-        <Form.Item
-          label="Your job title"
-          name="title"
-          rules={[{ required: true, message: "Please input your title!" }]}
-        >
+        <Form.Item label="Your job title" name="title" rules={[{ required: true, message: 'Please input your title!' }]}>
           <Input placeholder="Your job title" />
         </Form.Item>
 
@@ -39,7 +35,7 @@ export default function OrgSetupForm({ onSubmit, isLoading }: Props) {
           rules={[
             {
               required: true,
-              message: "Please input your phone!",
+              message: 'Please input your phone!',
             },
           ]}
         >
@@ -52,17 +48,14 @@ export default function OrgSetupForm({ onSubmit, isLoading }: Props) {
           rules={[
             {
               required: true,
-              message: "Please input your organization name!",
+              message: 'Please input your organization name!',
             },
           ]}
         >
           <Input placeholder="Organization name" />
         </Form.Item>
 
-        <Form.Item
-          label="Number of client accounts"
-          name="numberOfClientAccounts"
-        >
+        <Form.Item label="Number of client accounts" name="numberOfClientAccounts">
           <Select placeholder="Select the number of client accounts">
             <Select.Option value="1">1</Select.Option>
             <Select.Option value="2">2</Select.Option>
@@ -77,5 +70,5 @@ export default function OrgSetupForm({ onSubmit, isLoading }: Props) {
         </Form.Item>
       </S.OrgSetupForm>
     </S.Wrapper>
-  );
+  )
 }

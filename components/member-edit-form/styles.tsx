@@ -1,5 +1,5 @@
-import styled from "styled-components";
-import { Form, Space } from "antd";
+import styled from 'styled-components'
+import { Form, Space } from 'antd'
 
 export const MemberEditForm = styled(Form)`
   width: 100%;
@@ -10,12 +10,12 @@ export const MemberEditForm = styled(Form)`
   .ant-form-item-explain-error {
     text-align: left;
   }
-`;
+`
 
 export const Wrapper = styled.div`
   width: 317px;
   margin: 0 auto;
-`;
+`
 
 export const ActionsSpace = styled(Space)`
   width: 100%;
@@ -23,4 +23,4 @@ export const ActionsSpace = styled(Space)`
   .ant-space-item {
     width: 100%;
   }
-`;
+`

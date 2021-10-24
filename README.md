@@ -35,6 +35,7 @@ Tests are written using [ts-jest](https://kulshekhar.github.io/ts-jest/docs/). T
 ```bash
 yarn test
 ```
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:

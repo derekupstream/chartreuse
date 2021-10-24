@@ -1,6 +1,3 @@
 {
-  "{pages,components,hooks,lib}/**/*.{js,ts,jsx,tsx}": [
-    "eslint --fix",
-    "prettier --write"
-  ]
+  "{pages,components,hooks,lib}/**/*.{js,ts,jsx,tsx}": ["eslint --fix", "prettier --write"]
 }

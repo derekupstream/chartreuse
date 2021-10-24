@@ -1,46 +1,43 @@
-import { message } from "antd";
-import Header from "components/header";
-import PageLoader from "components/page-loader";
-import { useAuth } from "hooks/useAuth";
-import { useRouter } from "next/router";
-import { destroyCookie, setCookie } from "nookies";
-import { useEffect } from "react";
-import MessagePage from "components/message-page";
+import { message } from 'antd'
+import Header from 'components/header'
+import PageLoader from 'components/page-loader'
+import { useAuth } from 'hooks/useAuth'
+import { useRouter } from 'next/router'
+import { destroyCookie, setCookie } from 'nookies'
+import { useEffect } from 'react'
+import MessagePage from 'components/message-page'
 
 export default function EmailVerification() {
-  const { user } = useAuth();
-  const router = useRouter();
+  const { user } = useAuth()
+  const router = useRouter()
 
-  const origin =
-    typeof window !== "undefined" && window.location.origin
-      ? window.location.origin
-      : "";
+  const origin = typeof window !== 'undefined' && window.location.origin ? window.location.origin : ''
 
   useEffect(() => {
     const verifyEmail = async () => {
-      destroyCookie(null, "emailVerified");
+      destroyCookie(null, 'emailVerified')
 
       if (user?.emailVerified) {
-        setCookie(null, "emailVerified", "true");
-        router.push("/org-setup");
+        setCookie(null, 'emailVerified', 'true')
+        router.push('/org-setup')
       } else {
         try {
           await user?.sendEmailVerification({
             url: `${origin}/org-setup`,
-          });
-          setCookie(null, "emailVerified", "true");
+          })
+          setCookie(null, 'emailVerified', 'true')
         } catch (error: any) {
-          message.error(error.message);
+          message.error(error.message)
         }
       }
-    };
+    }
 
     if (user) {
-      verifyEmail();
+      verifyEmail()
     }
-  }, [origin, router, user]);
+  }, [origin, router, user])
 
-  if (!user) return <PageLoader />;
+  if (!user) return <PageLoader />
 
   return (
     <>
@@ -54,5 +51,5 @@ export default function EmailVerification() {
         />
       </main>
     </>
-  );
+  )
 }

@@ -1,36 +1,26 @@
-import { Form, Input, Button } from "antd";
-import { Store } from "antd/lib/form/interface";
+import { Form, Input, Button } from 'antd'
+import { Store } from 'antd/lib/form/interface'
 
-import * as S from "./styles";
+import * as S from './styles'
 
 type Props = {
-  onSubmit: (values: unknown) => void;
-  onCancel: () => void;
-  isLoading?: boolean;
-  initialValues?: Store;
-};
+  onSubmit: (values: unknown) => void
+  onCancel: () => void
+  isLoading?: boolean
+  initialValues?: Store
+}
 
-export default function AccountEditForm({
-  onSubmit,
-  onCancel,
-  isLoading,
-  initialValues,
-}: Props) {
+export default function AccountEditForm({ onSubmit, onCancel, isLoading, initialValues }: Props) {
   return (
     <S.Wrapper>
-      <S.AccountEditForm
-        initialValues={initialValues}
-        name="accountEdit"
-        layout="vertical"
-        onFinish={onSubmit}
-      >
+      <S.AccountEditForm initialValues={initialValues} name="accountEdit" layout="vertical" onFinish={onSubmit}>
         <Form.Item
           label="Account Company Name"
           name="name"
           rules={[
             {
               required: true,
-              message: "Please input the company name!",
+              message: 'Please input the company name!',
             },
           ]}
         >
@@ -49,5 +39,5 @@ export default function AccountEditForm({
         </Form.Item>
       </S.AccountEditForm>
     </S.Wrapper>
-  );
+  )
 }
