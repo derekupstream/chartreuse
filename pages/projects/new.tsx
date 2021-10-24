@@ -1,23 +1,14 @@
 import { GetServerSideProps } from 'next'
-import ProjectSteps from 'components/dashboard/projects/steps'
-import { Props, Template } from 'components/dashboard'
-import { PageProps } from 'pages/_app'
 import { checkLogin } from 'lib/middleware'
+import ProjectSetup from './[id]/setup'
+import { DashboardUser } from 'components/dashboard'
 
 export const getServerSideProps: GetServerSideProps = async context => {
   return checkLogin(context)
 }
 
-const NewProjectPage = ({ user }: Props) => {
-  return <ProjectSteps user={user} />
-}
-
-NewProjectPage.getLayout = (page: React.ReactNode, pageProps: PageProps) => {
-  return (
-    <Template {...pageProps} selectedMenuItem="projects">
-      {page}
-    </Template>
-  )
+const NewProjectPage = ({ user }: { user: DashboardUser }) => {
+  return <ProjectSetup user={user} />
 }
 
 export default NewProjectPage

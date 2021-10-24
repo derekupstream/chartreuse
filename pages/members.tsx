@@ -1,20 +1,15 @@
 import { GetServerSideProps } from 'next'
 
-import nookies from 'nookies'
-import { verifyIdToken } from 'lib/firebaseAdmin'
-import prisma from 'lib/prisma'
-import { Prisma } from '@prisma/client'
-
 import Members from 'components/dashboard/members'
-import { Props, Template } from 'components/dashboard'
+import Template from 'layouts/dashboardLayout'
 import { PageProps } from 'pages/_app'
-import { checkLogin } from 'lib/middleware'
+import { checkLogin, LoggedinProps } from 'lib/middleware'
 
 export const getServerSideProps: GetServerSideProps = async context => {
   return checkLogin(context)
 }
 
-const MembersPage = ({ user }: Props) => {
+const MembersPage = ({ user }: LoggedinProps) => {
   return <Members user={user} />
 }
 

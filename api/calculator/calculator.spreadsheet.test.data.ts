@@ -6,6 +6,7 @@ const projectId = 'aaa'
 
 export const singleUseItems: SingleUseLineItem[] = [
   {
+    id: 'aaa',
     caseCost: 80,
     casesPurchased: 10,
     productId: '17',
@@ -16,6 +17,7 @@ export const singleUseItems: SingleUseLineItem[] = [
     unitsPerCase: 200,
   },
   {
+    id: 'aaa',
     caseCost: 30,
     casesPurchased: 15,
     productId: '7',
@@ -26,6 +28,7 @@ export const singleUseItems: SingleUseLineItem[] = [
     unitsPerCase: 1000,
   },
   {
+    id: 'aaa',
     caseCost: 20,
     casesPurchased: 20,
     productId: '3',
@@ -36,6 +39,7 @@ export const singleUseItems: SingleUseLineItem[] = [
     unitsPerCase: 1000,
   },
   {
+    id: 'aaa',
     caseCost: 50,
     casesPurchased: 0,
     productId: '16',
@@ -46,6 +50,7 @@ export const singleUseItems: SingleUseLineItem[] = [
     unitsPerCase: 210,
   },
   {
+    id: 'aaa',
     caseCost: 10,
     casesPurchased: 0,
     productId: '93',
@@ -57,12 +62,12 @@ export const singleUseItems: SingleUseLineItem[] = [
   },
 ]
 
-const reusableItems: ReusableLineItem[] = [{ projectId, caseCost: 23, casesPurchased: 2, annualRepurchasePercentage: 0.23 }]
+const reusableItems: ReusableLineItem[] = [{ categoryId: 1, projectId, caseCost: 23, casesPurchased: 2, annualRepurchasePercentage: 0.23 }]
 
 const additionalCosts: AdditionalCost[] = [
-  { projectId, cost: 80, frequency: 'Daily', category: 3 },
-  { projectId, cost: 5000, frequency: 'One Time', category: 2 },
-  { projectId, cost: 5000, frequency: 'One Time', category: 6 },
+  { projectId, cost: 80, frequency: 'Daily', categoryId: '3' },
+  { projectId, cost: 5000, frequency: 'One Time', categoryId: '2' },
+  { projectId, cost: 5000, frequency: 'One Time', categoryId: '6' },
 ]
 
 const dishwasher: DishWasher = {

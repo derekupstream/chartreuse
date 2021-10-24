@@ -86,7 +86,7 @@ const Projects = () => {
                     </S.Actions>
                     <Typography.Text>{(project?.metadata as ProjectMetadata)?.type}</Typography.Text>
                   </S.ProjectInfo>
-                  <Button type="ghost" block onClick={() => router.push(`projects/${project.id}?step=SETUP`)}>
+                  <Button type="ghost" block href={`/projects/${project.id}`}>
                     View project
                   </Button>
                 </Card>

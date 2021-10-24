@@ -17,12 +17,18 @@ export const LayoutHeader = styled(Layout.Header)`
   background-color: white;
 `
 
-export const Content = styled(Layout.Content)`
+export const ContentContainer = styled(Layout.Content)`
   min-height: calc(100vh - 64px);
   padding: 2rem;
   background-color: #f4f3f0;
   max-width: 1080px;
   margin: 0 auto;
+  width: 100%;
+`
+
+export const Content = styled.div`
+  margin: 0 auto;
+  max-width: 980px;
   width: 100%;
 `
 
@@ -50,6 +56,12 @@ export const SiderWrapper = styled.div`
 `
 
 export const Steps = styled(AntSteps)`
+  & {
+    border-bottom: 1px solid #ccc;
+    border-top: 1px solid #ccc;
+    padding: 20px 0;
+  }
+
   .ant-steps-item-description {
     min-width: 150px;
     font-size: 13px;

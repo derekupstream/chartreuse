@@ -1,6 +1,6 @@
 import { GetServerSideProps } from 'next'
 import Projects from 'components/dashboard/projects'
-import { Template } from 'components/dashboard'
+import Template from 'layouts/dashboardLayout'
 import { PageProps } from 'pages/_app'
 import { checkLogin } from 'lib/middleware'
 

@@ -1,10 +1,11 @@
 import { Button, Input, Typography, Slider, message } from 'antd'
 import { Form, Select } from 'antd'
-import { Prisma } from '@prisma/client'
-import { useMutation } from 'react-query'
-
-import * as S from '../styles'
-import { StepProps } from 'components/dashboard/projects/Step'
+import { Store } from 'antd/lib/form/interface'
+import { Prisma, Project } from '@prisma/client'
+import * as S from 'components/dashboard/projects/steps/styles'
+import { POST, PUT } from 'lib/http'
+import { useRouter } from 'next/router'
+import { DashboardUser } from 'components/dashboard'
 
 const ProjectTypes = ['Cafe/Cafeteria', 'Kitchenette/Employee Breakroom', 'Event Catering', 'Special Event (Venue)', 'Coffee Shop', 'Fast Casual Restaurant', 'Food Hall Stand', 'Other'] as const
 
@@ -27,67 +28,27 @@ type ProjectData = Prisma.ProjectCreateInput & {
   orgId: string
 }
 
-type SetupProps = Omit<StepProps, 'step'>
+export default function SetupPage({ user, project }: { user: DashboardUser; project?: Project }) {
+  const router = useRouter()
 
-const Setup = ({ user, project, onComplete }: SetupProps) => {
-  const createProject = useMutation((data: ProjectData) => {
-    return fetch('/api/projects', {
-      method: 'POST',
-      body: JSON.stringify(data),
-      headers: {
-        'content-type': 'application/json',
-      },
-    })
-  })
+  async function saveProject({ name, accountId, ...metadata }: Store) {
+    const params = {
+      name,
+      metadata,
+      accountId,
+      // @ts-ignore
+      orgId: user.org.id,
+    }
 
-  const updateProject = useMutation((data: ProjectData) => {
-    return fetch(`/api/projects/${project?.id}`, {
-      method: 'PATCH',
-      body: JSON.stringify(data),
-      headers: {
-        'content-type': 'application/json',
-      },
-    })
-  })
+    const req = project ? PUT<{ project: Project }>(`/api/projects/${project.id}`, params) : POST<{ project: Project }>('/api/projects', params)
 
-  const handleProjectCreation = async ({ name, accountId, ...metadata }: ProjectInputFields) => {
-    createProject.mutate(
-      {
-        name,
-        metadata: metadata as ProjectMetadata,
-        accountId,
-        orgId: user.org.id,
-      },
-      {
-        onSuccess: async (data: any) => {
-          const json = await data.json()
-          onComplete(json?.projects?.[0].id)
-        },
-        onError: err => {
-          message.error((err as Error)?.message)
-        },
-      }
-    )
-  }
-
-  const handleProjectUpdate = async ({ name, accountId, ...metadata }: ProjectInputFields) => {
-    updateProject.mutate(
-      {
-        name,
-        metadata: metadata as ProjectMetadata,
-        accountId,
-        orgId: user.org.id,
-      },
-      {
-        onSuccess: () => {
-          message.success(`Project Updated`)
-          onComplete(project?.id)
-        },
-        onError: err => {
-          message.error((err as Error)?.message)
-        },
-      }
-    )
+    req
+      .then(res => {
+        router.push(`/projects/${res.project.id}/single-use`)
+      })
+      .catch(err => {
+        message.error((err as Error)?.message)
+      })
   }
 
   return (
@@ -101,7 +62,7 @@ const Setup = ({ user, project, onComplete }: SetupProps) => {
           ...(project || {}),
           ...((project?.metadata as {}) || {}),
         }}
-        onFinish={project ? (handleProjectUpdate as (values: unknown) => void) : (handleProjectCreation as (values: unknown) => void)}
+        onFinish={saveProject as any}
       >
         <Form.Item
           label="Project Name"
@@ -201,5 +162,3 @@ const Setup = ({ user, project, onComplete }: SetupProps) => {
     </S.Wrapper>
   )
 }
-
-export default Setup

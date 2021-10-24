@@ -2,16 +2,12 @@ import { GetServerSideProps } from 'next'
 import nookies from 'nookies'
 import { verifyIdToken } from 'lib/firebaseAdmin'
 import prisma from 'lib/prisma'
-import { Prisma, Project } from '@prisma/client'
+import { Prisma } from '@prisma/client'
 
 import ProjectSteps from 'components/dashboard/projects/steps'
-import { Props, Template } from 'components/dashboard'
+import DashboardTemplate from 'layouts/dashboardLayout'
 import { PageProps } from 'pages/_app'
-import { UserDataToInclude } from 'lib/middleware'
-
-type ProjectPageProps = Props & {
-  project: Project
-}
+import { ProjectContext, UserDataToInclude } from 'lib/middleware'
 
 export const getServerSideProps: GetServerSideProps = async context => {
   try {
@@ -57,15 +53,15 @@ export const getServerSideProps: GetServerSideProps = async context => {
   }
 }
 
-const ProjectPage = ({ user, project }: ProjectPageProps) => {
+const ProjectPage = ({ user, project }: ProjectContext) => {
   return <ProjectSteps user={user} project={project} />
 }
 
 ProjectPage.getLayout = (page: React.ReactNode, pageProps: PageProps) => {
   return (
-    <Template {...pageProps} selectedMenuItem="projects">
+    <DashboardTemplate {...pageProps} selectedMenuItem="projects">
       {page}
-    </Template>
+    </DashboardTemplate>
   )
 }
 

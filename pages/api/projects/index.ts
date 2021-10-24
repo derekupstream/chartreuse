@@ -4,6 +4,7 @@ import { Prisma, Project } from '@prisma/client'
 import { ProjectMetadata } from 'components/dashboard/projects/steps/setup'
 
 type Response = {
+  project?: Project
   projects?: Project[]
   error?: string
 }
@@ -30,7 +31,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         },
       })
 
-      return res.status(200).json({ projects: [project] })
+      return res.status(200).json({ project })
     } catch (error: any) {
       return res.status(500).json({ error: error.message })
     }

@@ -1,13 +1,13 @@
 import { useRouter } from 'next/router'
 import { Button, Space, Table, Tag, Typography, Popconfirm, message } from 'antd'
 import { DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons'
-import { Props } from 'components/dashboard'
 import { useMutation } from 'react-query'
 import { useCallback } from 'react'
 
 import * as S from '../styles'
+import { LoggedinProps } from 'lib/middleware'
 
-export default function Accounts({ user }: Props) {
+export default function Accounts({ user }: LoggedinProps) {
   const router = useRouter()
 
   const deleteAccount = useMutation((id: string) => {
@@ -87,7 +87,7 @@ export default function Accounts({ user }: Props) {
       key: account.id,
       name: account.name,
       contact: account.accountContactEmail,
-      invitingPending: !!account.invites.find(i => i.email === account.accountContactEmail && !i.accepted),
+      invitingPending: account.invites.some(i => i.email === account.accountContactEmail && !i.accepted),
     }
   })
 

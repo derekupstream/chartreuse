@@ -1,15 +1,15 @@
 import { GetServerSideProps } from 'next'
 
 import Accounts from 'components/dashboard/accounts'
-import { Props, Template } from 'components/dashboard'
+import Template from 'layouts/dashboardLayout'
 import { PageProps } from 'pages/_app'
-import { checkLogin } from 'lib/middleware'
+import { checkLogin, LoggedinProps } from 'lib/middleware'
 
 export const getServerSideProps: GetServerSideProps = async context => {
   return checkLogin(context)
 }
 
-const AccountsPage = ({ user }: Props) => {
+const AccountsPage = ({ user }: LoggedinProps) => {
   return <Accounts user={user} />
 }
 
