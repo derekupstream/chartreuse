@@ -1,28 +1,22 @@
-import { createContext, useEffect, useState, useCallback } from "react";
-import { FirebaseAuthProvider, firebase, User } from "lib/firebaseClient";
-import firebaseLib from "firebase";
-import { setCookie, destroyCookie } from "nookies";
+import { createContext, useEffect, useState, useCallback } from 'react'
+import { FirebaseAuthProvider, firebase, User } from 'lib/firebaseClient'
+import firebaseLib from 'firebase'
+import { setCookie, destroyCookie } from 'nookies'
 
-export type { User };
+export type { User }
 
 export type Credentials = {
-  email: string;
-  password: string;
-};
+  email: string
+  password: string
+}
 
 type AuthContextType = {
-  user: User | null;
-  login: (
-    credentials: Credentials
-  ) => Promise<firebaseLib.auth.UserCredential | null>;
-  loginWithProvider: (
-    provider: FirebaseAuthProvider
-  ) => Promise<firebaseLib.auth.UserCredential | null>;
-  signup: (
-    credentials: Credentials
-  ) => Promise<firebaseLib.auth.UserCredential | null>;
-  signout: () => Promise<void>;
-};
+  user: User | null
+  login: (credentials: Credentials) => Promise<firebaseLib.auth.UserCredential | null>
+  loginWithProvider: (provider: FirebaseAuthProvider) => Promise<firebaseLib.auth.UserCredential | null>
+  signup: (credentials: Credentials) => Promise<firebaseLib.auth.UserCredential | null>
+  signout: () => Promise<void>
+}
 
 export const AuthContext = createContext<AuthContextType>({
   user: null,
@@ -30,59 +24,51 @@ export const AuthContext = createContext<AuthContextType>({
   loginWithProvider: (provider: FirebaseAuthProvider) => Promise.resolve(null),
   signup: (credentials: Credentials) => Promise.resolve(null),
   signout: () => Promise.resolve(),
-});
+})
 
 export const AuthProvider: React.FC = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>(null)
 
   useEffect(() => {
-    const unsubscribe = firebase
-      .auth()
-      .onIdTokenChanged(async (user: User | null) => {
-        if (!user) {
-          setUser(null);
-          destroyCookie(null, "token");
-          return;
-        }
+    const unsubscribe = firebase.auth().onIdTokenChanged(async (user: User | null) => {
+      if (!user) {
+        setUser(null)
+        destroyCookie(null, 'token')
+        return
+      }
 
-        setUser(user);
-        const token = await user.getIdToken();
-        setCookie(null, "token", token, {
-          maxAge: 30 * 24 * 60 * 60,
-          path: "/",
-        });
-      });
+      setUser(user)
+      const token = await user.getIdToken()
+      setCookie(null, 'token', token, {
+        maxAge: 30 * 24 * 60 * 60,
+        path: '/',
+      })
+    })
 
-    return () => unsubscribe();
-  }, []);
+    return () => unsubscribe()
+  }, [])
 
   const login = useCallback(({ email, password }: Credentials) => {
-    return firebase.auth().signInWithEmailAndPassword(email, password);
-  }, []);
+    return firebase.auth().signInWithEmailAndPassword(email, password)
+  }, [])
 
   const loginWithProvider = useCallback((provider: FirebaseAuthProvider) => {
-    return firebase.auth().signInWithPopup(provider);
-  }, []);
+    return firebase.auth().signInWithPopup(provider)
+  }, [])
 
   const signup = useCallback(({ email, password }: Credentials) => {
-    return firebase.auth().createUserWithEmailAndPassword(email, password);
-  }, []);
+    return firebase.auth().createUserWithEmailAndPassword(email, password)
+  }, [])
 
   const signout = useCallback(() => {
     return firebase
       .auth()
       .signOut()
       .then(() => {
-        setUser(null);
-        destroyCookie(null, "token");
-      });
-  }, []);
+        setUser(null)
+        destroyCookie(null, 'token')
+      })
+  }, [])
 
-  return (
-    <AuthContext.Provider
-      value={{ user, login, loginWithProvider, signup, signout }}
-    >
-      {children}
-    </AuthContext.Provider>
-  );
-};
+  return <AuthContext.Provider value={{ user, login, loginWithProvider, signup, signout }}>{children}</AuthContext.Provider>
+}

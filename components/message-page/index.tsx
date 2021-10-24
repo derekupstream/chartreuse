@@ -1,14 +1,14 @@
-import Container from "components/container";
-import Image from "next/image";
-import Logo from "public/images/chartreuse-logo.png";
-import { Space, Typography } from "antd";
-import LegalNotice from "components/legal-notice";
-import * as S from "./styles";
+import Container from 'components/container'
+import Image from 'next/image'
+import Logo from 'public/images/chartreuse-logo.png'
+import { Space, Typography } from 'antd'
+import LegalNotice from 'components/legal-notice'
+import * as S from './styles'
 
 type Props = {
-  title: string;
-  message: string;
-};
+  title: string
+  message: string
+}
 
 const MessagePage: React.FC<Props> = ({ title, message }) => {
   return (
@@ -22,7 +22,7 @@ const MessagePage: React.FC<Props> = ({ title, message }) => {
         <LegalNotice />
       </S.Wrapper>
     </Container>
-  );
-};
+  )
+}
 
-export default MessagePage;
+export default MessagePage

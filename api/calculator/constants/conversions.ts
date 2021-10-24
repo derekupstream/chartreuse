@@ -1,3 +1,2 @@
-
-export const POUND_TO_KILOGRAM = 0.453592;
-export const POUND_TO_TONNE = 0.000453592;
+export const POUND_TO_KILOGRAM = 0.453592
+export const POUND_TO_TONNE = 0.000453592

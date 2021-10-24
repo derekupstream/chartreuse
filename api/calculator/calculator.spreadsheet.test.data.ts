@@ -1,8 +1,8 @@
-import { getProducts } from "./datasets/single-use-products";
-import { ProjectInput } from "./types/projects";
-import { AdditionalCost, DishWasher, ReusableLineItem, SingleUseLineItem, WasteHaulingService } from "./types/projects";
+import { getProducts } from './datasets/single-use-products'
+import { ProjectInput } from './types/projects'
+import { AdditionalCost, DishWasher, ReusableLineItem, SingleUseLineItem, WasteHaulingService } from './types/projects'
 
-const projectId = "aaa";
+const projectId = 'aaa'
 
 export const singleUseItems: SingleUseLineItem[] = [
   {
@@ -10,7 +10,7 @@ export const singleUseItems: SingleUseLineItem[] = [
     casesPurchased: 10,
     productId: '17',
     projectId,
-    frequency: "Weekly",
+    frequency: 'Weekly',
     newCaseCost: 80,
     newCasesPurchased: 0,
     unitsPerCase: 200,
@@ -20,7 +20,7 @@ export const singleUseItems: SingleUseLineItem[] = [
     casesPurchased: 15,
     productId: '7',
     projectId,
-    frequency: "Weekly",
+    frequency: 'Weekly',
     newCaseCost: 30,
     newCasesPurchased: 5,
     unitsPerCase: 1000,
@@ -30,7 +30,7 @@ export const singleUseItems: SingleUseLineItem[] = [
     casesPurchased: 20,
     productId: '3',
     projectId,
-    frequency: "Weekly",
+    frequency: 'Weekly',
     newCaseCost: 20,
     newCasesPurchased: 10,
     unitsPerCase: 1000,
@@ -40,7 +40,7 @@ export const singleUseItems: SingleUseLineItem[] = [
     casesPurchased: 0,
     productId: '16',
     projectId,
-    frequency: "Weekly",
+    frequency: 'Weekly',
     newCaseCost: 50,
     newCasesPurchased: 2,
     unitsPerCase: 210,
@@ -50,33 +50,31 @@ export const singleUseItems: SingleUseLineItem[] = [
     casesPurchased: 0,
     productId: '93',
     projectId,
-    frequency: "Weekly",
+    frequency: 'Weekly',
     newCaseCost: 10,
     newCasesPurchased: 5,
     unitsPerCase: 2500,
-  }
-];
+  },
+]
 
-const reusableItems: ReusableLineItem[] = [
-  { projectId, caseCost: 23, casesPurchased: 2, annualRepurchasePercentage: 0.23 },
-];
+const reusableItems: ReusableLineItem[] = [{ projectId, caseCost: 23, casesPurchased: 2, annualRepurchasePercentage: 0.23 }]
 
 const additionalCosts: AdditionalCost[] = [
-  { projectId, cost: 80, frequency: "Daily", category: 3 },
-  { projectId, cost: 5000, frequency: "One Time", category: 2 },
-  { projectId, cost: 5000, frequency: "One Time", category: 6 }
-];
+  { projectId, cost: 80, frequency: 'Daily', category: 3 },
+  { projectId, cost: 5000, frequency: 'One Time', category: 2 },
+  { projectId, cost: 5000, frequency: 'One Time', category: 6 },
+]
 
 const dishwasher: DishWasher = {
   additionalRacksPerDay: 80,
-  boosterWaterHeaterFuelType: "Electric",
-  buildingWaterHeaterFuelType: "Electric",
+  boosterWaterHeaterFuelType: 'Electric',
+  buildingWaterHeaterFuelType: 'Electric',
   energyStarCertified: true,
   operatingDays: 7,
   projectId,
-  temperature: "High",
-  type: "Under Counter"
-};
+  temperature: 'High',
+  type: 'Under Counter',
+}
 
 const wasteHauling: WasteHaulingService[] = [
   {
@@ -84,20 +82,20 @@ const wasteHauling: WasteHaulingService[] = [
     monthlyCost: 125,
     size: 2,
     unitCount: 1,
-    wasteStream: "Garbage",
-    serviceType: "Bin",
-    projectId
+    wasteStream: 'Garbage',
+    serviceType: 'Bin',
+    projectId,
   },
   {
     collectionTimesPerWeek: 1,
     monthlyCost: 85,
     size: 1,
     unitCount: 1,
-    wasteStream: "Recycling",
-    serviceType: "Bin",
-    projectId
-  }
-];
+    wasteStream: 'Recycling',
+    serviceType: 'Bin',
+    projectId,
+  },
+]
 
 const newWasteHauling: WasteHaulingService[] = [
   {
@@ -105,23 +103,23 @@ const newWasteHauling: WasteHaulingService[] = [
     monthlyCost: 85,
     size: 1,
     unitCount: 1,
-    wasteStream: "Garbage",
-    serviceType: "Bin",
-    projectId
+    wasteStream: 'Garbage',
+    serviceType: 'Bin',
+    projectId,
   },
   {
     collectionTimesPerWeek: 1,
     monthlyCost: 85,
     size: 1,
     unitCount: 1,
-    wasteStream: "Recycling",
-    serviceType: "Bin",
-    projectId
-  }
-];
+    wasteStream: 'Recycling',
+    serviceType: 'Bin',
+    projectId,
+  },
+]
 
 const project: ProjectInput = {
-  state: "California",
+  state: 'California',
   singleUseItems: [],
   additionalCosts,
   reusableItems,
@@ -129,20 +127,20 @@ const project: ProjectInput = {
   utilityRates: {
     gas: 0.922,
     electric: 0.1032,
-    water: 6.98
+    water: 6.98,
   },
   wasteHauling,
-  newWasteHauling
+  newWasteHauling,
 }
 
-export async function getProjectInput (): Promise<ProjectInput> {
-  const products = await getProducts();
+export async function getProjectInput(): Promise<ProjectInput> {
+  const products = await getProducts()
   const singleUseItemsPopulated = singleUseItems.map(item => {
-    const product = products.find(p => p.id === item.productId);
+    const product = products.find(p => p.id === item.productId)
     if (!product) {
-      throw new Error("Could not find product for productId: " + item.productId);
+      throw new Error('Could not find product for productId: ' + item.productId)
     }
-    return { ...item, product };
-  });
-  return { ...project, singleUseItems: singleUseItemsPopulated };
+    return { ...item, product }
+  })
+  return { ...project, singleUseItems: singleUseItemsPopulated }
 }

@@ -1,5 +1,5 @@
-import styled from "styled-components";
-import { Form } from "antd";
+import styled from 'styled-components'
+import { Form } from 'antd'
 
 export const SignupForm = styled(Form)`
   width: 100%;
@@ -9,9 +9,9 @@ export const SignupForm = styled(Form)`
     font-style: italic;
     padding-top: 0.5rem;
   }
-`;
+`
 
 export const Wrapper = styled.div`
   width: 317px;
   margin: 0 auto;
-`;
+`

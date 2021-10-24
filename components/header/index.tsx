@@ -1,8 +1,8 @@
-import Head from "next/head";
+import Head from 'next/head'
 
 type Props = {
-  title: string;
-};
+  title: string
+}
 
 const Header: React.FC<Props> = ({ title, children }) => {
   return (
@@ -11,7 +11,7 @@ const Header: React.FC<Props> = ({ title, children }) => {
       <link rel="icon" href="/favicon.png" />
       {children}
     </Head>
-  );
-};
+  )
+}
 
-export default Header;
+export default Header

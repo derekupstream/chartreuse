@@ -1,22 +1,22 @@
-import { useCallback } from "react";
-import AccountSetupForm from "components/account-setup-form";
-import Header from "components/header";
-import { message } from "antd";
-import FormPageTemplate from "components/form-page-template";
-import { useMutation } from "react-query";
-import { GetServerSideProps } from "next";
-import nookies from "nookies";
-import { verifyIdToken } from "lib/firebaseAdmin";
-import PageLoader from "components/page-loader";
-import prisma from "lib/prisma";
-import { useRouter } from "next/router";
-import Link from "next/link";
-import { ArrowLeftOutlined } from "@ant-design/icons";
+import { useCallback } from 'react'
+import AccountSetupForm from 'components/account-setup-form'
+import Header from 'components/header'
+import { message } from 'antd'
+import FormPageTemplate from 'components/form-page-template'
+import { useMutation } from 'react-query'
+import { GetServerSideProps } from 'next'
+import nookies from 'nookies'
+import { verifyIdToken } from 'lib/firebaseAdmin'
+import PageLoader from 'components/page-loader'
+import prisma from 'lib/prisma'
+import { useRouter } from 'next/router'
+import Link from 'next/link'
+import { ArrowLeftOutlined } from '@ant-design/icons'
 
-export const getServerSideProps: GetServerSideProps = async (context) => {
+export const getServerSideProps: GetServerSideProps = async context => {
   try {
-    const cookies = nookies.get(context);
-    const token = await verifyIdToken(cookies.token);
+    const cookies = nookies.get(context)
+    const token = await verifyIdToken(cookies.token)
 
     const user = await prisma.user.findUnique({
       where: {
@@ -25,15 +25,15 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       include: {
         org: true,
       },
-    });
+    })
 
     if (!user) {
       return {
         redirect: {
           permanent: false,
-          destination: "/org-setup",
+          destination: '/org-setup',
         },
-      };
+      }
     }
 
     return {
@@ -43,44 +43,44 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
           org: user.org,
         })
       ),
-    };
+    }
   } catch (error: any) {
     return {
       redirect: {
         permanent: false,
-        destination: "/login",
+        destination: '/login',
       },
-    };
+    }
   }
-};
+}
 
 type AccountSetupFields = {
-  name: string;
-  email: string;
-  useOrgEmail: boolean;
-};
+  name: string
+  email: string
+  useOrgEmail: boolean
+}
 
 type Props = {
   user: {
-    id: string;
-  };
+    id: string
+  }
   org: {
-    id: string;
-  };
-};
+    id: string
+  }
+}
 
 export default function AccountSetup({ org, user }: Props) {
-  const router = useRouter();
+  const router = useRouter()
 
   const createAccount = useMutation((data: any) => {
-    return fetch("/api/account", {
-      method: "POST",
+    return fetch('/api/account', {
+      method: 'POST',
       body: JSON.stringify(data),
       headers: {
-        "content-type": "application/json",
+        'content-type': 'application/json',
       },
-    });
-  });
+    })
+  })
 
   const handleAccountSetupCreation = useCallback(
     ({ name, email, useOrgEmail }: AccountSetupFields) => {
@@ -95,24 +95,24 @@ export default function AccountSetup({ org, user }: Props) {
         {
           onSuccess: () => {
             if (!useOrgEmail) {
-              message.success("Account contact invited.");
+              message.success('Account contact invited.')
             } else {
               // send user to first step of the calculator
-              router.push("/projects/new");
+              router.push('/projects/new')
             }
           },
-          onError: (err) => {
-            message.error((err as Error)?.message);
+          onError: err => {
+            message.error((err as Error)?.message)
           },
         }
-      );
+      )
     },
     [createAccount, org.id, router, user.id]
-  );
+  )
 
-  if (!org) return <PageLoader />;
+  if (!org) return <PageLoader />
 
-  const fromDashboard = !!parseInt(router.query.dashboard as string, 10);
+  const fromDashboard = !!parseInt(router.query.dashboard as string, 10)
 
   return (
     <>
@@ -132,12 +132,9 @@ export default function AccountSetup({ org, user }: Props) {
             ) : undefined
           }
         >
-          <AccountSetupForm
-            onSubmit={handleAccountSetupCreation as (values: unknown) => void}
-            isLoading={createAccount.isLoading}
-          />
+          <AccountSetupForm onSubmit={handleAccountSetupCreation as (values: unknown) => void} isLoading={createAccount.isLoading} />
         </FormPageTemplate>
       </main>
     </>
-  );
+  )
 }

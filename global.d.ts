@@ -1,15 +1,15 @@
-import { CSSProp } from "styled-components";
+import { CSSProp } from 'styled-components'
 
-declare module "react" {
+declare module 'react' {
   interface DOMAttributes<T> {
-    css?: CSSProp;
+    css?: CSSProp
   }
 }
 
 declare global {
   namespace JSX {
     interface IntrinsicAttributes {
-      css?: CSSProp;
+      css?: CSSProp
     }
   }
 }

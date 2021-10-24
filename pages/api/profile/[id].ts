@@ -1,33 +1,30 @@
-import type { NextApiRequest, NextApiResponse } from "next";
-import prisma from "lib/prisma";
-import { Prisma, User } from "@prisma/client";
+import type { NextApiRequest, NextApiResponse } from 'next'
+import prisma from 'lib/prisma'
+import { Prisma, User } from '@prisma/client'
 
 type Response = {
-  user?: User;
-  error?: string;
-};
+  user?: User
+  error?: string
+}
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse<Response>
-) {
-  const { id } = req.query;
+export default async function handler(req: NextApiRequest, res: NextApiResponse<Response>) {
+  const { id } = req.query
 
-  if (!id) return res.status(400).json({ error: "Missing id" });
+  if (!id) return res.status(400).json({ error: 'Missing id' })
 
-  if (req.method === "DELETE") {
+  if (req.method === 'DELETE') {
     try {
       const user = await prisma.user.delete<Prisma.UserDeleteArgs>({
         where: {
           id: req.query.id as string,
         },
-      });
+      })
 
-      return res.status(200).json({ user });
+      return res.status(200).json({ user })
     } catch (error: any) {
-      return res.status(500).json({ error: error.message });
+      return res.status(500).json({ error: error.message })
     }
-  } else if (req.method === "PATCH") {
+  } else if (req.method === 'PATCH') {
     try {
       const user = await prisma.user.update<Prisma.UserUpdateArgs>({
         where: {
@@ -44,14 +41,14 @@ export default async function handler(
             },
           },
         },
-      });
+      })
 
-      return res.status(200).json({ user });
+      return res.status(200).json({ user })
     } catch (error: any) {
-      return res.status(500).json({ error: error.message });
+      return res.status(500).json({ error: error.message })
     }
   }
 
   // Handle any other HTTP method
-  return res.status(405).json({ error: "Method not allowed" });
+  return res.status(405).json({ error: 'Method not allowed' })
 }

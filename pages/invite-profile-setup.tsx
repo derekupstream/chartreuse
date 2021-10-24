@@ -1,24 +1,24 @@
-import { GetServerSideProps } from "next";
-import { useCallback } from "react";
-import { useRouter } from "next/router";
-import InviteProfileForm from "components/invite-profile-form";
-import Header from "components/header";
-import { message } from "antd";
-import { useMutation } from "react-query";
-import { useAuth } from "hooks/useAuth";
-import FormPageTemplate from "components/form-page-template";
-import prisma from "lib/prisma";
-import MessagePage from "components/message-page";
-import PageLoader from "components/page-loader";
+import { GetServerSideProps } from 'next'
+import { useCallback } from 'react'
+import { useRouter } from 'next/router'
+import InviteProfileForm from 'components/invite-profile-form'
+import Header from 'components/header'
+import { message } from 'antd'
+import { useMutation } from 'react-query'
+import { useAuth } from 'hooks/useAuth'
+import FormPageTemplate from 'components/form-page-template'
+import prisma from 'lib/prisma'
+import MessagePage from 'components/message-page'
+import PageLoader from 'components/page-loader'
 
-export const getServerSideProps: GetServerSideProps = async (context) => {
+export const getServerSideProps: GetServerSideProps = async context => {
   try {
-    const inviteId = context.query.inviteId as string;
+    const inviteId = context.query.inviteId as string
 
     if (!inviteId) {
       return {
-        props: { org: null, account: null, error: "Invalid Invite" },
-      };
+        props: { org: null, account: null, error: 'Invalid Invite' },
+      }
     }
 
     const invite = await prisma.invite.findUnique({
@@ -33,12 +33,12 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
           },
         },
       },
-    });
+    })
 
     if (!invite) {
       return {
-        props: { org: null, account: null, error: "Invalid Invite" },
-      };
+        props: { org: null, account: null, error: 'Invalid Invite' },
+      }
     }
 
     if (invite.accepted) {
@@ -46,9 +46,9 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
         props: {
           org: null,
           account: null,
-          error: "Invite was already accepted",
+          error: 'Invite was already accepted',
         },
-      };
+      }
     }
 
     return {
@@ -58,43 +58,43 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
           account: invite.account,
         })
       ),
-    };
+    }
   } catch (error: any) {
-    return { props: { org: null, account: null, error: error.message } };
+    return { props: { org: null, account: null, error: error.message } }
   }
-};
+}
 
 type InviteProfileFields = {
-  name: string;
-  title: string;
-  phone: string;
-};
+  name: string
+  title: string
+  phone: string
+}
 
 type Props = {
   org?: {
-    id: string;
-    name: string;
-  };
+    id: string
+    name: string
+  }
   account?: {
-    id: string;
-    name: string;
-  };
-  error?: string;
-};
+    id: string
+    name: string
+  }
+  error?: string
+}
 
 export default function InviteProfile({ org, account, error }: Props) {
-  const router = useRouter();
-  const { user } = useAuth();
+  const router = useRouter()
+  const { user } = useAuth()
 
   const createInviteProfile = useMutation((data: any) => {
-    return fetch("/api/profile", {
-      method: "POST",
+    return fetch('/api/profile', {
+      method: 'POST',
       body: JSON.stringify(data),
       headers: {
-        "content-type": "application/json",
+        'content-type': 'application/json',
       },
-    });
-  });
+    })
+  })
 
   const handleInviteProfileCreation = useCallback(
     async ({ name, title, phone }: InviteProfileFields) => {
@@ -111,23 +111,23 @@ export default function InviteProfile({ org, account, error }: Props) {
         },
         {
           onSuccess: () => {
-            router.push("/");
+            router.push('/')
           },
-          onError: (err) => {
-            message.error((err as Error)?.message);
+          onError: err => {
+            message.error((err as Error)?.message)
           },
         }
-      );
+      )
     },
     [account?.id, createInviteProfile, org?.id, router, user?.email, user?.uid]
-  );
+  )
 
   if (error) {
-    return <MessagePage title="Oops!" message={error} />;
+    return <MessagePage title="Oops!" message={error} />
   }
 
   if (!user || !org || !account) {
-    return <PageLoader />;
+    return <PageLoader />
   }
 
   return (
@@ -135,16 +135,10 @@ export default function InviteProfile({ org, account, error }: Props) {
       <Header title="Setup Profile" />
 
       <main>
-        <FormPageTemplate
-          title="Setup your Profile"
-          subtitle={`Setup your profile to accept the invite to join ${org?.name} and ${account?.name} at Chartreuse.`}
-        >
-          <InviteProfileForm
-            onSubmit={handleInviteProfileCreation as (values: unknown) => void}
-            isLoading={createInviteProfile.isLoading}
-          />
+        <FormPageTemplate title="Setup your Profile" subtitle={`Setup your profile to accept the invite to join ${org?.name} and ${account?.name} at Chartreuse.`}>
+          <InviteProfileForm onSubmit={handleInviteProfileCreation as (values: unknown) => void} isLoading={createInviteProfile.isLoading} />
         </FormPageTemplate>
       </main>
     </>
-  );
+  )
 }

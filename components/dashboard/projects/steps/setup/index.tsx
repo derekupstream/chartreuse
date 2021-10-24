@@ -1,69 +1,56 @@
-import { Button, Input, Typography, Slider, message } from "antd";
-import { Form, Select } from "antd";
-import { Prisma } from "@prisma/client";
-import { useMutation } from "react-query";
+import { Button, Input, Typography, Slider, message } from 'antd'
+import { Form, Select } from 'antd'
+import { Prisma } from '@prisma/client'
+import { useMutation } from 'react-query'
 
-import * as S from "../styles";
-import { StepProps } from "components/dashboard/projects/Step";
+import * as S from '../styles'
+import { StepProps } from 'components/dashboard/projects/Step'
 
-const ProjectTypes = [
-  "Cafe/Cafeteria",
-  "Kitchenette/Employee Breakroom",
-  "Event Catering",
-  "Special Event (Venue)",
-  "Coffee Shop",
-  "Fast Casual Restaurant",
-  "Food Hall Stand",
-  "Other",
-] as const;
+const ProjectTypes = ['Cafe/Cafeteria', 'Kitchenette/Employee Breakroom', 'Event Catering', 'Special Event (Venue)', 'Coffee Shop', 'Fast Casual Restaurant', 'Food Hall Stand', 'Other'] as const
 
-const WhereFoodIsPrepared = ["On-Site", "Off-Site", "Both"] as const;
+const WhereFoodIsPrepared = ['On-Site', 'Off-Site', 'Both'] as const
 
 export type ProjectMetadata = {
-  type: typeof ProjectTypes[number];
-  customers: string;
-  dineInVsTakeOut: number;
-  whereIsFoodPrepared: typeof WhereFoodIsPrepared[number];
-};
+  type: typeof ProjectTypes[number]
+  customers: string
+  dineInVsTakeOut: number
+  whereIsFoodPrepared: typeof WhereFoodIsPrepared[number]
+}
 
 type ProjectInputFields = ProjectMetadata & {
-  name: string;
-  accountId: string;
-};
+  name: string
+  accountId: string
+}
 
 type ProjectData = Prisma.ProjectCreateInput & {
-  accountId: string;
-  orgId: string;
-};
+  accountId: string
+  orgId: string
+}
 
-type SetupProps = Omit<StepProps, "step">;
+type SetupProps = Omit<StepProps, 'step'>
 
 const Setup = ({ user, project, onComplete }: SetupProps) => {
   const createProject = useMutation((data: ProjectData) => {
-    return fetch("/api/projects", {
-      method: "POST",
+    return fetch('/api/projects', {
+      method: 'POST',
       body: JSON.stringify(data),
       headers: {
-        "content-type": "application/json",
+        'content-type': 'application/json',
       },
-    });
-  });
+    })
+  })
 
   const updateProject = useMutation((data: ProjectData) => {
     return fetch(`/api/projects/${project?.id}`, {
-      method: "PATCH",
+      method: 'PATCH',
       body: JSON.stringify(data),
       headers: {
-        "content-type": "application/json",
+        'content-type': 'application/json',
       },
-    });
-  });
+    })
+  })
 
-  const handleProjectCreation = async ({
-    name,
-    accountId,
-    ...metadata
-  }: ProjectInputFields) => {
+  const handleProjectCreation = async ({ name, accountId, ...metadata }: ProjectInputFields) => {
     createProject.mutate(
       {
         name,
@@ -73,21 +60,17 @@ const Setup = ({ user, project, onComplete }: SetupProps) => {
       },
       {
         onSuccess: async (data: any) => {
-          const json = await data.json();
-          onComplete(json?.projects?.[0].id);
+          const json = await data.json()
+          onComplete(json?.projects?.[0].id)
         },
-        onError: (err) => {
-          message.error((err as Error)?.message);
+        onError: err => {
+          message.error((err as Error)?.message)
         },
       }
-    );
-  };
+    )
+  }
 
-  const handleProjectUpdate = async ({
-    name,
-    accountId,
-    ...metadata
-  }: ProjectInputFields) => {
+  const handleProjectUpdate = async ({ name, accountId, ...metadata }: ProjectInputFields) => {
     updateProject.mutate(
       {
         name,
@@ -97,15 +80,15 @@ const Setup = ({ user, project, onComplete }: SetupProps) => {
       },
       {
         onSuccess: () => {
-          message.success(`Project Updated`);
-          onComplete(project?.id);
+          message.success(`Project Updated`)
+          onComplete(project?.id)
         },
-        onError: (err) => {
-          message.error((err as Error)?.message);
+        onError: err => {
+          message.error((err as Error)?.message)
         },
       }
-    );
-  };
+    )
+  }
 
   return (
     <S.Wrapper css="display: flex; flex-direction: column; align-items: center; justify-content: center;">
@@ -118,11 +101,7 @@ const Setup = ({ user, project, onComplete }: SetupProps) => {
           ...(project || {}),
           ...((project?.metadata as {}) || {}),
         }}
-        onFinish={
-          project
-            ? (handleProjectUpdate as (values: unknown) => void)
-            : (handleProjectCreation as (values: unknown) => void)
-        }
+        onFinish={project ? (handleProjectUpdate as (values: unknown) => void) : (handleProjectCreation as (values: unknown) => void)}
       >
         <Form.Item
           label="Project Name"
@@ -130,7 +109,7 @@ const Setup = ({ user, project, onComplete }: SetupProps) => {
           rules={[
             {
               required: true,
-              message: "Name is required!",
+              message: 'Name is required!',
             },
           ]}
         >
@@ -143,17 +122,17 @@ const Setup = ({ user, project, onComplete }: SetupProps) => {
           rules={[
             {
               required: true,
-              message: "Type is required!",
+              message: 'Type is required!',
             },
           ]}
         >
           <Select placeholder="Project Type">
-            {ProjectTypes.map((type) => {
+            {ProjectTypes.map(type => {
               return (
                 <Select.Option key={type} value={type}>
                   {type}
                 </Select.Option>
-              );
+              )
             })}
           </Select>
         </Form.Item>
@@ -164,31 +143,28 @@ const Setup = ({ user, project, onComplete }: SetupProps) => {
           rules={[
             {
               required: true,
-              message: "Account is required!",
+              message: 'Account is required!',
             },
           ]}
         >
           <Select placeholder="Account to create project on">
-            {user.org.accounts.map((account) => {
+            {user.org.accounts.map(account => {
               return (
                 <Select.Option key={account.id} value={account.id}>
                   {account.name}
                 </Select.Option>
-              );
+              )
             })}
           </Select>
         </Form.Item>
 
-        <Form.Item
-          label="On average, how many customers do you serve daily?"
-          name="customers"
-        >
+        <Form.Item label="On average, how many customers do you serve daily?" name="customers">
           <Slider
             marks={{
               50: 50,
               250: 250,
               500: 500,
-              1000: "1000+",
+              1000: '1000+',
             }}
             min={50}
             max={1000}
@@ -196,25 +172,19 @@ const Setup = ({ user, project, onComplete }: SetupProps) => {
           />
         </Form.Item>
 
-        <Form.Item
-          label="What percent of your daily volume is dine-in vs. take-out?"
-          name="dineInVsTakeOut"
-        >
+        <Form.Item label="What percent of your daily volume is dine-in vs. take-out?" name="dineInVsTakeOut">
           <Slider
             marks={{
-              0: "Dine-in",
-              100: { style: { width: "100px" }, label: "Take-out" },
+              0: 'Dine-in',
+              100: { style: { width: '100px' }, label: 'Take-out' },
             }}
           />
         </Form.Item>
 
-        <Form.Item
-          label="Where is the food is primarily prepared?"
-          name="whereIsFoodPrepared"
-        >
+        <Form.Item label="Where is the food is primarily prepared?" name="whereIsFoodPrepared">
           <S.RadioGroup
-            style={{ width: "100%" }}
-            options={WhereFoodIsPrepared.map((wfp) => ({
+            style={{ width: '100%' }}
+            options={WhereFoodIsPrepared.map(wfp => ({
               label: wfp,
               value: wfp,
             }))}
@@ -224,12 +194,12 @@ const Setup = ({ user, project, onComplete }: SetupProps) => {
 
         <Form.Item>
           <Button type="primary" htmlType="submit" block>
-            {project ? "Update Project" : "Add project"}
+            {project ? 'Update Project' : 'Add project'}
           </Button>
         </Form.Item>
       </S.SetupForm>
     </S.Wrapper>
-  );
-};
+  )
+}
 
-export default Setup;
+export default Setup

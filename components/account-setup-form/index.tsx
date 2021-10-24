@@ -1,45 +1,40 @@
-import { RightOutlined } from "@ant-design/icons";
-import { Form, Input, Button, Checkbox } from "antd";
-import { CheckboxChangeEvent } from "antd/lib/checkbox";
-import { useAuth } from "hooks/useAuth";
-import { useState } from "react";
+import { RightOutlined } from '@ant-design/icons'
+import { Form, Input, Button, Checkbox } from 'antd'
+import { CheckboxChangeEvent } from 'antd/lib/checkbox'
+import { useAuth } from 'hooks/useAuth'
+import { useState } from 'react'
 
-import * as S from "./styles";
+import * as S from './styles'
 
 type Props = {
-  onSubmit: (values: unknown) => void;
-  isLoading?: boolean;
-};
+  onSubmit: (values: unknown) => void
+  isLoading?: boolean
+}
 
 export default function AccountSetupForm({ onSubmit, isLoading }: Props) {
-  const { user } = useAuth();
-  const [form] = Form.useForm();
-  const [useOrgEmail, setUseOrgEmail] = useState<boolean>(false);
+  const { user } = useAuth()
+  const [form] = Form.useForm()
+  const [useOrgEmail, setUseOrgEmail] = useState<boolean>(false)
 
   const handleUseOrgEmailChange = (e: CheckboxChangeEvent) => {
-    const { checked } = e.target;
-    setUseOrgEmail(checked);
+    const { checked } = e.target
+    setUseOrgEmail(checked)
     form.setFieldsValue({
       useOrgEmail: checked,
-      email: checked ? user?.email : "",
-    });
-  };
+      email: checked ? user?.email : '',
+    })
+  }
 
   return (
     <S.Wrapper>
-      <S.AccountSetupForm
-        form={form}
-        name="accountSetup"
-        layout="vertical"
-        onFinish={onSubmit}
-      >
+      <S.AccountSetupForm form={form} name="accountSetup" layout="vertical" onFinish={onSubmit}>
         <Form.Item
           label="Account Company Name"
           name="name"
           rules={[
             {
               required: true,
-              message: "Please input the company name!",
+              message: 'Please input the company name!',
             },
           ]}
         >
@@ -52,11 +47,11 @@ export default function AccountSetupForm({ onSubmit, isLoading }: Props) {
           rules={[
             {
               required: true,
-              message: "Email is required!",
+              message: 'Email is required!',
             },
             {
-              type: "email",
-              message: "Please input a valid email!",
+              type: 'email',
+              message: 'Please input a valid email!',
             },
           ]}
         >
@@ -64,9 +59,7 @@ export default function AccountSetupForm({ onSubmit, isLoading }: Props) {
         </Form.Item>
 
         <Form.Item name="useOrgEmail" valuePropName="checked">
-          <Checkbox onChange={handleUseOrgEmailChange}>
-            Use your organization contact email for this account.
-          </Checkbox>
+          <Checkbox onChange={handleUseOrgEmailChange}>Use your organization contact email for this account.</Checkbox>
         </Form.Item>
 
         <Form.Item>
@@ -76,5 +69,5 @@ export default function AccountSetupForm({ onSubmit, isLoading }: Props) {
         </Form.Item>
       </S.AccountSetupForm>
     </S.Wrapper>
-  );
+  )
 }
