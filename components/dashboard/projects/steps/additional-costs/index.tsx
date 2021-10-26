@@ -10,7 +10,6 @@ import { DashboardUser } from 'components/dashboard'
 import { ADDITIONAL_COSTS } from 'api/calculator/constants/additional-costs'
 import ContentLoader from 'components/content-loader'
 import { getAnnualOccurence } from 'api/calculator/constants/frequency'
-import AdditionalCostsForm from './AdditionalCostsForm'
 import useSimpleQuery from 'hooks/useSimpleQuery'
 import AdditionalCostsItemForm from './AdditionalCostsItemForm'
 
@@ -159,7 +158,7 @@ export default function AdditionalCosts({ project }: ServerSideProps) {
     setIsDrawerVisible(false)
   }
 
-  function onSubmitNewItem() {
+  function handleSubmitForm() {
     closeDrawer()
     items.refetch()
   }
@@ -194,7 +193,7 @@ export default function AdditionalCosts({ project }: ServerSideProps) {
         {items.data.additionalCosts.length > 0 && <SummaryRow items={items.data.additionalCosts} />}
       </>
       <Drawer title="Add additional cost" placement="right" onClose={closeDrawer} visible={isDrawerVisible} contentWrapperStyle={{ width: '600px' }} destroyOnClose={true}>
-        <AdditionalCostsItemForm onSubmit={onSubmitNewItem} />
+        <AdditionalCostsItemForm onSubmit={handleSubmitForm} />
       </Drawer>
     </S.Wrapper>
   )
