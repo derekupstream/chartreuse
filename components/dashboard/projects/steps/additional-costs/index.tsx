@@ -13,6 +13,7 @@ import useLoadingState from 'hooks/useLoadingState'
 import ContentLoader from 'components/content-loader'
 import { getAnnualOccurence } from 'api/calculator/constants/frequency'
 import AdditionalCostsForm from './AdditionalCostsForm'
+import { AdditionalCost } from 'api/calculator/types/projects'
 
 type ServerSideProps = {
   project: Project
@@ -224,24 +225,17 @@ export default function AdditionalCosts({ project }: ServerSideProps) {
   const [products, setProducts] = useState<SingleUseProduct[]>([])
 
   useEffect(() => {
-    getProducts()
-    getLineItems()
+    getAdditionalCosts()
   }, [])
 
-  async function getProducts() {
+  async function getAdditionalCosts() {
     try {
-      const products = await GET<SingleUseProduct[]>('/api/inventory/single-use-products')
-      setProducts(products)
+      const { additionalCosts } = await GET<{
+        additionalCosts: AdditionalCost[]
+      }>(`/api/projects/${project.id}/additional-costs`)
+      console.log('additionalCosts', additionalCosts)
     } catch (error) {
-      //
-    }
-  }
-
-  async function getLineItems() {
-    try {
-      const { lineItems } = await GET<{ lineItems: SingleUseLineItem[] }>(`/api/projects/${project.id}/single-use-items`)
-      setLineItems({ data: lineItems, isLoading: false })
-    } catch (error) {
+      console.error(error)
       //
     }
   }
@@ -255,9 +249,9 @@ export default function AdditionalCosts({ project }: ServerSideProps) {
     setIsDrawerVisible(false)
   }
 
-  function onSubmitNewProduct() {
+  function onSubmitNewItem() {
     closeDrawer()
-    getLineItems()
+    getAdditionalCosts()
   }
 
   const items = lineItems.data.reduce<{
@@ -306,7 +300,7 @@ export default function AdditionalCosts({ project }: ServerSideProps) {
         </>
       )}
       <Drawer title="Add single-use item" placement="right" onClose={closeDrawer} visible={isDrawerVisible} contentWrapperStyle={{ width: '600px' }} destroyOnClose={true}>
-        <AdditionalCostsForm lineItem={lineItem} projectId={project.id} products={products} onSubmit={onSubmitNewProduct} />
+        <AdditionalCostsForm lineItem={lineItem} projectId={project.id} products={products} onSubmit={onSubmitNewItem} />
       </Drawer>
     </S.Wrapper>
   )
