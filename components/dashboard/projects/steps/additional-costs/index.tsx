@@ -2,26 +2,36 @@ import { Button, Drawer, Typography, Row, Col, Popconfirm } from 'antd'
 import { useState, useEffect } from 'react'
 import { PlusOutlined } from '@ant-design/icons'
 import * as S from '../styles'
-import { SingleUseProduct } from 'api/calculator/types/products'
-import { SingleUseLineItem } from 'api/calculator/types/projects'
 import { Project } from '.prisma/client'
 import { DashboardUser } from 'components/dashboard'
 import { ADDITIONAL_COSTS } from 'api/calculator/constants/additional-costs'
 import ContentLoader from 'components/content-loader'
 import { useSimpleQuery, useSimpleMutation } from 'hooks/useSimpleQuery'
 import AdditionalCostsItemForm from './AdditionalCostsItemForm'
+import { getAnnualOccurence } from 'api/calculator/constants/frequency'
 
 type ServerSideProps = {
   project: Project
   user: DashboardUser
 }
 
-interface SingleUseItemRecord {
-  lineItem: SingleUseLineItem
-  product: SingleUseProduct
+type AdditionalCostItem = {
+  id: string
+  categoryId: string
+  cost: number
+  frequency: string
+  projectId: string
 }
 
-const BaselineCard = ({ item }: { item: SingleUseItemRecord }) => {
+type BaselineCardProps = {
+  item: AdditionalCostItem
+}
+
+type ForecastCardProps = {
+  item: AdditionalCostItem
+}
+
+const BaselineCard: React.FC<BaselineCardProps> = ({ item }) => {
   return null
   // const annualOccurence = getAnnualOccurence(item.lineItem.frequency)
   // const baselineTotal = annualOccurence * item.lineItem.caseCost * item.lineItem.casesPurchased
@@ -53,8 +63,44 @@ const BaselineCard = ({ item }: { item: SingleUseItemRecord }) => {
   // )
 }
 
-const ForecastCard = ({ item }: { item: SingleUseItemRecord }) => {
-  return null
+const ForecastCard: React.FC<ForecastCardProps> = ({ item }) => {
+  const annualCost = Math.round(parseInt(item.frequency) * item.cost * 100) / 100
+  const weeklyCost = Math.round((annualCost / 52) * 100) / 100
+
+  return (
+    <S.StyledCard css="background: #bbb">
+      <Row>
+        <Col span={24}>
+          <Typography.Title level={5}>Forecast</Typography.Title>
+        </Col>
+      </Row>
+      <Row>
+        <Col span={10}>
+          <Typography.Text css="font-size: .8rem">Frequency</Typography.Text>
+        </Col>
+        <Col span={7}>
+          <Typography.Text css="font-size: .8rem">Weekly total</Typography.Text>
+        </Col>
+        <Col span={7}>
+          <Typography.Text css="font-size: .8rem">Annual total</Typography.Text>
+        </Col>
+      </Row>
+      <Row>
+        <Col span={10}>
+          <Typography.Text>
+            <strong>{item.frequency}</strong>
+          </Typography.Text>
+        </Col>
+        <Col span={7}>
+          <Typography.Text css="font-size: .7rem">${weeklyCost}</Typography.Text>
+        </Col>
+        <Col span={7}>
+          <Typography.Text css="font-size: .7rem">${annualCost}</Typography.Text>
+        </Col>
+      </Row>
+      <Row></Row>
+    </S.StyledCard>
+  )
 }
 
 type ItemRowProps = {
@@ -135,28 +181,26 @@ export default function AdditionalCosts({ project }: ServerSideProps) {
   return (
     <S.Wrapper>
       <Typography.Title level={2}>Additional expenses and savings</Typography.Title>
-      <>
-        <Typography.Title level={5}>
-          You may incur additional expenses or savings when switching from single-use to reusable products. For example, dishwashing equiptment and labor, and modifications to your facilities. This
-          section will help you accurately estimate addtional expenses.
-        </Typography.Title>
-        <div css="margin: 2em 0;">
-          <Button type="primary" onClick={addItem} icon={<PlusOutlined />}>
-            Add item
-          </Button>
+      <Typography.Title level={5}>
+        You may incur additional expenses or savings when switching from single-use to reusable products. For example, dishwashing equiptment and labor, and modifications to your facilities. This
+        section will help you accurately estimate addtional expenses.
+      </Typography.Title>
+      <div css="margin: 2em 0;">
+        <Button type="primary" onClick={addItem} icon={<PlusOutlined />}>
+          Add item
+        </Button>
+      </div>
+      {ADDITIONAL_COSTS.map(category => (
+        <div key={category.id}>
+          <Typography.Title level={3}>{category.name}</Typography.Title>
+          {items.data?.additionalCosts
+            .filter((cost: any) => cost.categoryId === category.id)
+            .map((item: any) => (
+              <ItemRow key={item.id} item={item} onDelete={handleDeleteItem} />
+            ))}
         </div>
-        {ADDITIONAL_COSTS.map(category => (
-          <div key={category.id}>
-            <Typography.Title level={3}>{category.name}</Typography.Title>
-            {items.data?.additionalCosts
-              .filter((cost: any) => cost.categoryId === category.id)
-              .map((item: any) => (
-                <ItemRow key={item.id} item={item} onDelete={handleDeleteItem} />
-              ))}
-          </div>
-        ))}
-        {items.data?.additionalCosts.length > 0 && <SummaryRow items={items.data.additionalCosts} />}
-      </>
+      ))}
+      {items.data?.additionalCosts.length > 0 && <SummaryRow items={items.data.additionalCosts} />}
       <Drawer title="Add additional cost" placement="right" onClose={closeDrawer} visible={isDrawerVisible} contentWrapperStyle={{ width: '600px' }} destroyOnClose={true}>
         <AdditionalCostsItemForm onSubmit={handleSubmitForm} />
       </Drawer>
