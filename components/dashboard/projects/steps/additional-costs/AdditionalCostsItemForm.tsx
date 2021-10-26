@@ -1,4 +1,4 @@
-import { Button, Form } from 'antd'
+import { Button, Form, InputNumber } from 'antd'
 import { useState } from 'react'
 import * as S from '../styles'
 import styled from 'styled-components'
@@ -15,7 +15,7 @@ const AdditionalCostsItemForm: React.FC<AdditionalCostsItemFormProps> = ({ onSub
   const [selected, setSelected] = useState({
     categoryId: null,
     frequency: null,
-    cost: null,
+    cost: 0,
   })
 
   const handleCategorySelect = (event: any) => {
@@ -24,6 +24,10 @@ const AdditionalCostsItemForm: React.FC<AdditionalCostsItemFormProps> = ({ onSub
 
   const handleFrequencySelect = (event: any) => {
     setSelected({ ...selected, frequency: event.target.value })
+  }
+
+  const handleCostChange = (cost: number) => {
+    setSelected({ ...selected, cost })
   }
 
   const handleSubmit = () => {
@@ -35,9 +39,14 @@ const AdditionalCostsItemForm: React.FC<AdditionalCostsItemFormProps> = ({ onSub
       <StyledFormItem label="Category">
         <S.OptionSelection value={selected.categoryId} options={categoryOptions} onChange={handleCategorySelect} optionType="button" />
       </StyledFormItem>
-      {selected.categoryId && (
+      {selected.categoryId !== null && (
         <StyledFormItem label="Frequency">
           <S.OptionSelection value={selected.frequency} options={frequencyOptions} onChange={handleFrequencySelect} optionType="button" />
+        </StyledFormItem>
+      )}
+      {selected.frequency !== null && (
+        <StyledFormItem label="Cost">
+          <InputNumber value={selected.cost} formatter={value => `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')} onChange={handleCostChange} />
         </StyledFormItem>
       )}
       <S.BoxEnd>
