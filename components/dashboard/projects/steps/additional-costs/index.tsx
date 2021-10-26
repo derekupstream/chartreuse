@@ -10,7 +10,7 @@ import { DashboardUser } from 'components/dashboard'
 import { ADDITIONAL_COSTS } from 'api/calculator/constants/additional-costs'
 import ContentLoader from 'components/content-loader'
 import { getAnnualOccurence } from 'api/calculator/constants/frequency'
-import useSimpleQuery from 'hooks/useSimpleQuery'
+import useSimpleQuery, { useSimpleMutation } from 'hooks/useSimpleQuery'
 import AdditionalCostsItemForm from './AdditionalCostsItemForm'
 
 type ServerSideProps = {
@@ -24,104 +24,47 @@ interface SingleUseItemRecord {
 }
 
 const BaselineCard = ({ item }: { item: SingleUseItemRecord }) => {
-  const annualOccurence = getAnnualOccurence(item.lineItem.frequency)
-  const baselineTotal = annualOccurence * item.lineItem.caseCost * item.lineItem.casesPurchased
-  return (
-    <S.StyledCard css="background: #ddd">
-      <Row>
-        <Col span={16}>
-          <Typography.Title level={5}>Baseline</Typography.Title>
-        </Col>
-        <Col span={8}>
-          <Typography.Text>Total</Typography.Text>
-        </Col>
-      </Row>
-      <Row>
-        <Col span={16}>
-          <Typography.Text css="font-size: .8rem">Annual cost</Typography.Text>
-          <br />
-          <Typography.Text css="font-size: .7rem">
-            (${item.lineItem.caseCost}/case x {annualOccurence * item.lineItem.casesPurchased})
-          </Typography.Text>
-        </Col>
-        <Col span={8}>
-          <Typography.Text>
-            <strong>${baselineTotal.toLocaleString()}</strong>
-          </Typography.Text>
-        </Col>
-      </Row>
-    </S.StyledCard>
-  )
+  return null
+  // const annualOccurence = getAnnualOccurence(item.lineItem.frequency)
+  // const baselineTotal = annualOccurence * item.lineItem.caseCost * item.lineItem.casesPurchased
+  // return (
+  //   <S.StyledCard css="background: #ddd">
+  //     <Row>
+  //       <Col span={16}>
+  //         <Typography.Title level={5}>Baseline</Typography.Title>
+  //       </Col>
+  //       <Col span={8}>
+  //         <Typography.Text>Total</Typography.Text>
+  //       </Col>
+  //     </Row>
+  //     <Row>
+  //       <Col span={16}>
+  //         <Typography.Text css="font-size: .8rem">Annual cost</Typography.Text>
+  //         <br />
+  //         <Typography.Text css="font-size: .7rem">
+  //           (${item.lineItem.caseCost}/case x {annualOccurence * item.lineItem.casesPurchased})
+  //         </Typography.Text>
+  //       </Col>
+  //       <Col span={8}>
+  //         <Typography.Text>
+  //           <strong>${baselineTotal.toLocaleString()}</strong>
+  //         </Typography.Text>
+  //       </Col>
+  //     </Row>
+  //   </S.StyledCard>
+  // )
 }
 
 const ForecastCard = ({ item }: { item: SingleUseItemRecord }) => {
-  const annualOccurence = getAnnualOccurence(item.lineItem.frequency)
-  const baselineTotal = annualOccurence * item.lineItem.caseCost * item.lineItem.casesPurchased
-  const forecastTotal = annualOccurence * item.lineItem.newCaseCost * item.lineItem.newCasesPurchased
-  const change = forecastTotal - baselineTotal
-  const isNegativeChange = change < 0
-  return (
-    <S.StyledCard css="background: #bbb">
-      <Row>
-        <Col span={10}>
-          <Typography.Title level={5}>Forecast</Typography.Title>
-        </Col>
-        <Col span={7}>
-          <Typography.Text css="font-size: .8rem">Total</Typography.Text>
-        </Col>
-        <Col span={7}>
-          <Typography.Text css="font-size: .8rem">Change</Typography.Text>
-        </Col>
-      </Row>
-      <Row>
-        <Col span={10}>
-          <Typography.Text css="font-size: .8rem">Annual cost</Typography.Text>
-        </Col>
-        <Col span={7}>
-          <Typography.Text>
-            <strong>${forecastTotal.toLocaleString()}</strong>
-          </Typography.Text>
-        </Col>
-        <Col span={7}>
-          <Typography.Text>
-            <strong>
-              {isNegativeChange ? '-' : '+'}${Math.abs(change).toLocaleString()}
-            </strong>
-          </Typography.Text>
-        </Col>
-      </Row>
-      <Row>
-        <Col span={24}>
-          <Typography.Text css="font-size: .7rem">
-            (${item.lineItem.newCaseCost}/case x {annualOccurence * item.lineItem.newCasesPurchased})
-          </Typography.Text>
-        </Col>
-      </Row>
-    </S.StyledCard>
-  )
+  return null
 }
 
-const ItemRow = ({ item, onDelete }: { item: SingleUseItemRecord; onDelete: () => void }) => {
-  function confirm() {
-    DELETE(`/api/projects/${item.lineItem.projectId}/single-use-items`, {
-      id: item.lineItem.id,
-    })
-      .then(() => {
-        message.success('Item removed')
-        onDelete()
-      })
-      .catch(error => {
-        if (error.error || error.message) {
-          message.error(error.error || error.message)
-        }
-      })
-  }
-
+const ItemRow = ({ item, onDelete }: { item: any; onDelete: () => void }) => {
   return (
     <Row gutter={10} css="margin: 2em 0">
       <Col span={8}>
-        <Typography.Title level={5}>{item.product.title}</Typography.Title>
-        <Popconfirm title="Are you sure to delete this item?" onConfirm={confirm} okText="Yes" cancelText="No">
+        <Typography.Title level={5}>{item.id}</Typography.Title>
+        <Popconfirm title="Are you sure to delete this item?" onConfirm={() => {}} okText="Yes" cancelText="No">
           <a href="#">Delete</a>
         </Popconfirm>
       </Col>
@@ -147,6 +90,7 @@ const SummaryRow = ({ items }: SummaryRowProps) => {
 export default function AdditionalCosts({ project }: ServerSideProps) {
   const [isDrawerVisible, setIsDrawerVisible] = useState<boolean>(false)
   const items = useSimpleQuery(`/api/projects/${project.id}/additional-costs`)
+  const itemMutation = useSimpleMutation(`/api/projects/${project.id}/additional-costs`)
   const [item, setItem] = useState(null)
 
   function addItem() {
@@ -158,7 +102,11 @@ export default function AdditionalCosts({ project }: ServerSideProps) {
     setIsDrawerVisible(false)
   }
 
-  function handleSubmitForm() {
+  function handleSubmitForm(data: any) {
+    itemMutation.mutate({
+      ...data,
+      projectId: project.id,
+    })
     closeDrawer()
     items.refetch()
   }
@@ -183,14 +131,14 @@ export default function AdditionalCosts({ project }: ServerSideProps) {
         {ADDITIONAL_COSTS.map(category => (
           <div key={category.id}>
             <Typography.Title level={3}>{category.name}</Typography.Title>
-            {items.data.additionalCosts
+            {items.data?.additionalCosts
               .filter((cost: any) => cost.categoryId === category.id)
               .map((item: any) => (
                 <ItemRow key={item.id} item={item} onDelete={items.refetch} />
               ))}
           </div>
         ))}
-        {items.data.additionalCosts.length > 0 && <SummaryRow items={items.data.additionalCosts} />}
+        {items.data?.additionalCosts.length > 0 && <SummaryRow items={items.data.additionalCosts} />}
       </>
       <Drawer title="Add additional cost" placement="right" onClose={closeDrawer} visible={isDrawerVisible} contentWrapperStyle={{ width: '600px' }} destroyOnClose={true}>
         <AdditionalCostsItemForm onSubmit={handleSubmitForm} />

@@ -32,10 +32,11 @@ const AdditionalCostsItemForm: React.FC<AdditionalCostsItemFormProps> = ({ onSub
 
   const handleSubmit = () => {
     onSubmit(selected)
+    return false
   }
 
   return (
-    <Form layout="vertical">
+    <Form layout="vertical" onFinish={handleSubmit}>
       <StyledFormItem label="Category">
         <S.OptionSelection value={selected.categoryId} options={categoryOptions} onChange={handleCategorySelect} optionType="button" />
       </StyledFormItem>
@@ -50,8 +51,7 @@ const AdditionalCostsItemForm: React.FC<AdditionalCostsItemFormProps> = ({ onSub
         </StyledFormItem>
       )}
       <S.BoxEnd>
-        <div></div>
-        <Button size="large" type="primary" disabled={false} onClick={handleSubmit}>
+        <Button htmlType="submit" size="large" type="primary" disabled={false}>
           {'Next >'}
         </Button>
       </S.BoxEnd>
