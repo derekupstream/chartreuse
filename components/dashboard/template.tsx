@@ -7,7 +7,7 @@ import Logo from 'public/images/chartreuse-logo-icon.png'
 import { DownOutlined } from '@ant-design/icons'
 import { MenuClickEventHandler, MenuInfo } from 'rc-menu/lib/interface'
 import { createGlobalStyle } from 'styled-components'
-import { Props } from 'components/dashboard'
+import { DashboardUser } from 'components/dashboard'
 
 import * as S from './styles'
 
@@ -18,6 +18,12 @@ const GlobalStyles = createGlobalStyle`
 `
 
 const INITIAL_SELECTED_MENU_ITEM = 'accounts'
+
+type Props = {
+  user: DashboardUser
+  selectedMenuItem: any
+  children: any
+}
 
 const DashboardTemplate: React.FC<Props> = ({ user, selectedMenuItem, children }) => {
   const { signout } = useAuth()
