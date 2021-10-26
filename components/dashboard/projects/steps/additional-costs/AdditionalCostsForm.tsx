@@ -15,7 +15,7 @@ type SingleUseProps = {
   products: SingleUseProduct[]
 }
 
-const AdditionalCostsForm = ({ lineItem, onSubmit, projectId, products }: SingleUseProps) => {
+const AdditionalCostsForm = ({ item, onSubmit, projectId }: SingleUseProps) => {
   const [lineItemInput, setLineItemInput] = useState<Partial<SingleUseLineItem>>({
     projectId,
   })
@@ -25,7 +25,7 @@ const AdditionalCostsForm = ({ lineItem, onSubmit, projectId, products }: Single
   useEffect(() => {
     setLineItemInput({ ...lineItemInput })
     setFormStep(1)
-  }, [lineItem])
+  }, [item])
 
   function enterProduct(productId: string) {
     setLineItemInput({ ...lineItemInput, productId })
@@ -58,15 +58,7 @@ const AdditionalCostsForm = ({ lineItem, onSubmit, projectId, products }: Single
     setFormStep(formStep - 1)
   }
 
-  const product = products.find(p => p.id === lineItemInput?.productId)
-
-  return (
-    <>
-      {formStep === 1 && <SingleUseProductForm input={lineItemInput} products={products} onSubmit={enterProduct} />}
-      {formStep === 2 && <SingleUseBaselineForm input={lineItemInput} productName={product?.title} goBack={goBack} onSubmit={enterQuantity} />}
-      {formStep === 3 && <SingleUseForecastForm input={lineItemInput} productName={product?.title} goBack={goBack} onSubmit={enterForecast} />}
-    </>
-  )
+  return null
 }
 
 export default AdditionalCostsForm
