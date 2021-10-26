@@ -12,6 +12,7 @@ import ContentLoader from 'components/content-loader'
 import { getAnnualOccurence } from 'api/calculator/constants/frequency'
 import AdditionalCostsForm from './AdditionalCostsForm'
 import useSimpleQuery from 'hooks/useSimpleQuery'
+import AdditionalCostsItemForm from './AdditionalCostsItemForm'
 
 type ServerSideProps = {
   project: Project
@@ -192,8 +193,8 @@ export default function AdditionalCosts({ project }: ServerSideProps) {
         ))}
         {items.data.additionalCosts.length > 0 && <SummaryRow items={items.data.additionalCosts} />}
       </>
-      <Drawer title="Add single-use item" placement="right" onClose={closeDrawer} visible={isDrawerVisible} contentWrapperStyle={{ width: '600px' }} destroyOnClose={true}>
-        <AdditionalCostsForm item={item} projectId={project.id} onSubmit={onSubmitNewItem} />
+      <Drawer title="Add additional cost" placement="right" onClose={closeDrawer} visible={isDrawerVisible} contentWrapperStyle={{ width: '600px' }} destroyOnClose={true}>
+        <AdditionalCostsItemForm onSubmit={onSubmitNewItem} />
       </Drawer>
     </S.Wrapper>
   )
