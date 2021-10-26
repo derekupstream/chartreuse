@@ -24,6 +24,8 @@ const handlers = methodRouter({
 
     CreateAdditionalCostValidator.parse(data)
 
+    // @todo validate that project ID exists and belongs to current user
+
     try {
       const additionalCost = await prisma.additionalCost.create<Prisma.AdditionalCostCreateArgs>({
         data,
@@ -37,6 +39,8 @@ const handlers = methodRouter({
   },
 
   async DELETE(req, res) {
+    // @todo validate the project belongs to current user
+    // @todo get project id from URL instead of parsing out of body
     try {
       await prisma.additionalCost.delete<Prisma.AdditionalCostDeleteArgs>({
         where: {
@@ -45,6 +49,7 @@ const handlers = methodRouter({
       })
       res.status(200)
     } catch (error: any) {
+      console.error(error)
       res.status(500).json({ error: error.message })
     }
   },

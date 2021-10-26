@@ -1,16 +1,14 @@
-import { Button, Drawer, Typography, Row, Col, Popconfirm, message } from 'antd'
-import { useState } from 'react'
+import { Button, Drawer, Typography, Row, Col, Popconfirm } from 'antd'
+import { useState, useEffect } from 'react'
 import { PlusOutlined } from '@ant-design/icons'
 import * as S from '../styles'
 import { SingleUseProduct } from 'api/calculator/types/products'
 import { SingleUseLineItem } from 'api/calculator/types/projects'
-import { DELETE } from 'lib/http'
 import { Project } from '.prisma/client'
 import { DashboardUser } from 'components/dashboard'
 import { ADDITIONAL_COSTS } from 'api/calculator/constants/additional-costs'
 import ContentLoader from 'components/content-loader'
-import { getAnnualOccurence } from 'api/calculator/constants/frequency'
-import useSimpleQuery, { useSimpleMutation } from 'hooks/useSimpleQuery'
+import { useSimpleQuery, useSimpleMutation } from 'hooks/useSimpleQuery'
 import AdditionalCostsItemForm from './AdditionalCostsItemForm'
 
 type ServerSideProps = {
@@ -59,12 +57,21 @@ const ForecastCard = ({ item }: { item: SingleUseItemRecord }) => {
   return null
 }
 
-const ItemRow = ({ item, onDelete }: { item: any; onDelete: () => void }) => {
+type ItemRowProps = {
+  item: any
+  onDelete?: (item: any) => void
+}
+
+const ItemRow: React.FC<ItemRowProps> = ({ item, onDelete }) => {
+  const handleDelete = () => {
+    onDelete && onDelete(item)
+  }
+
   return (
     <Row gutter={10} css="margin: 2em 0">
       <Col span={8}>
         <Typography.Title level={5}>{item.id}</Typography.Title>
-        <Popconfirm title="Are you sure to delete this item?" onConfirm={() => {}} okText="Yes" cancelText="No">
+        <Popconfirm title="Are you sure to delete this item?" onConfirm={handleDelete} okText="Yes" cancelText="No">
           <a href="#">Delete</a>
         </Popconfirm>
       </Col>
@@ -90,25 +97,35 @@ const SummaryRow = ({ items }: SummaryRowProps) => {
 export default function AdditionalCosts({ project }: ServerSideProps) {
   const [isDrawerVisible, setIsDrawerVisible] = useState<boolean>(false)
   const items = useSimpleQuery(`/api/projects/${project.id}/additional-costs`)
-  const itemMutation = useSimpleMutation(`/api/projects/${project.id}/additional-costs`)
+  const createAdditionalCostsItemMutation = useSimpleMutation(`/api/projects/${project.id}/additional-costs`)
+  const deleteAdditionalCostsItemMutation = useSimpleMutation(`/api/projects/${project.id}/additional-costs`, 'DELETE')
   const [item, setItem] = useState(null)
 
-  function addItem() {
+  const addItem = () => {
     setItem(null)
     setIsDrawerVisible(true)
   }
 
-  function closeDrawer() {
+  const closeDrawer = () => {
     setIsDrawerVisible(false)
   }
 
-  function handleSubmitForm(data: any) {
-    itemMutation.mutate({
+  useEffect(() => {
+    items.refetch()
+  }, [createAdditionalCostsItemMutation.isLoading, deleteAdditionalCostsItemMutation.isLoading])
+
+  const handleSubmitForm = (data: any) => {
+    createAdditionalCostsItemMutation.mutate({
       ...data,
       projectId: project.id,
     })
     closeDrawer()
-    items.refetch()
+  }
+
+  const handleDeleteItem = (item: any) => {
+    deleteAdditionalCostsItemMutation.mutate({
+      id: item.id,
+    })
   }
 
   if (items.isFetching) {
@@ -134,7 +151,7 @@ export default function AdditionalCosts({ project }: ServerSideProps) {
             {items.data?.additionalCosts
               .filter((cost: any) => cost.categoryId === category.id)
               .map((item: any) => (
-                <ItemRow key={item.id} item={item} onDelete={items.refetch} />
+                <ItemRow key={item.id} item={item} onDelete={handleDeleteItem} />
               ))}
           </div>
         ))}

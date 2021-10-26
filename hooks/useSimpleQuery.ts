@@ -5,10 +5,10 @@ export const useSimpleQuery = (url: string) => {
   return useQuery(url, query)
 }
 
-export const useSimpleMutation = (url: string) => {
+export const useSimpleMutation = (url: string, method: 'POST' | 'PUT' | 'DELETE' = 'POST') => {
   const mutate = (data: any) =>
     fetch(url, {
-      method: 'POST',
+      method,
       headers: {
         'Content-Type': 'application/json',
       },
@@ -16,5 +16,3 @@ export const useSimpleMutation = (url: string) => {
     }).then(res => res.json())
   return useMutation(url, mutate)
 }
-
-export default useSimpleQuery
