@@ -20,10 +20,13 @@ export const LayoutHeader = styled(Layout.Header)`
 export const ContentContainer = styled(Layout.Content)`
   min-height: calc(100vh - 64px);
   padding: 2rem;
-  background-color: #f4f3f0;
-  max-width: 1080px;
   margin: 0 auto;
   width: 100%;
+  background-color: #f4f3f0;
+  background-image: url(/images/chartreuse-bg.png);
+  background-position: 100% 0;
+  background-repeat: no-repeat;
+  background-size: 400px;
 `
 
 export const Content = styled.div`
