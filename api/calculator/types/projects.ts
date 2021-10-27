@@ -53,11 +53,14 @@ export interface SingleUseLineItemPopulated extends SingleUseLineItem {
 
 // recurring products are purchased once except for lost or broken items that need repurchase
 export interface ReusableLineItem {
-  categoryId: number
+  id?: string
+  categoryId: string
   annualRepurchasePercentage: number
   caseCost: number
   casesPurchased: number
+  unitCost: number
   projectId: string
+  productName: string
 }
 
 export interface AdditionalCost {
