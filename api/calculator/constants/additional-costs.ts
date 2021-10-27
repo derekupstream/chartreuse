@@ -45,8 +45,8 @@ export type AdditionalCostType = typeof ADDITIONAL_COSTS[number]['id']
 
 export const ADDITIONAL_COST_FREQUENCIES = [
   { name: 'One Time', annualOccurrence: 0 },
-  { name: 'Daily', annualOccurence: 365 },
-  { name: 'Weekly', annualOccurence: 52 },
-  { name: 'Monthly', annualOccurence: 12 },
-  { name: 'Annually', annualOccurence: 1 },
+  { name: 'Daily', annualOccurrence: 365 },
+  { name: 'Weekly', annualOccurrence: 52 },
+  { name: 'Monthly', annualOccurrence: 12 },
+  { name: 'Annually', annualOccurrence: 1 },
 ]

@@ -1,6 +1,7 @@
 import prisma from 'lib/prisma'
 import { Prisma } from '@prisma/client'
 import methodRouter from 'lib/middleware/method-router'
+import { CreateAdditionalCostValidator } from 'lib/validators'
 
 const handlers = methodRouter({
   async GET(req, res) {
@@ -14,9 +15,20 @@ const handlers = methodRouter({
   },
 
   async POST(req, res) {
+    const data = {
+      projectId: req.body.projectId,
+      cost: req.body.cost,
+      frequency: String(req.body.frequency),
+      categoryId: req.body.categoryId,
+    }
+
+    CreateAdditionalCostValidator.parse(data)
+
+    // @todo validate that project ID exists and belongs to current user
+
     try {
       const additionalCost = await prisma.additionalCost.create<Prisma.AdditionalCostCreateArgs>({
-        data: req.body,
+        data,
       })
 
       res.status(200).json({ additionalCost })
@@ -27,14 +39,17 @@ const handlers = methodRouter({
   },
 
   async DELETE(req, res) {
+    // @todo validate the project belongs to current user
+    // @todo get project id from URL instead of parsing out of body
     try {
       await prisma.additionalCost.delete<Prisma.AdditionalCostDeleteArgs>({
         where: {
           id: req.body.id,
         },
       })
-      res.status(200)
+      res.status(200).json({})
     } catch (error: any) {
+      console.error(error)
       res.status(500).json({ error: error.message })
     }
   },
