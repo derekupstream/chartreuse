@@ -52,7 +52,7 @@ const AdditionalCostsItemForm: React.FC<AdditionalCostsItemFormProps> = ({ onSub
       )}
       <S.BoxEnd>
         <Button htmlType="submit" size="large" type="primary" disabled={false}>
-          {'Next >'}
+          Save
         </Button>
       </S.BoxEnd>
     </Form>

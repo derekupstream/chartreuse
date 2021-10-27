@@ -47,7 +47,7 @@ const handlers = methodRouter({
           id: req.body.id,
         },
       })
-      res.status(200)
+      res.status(200).json({})
     } catch (error: any) {
       console.error(error)
       res.status(500).json({ error: error.message })

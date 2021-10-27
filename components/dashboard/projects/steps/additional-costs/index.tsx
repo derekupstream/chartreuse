@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import { PlusOutlined } from '@ant-design/icons'
 import * as S from '../styles'
 import { Project } from '.prisma/client'
-import { ADDITIONAL_COSTS } from 'api/calculator/constants/additional-costs'
+import { ADDITIONAL_COSTS, ADDITIONAL_COST_FREQUENCIES } from 'api/calculator/constants/additional-costs'
 import ContentLoader from 'components/content-loader'
 import { useSimpleQuery, useSimpleMutation } from 'hooks/useSimpleQuery'
 import AdditionalCostsItemForm from './AdditionalCostsItemForm'
@@ -30,35 +30,9 @@ type ForecastCardProps = {
 
 const BaselineCard: React.FC<BaselineCardProps> = ({ item }) => {
   return null
-  // const annualOccurence = getAnnualOccurence(item.lineItem.frequency)
-  // const baselineTotal = annualOccurence * item.lineItem.caseCost * item.lineItem.casesPurchased
-  // return (
-  //   <S.StyledCard css="background: #ddd">
-  //     <Row>
-  //       <Col span={16}>
-  //         <Typography.Title level={5}>Baseline</Typography.Title>
-  //       </Col>
-  //       <Col span={8}>
-  //         <Typography.Text>Total</Typography.Text>
-  //       </Col>
-  //     </Row>
-  //     <Row>
-  //       <Col span={16}>
-  //         <Typography.Text css="font-size: .8rem">Annual cost</Typography.Text>
-  //         <br />
-  //         <Typography.Text css="font-size: .7rem">
-  //           (${item.lineItem.caseCost}/case x {annualOccurence * item.lineItem.casesPurchased})
-  //         </Typography.Text>
-  //       </Col>
-  //       <Col span={8}>
-  //         <Typography.Text>
-  //           <strong>${baselineTotal.toLocaleString()}</strong>
-  //         </Typography.Text>
-  //       </Col>
-  //     </Row>
-  //   </S.StyledCard>
-  // )
 }
+
+const getHumanReadableFrequency = (annualOccurrence: string) => ADDITIONAL_COST_FREQUENCIES.find(i => i.annualOccurrence === parseInt(annualOccurrence))?.name
 
 const ForecastCard: React.FC<ForecastCardProps> = ({ item }) => {
   const annualCost = Math.round(parseInt(item.frequency) * item.cost * 100) / 100
@@ -85,7 +59,7 @@ const ForecastCard: React.FC<ForecastCardProps> = ({ item }) => {
       <Row>
         <Col span={10}>
           <Typography.Text>
-            <strong>{item.frequency}</strong>
+            <strong>{getHumanReadableFrequency(item.frequency)}</strong>
           </Typography.Text>
         </Col>
         <Col span={7}>
@@ -113,7 +87,7 @@ const ItemRow: React.FC<ItemRowProps> = ({ item, onDelete }) => {
   return (
     <Row gutter={10} css="margin: 2em 0">
       <Col span={8}>
-        <Typography.Title level={5}>{item.id}</Typography.Title>
+        <Typography.Title level={5}>{`${getHumanReadableFrequency(item.frequency)} expense`}</Typography.Title>
         <Popconfirm title="Are you sure to delete this item?" onConfirm={handleDelete} okText="Yes" cancelText="No">
           <a href="#">Delete</a>
         </Popconfirm>
@@ -142,10 +116,8 @@ export default function AdditionalCosts({ project }: ServerSideProps) {
   const items = useSimpleQuery(`/api/projects/${project.id}/additional-costs`)
   const createAdditionalCostsItemMutation = useSimpleMutation(`/api/projects/${project.id}/additional-costs`)
   const deleteAdditionalCostsItemMutation = useSimpleMutation(`/api/projects/${project.id}/additional-costs`, 'DELETE')
-  const [item, setItem] = useState(null)
 
   const addItem = () => {
-    setItem(null)
     setIsDrawerVisible(true)
   }
 
@@ -155,7 +127,7 @@ export default function AdditionalCosts({ project }: ServerSideProps) {
 
   useEffect(() => {
     items.refetch()
-  }, [createAdditionalCostsItemMutation.isLoading, deleteAdditionalCostsItemMutation.isLoading])
+  }, [items, createAdditionalCostsItemMutation.data, deleteAdditionalCostsItemMutation.data])
 
   const handleSubmitForm = (data: any) => {
     createAdditionalCostsItemMutation.mutate({
@@ -171,7 +143,7 @@ export default function AdditionalCosts({ project }: ServerSideProps) {
     })
   }
 
-  if (items.isFetching) {
+  if (items.isLoading) {
     return <ContentLoader />
   }
 
@@ -187,16 +159,17 @@ export default function AdditionalCosts({ project }: ServerSideProps) {
           Add item
         </Button>
       </div>
-      {ADDITIONAL_COSTS.map(category => (
-        <div key={category.id}>
-          <Typography.Title level={3}>{category.name}</Typography.Title>
-          {items.data?.additionalCosts
-            .filter((cost: any) => cost.categoryId === category.id)
-            .map((item: any) => (
+      {ADDITIONAL_COSTS.map(category => {
+        const filteredItems = items.data?.additionalCosts.filter((cost: any) => cost.categoryId === category.id)
+        return filteredItems.length ? (
+          <div key={category.id}>
+            <Typography.Title level={3}>{category.name}</Typography.Title>
+            {filteredItems.map((item: any) => (
               <ItemRow key={item.id} item={item} onDelete={handleDeleteItem} />
             ))}
-        </div>
-      ))}
+          </div>
+        ) : null
+      })}
       {items.data?.additionalCosts.length > 0 && <SummaryRow items={items.data.additionalCosts} />}
       <Drawer title="Add additional cost" placement="right" onClose={closeDrawer} visible={isDrawerVisible} contentWrapperStyle={{ width: '600px' }} destroyOnClose={true}>
         <AdditionalCostsItemForm onSubmit={handleSubmitForm} />
