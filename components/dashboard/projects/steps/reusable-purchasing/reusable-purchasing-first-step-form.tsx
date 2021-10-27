@@ -1,6 +1,6 @@
-import { Button, Form, Input, InputNumber, RadioChangeEvent } from 'antd'
-import { ReusableLineItem } from 'api/calculator/types/projects'
-import { FC } from 'hoist-non-react-statics/node_modules/@types/react'
+import { Button, Form, Input } from 'antd'
+import { PRODUCT_CATEGORIES } from 'api/calculator/constants/product-categories'
+import { ReusableFormValues } from '.'
 import styled from 'styled-components'
 import * as S from '../styles'
 
@@ -15,39 +15,39 @@ const StyledFormItem = styled(Form.Item)`
   }
 `
 
-const items = [
-  { value: 1, label: 'Beverage Cups' },
-  { value: 2, label: 'Beverage Cups 2' },
-  { value: 3, label: 'Beverage Cups 3' },
-  { value: 4, label: 'Beverage Cups 4' },
-]
+const categories = PRODUCT_CATEGORIES.map(product => ({
+  value: product.id.toString(),
+  label: product.name,
+}))
 
 type Props = {
-  onPressNext(values: ReusableLineItem): void
+  onPressNext(values: ReusableFormValues): void
 }
 
-const ReusablePurchasingFirstStepForm: FC<Props> = ({ onPressNext }) => {
+const requiredRule = [{ required: true, message: 'This field is required' }]
+
+const ReusablePurchasingFirstStepForm: React.FC<Props> = ({ onPressNext }) => {
   return (
     <Form layout="vertical" onFinish={onPressNext}>
       <StyledFormItem label="Category">
-        <Form.Item name="categoryId">
-          <S.OptionSelection options={items} optionType="button" />
+        <Form.Item name="categoryId" rules={requiredRule}>
+          <S.OptionSelection options={categories} optionType="button" />
         </Form.Item>
 
-        <Form.Item label="Product name" name="productName">
+        <Form.Item label="Product name" name="productName" rules={requiredRule}>
           <Input />
         </Form.Item>
 
-        <Form.Item label="Cases purchased" name="casesPurchased">
+        <Form.Item label="Cases purchased" name="casesPurchased" rules={requiredRule}>
+          <Input type="number" />
+        </Form.Item>
+
+        <Form.Item label="Units per case" name="unitCost" rules={requiredRule}>
           <Input />
         </Form.Item>
 
-        <Form.Item label="Units per case" name="unitCost">
-          <Input />
-        </Form.Item>
-
-        <Form.Item label="Cost per case" name="caseCost">
-          <InputNumber formatter={value => `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')} />
+        <Form.Item label="Cost per case" name="caseCost" rules={requiredRule}>
+          <Input type="number" />
         </Form.Item>
       </StyledFormItem>
 

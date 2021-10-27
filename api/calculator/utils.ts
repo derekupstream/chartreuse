@@ -31,3 +31,5 @@ export function getChangeSummaryRowRounded(baseline: number, followup: number): 
     changePercent: round(changePercent),
   }
 }
+
+export const formatToDollar = (value: number) => value.toLocaleString('en-US', { style: 'currency', currency: 'USD' })

@@ -18,16 +18,6 @@ export type ProjectMetadata = {
   whereIsFoodPrepared: typeof WhereFoodIsPrepared[number]
 }
 
-type ProjectInputFields = ProjectMetadata & {
-  name: string
-  accountId: string
-}
-
-type ProjectData = Prisma.ProjectCreateInput & {
-  accountId: string
-  orgId: string
-}
-
 export default function SetupPage({ user, project }: { user: DashboardUser; project?: Project }) {
   const router = useRouter()
 

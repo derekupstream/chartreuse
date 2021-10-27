@@ -32,13 +32,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     }
   } else if (req.method === 'DELETE') {
     try {
-      await prisma.reusableLineItem.delete<Prisma.ReusableLineItemDeleteArgs>({
-        where: {
-          id: projectId,
-        },
+      const lineItem = await prisma.reusableLineItem.delete({
+        where: { id: req.body.id },
       })
-      return res.status(200)
+      return res.status(200).json({ lineItem })
     } catch (error: any) {
+      console.log(error)
       return res.status(500).json({ error: error.message })
     }
   }

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Button, Form } from 'antd'
+import { Button, Form, Typography } from 'antd'
 import * as S from '../styles'
 import { PRODUCT_CATEGORIES } from 'api/calculator/constants/product-categories'
 import { MATERIALS } from 'api/calculator/constants/materials'
@@ -131,7 +131,7 @@ export default function SelectProductStep({ input, onSubmit, products }: { input
 
   return (
     <Form layout="vertical">
-      {PRODUCT_FEATURES.map((option, index) => (
+      {PRODUCT_FEATURES.map(option => (
         <FeatureSelect value={selected[option.title]} key={option.title} items={options[option.title]} feature={option.title} onSelect={onSelect} />
       ))}
       <S.BoxEnd>
@@ -155,15 +155,19 @@ function FeatureSelect({ value, feature, items, onSelect }: SelectionProps) {
   return (
     <>
       <StyledFormItem label={feature}>
-        <S.OptionSelection
-          value={value}
-          options={items.map((item: any) => ({
-            label: item.name,
-            value: item.id,
-          }))}
-          onChange={e => onSelect(e.target.value, feature)}
-          optionType="button"
-        />
+        {items.length ? (
+          <S.OptionSelection
+            value={value}
+            options={items.map((item: any) => ({
+              label: item.name,
+              value: item.id,
+            }))}
+            onChange={e => onSelect(e.target.value, feature)}
+            optionType="button"
+          />
+        ) : (
+          <Typography.Text type="secondary">Select field above</Typography.Text>
+        )}
       </StyledFormItem>
     </>
   )
