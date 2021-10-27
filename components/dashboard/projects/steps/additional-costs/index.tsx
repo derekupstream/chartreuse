@@ -3,16 +3,13 @@ import { useState, useEffect } from 'react'
 import { PlusOutlined } from '@ant-design/icons'
 import * as S from '../styles'
 import { Project } from '.prisma/client'
-import { DashboardUser } from 'components/dashboard'
 import { ADDITIONAL_COSTS } from 'api/calculator/constants/additional-costs'
 import ContentLoader from 'components/content-loader'
 import { useSimpleQuery, useSimpleMutation } from 'hooks/useSimpleQuery'
 import AdditionalCostsItemForm from './AdditionalCostsItemForm'
-import { getAnnualOccurence } from 'api/calculator/constants/frequency'
 
 type ServerSideProps = {
   project: Project
-  user: DashboardUser
 }
 
 type AdditionalCostItem = {
