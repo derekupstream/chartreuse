@@ -51,7 +51,7 @@ const AdditionalCostsItemForm: React.FC<AdditionalCostsItemFormProps> = ({ onSub
         </StyledFormItem>
       )}
       <S.BoxEnd>
-        <Button htmlType="submit" size="large" type="primary" disabled={false}>
+        <Button htmlType="submit" size="large" type="primary" disabled={selected.frequency === null}>
           Save
         </Button>
       </S.BoxEnd>

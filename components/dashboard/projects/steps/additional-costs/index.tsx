@@ -1,4 +1,4 @@
-import { Button, Drawer, Typography, Row, Col, Popconfirm } from 'antd'
+import { Button, Drawer, Typography, Row, Col, Popconfirm, message } from 'antd'
 import { useState, useEffect } from 'react'
 import { PlusOutlined } from '@ant-design/icons'
 import * as S from '../styles'
@@ -129,18 +129,46 @@ export default function AdditionalCosts({ project }: ServerSideProps) {
     items.refetch()
   }, [items, createAdditionalCostsItemMutation.data, deleteAdditionalCostsItemMutation.data])
 
+  const handleCreateAdditionalItemSuccess = () => {
+    message.success('Additional cost added')
+  }
+
+  const handleCreateAdditionalItemError = () => {
+    message.error('Unable to add additional cost')
+  }
+
+  const handleDeleteAdditionalItemSuccess = () => {
+    message.success('Additional cost deleted')
+  }
+
+  const handleDeleteAdditionalItemError = () => {
+    message.error('Unable to remove additional cost')
+  }
+
   const handleSubmitForm = (data: any) => {
-    createAdditionalCostsItemMutation.mutate({
-      ...data,
-      projectId: project.id,
-    })
+    createAdditionalCostsItemMutation.mutate(
+      {
+        ...data,
+        projectId: project.id,
+      },
+      {
+        onSuccess: handleCreateAdditionalItemSuccess,
+        onError: handleCreateAdditionalItemError,
+      }
+    )
     closeDrawer()
   }
 
   const handleDeleteItem = (item: any) => {
-    deleteAdditionalCostsItemMutation.mutate({
-      id: item.id,
-    })
+    deleteAdditionalCostsItemMutation.mutate(
+      {
+        id: item.id,
+      },
+      {
+        onSuccess: handleDeleteAdditionalItemSuccess,
+        onError: handleDeleteAdditionalItemError,
+      }
+    )
   }
 
   if (items.isLoading) {
