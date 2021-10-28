@@ -10,6 +10,7 @@ import { GET, POST } from 'lib/http'
 import { PRODUCT_CATEGORIES } from 'api/calculator/constants/product-categories'
 import ItemRow from './components/ItemRow'
 import ContentLoader from 'components/content-loader'
+import { useQuery } from 'react-query'
 
 export type ReusableSecondPartForm = Pick<ReusableFormValues, 'annualRepurchasePercentage'>
 
@@ -40,7 +41,8 @@ export default function ReusablePurchasing() {
     if (!projectId) return
 
     try {
-      const { lineItems } = await GET(`/api/projects/${projectId}/reusable-items`)
+      const { lineItems } = await fetch(`/api/projects/${projectId}/reusable-items`).then(x => x.json())
+      console.log({ lineItems })
       setLineItems(lineItems)
     } catch (error) {
       setLineItems([])
