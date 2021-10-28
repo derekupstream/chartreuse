@@ -22,7 +22,7 @@ export default function Login() {
   const handleLoginWithProvider = async (provider: FirebaseAuthProvider) => {
     try {
       await loginWithProvider(provider)
-      router.push('/')
+      router.push('/projects')
     } catch (error: any) {
       message.error(error.message)
     }
