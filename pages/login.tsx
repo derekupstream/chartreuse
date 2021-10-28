@@ -9,6 +9,7 @@ import FormPageTemplate from 'components/form-page-template'
 export default function Login() {
   const { login, loginWithProvider } = useAuth()
   const router = useRouter()
+  console.log('testing build')
 
   const handleLogin = async ({ email, password }: Credentials) => {
     try {
