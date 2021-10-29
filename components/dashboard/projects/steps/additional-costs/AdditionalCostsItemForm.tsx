@@ -2,7 +2,7 @@ import { Button, Form, InputNumber } from 'antd'
 import { useState } from 'react'
 import * as S from '../styles'
 import styled from 'styled-components'
-import { ADDITIONAL_COSTS, ADDITIONAL_COST_FREQUENCIES } from 'api/calculator/constants/additional-costs'
+import { ADDITIONAL_COSTS, ADDITIONAL_COST_FREQUENCIES } from 'internal-api/calculator/constants/additional-costs'
 
 type AdditionalCostsItemFormProps = {
   onSubmit: (value: any) => void

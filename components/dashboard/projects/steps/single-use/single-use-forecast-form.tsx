@@ -1,7 +1,7 @@
 import { Button, Form, Input, Radio, Typography } from 'antd'
 import { useEffect, useState } from 'react'
 import * as S from '../styles'
-import { SingleUseLineItem } from 'api/calculator/types/projects'
+import { SingleUseLineItem } from 'internal-api/calculator/types/projects'
 
 type FormProps = Record<keyof SingleUseLineItem, string | number | undefined>
 

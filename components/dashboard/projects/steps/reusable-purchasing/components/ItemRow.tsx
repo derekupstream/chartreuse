@@ -1,5 +1,5 @@
 import { Col, message, Popconfirm, Row, Typography } from 'antd'
-import { ReusableLineItem } from 'api/calculator/types/projects'
+import { ReusableLineItem } from 'internal-api/calculator/types/projects'
 import { FC } from 'hoist-non-react-statics/node_modules/@types/react'
 import { DELETE } from 'lib/http'
 import InitialCosts from './InitialCosts'

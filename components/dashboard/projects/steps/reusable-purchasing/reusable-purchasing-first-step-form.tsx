@@ -1,5 +1,5 @@
 import { Button, Form, Input } from 'antd'
-import { PRODUCT_CATEGORIES } from 'api/calculator/constants/product-categories'
+import { PRODUCT_CATEGORIES } from 'internal-api/calculator/constants/product-categories'
 import { ReusableFormValues } from '.'
 import styled from 'styled-components'
 import * as S from '../styles'

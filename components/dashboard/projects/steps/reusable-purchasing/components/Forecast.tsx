@@ -1,8 +1,8 @@
 import { Col, Row, Typography } from 'antd'
 import { StyledCard } from '../../styles'
 import { FC } from 'react'
-import { ReusableLineItem } from 'api/calculator/types/projects'
-import { formatToDollar } from 'api/calculator/utils'
+import { ReusableLineItem } from 'internal-api/calculator/types/projects'
+import { formatToDollar } from 'internal-api/calculator/utils'
 
 interface Props {
   item: ReusableLineItem

@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react'
 import { Button, Form, Typography } from 'antd'
 import * as S from '../styles'
-import { PRODUCT_CATEGORIES } from 'api/calculator/constants/product-categories'
-import { MATERIALS } from 'api/calculator/constants/materials'
-import { PRODUCT_TYPES } from 'api/calculator/constants/product-types'
-import { SingleUseProduct } from 'api/calculator/types/products'
+import { PRODUCT_CATEGORIES } from 'internal-api/calculator/constants/product-categories'
+import { MATERIALS } from 'internal-api/calculator/constants/materials'
+import { PRODUCT_TYPES } from 'internal-api/calculator/constants/product-types'
+import { SingleUseProduct } from 'internal-api/calculator/types/products'
 import styled from 'styled-components'
-import { SingleUseLineItem } from 'api/calculator/types/projects'
+import { SingleUseLineItem } from 'internal-api/calculator/types/projects'
 
 const StyledFormItem = styled(Form.Item)`
   .ant-form-item-label label {

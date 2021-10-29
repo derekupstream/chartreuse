@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { message } from 'antd'
-import { SingleUseProduct } from 'api/calculator/types/products'
-import { SingleUseLineItem } from 'api/calculator/types/projects'
+import { SingleUseProduct } from 'internal-api/calculator/types/products'
+import { SingleUseLineItem } from 'internal-api/calculator/types/projects'
 
 import SingleUseProductForm from './single-use-product-form'
 import SingleUseBaselineForm from './single-use-baseline-form'
