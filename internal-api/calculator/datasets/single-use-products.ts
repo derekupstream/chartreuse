@@ -1,12 +1,12 @@
 import neatCsv from 'neat-csv'
 import { readFile } from 'fs'
 import { SingleUseProduct } from '../types/products'
-import { MaterialName, MATERIALS } from '../constants/materials'
+import { MATERIALS } from '../constants/materials'
 import { PRODUCT_CATEGORIES } from '../constants/product-categories'
 import { PRODUCT_TYPES } from '../constants/product-types'
 
 // These items were provided by Upstream. They could also live in a database one day
-const csvFile = process.cwd() + '/api/calculator/datasets/single-use-products-data.csv'
+const csvFile = process.cwd() + '/internal-api/calculator/datasets/single-use-products-data.csv'
 
 type CSVColumn =
   | 'Product ID'

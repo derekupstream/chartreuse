@@ -152,23 +152,18 @@ type SelectionProps = {
 }
 
 function FeatureSelect({ value, feature, items, onSelect }: SelectionProps) {
+  if (!items.length) return null
   return (
-    <>
-      <StyledFormItem label={feature}>
-        {items.length ? (
-          <S.OptionSelection
-            value={value}
-            options={items.map((item: any) => ({
-              label: item.name,
-              value: item.id,
-            }))}
-            onChange={e => onSelect(e.target.value, feature)}
-            optionType="button"
-          />
-        ) : (
-          <Typography.Text type="secondary">Select field above</Typography.Text>
-        )}
-      </StyledFormItem>
-    </>
+    <StyledFormItem label={feature}>
+      <S.OptionSelection
+        value={value}
+        options={items.map((item: any) => ({
+          label: item.name,
+          value: item.id,
+        }))}
+        onChange={e => onSelect(e.target.value, feature)}
+        optionType="button"
+      />
+    </StyledFormItem>
   )
 }
