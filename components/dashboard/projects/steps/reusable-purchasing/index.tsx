@@ -41,8 +41,8 @@ export default function ReusablePurchasing() {
     if (!projectId) return
 
     try {
-      const { lineItems } = await fetch(`/api/projects/${projectId}/reusable-items`).then(x => x.json())
-      console.log({ lineItems })
+      const url = `/api/projects/${projectId}/reusable-items`
+      const { lineItems } = await fetch(url).then(response => response.json())
       setLineItems(lineItems)
     } catch (error) {
       setLineItems([])

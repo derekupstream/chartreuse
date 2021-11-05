@@ -62,6 +62,7 @@ export const singleUseItems: SingleUseLineItem[] = [
   },
 ]
 
+// @ts-ignore
 const reusableItems: ReusableLineItem[] = [{ categoryId: 1, projectId, caseCost: 23, casesPurchased: 2, annualRepurchasePercentage: 0.23 }]
 
 const additionalCosts: AdditionalCost[] = [
