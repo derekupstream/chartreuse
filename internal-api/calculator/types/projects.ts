@@ -96,10 +96,7 @@ type WasteStream = 'Garbage' | 'Recycling' | 'Organics' | 'Additional Charges'
 type ServiceType = 'Bin' | 'Cart' | 'Roll Off Bin' | 'Additional Charges'
 
 export interface WasteHaulingService {
-  collectionTimesPerWeek: number
   monthlyCost: number // used for calculating financial results
-  size: number
-  unitCount: number
   wasteStream: WasteStream
   serviceType: ServiceType
   projectId: string

@@ -62,8 +62,8 @@ export const singleUseItems: SingleUseLineItem[] = [
   },
 ]
 
-// @ts-ignore
-const reusableItems: ReusableLineItem[] = [{ categoryId: 1, projectId, caseCost: 23, casesPurchased: 2, annualRepurchasePercentage: 0.23 }]
+const reusableItems: ReusableLineItem[] = [{ categoryId: '1', projectId, caseCost: 23, casesPurchased: 2, annualRepurchasePercentage: 0.23 }]
+
 
 const additionalCosts: AdditionalCost[] = [
   { projectId, cost: 80, frequency: 'Daily', categoryId: '3' },
@@ -84,42 +84,22 @@ const dishwasher: DishWasher = {
 
 const wasteHauling: WasteHaulingService[] = [
   {
-    collectionTimesPerWeek: 2,
     monthlyCost: 125,
-    size: 2,
-    unitCount: 1,
-    wasteStream: 'Garbage',
-    serviceType: 'Bin',
     projectId,
   },
   {
-    collectionTimesPerWeek: 1,
     monthlyCost: 85,
-    size: 1,
-    unitCount: 1,
-    wasteStream: 'Recycling',
-    serviceType: 'Bin',
     projectId,
   },
 ]
 
 const newWasteHauling: WasteHaulingService[] = [
   {
-    collectionTimesPerWeek: 1,
     monthlyCost: 85,
-    size: 1,
-    unitCount: 1,
-    wasteStream: 'Garbage',
-    serviceType: 'Bin',
     projectId,
   },
   {
-    collectionTimesPerWeek: 1,
     monthlyCost: 85,
-    size: 1,
-    unitCount: 1,
-    wasteStream: 'Recycling',
-    serviceType: 'Bin',
     projectId,
   },
 ]
