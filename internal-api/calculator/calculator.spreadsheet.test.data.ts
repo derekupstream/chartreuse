@@ -62,7 +62,7 @@ export const singleUseItems: SingleUseLineItem[] = [
   },
 ]
 
-const reusableItems: ReusableLineItem[] = [{ categoryId: '1', projectId, caseCost: 23, casesPurchased: 2, annualRepurchasePercentage: 0.23 }]
+const reusableItems: ReusableLineItem[] = [{ categoryId: '1', projectId, productName: 'Cup', caseCost: 23, casesPurchased: 2, annualRepurchasePercentage: 0.23 }]
 
 
 const additionalCosts: AdditionalCost[] = [
@@ -86,10 +86,14 @@ const wasteHauling: WasteHaulingService[] = [
   {
     monthlyCost: 125,
     projectId,
+    wasteStream: 'Garbage',
+    serviceType: 'Bin'
   },
   {
     monthlyCost: 85,
     projectId,
+    wasteStream: 'Garbage',
+    serviceType: 'Bin'
   },
 ]
 
@@ -97,10 +101,14 @@ const newWasteHauling: WasteHaulingService[] = [
   {
     monthlyCost: 85,
     projectId,
+    wasteStream: 'Garbage',
+    serviceType: 'Bin'
   },
   {
     monthlyCost: 85,
     projectId,
+    wasteStream: 'Garbage',
+    serviceType: 'Bin'
   },
 ]
 

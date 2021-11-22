@@ -15,7 +15,7 @@
   "dependencies": {
     "@ant-design/colors": "^6.0.0",
     "@ant-design/icons": "^4.6.2",
-    "@prisma/client": "^3.3.0",
+    "@prisma/client": "^3.5.0",
     "antd": "^4.16.6",
     "firebase": "^8.7.0",
     "firebase-admin": "^9.10.0",

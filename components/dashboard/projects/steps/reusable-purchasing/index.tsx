@@ -20,7 +20,6 @@ export interface ReusableFormValues {
   casesPurchased: string
   categoryId: string
   productName: string
-  unitCost: string
 }
 
 export default function ReusablePurchasing() {
@@ -74,7 +73,6 @@ export default function ReusablePurchasing() {
       casesPurchased: parseInt(values.casesPurchased),
       annualRepurchasePercentage: parseInt(values.annualRepurchasePercentage),
       caseCost: parseInt(values.caseCost),
-      unitCost: parseInt(values.unitCost),
       projectId,
     }
 

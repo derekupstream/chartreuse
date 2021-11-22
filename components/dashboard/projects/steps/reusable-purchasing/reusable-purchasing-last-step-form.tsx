@@ -34,10 +34,6 @@ const ReusablePurchasingLastStepForm: FC<Props> = props => {
           <Input />
         </Form.Item>
 
-        <Form.Item label="Units per case" name="unitCost">
-          <Input />
-        </Form.Item>
-
         <Form.Item label="Cost per case" name="caseCost">
           <InputNumber formatter={value => `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')} />
         </Form.Item>

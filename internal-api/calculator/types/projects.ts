@@ -58,7 +58,6 @@ export interface ReusableLineItem {
   annualRepurchasePercentage: number
   caseCost: number
   casesPurchased: number
-  unitCost: number
   projectId: string
   productName: string
 }

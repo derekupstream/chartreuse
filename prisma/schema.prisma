@@ -99,7 +99,6 @@ model ReusableLineItem {
   casesPurchased             Int
   categoryId                 String
   productName                String
-  unitCost                   Int
   projectId                  String
   project                    Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
 }
