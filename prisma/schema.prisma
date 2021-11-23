@@ -14,21 +14,21 @@ generator client {
 model User {
   id          String   @id
   name        String?
-  email       String?  @unique
+  email       String   @unique
   title       String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  org         Org?     @relation(fields: [orgId], references: [id])
-  orgId       String?
+  org         Org      @relation(fields: [orgId], references: [id])
+  orgId       String   @db.Uuid
   account     Account? @relation(fields: [accountId], references: [id])
-  accountId   String?
+  accountId   String?  @db.Uuid
   phone       String?
   role        Role     @default(ORG_ADMIN)
   invitesSent Invite[]
 }
 
 model Org {
-  id        String    @id @default(uuid())
+  id        String    @id @default(uuid()) @db.Uuid
   name      String
   metadata  Json?
   createdAt DateTime  @default(now())
@@ -39,13 +39,13 @@ model Org {
 }
 
 model Account {
-  id                  String    @id @default(uuid())
+  id                  String    @id @default(uuid()) @db.Uuid
   name                String
   metadata            Json?
   createdAt           DateTime  @default(now())
   updatedAt           DateTime  @updatedAt
-  org                 Org?      @relation(fields: [orgId], references: [id])
-  orgId               String?
+  org                 Org       @relation(fields: [orgId], references: [id])
+  orgId               String    @db.Uuid
   users               User[]
   accountContactEmail String
   invites             Invite[]
@@ -53,10 +53,10 @@ model Account {
 }
 
 model Invite {
-  id           String   @id @default(uuid())
+  id           String   @id @default(uuid()) @db.Uuid
   email        String
   account      Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
-  accountId    String
+  accountId    String   @db.Uuid
   accepted     Boolean  @default(false)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
@@ -65,22 +65,22 @@ model Invite {
 }
 
 model Project {
-  id              String              @id @default(uuid())
+  id              String              @id @default(uuid()) @db.Uuid
   name            String
   metadata        Json?
   createdAt       DateTime            @default(now())
   updatedAt       DateTime            @updatedAt
-  org             Org?                @relation(fields: [orgId], references: [id], onDelete: Cascade)
-  orgId           String?
-  account         Account?            @relation(fields: [accountId], references: [id], onDelete: Cascade)
-  accountId       String?
+  org             Org                 @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId           String              @db.Uuid
+  account         Account             @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  accountId       String              @db.Uuid
   singleUseItems  SingleUseLineItem[]
   reusableItems   ReusableLineItem[]
   additionalCosts AdditionalCost[]
 }
 
 model SingleUseLineItem {
-  id                String   @id @default(uuid())
+  id                String   @id @default(uuid()) @db.Uuid
   caseCost          Int
   casesPurchased    Int
   frequency         String
@@ -88,28 +88,28 @@ model SingleUseLineItem {
   newCaseCost       Int
   newCasesPurchased Int
   unitsPerCase      Int
-  project           Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  projectId         String
+  project           Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId         String   @db.Uuid
 }
 
 model ReusableLineItem {
-  id                         String   @id @default(uuid())
+  id                         String   @id @default(uuid()) @db.Uuid
   annualRepurchasePercentage Int
   caseCost                   Int
   casesPurchased             Int
   categoryId                 String
   productName                String
-  projectId                  String
-  project                    Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId                  String   @db.Uuid
+  project                    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
 }
 
 model AdditionalCost {
-  id         String   @id @default(uuid())
+  id         String   @id @default(uuid()) @db.Uuid
   categoryId String
   cost       Int
   frequency  String
-  projectId  String
-  project    Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId  String   @db.Uuid
+  project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
 }
 
 enum Role {

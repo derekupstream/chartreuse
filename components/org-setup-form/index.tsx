@@ -1,5 +1,7 @@
 import { RightOutlined } from '@ant-design/icons'
 import { Form, Input, Button, Select } from 'antd'
+import { useEffect } from 'react'
+import { useAuth } from 'hooks/useAuth'
 
 import * as S from './styles'
 
@@ -9,9 +11,18 @@ type Props = {
 }
 
 export default function OrgSetupForm({ onSubmit, isLoading }: Props) {
+  const { user } = useAuth()
+  const [form] = Form.useForm()
+
+  useEffect(() => {
+    form.setFieldsValue({
+      name: user?.displayName,
+    })
+  }, [user])
+
   return (
     <S.Wrapper>
-      <S.OrgSetupForm name="orgAccount" layout="vertical" onFinish={onSubmit}>
+      <S.OrgSetupForm form={form} name="orgAccount" layout="vertical" onFinish={onSubmit}>
         <Form.Item
           label="Your name"
           name="name"

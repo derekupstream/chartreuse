@@ -8,6 +8,7 @@ import { useMutation } from 'react-query'
 import { useAuth } from 'hooks/useAuth'
 import nookies from 'nookies'
 import FormPageTemplate from 'components/form-page-template'
+import { checkLogin, LoggedinProps } from 'lib/middleware'
 
 export const getServerSideProps: GetServerSideProps = async context => {
   const { emailVerified } = nookies.get(context)
@@ -52,6 +53,7 @@ export default function OrgSetup() {
         {
           id: user?.uid,
           title,
+          email: user?.email,
           name,
           phone,
           orgName,
