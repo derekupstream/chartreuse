@@ -1,5 +1,5 @@
 import { createContext, useEffect, useState, useCallback } from 'react'
-import { FirebaseAuthProvider, firebase, User } from 'lib/firebaseClient'
+import { FirebaseAuthProvider, firebase, User } from './firebaseClient'
 import firebaseLib from 'firebase'
 import { setCookie, destroyCookie } from 'nookies'
 

@@ -1,6 +1,6 @@
 import { GetServerSideProps } from 'next'
 import nookies from 'nookies'
-import { verifyIdToken } from 'lib/firebaseAdmin'
+import { verifyIdToken } from 'lib/auth/firebaseAdmin'
 import prisma from 'lib/prisma'
 import { Prisma } from '@prisma/client'
 

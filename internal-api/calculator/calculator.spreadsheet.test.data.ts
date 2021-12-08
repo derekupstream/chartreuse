@@ -64,7 +64,6 @@ export const singleUseItems: SingleUseLineItem[] = [
 
 const reusableItems: ReusableLineItem[] = [{ categoryId: '1', projectId, productName: 'Cup', caseCost: 23, casesPurchased: 2, annualRepurchasePercentage: 0.23 }]
 
-
 const additionalCosts: AdditionalCost[] = [
   { projectId, cost: 80, frequency: 'Daily', categoryId: '3' },
   { projectId, cost: 5000, frequency: 'One Time', categoryId: '2' },

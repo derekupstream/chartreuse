@@ -3,7 +3,7 @@ import Header from 'components/header'
 import LoginForm from 'components/login-form'
 import { useAuth, Credentials } from 'hooks/useAuth'
 import { message } from 'antd'
-import { FirebaseAuthProvider } from 'lib/firebaseClient'
+import { FirebaseAuthProvider } from 'lib/auth/firebaseClient'
 import FormPageTemplate from 'components/form-page-template'
 
 export default function Login() {

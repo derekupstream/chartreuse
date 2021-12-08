@@ -1,52 +1,46 @@
+import nc from 'next-connect'
 import type { NextApiRequest, NextApiResponse } from 'next'
 import prisma from 'lib/prisma'
 import { Prisma, Project } from '@prisma/client'
 import { ProjectMetadata } from 'components/dashboard/projects/steps/setup'
+import getUser, { NextApiRequestWithUser } from 'lib/middleware/getUser'
+import onError from 'lib/middleware/onError'
+import onNoMatch from 'lib/middleware/onNoMatch'
 
-type Response = {
-  project?: Project
-  projects?: Project[]
-  error?: string
+const handler = nc<NextApiRequest, NextApiResponse>({ onError, onNoMatch })
+
+handler.use(getUser).get(getProjects).post(createProject)
+
+async function createProject(req: NextApiRequestWithUser, res: NextApiResponse<{ project: Project }>) {
+  const { name, metadata, accountId } = req.body
+
+  const project = await prisma.project.create<Prisma.ProjectCreateArgs>({
+    data: {
+      name,
+      metadata: metadata as ProjectMetadata,
+      account: {
+        connect: {
+          id: accountId,
+        },
+      },
+      org: {
+        connect: {
+          id: req.user.orgId!,
+        },
+      },
+    },
+  })
+
+  return res.status(200).json({ project })
 }
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse<Response>) {
-  if (req.method === 'POST') {
-    try {
-      const { name, metadata, accountId, orgId } = req.body
+async function getProjects(req: NextApiRequestWithUser, res: NextApiResponse<{ projects: Project[] }>) {
+  const projects = await prisma.project.findMany<Prisma.ProjectFindManyArgs>({
+    where: {
+      accountId: req.user.accountId || undefined,
+      orgId: req.user.orgId,
+    },
+  })
 
-      const project = await prisma.project.create<Prisma.ProjectCreateArgs>({
-        data: {
-          name,
-          metadata: metadata as ProjectMetadata,
-          account: {
-            connect: {
-              id: accountId,
-            },
-          },
-          org: {
-            connect: {
-              id: orgId,
-            },
-          },
-        },
-      })
-
-      return res.status(200).json({ project })
-    } catch (error: any) {
-      return res.status(500).json({ error: error.message })
-    }
-  }
-
-  if (req.method === 'GET') {
-    try {
-      const projects = await prisma.project.findMany<Prisma.ProjectFindManyArgs>()
-
-      return res.status(200).json({ projects })
-    } catch (error: any) {
-      return res.status(500).json({ error: error.message })
-    }
-  }
-
-  // Handle any other HTTP method
-  return res.status(405).json({ error: 'Method not allowed' })
+  return res.status(200).json({ projects })
 }

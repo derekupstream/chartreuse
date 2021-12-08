@@ -1,5 +1,5 @@
 import type { AppProps } from 'next/app'
-import { AuthProvider } from 'lib/auth'
+import { AuthProvider } from 'lib/auth/auth.browser'
 import { QueryClient, QueryClientProvider } from 'react-query'
 import { createGlobalStyle } from 'styled-components'
 import 'styles/antd.less'

@@ -1,7 +1,7 @@
 import nookies from 'nookies'
 import prisma from 'lib/prisma'
 import { Prisma, Project } from '@prisma/client'
-import { verifyIdToken } from 'lib/firebaseAdmin'
+import { verifyIdToken } from 'lib/auth/firebaseAdmin'
 import { GetServerSideProps, GetServerSidePropsContext } from 'next'
 import { DashboardUser } from 'components/dashboard'
 

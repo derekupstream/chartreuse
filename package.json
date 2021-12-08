@@ -22,6 +22,7 @@
     "mailgun-js": "^0.22.0",
     "neat-csv": "^6.0.1",
     "next": "^11.1.2",
+    "next-connect": "^0.11.0",
     "nookies": "^2.5.2",
     "prisma": "^3.3.0",
     "react": "17.0.2",

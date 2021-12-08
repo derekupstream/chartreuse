@@ -1,5 +1,5 @@
 import { Form, FormProps, Input, Button, Typography, Divider, Space } from 'antd'
-import { FirebaseAuthProvider, googleProvider } from 'lib/firebaseClient'
+import { FirebaseAuthProvider, googleProvider } from 'lib/auth/firebaseClient'
 import Link from 'next/link'
 import { GoogleOutlined } from '@ant-design/icons'
 
