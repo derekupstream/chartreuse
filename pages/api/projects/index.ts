@@ -44,3 +44,5 @@ async function getProjects(req: NextApiRequestWithUser, res: NextApiResponse<{ p
 
   return res.status(200).json({ projects })
 }
+
+export default handler
