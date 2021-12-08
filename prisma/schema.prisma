@@ -7,8 +7,7 @@ datasource db {
 }
 
 generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["referentialActions"]
+  provider = "prisma-client-js"
 }
 
 model User {
@@ -65,22 +64,25 @@ model Invite {
 }
 
 model Project {
-  id              String              @id @default(uuid()) @db.Uuid
-  name            String
-  metadata        Json?
-  createdAt       DateTime            @default(now())
-  updatedAt       DateTime            @updatedAt
-  org             Org                 @relation(fields: [orgId], references: [id], onDelete: Cascade)
-  orgId           String              @db.Uuid
-  account         Account             @relation(fields: [accountId], references: [id], onDelete: Cascade)
-  accountId       String              @db.Uuid
-  singleUseItems  SingleUseLineItem[]
-  reusableItems   ReusableLineItem[]
-  additionalCosts AdditionalCost[]
+  id                String              @id @default(uuid()) @db.Uuid
+  name              String
+  metadata          Json?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  org               Org                 @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId             String              @db.Uuid
+  account           Account             @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  accountId         String              @db.Uuid
+  singleUseItems    SingleUseLineItem[]
+  reusableItems     ReusableLineItem[]
+  additionalCosts   AdditionalCost[]
+  laborCosts        LaborCost[]
+  wasteHaulingCosts WasteHaulingCost[]
+  DishWasher        Dishwasher[]
 }
 
 model SingleUseLineItem {
-  id                String   @id @default(uuid()) @db.Uuid
+  id                String  @id @default(uuid()) @db.Uuid
   caseCost          Int
   casesPurchased    Int
   frequency         String
@@ -88,28 +90,61 @@ model SingleUseLineItem {
   newCaseCost       Int
   newCasesPurchased Int
   unitsPerCase      Int
-  project           Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  projectId         String   @db.Uuid
+  project           Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId         String  @db.Uuid
 }
 
 model ReusableLineItem {
-  id                         String   @id @default(uuid()) @db.Uuid
+  id                         String  @id @default(uuid()) @db.Uuid
   annualRepurchasePercentage Int
   caseCost                   Int
   casesPurchased             Int
   categoryId                 String
   productName                String
-  projectId                  String   @db.Uuid
-  project                    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId                  String  @db.Uuid
+  project                    Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 }
 
 model AdditionalCost {
-  id         String   @id @default(uuid()) @db.Uuid
+  id         String  @id @default(uuid()) @db.Uuid
   categoryId String
   cost       Int
   frequency  String
-  projectId  String   @db.Uuid
-  project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId  String  @db.Uuid
+  project    Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+model LaborCost {
+  id          String  @id @default(uuid()) @db.Uuid
+  categoryId  String
+  cost        Int
+  description String
+  frequency   String
+  projectId   String  @db.Uuid
+  project     Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+model WasteHaulingCost {
+  id          String  @id @default(uuid()) @db.Uuid
+  monthlyCost Int
+  wasteStream String
+  serviceType String
+  projectId   String  @db.Uuid
+  project     Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+model Dishwasher {
+  id String @id @default(uuid()) @db.Uuid
+
+  additionalRacksPerDay       Int
+  boosterWaterHeaterFuelType  String
+  buildingWaterHeaterFuelType String
+  energyStarCertified         Boolean
+  operatingDays               Int
+  temperature                 String
+  type                        String
+  projectId                   String  @db.Uuid
+  project                     Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 }
 
 enum Role {

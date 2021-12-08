@@ -7,7 +7,7 @@ export type NextApiRequestWithUser = NextApiRequest & {
   user: User
 }
 
-export default async function getUser(req: NextApiRequestWithUser, res: NextApiResponse, next: Function) {
+export async function getUser(req: NextApiRequestWithUser, res: NextApiResponse, next: Function) {
   const cookies = req.cookies
   const token = await verifyIdToken(cookies.token)
   const user = await prisma.user.findUnique<Prisma.UserFindUniqueArgs>({
@@ -22,3 +22,5 @@ export default async function getUser(req: NextApiRequestWithUser, res: NextApiR
     next()
   }
 }
+
+export default getUser

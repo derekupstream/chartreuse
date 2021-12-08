@@ -2,7 +2,7 @@ import { NATURAL_GAS_CO2_EMISSIONS_FACTOR, ELECTRIC_CO2_EMISSIONS_FACTOR } from 
 import { POUND_TO_TONNE } from '../constants/conversions'
 import { CORRUGATED_CARDBOARD, MATERIALS } from '../constants/materials'
 import { Frequency, getAnnualOccurence } from '../constants/frequency'
-import { ProjectInput, SingleUseLineItemPopulated } from '../types/projects'
+import { DishWasher, ProjectInput, SingleUseLineItemPopulated } from '../types/projects'
 import { ChangeSummary, getChangeSummaryRowRounded, round } from '../utils'
 import { dishwasherUtilityUsage } from './financial-results'
 import { annualSingleUseWeight } from './single-use-product-results'
@@ -30,6 +30,13 @@ interface AnnualGasEmissionChanges {
   total: number
 }
 
+export function getUtilityGasEmissions(dishwasher: DishWasher): { gas: number, electric: number } {
+  const { electricUsage, gasUsage } = dishwasherUtilityUsage(dishwasher)
+  const electric = electricUsage * ELECTRIC_CO2_EMISSIONS_FACTOR
+  const gas = gasUsage * NATURAL_GAS_CO2_EMISSIONS_FACTOR
+  return { gas, electric }
+}
+
 function getAnnualGasEmissionChanges(project: ProjectInput): AnnualGasEmissionChanges {
   const lineItems = project.singleUseItems.map(singleUseItemGasEmissions)
   const landfillWaste = round(
@@ -40,10 +47,8 @@ function getAnnualGasEmissionChanges(project: ProjectInput): AnnualGasEmissionCh
   // calculate increased dishwasher emissions
   let dishwashing = 0
   if (project.dishwasher) {
-    const { electricUsage, gasUsage } = dishwasherUtilityUsage(project.dishwasher)
-    const electricGHGEmissions = electricUsage * ELECTRIC_CO2_EMISSIONS_FACTOR
-    const gasGHGEmissions = gasUsage * NATURAL_GAS_CO2_EMISSIONS_FACTOR
-    dishwashing = round(POUND_TO_TONNE * (electricGHGEmissions + gasGHGEmissions), 2)
+    const { electric, gas } = getUtilityGasEmissions(project.dishwasher)
+    dishwashing = round(POUND_TO_TONNE * (electric + gas), 2)
   }
 
   return {

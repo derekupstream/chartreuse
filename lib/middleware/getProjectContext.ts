@@ -1,9 +1,14 @@
 import nookies from 'nookies'
-import prisma from 'lib/prisma'
-import { Prisma, Project } from '@prisma/client'
+import { Project } from '@prisma/client'
+import { GetServerSideProps } from 'next'
 import { verifyIdToken } from 'lib/auth/firebaseAdmin'
-import { GetServerSideProps, GetServerSidePropsContext } from 'next'
+import prisma from 'lib/prisma'
 import { DashboardUser } from 'components/dashboard'
+
+export type ProjectContext = {
+  user: DashboardUser
+  project: Project
+}
 
 export const UserDataToInclude = {
   org: {
@@ -24,52 +29,6 @@ export const UserDataToInclude = {
       },
     },
   },
-}
-
-export type LoggedinProps = {
-  user: DashboardUser
-}
-
-export const checkLogin = async (context: GetServerSidePropsContext) => {
-  try {
-    const cookies = nookies.get(context)
-    const token = await verifyIdToken(cookies.token)
-
-    const user = await prisma.user.findUnique<Prisma.UserFindUniqueArgs>({
-      where: {
-        id: token.uid,
-      },
-      include: UserDataToInclude,
-    })
-
-    if (!user) {
-      return {
-        redirect: {
-          permanent: false,
-          destination: '/org-setup',
-        },
-      }
-    }
-
-    return {
-      props: {
-        user: JSON.parse(JSON.stringify(user)),
-      },
-    }
-  } catch (error: any) {
-    console.error('Error checking user auth', error)
-    return {
-      redirect: {
-        permanent: false,
-        destination: '/login',
-      },
-    }
-  }
-}
-
-export type ProjectContext = {
-  user: DashboardUser
-  project: Project
 }
 
 export const getProjectContext: GetServerSideProps = async context => {

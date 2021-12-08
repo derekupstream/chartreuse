@@ -70,14 +70,19 @@ function calculateAnnualCosts(project: ProjectInput): AnnualCostChanges {
   }
 }
 
-function dishwasherAnnualCost(dishwasher: DishWasher, rates: ProjectInput['utilityRates']) {
+export function dishwasherAnnualCostBreakdown(dishwasher: DishWasher, rates: ProjectInput['utilityRates']) {
   const { electricUsage, gasUsage, waterUsage } = dishwasherUtilityUsage(dishwasher)
 
-  const electricCost = electricUsage * rates.electric
-  const gasCost = gasUsage * rates.gas
-  const waterCost = (waterUsage * rates.water) / 1000
+  const electric = electricUsage * rates.electric
+  const gas = gasUsage * rates.gas
+  const water = (waterUsage * rates.water) / 1000
 
-  return round(electricCost + gasCost + waterCost, 2)
+  return { electric, gas, water, }
+}
+
+function dishwasherAnnualCost(dishwasher: DishWasher, rates: ProjectInput['utilityRates']) {
+  const { electric, gas, water } = dishwasherAnnualCostBreakdown(dishwasher, rates)
+  return round(electric + gas + water, 2)
 }
 
 // Hidden: dishwasher calulcations: C85, C86

@@ -1,5 +1,16 @@
 import { PrismaClient } from '@prisma/client'
 
-const prisma = new PrismaClient()
+// create single instance of prisma for development: https://github.com/prisma/prisma/issues/1983
+declare global {
+  var prisma: PrismaClient
+}
 
-export default prisma
+if (process.env.NODE_ENV === 'production') {
+  global.prisma = new PrismaClient()
+} else {
+  if (!global.prisma) {
+    global.prisma = new PrismaClient()
+  }
+}
+
+export default global.prisma

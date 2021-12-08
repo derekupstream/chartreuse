@@ -113,9 +113,9 @@ const SummaryRow = ({ items }: SummaryRowProps) => {
 
 export default function AdditionalCosts({ project }: ServerSideProps) {
   const [isDrawerVisible, setIsDrawerVisible] = useState<boolean>(false)
-  const items = useSimpleQuery(`/api/projects/${project.id}/additional-costs`)
-  const createAdditionalCostsItemMutation = useSimpleMutation(`/api/projects/${project.id}/additional-costs`)
-  const deleteAdditionalCostsItemMutation = useSimpleMutation(`/api/projects/${project.id}/additional-costs`, 'DELETE')
+  const items = useSimpleQuery(`/api/additional-costs?projectId=${project.id}`)
+  const createAdditionalCostsItemMutation = useSimpleMutation(`/api/additional-costs`)
+  const deleteAdditionalCostsItemMutation = useSimpleMutation(`/api/additional-costs`, 'DELETE')
 
   const addItem = () => {
     setIsDrawerVisible(true)
@@ -163,6 +163,7 @@ export default function AdditionalCosts({ project }: ServerSideProps) {
     deleteAdditionalCostsItemMutation.mutate(
       {
         id: item.id,
+        projectId: project.id,
       },
       {
         onSuccess: handleDeleteAdditionalItemSuccess,

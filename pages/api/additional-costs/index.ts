@@ -6,13 +6,14 @@ import { CreateAdditionalCostValidator } from 'lib/validators'
 import getUser, { NextApiRequestWithUser } from 'lib/middleware/getUser'
 import onError from 'lib/middleware/onError'
 import onNoMatch from 'lib/middleware/onNoMatch'
+import { validateProject } from 'lib/middleware/validateProject'
 
 const handler = nc<NextApiRequest, NextApiResponse>({ onError, onNoMatch })
 
-handler.use(getUser).get(getAdditionalCosts).post(createAdditionalCost).delete(deleteAdditionalCost)
+handler.use(getUser).use(validateProject).get(getAdditionalCosts).post(createAdditionalCost).delete(deleteAdditionalCost)
 
 async function getAdditionalCosts(req: NextApiRequestWithUser, res: NextApiResponse<{ additionalCosts: AdditionalCost[] }>) {
-  const projectId = req.query.id as string
+  const projectId = req.query.projectId as string
   const additionalCosts = await prisma.additionalCost.findMany<Prisma.AdditionalCostFindManyArgs>({
     where: {
       projectId,
@@ -22,7 +23,7 @@ async function getAdditionalCosts(req: NextApiRequestWithUser, res: NextApiRespo
 }
 
 async function createAdditionalCost(req: NextApiRequestWithUser, res: NextApiResponse<{ additionalCost: AdditionalCost }>) {
-  const data = {
+  const data: Prisma.AdditionalCostCreateArgs['data'] = {
     projectId: req.body.projectId,
     cost: req.body.cost,
     frequency: String(req.body.frequency),
@@ -32,7 +33,7 @@ async function createAdditionalCost(req: NextApiRequestWithUser, res: NextApiRes
   CreateAdditionalCostValidator.parse(data)
 
   // @todo validate that project ID exists and belongs to current user
-  const additionalCost = await prisma.additionalCost.create<Prisma.AdditionalCostCreateArgs>({
+  const additionalCost = await prisma.additionalCost.create({
     data,
   })
 
@@ -40,11 +41,10 @@ async function createAdditionalCost(req: NextApiRequestWithUser, res: NextApiRes
 }
 
 async function deleteAdditionalCost(req: NextApiRequestWithUser, res: NextApiResponse) {
-  // @todo validate the project belongs to current user
-  // @todo get project id from URL instead of parsing out of body
-  await prisma.additionalCost.delete<Prisma.AdditionalCostDeleteArgs>({
+  await prisma.additionalCost.deleteMany({
     where: {
       id: req.body.id,
+      projectId: req.body.projectId,
     },
   })
   res.status(200).json({})
