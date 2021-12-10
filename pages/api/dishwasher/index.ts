@@ -94,3 +94,5 @@ async function deleteDishwasher(req: NextApiRequestWithUser, res: NextApiRespons
   })
   res.status(200).json({})
 }
+
+export default handler

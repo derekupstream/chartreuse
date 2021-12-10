@@ -1,4 +1,5 @@
 import type { AppProps } from 'next/app'
+import Head from 'next/head'
 import { AuthProvider } from 'lib/auth/auth.browser'
 import { QueryClient, QueryClientProvider } from 'react-query'
 import { createGlobalStyle } from 'styled-components'
@@ -27,12 +28,17 @@ function MyApp({ Component, pageProps }: Props) {
   const getLayout = Component.getLayout ?? ((page: React.ReactNode) => page)
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <GlobalStyles />
-        {getLayout(<Component {...pageProps} />, pageProps)}
-      </AuthProvider>
-    </QueryClientProvider>
+    <>
+      <Head>
+        <title>Welcome to CharmVerse</title>
+      </Head>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <GlobalStyles />
+          {getLayout(<Component {...pageProps} />, pageProps)}
+        </AuthProvider>
+      </QueryClientProvider>
+    </>
   )
 }
 export default MyApp

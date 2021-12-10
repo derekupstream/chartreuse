@@ -46,3 +46,5 @@ async function deleteWasteHaulingCost(req: NextApiRequestWithUser, res: NextApiR
   })
   res.status(200).json({})
 }
+
+export default handler

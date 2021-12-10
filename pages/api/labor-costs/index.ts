@@ -47,3 +47,5 @@ async function deleteLaborCost(req: NextApiRequestWithUser, res: NextApiResponse
   })
   res.status(200).json({})
 }
+
+export default handler
