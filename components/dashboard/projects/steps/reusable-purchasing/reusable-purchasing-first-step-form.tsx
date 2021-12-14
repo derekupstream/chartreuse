@@ -3,6 +3,7 @@ import { PRODUCT_CATEGORIES } from 'internal-api/calculator/constants/product-ca
 import { ReusableFormValues } from '.'
 import styled from 'styled-components'
 import * as S from '../styles'
+import { requiredRule } from 'utils/forms'
 
 const StyledFormItem = styled(Form.Item)`
   .ant-form-item-label label {
@@ -23,8 +24,6 @@ const categories = PRODUCT_CATEGORIES.map(product => ({
 type Props = {
   onPressNext(values: ReusableFormValues): void
 }
-
-const requiredRule = [{ required: true, message: 'This field is required' }]
 
 const ReusablePurchasingFirstStepForm: React.FC<Props> = ({ onPressNext }) => {
   return (

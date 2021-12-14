@@ -1,8 +1,8 @@
 import { useMutation, useQuery } from 'react-query'
 
-export const useSimpleQuery = (url: string) => {
+export const useSimpleQuery = <T = any>(url: string) => {
   const query = () => fetch(url).then(res => res.json())
-  return useQuery(url, query)
+  return useQuery<T>(url, query)
 }
 
 export const useSimpleMutation = (url: string, method: 'POST' | 'PUT' | 'DELETE' = 'POST') => {

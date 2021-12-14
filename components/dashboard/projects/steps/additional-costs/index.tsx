@@ -1,12 +1,14 @@
 import { Button, Drawer, Typography, Row, Col, Popconfirm, message } from 'antd'
 import { useState, useEffect } from 'react'
-import { PlusOutlined } from '@ant-design/icons'
 import * as S from '../styles'
 import { Project } from '.prisma/client'
 import { ADDITIONAL_COSTS, ADDITIONAL_COST_FREQUENCIES } from 'internal-api/calculator/constants/additional-costs'
 import ContentLoader from 'components/content-loader'
 import { useSimpleQuery, useSimpleMutation } from 'hooks/useSimpleQuery'
-import AdditionalCostsItemForm from './AdditionalCostsItemForm'
+import ExpenseBlock from './components/expense-block'
+import LaborFormDrawer from './components/drawers/labor-form-drawer'
+import DishwashingFormDrawer from './components/drawers/dish-washing/dishwashing-form-drawer'
+import DishWashingSection from './components/drawers/dish-washing/dish-washing-section'
 
 type ServerSideProps = {
   project: Project
@@ -117,6 +119,8 @@ export default function AdditionalCosts({ project }: ServerSideProps) {
   const createAdditionalCostsItemMutation = useSimpleMutation(`/api/additional-costs`)
   const deleteAdditionalCostsItemMutation = useSimpleMutation(`/api/additional-costs`, 'DELETE')
 
+  const getDishwashingCost = useSimpleMutation('/api/dishwasher')
+
   const addItem = () => {
     setIsDrawerVisible(true)
   }
@@ -126,8 +130,8 @@ export default function AdditionalCosts({ project }: ServerSideProps) {
   }
 
   useEffect(() => {
-    items.refetch()
-  }, [items, createAdditionalCostsItemMutation.data, deleteAdditionalCostsItemMutation.data])
+    // items.refetch()
+  }, [])
 
   const handleCreateAdditionalItemSuccess = () => {
     message.success('Additional cost added')
@@ -183,7 +187,16 @@ export default function AdditionalCosts({ project }: ServerSideProps) {
         You may incur additional expenses or savings when switching from single-use to reusable products. For example, dishwashing equiptment and labor, and modifications to your facilities. This
         section will help you accurately estimate addtional expenses.
       </Typography.Title>
-      <div css="margin: 2em 0;">
+
+      {/* <ExpenseBlock sectionTitle="Labor" placeholder="labor" drawerTitle="Add labor" FormComponent={LaborFormDrawer} /> */}
+
+      <DishWashingSection />
+
+      {/* <ExpenseBlock sectionTitle="Waste hauling" drawerTitle="Add Waste hauling entries" placeholder="waste hauling" FormComponent={LaborFormDrawer} /> */}
+
+      {/* <ExpenseBlock sectionTitle="Other expenses" drawerTitle="Add other expenses" placeholder="additional expense" FormComponent={LaborFormDrawer} /> */}
+
+      {/* <div css="margin: 2em 0;">
         <Button type="primary" onClick={addItem} icon={<PlusOutlined />}>
           Add item
         </Button>
@@ -201,8 +214,7 @@ export default function AdditionalCosts({ project }: ServerSideProps) {
       })}
       {items.data?.additionalCosts.length > 0 && <SummaryRow items={items.data.additionalCosts} />}
       <Drawer title="Add additional cost" placement="right" onClose={closeDrawer} visible={isDrawerVisible} contentWrapperStyle={{ width: '600px' }} destroyOnClose={true}>
-        <AdditionalCostsItemForm onSubmit={handleSubmitForm} />
-      </Drawer>
+      </Drawer> */}
     </S.Wrapper>
   )
 }
