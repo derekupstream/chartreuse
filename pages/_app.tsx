@@ -4,6 +4,7 @@ import { AuthProvider } from 'lib/auth/auth.browser'
 import { QueryClient, QueryClientProvider } from 'react-query'
 import { createGlobalStyle } from 'styled-components'
 import 'styles/antd.less'
+import '@antv/xflow/dist/index.css'
 import { NextPage } from 'next'
 
 const GlobalStyles = createGlobalStyle`
