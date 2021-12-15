@@ -1,6 +1,6 @@
 import styled from 'styled-components'
 import { OptionSelection } from '../../../../styles'
-import { Button, Form, Input, message, RadioChangeEvent } from 'antd'
+import { Button, Form, Input, RadioChangeEvent } from 'antd'
 import { requiredRule } from 'utils/forms'
 import { useSimpleMutation } from 'hooks/useSimpleQuery'
 import { DISHWASHER_TYPES, FUEL_TYPES, TEMPERATURES } from 'internal-api/calculator/constants/dishwashers'
@@ -17,10 +17,10 @@ const yesOrNoOptions = [
 ]
 
 type Props = {
-  onCloseDishwashingDrawer(): void
+  onClose(): void
 }
 
-const DishwashingFormDrawer: React.FC<Props> = ({ onCloseDishwashingDrawer }) => {
+const DishwashingFormDrawer: React.FC<Props> = ({ onClose }) => {
   const [form] = Form.useForm<Dishwasher>()
   const createDishwashingCost = useSimpleMutation('/api/dishwasher', 'POST')
   const [isWaterHeaterFuelVisible, setIsWaterHeaterFuelVisible] = useState(false)
@@ -40,7 +40,7 @@ const DishwashingFormDrawer: React.FC<Props> = ({ onCloseDishwashingDrawer }) =>
     }
 
     createDishwashingCost.mutate(values, {
-      onSuccess: onCloseDishwashingDrawer,
+      onSuccess: onClose,
     })
   }
 

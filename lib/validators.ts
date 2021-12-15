@@ -17,7 +17,7 @@ export const CreateWasteHaulingCostValidator = z.object({
 export const CreateLaborCostValidator = z.object({
   projectId: z.string().nonempty(),
   categoryId: z.string().nonempty(),
-  describe: z.string(),
+  description: z.string(),
   frequency: z.string().nonempty(),
   cost: z.number(),
 })

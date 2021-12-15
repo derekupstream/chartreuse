@@ -1,14 +1,12 @@
-import { Button, Drawer, Typography, Row, Col, Popconfirm, message } from 'antd'
+import { Typography, Row, Col, Popconfirm, message } from 'antd'
 import { useState, useEffect } from 'react'
 import * as S from '../styles'
 import { Project } from '.prisma/client'
-import { ADDITIONAL_COSTS, ADDITIONAL_COST_FREQUENCIES } from 'internal-api/calculator/constants/additional-costs'
+import { ADDITIONAL_COST_FREQUENCIES } from 'internal-api/calculator/constants/additional-costs'
 import ContentLoader from 'components/content-loader'
 import { useSimpleQuery, useSimpleMutation } from 'hooks/useSimpleQuery'
-import ExpenseBlock from './components/expense-block'
-import LaborFormDrawer from './components/drawers/labor-form-drawer'
-import DishwashingFormDrawer from './components/drawers/dish-washing/dishwashing-form-drawer'
 import DishWashingSection from './components/drawers/dish-washing/dish-washing-section'
+import LaborSection from './components/drawers/labor/labor-section'
 
 type ServerSideProps = {
   project: Project
@@ -189,6 +187,8 @@ export default function AdditionalCosts({ project }: ServerSideProps) {
       </Typography.Title>
 
       {/* <ExpenseBlock sectionTitle="Labor" placeholder="labor" drawerTitle="Add labor" FormComponent={LaborFormDrawer} /> */}
+
+      <LaborSection />
 
       <DishWashingSection />
 

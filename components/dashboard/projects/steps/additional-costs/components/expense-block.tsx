@@ -1,7 +1,4 @@
-import { PlusOutlined } from '@ant-design/icons'
-import { Button, Drawer } from 'antd'
-import { ReactNode } from 'hoist-non-react-statics/node_modules/@types/react'
-import { useState } from 'react'
+import { ReactNode } from 'react'
 import styled from 'styled-components'
 
 export const contentWrapperStyle = { width: '600px' }

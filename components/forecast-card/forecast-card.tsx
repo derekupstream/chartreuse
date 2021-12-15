@@ -18,6 +18,11 @@ const ForecastCard = styled.div<Props>`
   tbody {
     font-weight: 700;
   }
+  td {
+    font-size: 11px;
+    line-height: 16px;
+    padding-right: 20px;
+  }
 `
 
 export default ForecastCard

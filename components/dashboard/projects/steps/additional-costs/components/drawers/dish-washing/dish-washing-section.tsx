@@ -5,9 +5,10 @@ import { useSimpleMutation, useSimpleQuery } from 'hooks/useSimpleQuery'
 import { useRouter } from 'next/router'
 import React, { useMemo, useState } from 'react'
 import DishwashingFormDrawer from './dishwashing-form-drawer'
-import { AddBlock, Container, Placeholder, Subtitle } from '../../expense-block'
-import { Box, Data, Options, Title } from './styles'
+import { AddBlock, Container, contentWrapperStyle, Placeholder, Subtitle } from '../../expense-block'
 import { Dishwasher } from '@prisma/client'
+import { SectionContainer, SectionData, SectionTitle } from '../../styles'
+import styled from 'styled-components'
 
 interface Response {
   dishwasher: Dishwasher
@@ -25,18 +26,6 @@ interface Stats {
   waterCost: number
 }
 
-// interface Dishwasher {
-//   id: string
-//   additionalRacksPerDay: number
-//   boosterWaterHeaterFuelType: string
-//   buildingWaterHeaterFuelType: string
-//   energyStarCertified: boolean
-//   operatingDays: number
-//   temperature: string
-//   type: string
-//   projectId: string
-// }
-
 const DishWashingSection = () => {
   const route = useRouter()
   const url = `/api/dishwasher/?projectId=${route.query.id}`
@@ -49,8 +38,10 @@ const DishWashingSection = () => {
     setIsDrawerVisible(true)
   }
 
-  const closeDrawer = () => {
+  const onCloseDrawer = () => {
     setIsDrawerVisible(false)
+    message.success('Labor created')
+    refetch()
   }
 
   const onCloseDishwashingDrawer = () => {}
@@ -68,14 +59,14 @@ const DishWashingSection = () => {
 
   return (
     <Container>
-      <Title>Dishwashing</Title>
+      <SectionTitle>Dishwashing</SectionTitle>
       <Subtitle>
         Use this section to help calculate dishwashing energy and water costs. Energy and water rates are based on your <u>state average</u>.
       </Subtitle>
       {data?.dishwasher ? (
-        <Box>
-          <Data>
-            <Title>{data.dishwasher.type}</Title>
+        <SectionContainer>
+          <SectionData>
+            <SectionTitle>{data.dishwasher.type}</SectionTitle>
             <Options>
               {data.dishwasher.temperature}
               {', '}
@@ -84,7 +75,7 @@ const DishWashingSection = () => {
             <Popconfirm title="Are you sure to delete this item?" onConfirm={onConfirmDelete} okText="Yes" cancelText="No">
               <a href="#">Delete</a>
             </Popconfirm>
-          </Data>
+          </SectionData>
           <ForecastCard borderTopColor="#5D798E">
             <h4>Forecast</h4>
             <table>
@@ -114,7 +105,7 @@ const DishWashingSection = () => {
               </tbody>
             </table>
           </ForecastCard>
-        </Box>
+        </SectionContainer>
       ) : (
         <>
           <AddBlock>
@@ -123,8 +114,8 @@ const DishWashingSection = () => {
             </Button>
             <Placeholder>You have no dishwashing entries yet. Click &apos;+ Add expense&apos; above to get started.</Placeholder>
           </AddBlock>
-          <Drawer title="Add dishwashing expense" onClose={closeDrawer} visible={isDrawerVisible} contentWrapperStyle={contentWrapperStyle} destroyOnClose>
-            <DishwashingFormDrawer onCloseDishwashingDrawer={onCloseDishwashingDrawer} />
+          <Drawer title="Add dishwashing expense" onClose={onCloseDrawer} visible={isDrawerVisible} contentWrapperStyle={contentWrapperStyle} destroyOnClose>
+            <DishwashingFormDrawer onClose={onCloseDishwashingDrawer} />
           </Drawer>
         </>
       )}
@@ -132,6 +123,11 @@ const DishWashingSection = () => {
   )
 }
 
-const contentWrapperStyle = { width: '600px' }
+const Options = styled.span`
+  font-size: 14px;
+  line-height: 24px;
+  font-weight: 700;
+  margin: 8px 0;
+`
 
 export default DishWashingSection

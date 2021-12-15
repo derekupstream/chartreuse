@@ -1,47 +1,52 @@
 import { ADDITIONAL_COSTS, ADDITIONAL_COST_FREQUENCIES } from 'internal-api/calculator/constants/additional-costs'
-import styled from 'styled-components'
-import { OptionSelection } from '../../../styles'
+import { OptionSelection } from '../../../../styles'
 import { Button, Form, Input } from 'antd'
 import { requiredRule } from 'utils/forms'
 import { useSimpleMutation } from 'hooks/useSimpleQuery'
-import { useEffect } from 'react'
+import { LaborCost } from '@prisma/client'
+import { useRouter } from 'next/router'
+import React from 'react'
+import { FormItem } from '../../styles'
 
 const categoryOptions = ADDITIONAL_COSTS.map(i => ({ value: i.id, label: i.name }))
 const frequencyOptions = ADDITIONAL_COST_FREQUENCIES.map(i => ({ value: i.annualOccurrence, label: i.name }))
 
-type FormValues = {
-  category: string
-  frequency: string
-  cost: string
-  description: string
+type Props = {
+  onClose(): void
 }
 
-const LaborFormDrawer = () => {
-  const [form] = Form.useForm<FormValues>()
+const LaborFormDrawer: React.FC<Props> = ({ onClose }) => {
+  const [form] = Form.useForm<LaborCost>()
   const createLaborCost = useSimpleMutation('/api/labor-costs', 'POST')
 
+  const route = useRouter()
+  const projectId = route.query.id as string
+
   const handleSubmit = () => {
+    const { frequency, cost, ...formFields } = form.getFieldsValue()
+
     const values = {
-      ...form.getFieldsValue(),
-      projectId: '3484986f-9e23-4d54-83bd-8cd6dfe4a04a',
+      ...formFields,
+      cost: Number(cost),
+      frequency: String(frequency),
+      projectId,
     }
+
     createLaborCost.mutate(values, {
-      onSuccess: data => console.log('success', data),
-      onError: data => console.log('error', data),
+      onSuccess: onClose,
     })
   }
 
   return (
     <Form form={form} layout="vertical" onFinish={handleSubmit}>
-      <FormItem label="Category" name="category" rules={requiredRule}>
+      <FormItem label="Category" name="categoryId" rules={requiredRule}>
         <OptionSelection options={categoryOptions} optionType="button" />
       </FormItem>
-      <FormItem label="Frequency" name="frequecy" rules={requiredRule}>
+      <FormItem label="Frequency" name="frequency" rules={requiredRule}>
         <OptionSelection name="frequecy" options={frequencyOptions} optionType="button" />
       </FormItem>
-      <FormItem label="Labor cost or savings" name="cost">
+      <FormItem label="Labor cost or savings" name="cost" extra="To enter a labor savings, format your number as a negative value. Ex. “-500”">
         <Input type="number" prefix="$ " name="cost" />
-        <CostHint>To enter a labor savings, format your number as a negative value. Ex. “-500”</CostHint>
       </FormItem>
       <FormItem label="Description" name="description" rules={requiredRule}>
         <Input.TextArea rows={4} />
@@ -52,22 +57,5 @@ const LaborFormDrawer = () => {
     </Form>
   )
 }
-
-const CostHint = styled.span`
-  font-size: 14px;
-  color: #0f172a;
-  line-height: 24px;
-`
-
-const FormItem = styled(Form.Item)`
-  .ant-form-item-label label {
-    font-size: 18px;
-    font-weight: 500;
-    height: auto;
-    &:after {
-      content: '';
-    }
-  }
-`
 
 export default LaborFormDrawer

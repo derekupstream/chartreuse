@@ -15,10 +15,3 @@ export const Title = styled.span`
   line-height: 30px;
   font-weight: 800;
 `
-
-export const Options = styled.span`
-  font-size: 14px;
-  line-height: 24px;
-  font-weight: 700;
-  margin: 8px 0;
-`
