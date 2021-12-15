@@ -18,6 +18,7 @@ export default function OrgSetupForm({ onSubmit, isLoading }: Props) {
     form.setFieldsValue({
       name: user?.displayName,
     })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user])
 
   return (

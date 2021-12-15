@@ -226,6 +226,7 @@ export default function SingleUse({ project }: ServerSideProps) {
   useEffect(() => {
     getProducts()
     getLineItems()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   async function getProducts() {

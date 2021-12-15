@@ -26,6 +26,7 @@ export default function SingleUseForm({ lineItem, onSubmit, projectId, products 
   useEffect(() => {
     setLineItemInput({ ...lineItemInput })
     setFormStep(1)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lineItem])
 
   function enterProduct(productId: string) {

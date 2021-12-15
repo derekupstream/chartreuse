@@ -69,7 +69,7 @@ export default function OrgSetup() {
         }
       )
     },
-    [createOrgSetup, router, user?.uid]
+    [createOrgSetup, router, user?.uid, user?.email]
   )
 
   return (

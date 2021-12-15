@@ -47,6 +47,7 @@ export default function SelectQuantityStep({
       form.setFieldsValue(input)
       handleFormChange()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [input])
 
   return (

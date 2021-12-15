@@ -106,22 +106,19 @@ export default function SelectProductStep({ input, onSubmit, products }: { input
     }
   }
 
-  // set the values if we already have a product
-  useEffect(() => {
-    selectFeatures(selected)
-    if (input?.productId) {
-      const product = products.find(p => p.id === input.productId)
-      if (product) {
-        selectFeatures({
-          productId: product.id,
-          Category: product.category,
-          'Product type': product.type,
-          Material: product.primaryMaterial,
-          Size: product.size,
-        })
-      }
+  // set the default values if we already have a product
+  if (input?.productId) {
+    const product = products.find(p => p.id === input.productId)
+    if (product) {
+      selectFeatures({
+        productId: product.id,
+        Category: product.category,
+        'Product type': product.type,
+        Material: product.primaryMaterial,
+        Size: product.size,
+      })
     }
-  }, [])
+  }
 
   function _onSubmit() {
     if (selected.productId) {

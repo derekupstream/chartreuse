@@ -34,6 +34,7 @@ export default function ReusablePurchasing() {
 
   useEffect(() => {
     getLineItems()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   async function getLineItems() {
