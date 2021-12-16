@@ -4,6 +4,7 @@ import { Frequency } from '../constants/frequency'
 import { DishwasherType, FuelType, TemperatureType } from '../constants/dishwashers'
 import { SingleUseProduct } from './products'
 import { LaborCostCategory } from '../constants/labor-categories'
+import { ServiceType, WasteStream } from '../constants/waste-hauling'
 
 /**
  *
@@ -97,9 +98,6 @@ export interface UtilitiesAndCosts {
   waterCost: number
   waterUsage: number
 }
-
-type WasteStream = 'Garbage' | 'Recycling' | 'Organics' | 'Additional Charges'
-type ServiceType = 'Bin' | 'Cart' | 'Roll Off Bin' | 'Additional Charges'
 
 export interface WasteHaulingService {
   monthlyCost: number // used for calculating financial results
