@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Button, Form, Typography } from 'antd'
 import * as S from '../styles'
 import { PRODUCT_CATEGORIES } from 'internal-api/calculator/constants/product-categories'
@@ -24,57 +24,63 @@ const PRODUCT_FEATURES = [{ title: 'Category' }, { title: 'Product type' }, { ti
 type FeatureOptions = Record<typeof PRODUCT_FEATURES[number]['title'], { name: string; id: string | number }[]>
 type SelectedFeatureOptions = Record<typeof PRODUCT_FEATURES[number]['title'] | 'productId', string | number | undefined | null>
 
-export default function SelectProductStep({ input, onSubmit, products }: { input?: Partial<SingleUseLineItem>; onSubmit: (productId: string) => void; products: SingleUseProduct[] }) {
-  const [selected, setSelected] = useState<SelectedFeatureOptions>({
-    productId: '',
-    Category: '',
-    'Product type': '',
-    Material: '',
-    Size: '',
-  })
-  const [options, setOptions] = useState<FeatureOptions>({
-    Category: [],
-    'Product type': [],
-    Material: [],
-    Size: [],
-  })
-
-  function selectFeatures(updated: SelectedFeatureOptions) {
-    const categories = PRODUCT_CATEGORIES.slice()
-    let remainingProducts = typeof updated.Category === 'number' ? products.filter(product => product.category === updated.Category) : []
+function getFormValues (features: SelectedFeatureOptions, products: SingleUseProduct[]) {
+  const categories = PRODUCT_CATEGORIES.slice()
+    let remainingProducts = typeof features.Category === 'number' ? products.filter(product => product.category === features.Category) : []
 
     const types = PRODUCT_TYPES.filter(type => remainingProducts.some(product => product.type === type.id))
-    if (updated['Product type'] !== 'number' && types.length === 1) {
-      updated['Product type'] = types[0].id
+    if (features['Product type'] !== 'number' && types.length === 1) {
+      features['Product type'] = types[0].id
     }
-    remainingProducts = typeof updated['Product type'] === 'number' ? remainingProducts.filter(product => product.type === updated['Product type']) : []
+    remainingProducts = typeof features['Product type'] === 'number' ? remainingProducts.filter(product => product.type === features['Product type']) : []
 
     const materials = MATERIALS.filter(material => remainingProducts.some(product => product.primaryMaterial === material.id))
-    if (!updated.Material && materials.length === 1) {
-      updated.Material = materials[0].id
+    if (!features.Material && materials.length === 1) {
+      features.Material = materials[0].id
     }
-    remainingProducts = typeof updated.Material === 'number' ? remainingProducts.filter(product => product.primaryMaterial === updated.Material) : []
+    remainingProducts = typeof features.Material === 'number' ? remainingProducts.filter(product => product.primaryMaterial === features.Material) : []
 
     const sizes = remainingProducts
       .map(product => ({ name: product.size, id: product.size }))
       // find unique sizes since we are just grabbing them from list of products
       .filter((size, index, self) => self.findIndex(s => s.name === size.name) === index)
-    if (!updated.Size && sizes.length === 1) {
-      updated.Size = sizes[0].id
+    if (!features.Size && sizes.length === 1) {
+      features.Size = sizes[0].id
     }
-    remainingProducts = updated.Size ? remainingProducts.filter(product => product.size === updated.Size) : []
+    remainingProducts = features.Size ? remainingProducts.filter(product => product.size === features.Size) : []
 
     const productId = remainingProducts.length === 1 ? remainingProducts[0].id : null
 
-    setSelected({ ...updated, productId })
-
-    setOptions({
+    const remainingOptions: FeatureOptions = {
       Category: categories,
       'Product type': types,
       Material: materials,
       Size: sizes,
-    })
-  }
+    }
+
+    return { features, productId, remainingOptions }
+}
+
+const featureDefaults = {
+  productId: '',
+  Category: '',
+  'Product type': '',
+  Material: '',
+  Size: '',
+}
+
+export default function SelectProductStep({ input, onSubmit, products }: { input?: Partial<SingleUseLineItem>; onSubmit: (productId: string) => void; products: SingleUseProduct[] }) {
+
+  const { productId, features, remainingOptions } = getFormValues(featureDefaults, products)
+
+  const [selected, setSelected] = useState<SelectedFeatureOptions>({ ...features, productId })
+  const [options, setOptions] = useState<FeatureOptions>(remainingOptions)
+
+  const selectFeatures = useCallback((currentFeatures: SelectedFeatureOptions) => {
+    const { productId, features, remainingOptions } = getFormValues(currentFeatures, products)
+    setSelected({ ...features, productId })
+    setOptions(remainingOptions)
+  }, [products]);
 
   function onSelect(value: string | number, feature: string) {
     if (feature === 'Category') {
@@ -106,19 +112,21 @@ export default function SelectProductStep({ input, onSubmit, products }: { input
     }
   }
 
-  // set the default values if we already have a product
-  if (input?.productId) {
-    const product = products.find(p => p.id === input.productId)
-    if (product) {
-      selectFeatures({
-        productId: product.id,
-        Category: product.category,
-        'Product type': product.type,
-        Material: product.primaryMaterial,
-        Size: product.size,
-      })
+  useEffect(() => {
+    // set the default values if we already have a product
+    if (input?.productId) {
+      const product = products.find(p => p.id === input.productId)
+      if (product) {
+        selectFeatures({
+          productId: product.id,
+          Category: product.category,
+          'Product type': product.type,
+          Material: product.primaryMaterial,
+          Size: product.size,
+        })
+      }
     }
-  }
+  }, [input, products, selectFeatures]);
 
   function _onSubmit() {
     if (selected.productId) {
