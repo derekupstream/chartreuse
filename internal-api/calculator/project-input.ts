@@ -13,6 +13,5 @@ export async function getProjectData(projectId: string): Promise<ProjectInput> {
       water: 0,
     },
     wasteHauling: [],
-    newWasteHauling: [],
   }
 }

@@ -3,6 +3,7 @@ import { AdditionalCostType } from '../constants/additional-costs'
 import { Frequency } from '../constants/frequency'
 import { DishwasherType, FuelType, TemperatureType } from '../constants/dishwashers'
 import { SingleUseProduct } from './products'
+import { LaborCostCategory } from '../constants/labor-categories'
 
 /**
  *
@@ -21,7 +22,6 @@ export interface ProjectInput {
     water: number
   }
   wasteHauling: WasteHaulingService[]
-  newWasteHauling: WasteHaulingService[]
 }
 
 export interface Project {
@@ -69,6 +69,13 @@ export interface AdditionalCost {
   frequency: Frequency | 'One Time'
 }
 
+export interface LaborCost {
+  projectId: string
+  categoryId: LaborCostCategory
+  cost: number
+  frequency: Frequency | 'One Time'
+}
+
 export interface DishWasher {
   additionalRacksPerDay: number // reusables need additional racks
   boosterWaterHeaterFuelType: FuelType // a booster is included for high temp models
@@ -96,6 +103,7 @@ type ServiceType = 'Bin' | 'Cart' | 'Roll Off Bin' | 'Additional Charges'
 
 export interface WasteHaulingService {
   monthlyCost: number // used for calculating financial results
+  newMonthlyCost: number
   wasteStream: WasteStream
   serviceType: ServiceType
   projectId: string

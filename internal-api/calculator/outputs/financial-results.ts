@@ -77,7 +77,7 @@ export function dishwasherAnnualCostBreakdown(dishwasher: DishWasher, rates: Pro
   const gas = gasUsage * rates.gas
   const water = (waterUsage * rates.water) / 1000
 
-  return { electric, gas, water, }
+  return { electric, gas, water }
 }
 
 function dishwasherAnnualCost(dishwasher: DishWasher, rates: ProjectInput['utilityRates']) {
@@ -123,7 +123,7 @@ export function dishwasherUtilityUsage(dishwasher: DishWasher) {
 
 function wasteHaulingAnnualCost(project: ProjectInput) {
   const baseWasteHaulingCost = project.wasteHauling.reduce((sum, item) => sum + item.monthlyCost, 0)
-  const newWasteHaulingCost = project.newWasteHauling.reduce((sum, item) => sum + item.monthlyCost, 0)
+  const newWasteHaulingCost = project.wasteHauling.reduce((sum, item) => sum + item.newMonthlyCost, 0)
   return 12 * (newWasteHaulingCost - baseWasteHaulingCost)
 }
 

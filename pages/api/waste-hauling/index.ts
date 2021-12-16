@@ -24,6 +24,7 @@ async function createWasteHaulingCost(req: NextApiRequestWithUser, res: NextApiR
   const data: Prisma.WasteHaulingCostCreateArgs['data'] = {
     projectId: req.body.projectId,
     monthlyCost: req.body.monthlyCost,
+    newMonthlyCost: req.body.newMonthlyCost,
     wasteStream: req.body.wasteStream,
     serviceType: req.body.serviceType,
   }

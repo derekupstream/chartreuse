@@ -84,30 +84,17 @@ const dishwasher: DishWasher = {
 const wasteHauling: WasteHaulingService[] = [
   {
     monthlyCost: 125,
+    newMonthlyCost: 85,
     projectId,
     wasteStream: 'Garbage',
-    serviceType: 'Bin'
+    serviceType: 'Bin',
   },
   {
     monthlyCost: 85,
+    newMonthlyCost: 85,
     projectId,
     wasteStream: 'Garbage',
-    serviceType: 'Bin'
-  },
-]
-
-const newWasteHauling: WasteHaulingService[] = [
-  {
-    monthlyCost: 85,
-    projectId,
-    wasteStream: 'Garbage',
-    serviceType: 'Bin'
-  },
-  {
-    monthlyCost: 85,
-    projectId,
-    wasteStream: 'Garbage',
-    serviceType: 'Bin'
+    serviceType: 'Bin',
   },
 ]
 
@@ -123,7 +110,6 @@ const project: ProjectInput = {
     water: 6.98,
   },
   wasteHauling,
-  newWasteHauling,
 }
 
 export async function getProjectInput(): Promise<ProjectInput> {
