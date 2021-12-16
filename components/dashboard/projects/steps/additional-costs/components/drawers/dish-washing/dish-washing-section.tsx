@@ -40,11 +40,9 @@ const DishWashingSection = () => {
 
   const onCloseDrawer = () => {
     setIsDrawerVisible(false)
-    message.success('Labor created')
+    message.success('Dishwasher created')
     refetch()
   }
-
-  const onCloseDishwashingDrawer = () => {}
 
   const onConfirmDelete = () => {
     deleteDishwasher.mutate(data?.dishwasher.id, {
@@ -115,7 +113,7 @@ const DishWashingSection = () => {
             <Placeholder>You have no dishwashing entries yet. Click &apos;+ Add expense&apos; above to get started.</Placeholder>
           </AddBlock>
           <Drawer title="Add dishwashing expense" onClose={onCloseDrawer} visible={isDrawerVisible} contentWrapperStyle={contentWrapperStyle} destroyOnClose>
-            <DishwashingFormDrawer onClose={onCloseDishwashingDrawer} />
+            <DishwashingFormDrawer onClose={onCloseDrawer} />
           </Drawer>
         </>
       )}

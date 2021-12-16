@@ -9,9 +9,8 @@ export const CreateAdditionalCostValidator = z.object({
 
 export const CreateWasteHaulingCostValidator = z.object({
   projectId: z.string().nonempty(),
+  monthlyCost: z.number(),
   categoryId: z.string().nonempty(),
-  frequency: z.string().nonempty(),
-  cost: z.number(),
 })
 
 export const CreateLaborCostValidator = z.object({

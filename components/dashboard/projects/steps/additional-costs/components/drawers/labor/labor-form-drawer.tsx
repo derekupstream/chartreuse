@@ -39,7 +39,7 @@ const LaborFormDrawer: React.FC<Props> = ({ onClose }) => {
   }
 
   return (
-    <Form form={form} layout="vertical" onFinish={handleSubmit}>
+    <Form form={form} layout="vertical" onFinish={handleSubmit} css="padding-bottom: 24px;">
       <FormItem label="Category" name="categoryId" rules={requiredRule}>
         <OptionSelection options={categoryOptions} optionType="button" />
       </FormItem>

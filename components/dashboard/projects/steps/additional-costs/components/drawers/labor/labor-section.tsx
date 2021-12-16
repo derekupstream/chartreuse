@@ -59,7 +59,7 @@ const LaborSection = () => {
           </Button>
         )}
       </SectionContainer>
-      {data?.laborCosts.length ? (
+      {data?.laborCosts?.length ? (
         data.laborCosts.map(labor => (
           <SectionContainer key={labor.id}>
             <SectionData>

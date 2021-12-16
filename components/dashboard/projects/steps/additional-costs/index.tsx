@@ -7,6 +7,7 @@ import ContentLoader from 'components/content-loader'
 import { useSimpleQuery, useSimpleMutation } from 'hooks/useSimpleQuery'
 import DishWashingSection from './components/drawers/dish-washing/dish-washing-section'
 import LaborSection from './components/drawers/labor/labor-section'
+import WasteHaulingSection from './components/drawers/waste-hauling/waste-hauling-section'
 
 type ServerSideProps = {
   project: Project
@@ -186,13 +187,9 @@ export default function AdditionalCosts({ project }: ServerSideProps) {
         section will help you accurately estimate addtional expenses.
       </Typography.Title>
 
-      {/* <ExpenseBlock sectionTitle="Labor" placeholder="labor" drawerTitle="Add labor" FormComponent={LaborFormDrawer} /> */}
-
       <LaborSection />
-
       <DishWashingSection />
-
-      {/* <ExpenseBlock sectionTitle="Waste hauling" drawerTitle="Add Waste hauling entries" placeholder="waste hauling" FormComponent={LaborFormDrawer} /> */}
+      <WasteHaulingSection />
 
       {/* <ExpenseBlock sectionTitle="Other expenses" drawerTitle="Add other expenses" placeholder="additional expense" FormComponent={LaborFormDrawer} /> */}
 

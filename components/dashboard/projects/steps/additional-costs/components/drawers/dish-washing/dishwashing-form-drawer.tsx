@@ -53,7 +53,7 @@ const DishwashingFormDrawer: React.FC<Props> = ({ onClose }) => {
   }
 
   return (
-    <Form form={form} layout="vertical" onFinish={handleSubmit}>
+    <Form form={form} layout="vertical" onFinish={handleSubmit} css="padding-bottom: 24px;">
       <FormItem label="Dishwasher type" name="type" rules={requiredRule}>
         <OptionSelection options={typeOptions} optionType="button" />
       </FormItem>
