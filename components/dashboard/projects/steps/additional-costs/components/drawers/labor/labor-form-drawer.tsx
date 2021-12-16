@@ -1,4 +1,4 @@
-import { ADDITIONAL_COSTS, ADDITIONAL_COST_FREQUENCIES } from 'internal-api/calculator/constants/additional-costs'
+import { ADDITIONAL_COST_FREQUENCIES } from 'internal-api/calculator/constants/additional-costs'
 import { OptionSelection } from '../../../../styles'
 import { Button, Form, Input } from 'antd'
 import { requiredRule } from 'utils/forms'
@@ -7,8 +7,9 @@ import { LaborCost } from '@prisma/client'
 import { useRouter } from 'next/router'
 import React from 'react'
 import { FormItem } from '../../styles'
+import { LABOR_CATEGORIES } from 'internal-api/calculator/constants/labor-categories'
 
-const categoryOptions = ADDITIONAL_COSTS.map(i => ({ value: i.id, label: i.name }))
+const categoryOptions = LABOR_CATEGORIES.map(i => ({ value: i.id, label: i.name }))
 const frequencyOptions = ADDITIONAL_COST_FREQUENCIES.map(i => ({ value: i.annualOccurrence, label: i.name }))
 
 type Props = {
