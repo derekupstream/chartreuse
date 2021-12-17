@@ -1,15 +1,17 @@
 import { PlusOutlined } from '@ant-design/icons'
 import { Button, Drawer, message, Popconfirm, Row } from 'antd'
 import ForecastCard from 'components/forecast-card/forecast-card'
-import { useSimpleMutation, useSimpleQuery } from 'hooks/useSimpleQuery'
 import { useRouter } from 'next/router'
 import React, { useState } from 'react'
-import WasteHaulingFormDrawer from './waste-hauling-form-drawer'
 import { AddBlock, Container, contentWrapperStyle, Placeholder, Subtitle } from '../../expense-block'
 import { WasteHaulingCost } from '@prisma/client'
 import { SectionContainer, SectionData, SectionTitle } from '../../styles'
 import styled from 'styled-components'
 import { formatToDollar } from 'internal-api/calculator/utils'
+import WasteHaulingFormDrawer from './waste-hauling-form-drawer'
+import WasteHaulingSecondFormDrawer from './waste-hauling-second-form-drawer'
+import { useSimpleMutation, useSimpleQuery } from 'hooks/useSimpleQuery'
+import { WasteHaulingService } from 'internal-api/calculator/types/projects'
 
 const annual = 12
 
@@ -23,16 +25,35 @@ const WasteHaulingSection = () => {
   const url = `/api/waste-hauling/?projectId=${projectId}`
   const { data, refetch } = useSimpleQuery<Response>(url)
   const deleteWasteHauling = useSimpleMutation(url, 'DELETE')
+  const createWasteHaulingCost = useSimpleMutation(url, 'POST')
+  const [formValues, setFormValues] = useState({})
 
   const [isDrawerVisible, setIsDrawerVisible] = useState(false)
+  const [isSecondDrawerVisible, setIsSecondDrawerVisible] = useState(false)
 
   const onClickAddExpense = () => {
     setIsDrawerVisible(true)
   }
 
-  const onClose = () => {
+  const onCloseFirstForm = (formValues?: WasteHaulingService) => {
+    if (formValues) setFormValues(formValues)
     setIsDrawerVisible(false)
+    setIsSecondDrawerVisible(true)
+  }
+
+  const onCloseSecondForm = (newMonthlyCost: number) => {
+    const values = {
+      ...formValues,
+      newMonthlyCost,
+    }
+    createWasteHaulingCost.mutate(values, {
+      onSuccess: onSuccessSecondFormSubmit,
+    })
+  }
+
+  const onSuccessSecondFormSubmit = () => {
     message.success('Waste Hauling created')
+    setIsSecondDrawerVisible(false)
     refetch()
   }
 
@@ -57,7 +78,7 @@ const WasteHaulingSection = () => {
           </Button>
         )}
       </SectionContainer>
-      {data?.wasteHaulingCosts.length ? (
+      {data?.wasteHaulingCosts?.length ? (
         data.wasteHaulingCosts.map(wasteHauling => (
           <SectionContainer key={wasteHauling.id}>
             <SectionData>
@@ -99,8 +120,8 @@ const WasteHaulingSection = () => {
                   <tbody>
                     <tr>
                       <td>Monthly</td>
-                      <td>{formatToDollar(wasteHauling.monthlyCost)}</td>
-                      <td>{formatToDollar(wasteHauling.monthlyCost * annual)}</td>
+                      <td>{formatToDollar(wasteHauling.newMonthlyCost)}</td>
+                      <td>{formatToDollar(wasteHauling.newMonthlyCost * annual)}</td>
                     </tr>
                   </tbody>
                 </table>
@@ -116,8 +137,11 @@ const WasteHaulingSection = () => {
           <Placeholder>You have no waste hauling entries yet. Click &apos;+ Add expense&apos; above to get started.</Placeholder>
         </AddBlock>
       )}
-      <Drawer title="Waste hauling entries" onClose={onClose} visible={isDrawerVisible} contentWrapperStyle={contentWrapperStyle} destroyOnClose>
-        <WasteHaulingFormDrawer onClose={onClose} />
+      <Drawer title="Add Current Waste Hauling Service" visible={isDrawerVisible} contentWrapperStyle={contentWrapperStyle} destroyOnClose>
+        <WasteHaulingFormDrawer onClose={onCloseFirstForm} />
+      </Drawer>
+      <Drawer title="Add Forecast for Waste Hauling Service" visible={isSecondDrawerVisible} contentWrapperStyle={contentWrapperStyle} destroyOnClose>
+        <WasteHaulingSecondFormDrawer onClose={onCloseSecondForm} />
       </Drawer>
     </Container>
   )

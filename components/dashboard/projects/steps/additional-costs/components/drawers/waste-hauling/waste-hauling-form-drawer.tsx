@@ -2,21 +2,19 @@ import styled from 'styled-components'
 import { OptionSelection } from '../../../../styles'
 import { Button, Form, Input, RadioChangeEvent, Row } from 'antd'
 import { requiredRule } from 'utils/forms'
-import { useSimpleMutation } from 'hooks/useSimpleQuery'
 import { useRouter } from 'next/router'
-import { WasteHaulingCost } from '@prisma/client'
 import { WasteHaulingService } from 'internal-api/calculator/types/projects'
+import { SERVICE_TYPES, WASTE_STREAMS } from 'internal-api/calculator/constants/waste-hauling'
 
-const categoryOptions = ['Garbage', 'Recycling', 'Organics', 'Additional Changes'].map((c, i) => ({ value: i.toString(), label: c }))
-const serviceTypeOptions = ['Cart', 'Bin', 'Rolloff bin', 'Additional charges'].map(c => ({ value: c, label: c }))
+const wasteStreamOptions = WASTE_STREAMS.map(w => ({ value: w, label: w }))
+const serviceTypeOptions = SERVICE_TYPES.map(s => ({ value: s, label: s }))
 
 type Props = {
-  onClose(): void
+  onClose(values: WasteHaulingService): void
 }
 
 const WasteHaulingFormDrawer: React.FC<Props> = ({ onClose }) => {
   const [form] = Form.useForm<WasteHaulingService>()
-  const createWasteHaulingCost = useSimpleMutation('/api/waste-hauling', 'POST')
 
   const route = useRouter()
   const projectId = route.query.id as string
@@ -29,16 +27,13 @@ const WasteHaulingFormDrawer: React.FC<Props> = ({ onClose }) => {
       projectId,
       monthlyCost: Number(monthlyCost),
     }
-
-    createWasteHaulingCost.mutate(values, {
-      onSuccess: onClose,
-    })
+    onClose(values)
   }
 
   return (
     <Form form={form} layout="vertical" onFinish={handleSubmit} css="padding-bottom: 24px;">
-      <FormItem label="Category" name="wasteStream" rules={requiredRule}>
-        <OptionSelection options={categoryOptions} optionType="button" />
+      <FormItem label="Waste Stream" name="wasteStream" rules={requiredRule}>
+        <OptionSelection options={wasteStreamOptions} optionType="button" />
       </FormItem>
       <FormItem label="Service type" name="serviceType" rules={requiredRule}>
         <OptionSelection options={serviceTypeOptions} optionType="button" />
