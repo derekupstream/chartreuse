@@ -27,6 +27,7 @@ async function createWasteHaulingCost(req: NextApiRequestWithUser, res: NextApiR
     newMonthlyCost: req.body.newMonthlyCost,
     wasteStream: req.body.wasteStream,
     serviceType: req.body.serviceType,
+    description: req.body.description,
   }
 
   CreateWasteHaulingCostValidator.parse(data)

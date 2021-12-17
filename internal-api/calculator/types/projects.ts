@@ -104,5 +104,6 @@ export interface WasteHaulingService {
   newMonthlyCost: number
   wasteStream: WasteStream
   serviceType: ServiceType
+  description: string
   projectId: string
 }
