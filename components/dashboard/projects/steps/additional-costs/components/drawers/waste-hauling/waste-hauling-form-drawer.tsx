@@ -38,6 +38,9 @@ const WasteHaulingFormDrawer: React.FC<Props> = ({ onClose }) => {
       <FormItem label="Service type" name="serviceType" rules={requiredRule}>
         <OptionSelection options={serviceTypeOptions} optionType="button" />
       </FormItem>
+      <FormItem label="Description" name="description" rules={requiredRule}>
+        <Input.TextArea rows={4} />
+      </FormItem>
       <FormItem label="Monthly cost" name="monthlyCost" rules={requiredRule}>
         <Input type="number" prefix="$" />
       </FormItem>

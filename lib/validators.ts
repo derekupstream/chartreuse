@@ -24,6 +24,7 @@ export const CreateWasteHaulingCostValidator = z.object({
   wasteStream: z.string().nonempty().refine(isOneOf(WASTE_STREAMS), {
     message: 'invalid value for wasteStream',
   }),
+  description: z.string(),
 })
 
 export const CreateLaborCostValidator = z.object({
