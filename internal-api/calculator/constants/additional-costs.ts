@@ -50,3 +50,13 @@ export const ADDITIONAL_COST_FREQUENCIES = [
   { name: 'Monthly', annualOccurrence: 12 },
   { name: 'Annually', annualOccurrence: 1 },
 ]
+
+export type AdditionalCostCategories = typeof ADDITIONAL_COST_CATEGORIES[number]
+
+export const ADDITIONAL_COST_CATEGORIES = [
+  { name: 'Additional equipment', id: '1' },
+  { name: 'Consumable supplies', id: '2' },
+  { name: 'Consumable supplies', id: '3' },
+  { name: 'Site renovation', id: '4' },
+  { name: 'Other', id: '5' },
+]

@@ -1,24 +1,24 @@
-import { ADDITIONAL_COST_FREQUENCIES } from 'internal-api/calculator/constants/additional-costs'
+import { ADDITIONAL_COST_CATEGORIES, ADDITIONAL_COST_FREQUENCIES } from 'internal-api/calculator/constants/additional-costs'
 import { OptionSelection } from '../../../../styles'
 import { Button, Form, Input } from 'antd'
 import { requiredRule } from 'utils/forms'
 import { useSimpleMutation } from 'hooks/useSimpleQuery'
-import { LaborCost } from '@prisma/client'
+import { AdditionalCost } from '@prisma/client'
 import { useRouter } from 'next/router'
 import React from 'react'
 import { FormItem } from '../../styles'
-import { LABOR_CATEGORIES } from 'internal-api/calculator/constants/labor-categories'
+import { FREQUENCIES } from 'internal-api/calculator/constants/frequency'
 
-const categoryOptions = LABOR_CATEGORIES.map(i => ({ value: i.id, label: i.name }))
-const frequencyOptions = ADDITIONAL_COST_FREQUENCIES.map(i => ({ value: i.name, label: i.name }))
+const categoryOptions = ADDITIONAL_COST_CATEGORIES.map(i => ({ value: i.id, label: i.name }))
+const frequencyOptions = FREQUENCIES.map(i => ({ value: i.name, label: i.name }))
 
 type Props = {
   onClose(): void
 }
 
-const LaborFormDrawer: React.FC<Props> = ({ onClose }) => {
-  const [form] = Form.useForm<LaborCost>()
-  const createLaborCost = useSimpleMutation('/api/labor-costs', 'POST')
+const OtherExpensesFormDrawer: React.FC<Props> = ({ onClose }) => {
+  const [form] = Form.useForm<AdditionalCost>()
+  const createOtherExpense = useSimpleMutation('/api/additional-costs', 'POST')
 
   const route = useRouter()
   const projectId = route.query.id as string
@@ -33,7 +33,7 @@ const LaborFormDrawer: React.FC<Props> = ({ onClose }) => {
       projectId,
     }
 
-    createLaborCost.mutate(values, {
+    createOtherExpense.mutate(values, {
       onSuccess: onClose,
     })
   }
@@ -46,7 +46,7 @@ const LaborFormDrawer: React.FC<Props> = ({ onClose }) => {
       <FormItem label="Frequency" name="frequency" rules={requiredRule}>
         <OptionSelection name="frequecy" options={frequencyOptions} optionType="button" />
       </FormItem>
-      <FormItem label="Labor cost or savings" name="cost" extra="To enter a labor savings, format your number as a negative value. Ex. “-500”">
+      <FormItem label="Cost" name="cost">
         <Input type="number" prefix="$ " name="cost" />
       </FormItem>
       <FormItem label="Description" name="description" rules={requiredRule}>
@@ -59,4 +59,4 @@ const LaborFormDrawer: React.FC<Props> = ({ onClose }) => {
   )
 }
 
-export default LaborFormDrawer
+export default OtherExpensesFormDrawer

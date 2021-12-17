@@ -109,6 +109,7 @@ model AdditionalCost {
   id         String  @id @default(uuid()) @db.Uuid
   categoryId String
   cost       Int
+  description String
   frequency  String
   projectId  String  @db.Uuid
   project    Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
@@ -138,7 +139,7 @@ model Dishwasher {
   id String @id @default(uuid()) @db.Uuid
 
   additionalRacksPerDay       Int
-  boosterWaterHeaterFuelType  String
+  boosterWaterHeaterFuelType  String?
   buildingWaterHeaterFuelType String
   energyStarCertified         Boolean
   operatingDays               Int

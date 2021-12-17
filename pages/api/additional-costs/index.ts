@@ -28,6 +28,7 @@ async function createAdditionalCost(req: NextApiRequestWithUser, res: NextApiRes
     cost: req.body.cost,
     frequency: String(req.body.frequency),
     categoryId: req.body.categoryId,
+    description: req.body.description,
   }
 
   CreateAdditionalCostValidator.parse(data)
