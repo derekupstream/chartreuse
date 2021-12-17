@@ -73,8 +73,7 @@ describe('Predictions Calculator: Spreadsheet results from Upstream', () => {
       change: -472160,
       changePercent: -25,
     })
-
-    expect(results.resultsByType.productCategory.rows.length).toBe(3)
+    expect(results.resultsByType.productCategory.rows.length).toBe(2)
     expect(results.resultsByType.productType.rows.length).toBe(5)
     expect(results.resultsByType.material.rows.length).toBe(5)
     expect(results.resultsByType.material.totals).toEqual({
