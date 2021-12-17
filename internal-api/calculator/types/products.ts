@@ -8,7 +8,7 @@ export interface SingleUseProduct {
   secondaryMaterial: number
   secondaryMaterialWeightPerUnit: number // pounds
   unitsPerCase: number // eg 'case count'
-  category: number
+  category: string
   type: number
   size: string
   // grossCaseWeightPounds: number; // pounds
