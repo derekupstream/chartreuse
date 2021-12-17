@@ -37,6 +37,7 @@ interface AnnualCostChanges {
 }
 
 function calculateAnnualCosts(project: ProjectInput): AnnualCostChanges {
+
   const additionalCosts = project.additionalCosts.reduce((sum, item) => {
     if (item.frequency === 'One Time') {
       return sum

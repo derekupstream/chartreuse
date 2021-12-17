@@ -1,3 +1,5 @@
+const WATER_NATIONAL_AVERAGE = 6.98
+
 // Commercial electric rate ($/kWh)	Commercial gas rate ($/therm)
 // U.S. average	$0.10	$0.92
 
@@ -56,3 +58,16 @@ export const STATES = [
 ] as const
 
 export type USState = typeof STATES[number]['name']
+
+type UtilityRates = { gas: number; electric: number; water: number }
+
+export function getUtilitiesByState(state: USState): UtilityRates {
+  const localRates = STATES.find(s => s.name === state)
+  if (!localRates) {
+    throw new Error(`No utilities rates for state ${state}`)
+  }
+  return {
+    ...localRates,
+    water: WATER_NATIONAL_AVERAGE,
+  }
+}

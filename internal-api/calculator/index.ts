@@ -4,6 +4,8 @@ import { getFinancialResults } from './outputs/financial-results'
 import { getSingleUseProductResults } from './outputs/single-use-product-results'
 import { getProjectData } from './project-input'
 
+export type ProjectionsResponse = Awaited<ReturnType<typeof getProjections>>
+
 export async function getProjections(projectId: string) {
   const project = await getProjectData(projectId)
 

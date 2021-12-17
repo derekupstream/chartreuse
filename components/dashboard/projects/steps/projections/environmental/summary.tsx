@@ -1,10 +1,11 @@
 import { Radio, RadioChangeEvent, Typography } from 'antd'
+import { ProjectionsResponse } from 'internal-api/calculator'
 import BigNumber from '../components/big-number'
 import TitleWithTooltip from '../components/title-with-tooltip'
 import Chart from './components/charts'
 import { ViewResultsWrapper, CardsBox, Card, BigNumberWrapper, ChartTitle, Spacer } from './components/styles'
 
-const EnvironmentalSummary: React.FC = () => {
+const EnvironmentalSummary: React.FC<{ projections: ProjectionsResponse }> = ({ projections }) => {
   const onChangeResults = (event: RadioChangeEvent) => {
     console.log(event.target.value)
     // @todo continue implementation!

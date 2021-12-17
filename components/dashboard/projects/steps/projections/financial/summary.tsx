@@ -3,8 +3,9 @@ import { Tag, Typography } from 'antd'
 import { Background, CardsBox, Card, Text, Col, Title, Value } from './components/styles'
 import { FooterData } from './components/footer'
 import TitleWithTooltip from '../components/title-with-tooltip'
+import { ProjectionsResponse } from 'internal-api/calculator'
 
-const FinancialSummary = () => {
+const FinancialSummary = ({ projections }: { projections: ProjectionsResponse }) => {
   return (
     <>
       <Typography.Title level={2}>Financial summary</Typography.Title>
@@ -46,7 +47,7 @@ const FinancialSummary = () => {
 
             <Col>
               <Title fontSize={11}>Annual total</Title>
-              <Value color="black">$ 6600.00</Value>
+              <Value color="black">{`$${projections.financialResults.oneTimeCosts.total.toLocaleString()}`}</Value>
             </Col>
 
             <Col>
@@ -56,8 +57,8 @@ const FinancialSummary = () => {
 
             <hr />
 
-            <FooterData title="Reusable purchasing" value="$59.000" />
-            <FooterData title="Additional one-time expenses" value="480" />
+            <FooterData title="Reusable purchasing" value={`$${projections.financialResults.annualCostChanges.reusableProductCosts.toLocaleString()}`} />
+            <FooterData title="Additional one-time expenses" value={`$${projections.financialResults.oneTimeCosts.additionalCosts.toLocaleString()}`} />
           </Card>
 
           <Card>
