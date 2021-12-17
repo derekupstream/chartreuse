@@ -45,8 +45,8 @@ const LaborSection = () => {
     })
   }
 
-  const getFrequencyInPlanText = (frequencyNumber: string) => {
-    return ADDITIONAL_COST_FREQUENCIES.find(freq => freq.annualOccurrence.toString() === frequencyNumber)?.name
+  const getFrequencyInNumber = (name: string) => {
+    return ADDITIONAL_COST_FREQUENCIES.find(freq => freq.name.toString() === name)?.annualOccurrence!
   }
 
   return (
@@ -80,9 +80,9 @@ const LaborSection = () => {
                 </thead>
                 <tbody>
                   <tr>
-                    <td>{getFrequencyInPlanText(labor.frequency)}</td>
+                    <td>{labor.frequency}</td>
                     <td>{formatToDollar(labor.cost)}</td>
-                    <td>{formatToDollar(labor.cost * Number(labor.frequency))}</td>
+                    <td>{formatToDollar(labor.cost * getFrequencyInNumber(labor.frequency))}</td>
                   </tr>
                 </tbody>
               </table>
