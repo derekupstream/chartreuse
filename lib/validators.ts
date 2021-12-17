@@ -24,6 +24,7 @@ export const CreateWasteHaulingCostValidator = z.object({
   wasteStream: z.string().nonempty().refine(isOneOf(WASTE_STREAMS), {
     message: 'invalid value for wasteStream',
   }),
+  description: z.string().nonempty(),
 })
 
 export const CreateLaborCostValidator = z.object({
@@ -38,7 +39,7 @@ export const CreateLaborCostValidator = z.object({
 
 export const DishWasherValidator = z.object({
   additionalRacksPerDay: z.number().nonnegative(),
-  boosterWaterHeaterFuelType: z.string().nonempty(),
+  // boosterWaterHeaterFuelType: z.string(),
   buildingWaterHeaterFuelType: z.string().nonempty(),
   energyStarCertified: z.boolean(),
   operatingDays: z.number().nonnegative(),

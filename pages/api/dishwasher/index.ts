@@ -31,6 +31,7 @@ async function getDishwasher(req: NextApiRequestWithUser, res: NextApiResponse<{
       projectId,
     },
   })
+
   let stats: DishwasherStats | null = null
   if (dishwasher) {
     // TODO: Look up by state, save state per account
@@ -59,7 +60,7 @@ async function getDishwasher(req: NextApiRequestWithUser, res: NextApiResponse<{
 async function createDishwasher(req: NextApiRequestWithUser, res: NextApiResponse<{ dishwasher?: PrismaDishwasher; error?: string }>) {
   const data: Prisma.DishwasherCreateArgs['data'] = {
     additionalRacksPerDay: req.body.additionalRacksPerDay,
-    boosterWaterHeaterFuelType: req.body.boosterWaterHeaterFuelType,
+    boosterWaterHeaterFuelType: req.body.boosterWaterHeaterFuelType ?? '',
     buildingWaterHeaterFuelType: req.body.buildingWaterHeaterFuelType,
     energyStarCertified: req.body.energyStarCertified,
     operatingDays: req.body.operatingDays,
@@ -67,7 +68,6 @@ async function createDishwasher(req: NextApiRequestWithUser, res: NextApiRespons
     temperature: req.body.temperature,
     type: req.body.type,
   }
-
   DishWasherValidator.parse(data)
 
   const existing = await prisma.dishwasher.findFirst({
