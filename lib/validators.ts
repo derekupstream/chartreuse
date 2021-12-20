@@ -39,7 +39,7 @@ export const CreateLaborCostValidator = z.object({
 
 export const DishWasherValidator = z.object({
   additionalRacksPerDay: z.number().nonnegative(),
-  // boosterWaterHeaterFuelType: z.string(),
+  boosterWaterHeaterFuelType: z.string(),
   buildingWaterHeaterFuelType: z.string().nonempty(),
   energyStarCertified: z.boolean(),
   operatingDays: z.number().nonnegative(),
