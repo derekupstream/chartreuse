@@ -1,15 +1,15 @@
-import { ADDITIONAL_COST_CATEGORIES, ADDITIONAL_COST_FREQUENCIES } from 'internal-api/calculator/constants/additional-costs'
+import { OTHER_EXPENSES_CATEGORIES } from 'internal-api/calculator/constants/other-expenses'
 import { OptionSelection } from '../../../../styles'
 import { Button, Form, Input } from 'antd'
 import { requiredRule } from 'utils/forms'
 import { useSimpleMutation } from 'hooks/useSimpleQuery'
-import { AdditionalCost } from '@prisma/client'
+import { OtherExpense } from '@prisma/client'
 import { useRouter } from 'next/router'
 import React from 'react'
 import { FormItem } from '../../styles'
 import { FREQUENCIES } from 'internal-api/calculator/constants/frequency'
 
-const categoryOptions = ADDITIONAL_COST_CATEGORIES.map(i => ({ value: i.id, label: i.name }))
+const categoryOptions = OTHER_EXPENSES_CATEGORIES.map(i => ({ value: i.id, label: i.name }))
 const frequencyOptions = FREQUENCIES.map(i => ({ value: i.name, label: i.name }))
 
 type Props = {
@@ -17,7 +17,7 @@ type Props = {
 }
 
 const OtherExpensesFormDrawer: React.FC<Props> = ({ onClose }) => {
-  const [form] = Form.useForm<AdditionalCost>()
+  const [form] = Form.useForm<OtherExpense>()
   const createOtherExpense = useSimpleMutation('/api/additional-costs', 'POST')
 
   const route = useRouter()

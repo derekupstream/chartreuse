@@ -1,8 +1,8 @@
 import prisma from 'lib/prisma'
-import { AdditionalCost, Prisma } from '@prisma/client'
+import { OtherExpense, Prisma } from '@prisma/client'
 import nc from 'next-connect'
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { CreateAdditionalCostValidator } from 'lib/validators'
+import { CreateOtherExpenseValidator } from 'lib/validators'
 import getUser, { NextApiRequestWithUser } from 'lib/middleware/getUser'
 import onError from 'lib/middleware/onError'
 import onNoMatch from 'lib/middleware/onNoMatch'
@@ -12,18 +12,18 @@ const handler = nc<NextApiRequest, NextApiResponse>({ onError, onNoMatch })
 
 handler.use(getUser).use(validateProject).get(getAdditionalCosts).post(createAdditionalCost).delete(deleteAdditionalCost)
 
-async function getAdditionalCosts(req: NextApiRequestWithUser, res: NextApiResponse<{ additionalCosts: AdditionalCost[] }>) {
+async function getAdditionalCosts(req: NextApiRequestWithUser, res: NextApiResponse<{ otherExpenses: OtherExpense[] }>) {
   const projectId = req.query.projectId as string
-  const additionalCosts = await prisma.additionalCost.findMany<Prisma.AdditionalCostFindManyArgs>({
+  const otherExpenses = await prisma.otherExpense.findMany<Prisma.OtherExpenseFindManyArgs>({
     where: {
       projectId,
     },
   })
-  res.status(200).json({ additionalCosts })
+  res.status(200).json({ otherExpenses })
 }
 
-async function createAdditionalCost(req: NextApiRequestWithUser, res: NextApiResponse<{ additionalCost: AdditionalCost }>) {
-  const data: Prisma.AdditionalCostCreateArgs['data'] = {
+async function createAdditionalCost(req: NextApiRequestWithUser, res: NextApiResponse<{ additionalCost: OtherExpense }>) {
+  const data: Prisma.OtherExpenseCreateArgs['data'] = {
     projectId: req.body.projectId,
     cost: req.body.cost,
     frequency: String(req.body.frequency),
@@ -31,10 +31,10 @@ async function createAdditionalCost(req: NextApiRequestWithUser, res: NextApiRes
     description: req.body.description,
   }
 
-  CreateAdditionalCostValidator.parse(data)
+  CreateOtherExpenseValidator.parse(data)
 
   // @todo validate that project ID exists and belongs to current user
-  const additionalCost = await prisma.additionalCost.create({
+  const additionalCost = await prisma.otherExpense.create({
     data,
   })
 
@@ -42,7 +42,7 @@ async function createAdditionalCost(req: NextApiRequestWithUser, res: NextApiRes
 }
 
 async function deleteAdditionalCost(req: NextApiRequestWithUser, res: NextApiResponse) {
-  await prisma.additionalCost.deleteMany({
+  await prisma.otherExpense.deleteMany({
     where: {
       id: req.body.id,
       projectId: req.body.projectId,

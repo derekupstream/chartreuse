@@ -1,11 +1,12 @@
 import { ProjectInput, WasteHaulingService } from './types/projects'
 import prisma from 'lib/prisma'
 import { getUtilitiesByState } from './constants/utilities'
-import { AdditionalCostType } from './constants/additional-costs'
+import { OtherExpenseCategory } from './constants/other-expenses'
 import { Frequency } from './constants/frequency'
 import { getProducts } from './datasets/single-use-products'
-import { AdditionalCost, SingleUseLineItem, WasteHaulingCost } from '@prisma/client'
+import { LaborCost, OtherExpense, SingleUseLineItem, WasteHaulingCost } from '@prisma/client'
 import { SingleUseProduct } from './types/products'
+import { LaborCostCategory } from './constants/labor-categories'
 
 export async function getProjectData(projectId: string): Promise<ProjectInput> {
   const project = await prisma.project.findFirst({
@@ -13,7 +14,7 @@ export async function getProjectData(projectId: string): Promise<ProjectInput> {
       id: projectId,
     },
     include: {
-      additionalCosts: true,
+      otherExpenses: true,
       laborCosts: true,
       singleUseItems: true,
       reusableItems: true,
@@ -31,12 +32,14 @@ export async function getProjectData(projectId: string): Promise<ProjectInput> {
 
   // map db model types to frontend types
   const products = await getProducts()
-  const additionalCosts = project.additionalCosts.map(mapAdditionalCosts)
-  const singleUseItems = project.singleUseItems.map(item => mapSingleUseItems(item, products))
+  const laborCosts = project.laborCosts.map(mapLaborCost)
+  const otherExpenses = project.otherExpenses.map(mapAdditionalCost)
+  const singleUseItems = project.singleUseItems.map(item => mapSingleUseItem(item, products))
   const wasteHauling = project.wasteHaulingCosts.map(mapWasteHauling)
 
   return {
-    additionalCosts,
+    laborCosts,
+    otherExpenses,
     reusableItems: project.reusableItems,
     singleUseItems,
     state: USState,
@@ -45,15 +48,23 @@ export async function getProjectData(projectId: string): Promise<ProjectInput> {
   }
 }
 
-function mapAdditionalCosts(additionalCost: AdditionalCost): ProjectInput['additionalCosts'][number] {
+function mapLaborCost(expense: LaborCost): ProjectInput['laborCosts'][number] {
   return {
-    ...additionalCost,
-    categoryId: additionalCost.categoryId as AdditionalCostType,
-    frequency: additionalCost.frequency as Frequency,
+    ...expense,
+    categoryId: expense.categoryId as LaborCostCategory,
+    frequency: expense.frequency as Frequency,
   }
 }
 
-function mapSingleUseItems(singleUseItem: SingleUseLineItem, products: SingleUseProduct[]): ProjectInput['singleUseItems'][number] {
+function mapAdditionalCost(expense: OtherExpense): ProjectInput['otherExpenses'][number] {
+  return {
+    ...expense,
+    categoryId: expense.categoryId as OtherExpenseCategory,
+    frequency: expense.frequency as Frequency,
+  }
+}
+
+function mapSingleUseItem(singleUseItem: SingleUseLineItem, products: SingleUseProduct[]): ProjectInput['singleUseItems'][number] {
   const product = products.find(product => product.id === singleUseItem.productId)
   if (!product) {
     throw new Error('Product not found. Product Id: ' + singleUseItem.productId)

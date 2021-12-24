@@ -9,7 +9,7 @@ import LaborFormDrawer from './labor-form-drawer'
 import ForecastCard from 'components/forecast-card/forecast-card'
 import { PlusOutlined } from '@ant-design/icons'
 import { formatToDollar } from 'internal-api/calculator/utils'
-import { ADDITIONAL_COST_FREQUENCIES } from 'internal-api/calculator/constants/additional-costs'
+import { OTHER_EXPENSES_FREQUENCIES } from 'internal-api/calculator/constants/other-expenses'
 
 type Response = {
   laborCosts: LaborCost[]
@@ -46,7 +46,7 @@ const LaborSection = () => {
   }
 
   const getFrequencyInNumber = (name: string) => {
-    return ADDITIONAL_COST_FREQUENCIES.find(freq => freq.name.toString() === name)?.annualOccurrence!
+    return OTHER_EXPENSES_FREQUENCIES.find(freq => freq.name.toString() === name)?.annualOccurrence!
   }
 
   return (

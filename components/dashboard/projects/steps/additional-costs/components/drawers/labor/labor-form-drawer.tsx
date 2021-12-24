@@ -1,4 +1,4 @@
-import { ADDITIONAL_COST_FREQUENCIES } from 'internal-api/calculator/constants/additional-costs'
+import { OTHER_EXPENSES_FREQUENCIES } from 'internal-api/calculator/constants/other-expenses'
 import { OptionSelection } from '../../../../styles'
 import { Button, Form, Input } from 'antd'
 import { requiredRule } from 'utils/forms'
@@ -10,7 +10,7 @@ import { FormItem } from '../../styles'
 import { LABOR_CATEGORIES } from 'internal-api/calculator/constants/labor-categories'
 
 const categoryOptions = LABOR_CATEGORIES.map(i => ({ value: i.id, label: i.name }))
-const frequencyOptions = ADDITIONAL_COST_FREQUENCIES.map(i => ({ value: i.name, label: i.name }))
+const frequencyOptions = OTHER_EXPENSES_FREQUENCIES.map(i => ({ value: i.name, label: i.name }))
 
 type Props = {
   onClose(): void

@@ -4,23 +4,23 @@ import { useState } from 'react'
 import { AddBlock, Container, contentWrapperStyle, Placeholder, Subtitle } from '../../expense-block'
 import { SectionContainer, SectionData, SectionTitle } from '../../styles'
 import { useRouter } from 'next/router'
-import { AdditionalCost } from '@prisma/client'
+import { OtherExpense } from '@prisma/client'
 import ForecastCard from 'components/forecast-card/forecast-card'
 import { PlusOutlined } from '@ant-design/icons'
 import { formatToDollar } from 'internal-api/calculator/utils'
-import { ADDITIONAL_COST_FREQUENCIES } from 'internal-api/calculator/constants/additional-costs'
+import { OTHER_EXPENSES_FREQUENCIES } from 'internal-api/calculator/constants/other-expenses'
 import OtherExpensesFormDrawer from './other-expenses-form-drawer'
 
 type Response = {
-  additionalCosts: AdditionalCost[]
+  otherExpenses: OtherExpense[]
 }
 
 const OtherExpenseSection = () => {
   const route = useRouter()
   const projectId = route.query.id
-  const url = `/api/additional-costs/?projectId=${projectId}`
+  const url = `/api/other-expenses/?projectId=${projectId}`
   const { data, refetch } = useSimpleQuery<Response>(url)
-  const deleteAdditionalCosts = useSimpleMutation(url, 'DELETE')
+  const deleteOtherExpenses = useSimpleMutation(url, 'DELETE')
 
   const [isDrawerVisible, setIsDrawerVisible] = useState(false)
 
@@ -37,7 +37,7 @@ const OtherExpenseSection = () => {
   const onConfirmDelete = (id: string) => {
     const reqBody = { projectId, id }
 
-    deleteAdditionalCosts.mutate(reqBody, {
+    deleteOtherExpenses.mutate(reqBody, {
       onSuccess: onSuccessDelete,
     })
   }
@@ -48,21 +48,21 @@ const OtherExpenseSection = () => {
   }
 
   const getFrequencyInPlanText = (frequencyNumber: string) => {
-    return ADDITIONAL_COST_FREQUENCIES.find(freq => freq.annualOccurrence.toString() === frequencyNumber)?.name
+    return OTHER_EXPENSES_FREQUENCIES.find(freq => freq.annualOccurrence.toString() === frequencyNumber)?.name
   }
 
   return (
     <Container>
       <SectionContainer>
         <SectionTitle>Other expenses</SectionTitle>
-        {!!data?.additionalCosts?.length && (
+        {!!data?.otherExpenses?.length && (
           <Button onClick={onClickAddExpense} icon={<PlusOutlined />}>
             Add item
           </Button>
         )}
       </SectionContainer>
-      {data?.additionalCosts?.length ? (
-        data.additionalCosts.map(additionalCost => (
+      {data?.otherExpenses?.length ? (
+        data.otherExpenses.map(additionalCost => (
           <SectionContainer key={additionalCost.id}>
             <SectionData>
               <Subtitle>{additionalCost.description}</Subtitle>

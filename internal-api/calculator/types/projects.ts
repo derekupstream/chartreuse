@@ -1,5 +1,5 @@
 import { USState } from '../constants/utilities'
-import { AdditionalCostType } from '../constants/additional-costs'
+import { OtherExpenseCategory } from '../constants/other-expenses'
 import { Frequency } from '../constants/frequency'
 import { DishwasherType, FuelType, TemperatureType } from '../constants/dishwashers'
 import { SingleUseProduct } from './products'
@@ -13,7 +13,8 @@ import { ServiceType, WasteStream } from '../constants/waste-hauling'
  * */
 export interface ProjectInput {
   state: USState
-  additionalCosts: AdditionalCost[]
+  laborCosts: LaborCost[]
+  otherExpenses: OtherExpense[]
   reusableItems: ReusableLineItem[]
   singleUseItems: SingleUseLineItemPopulated[]
   dishwasher?: DishWasher
@@ -63,9 +64,9 @@ export interface ReusableLineItem {
   productName: string
 }
 
-export interface AdditionalCost {
+export interface OtherExpense {
   projectId: string
-  categoryId: AdditionalCostType
+  categoryId: OtherExpenseCategory
   cost: number
   frequency: Frequency | 'One Time'
 }

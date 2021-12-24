@@ -1,4 +1,4 @@
-import { getAnnualOccurence } from '../constants/frequency'
+import { Frequency, getAnnualOccurence } from '../constants/frequency'
 import { ANNUAL_DISHWASHER_CONSUMPTION, BUILDING_WATER_HEATER, BOOSTER_WATER_HEATER } from '../constants/dishwashers'
 import { DishWasher, ProjectInput } from '../types/projects'
 import { getSingleUseProductSummary } from './single-use-product-results'
@@ -38,7 +38,7 @@ interface AnnualCostChanges {
 
 function calculateAnnualCosts(project: ProjectInput): AnnualCostChanges {
 
-  const additionalCosts = project.additionalCosts.reduce((sum, item) => {
+  const additionalCostsTotal = getAdditionalCosts(project).reduce((sum, item) => {
     if (item.frequency === 'One Time') {
       return sum
     }
@@ -59,10 +59,10 @@ function calculateAnnualCosts(project: ProjectInput): AnnualCostChanges {
 
   const wasteHauling = wasteHaulingAnnualCost(project)
 
-  const total = additionalCosts + reusableProductCosts + singleUseProductChange + utilities + wasteHauling
+  const total = additionalCostsTotal + reusableProductCosts + singleUseProductChange + utilities + wasteHauling
 
   return {
-    additionalCosts,
+    additionalCosts: additionalCostsTotal,
     reusableProductCosts,
     singleUseProductChange,
     utilities,
@@ -70,6 +70,11 @@ function calculateAnnualCosts(project: ProjectInput): AnnualCostChanges {
     total: round(total, 2),
   }
 }
+
+function getAdditionalCosts ({ otherExpenses, laborCosts }: ProjectInput) {
+  return otherExpenses.map(({ cost, frequency }) => ({ cost, frequency })).concat(laborCosts)
+}
+
 
 export function dishwasherAnnualCostBreakdown(dishwasher: DishWasher, rates: ProjectInput['utilityRates']) {
   const { electricUsage, gasUsage, waterUsage } = dishwasherUtilityUsage(dishwasher)
@@ -140,7 +145,7 @@ interface OneTimeCosts {
 }
 
 function calculateOneTimeCosts(project: ProjectInput): OneTimeCosts {
-  const additionalCosts = project.additionalCosts.filter(cost => cost.frequency === 'One Time').reduce((sum, item) => sum + item.cost, 0)
+  const additionalCosts = getAdditionalCosts(project).filter(cost => cost.frequency === 'One Time').reduce((sum, item) => sum + item.cost, 0)
 
   const reusableProductCosts = project.reusableItems.reduce((sum, item) => {
     return sum + item.caseCost * item.casesPurchased

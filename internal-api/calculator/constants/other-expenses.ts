@@ -1,4 +1,4 @@
-export const ADDITIONAL_COSTS = [
+export const OTHER_EXPENSES = [
   {
     id: '1',
     name: 'Dish Machine',
@@ -41,9 +41,9 @@ export const ADDITIONAL_COSTS = [
   },
 ] as const
 
-export type AdditionalCostType = typeof ADDITIONAL_COSTS[number]['id']
+export type OtherExpenseCategory = typeof OTHER_EXPENSES[number]['id']
 
-export const ADDITIONAL_COST_FREQUENCIES = [
+export const OTHER_EXPENSES_FREQUENCIES = [
   { name: 'One Time', annualOccurrence: 0 },
   { name: 'Daily', annualOccurrence: 365 },
   { name: 'Weekly', annualOccurrence: 52 },
@@ -51,9 +51,9 @@ export const ADDITIONAL_COST_FREQUENCIES = [
   { name: 'Annually', annualOccurrence: 1 },
 ]
 
-export type AdditionalCostCategories = typeof ADDITIONAL_COST_CATEGORIES[number]
+export type AdditionalCostCategories = typeof OTHER_EXPENSES_CATEGORIES[number]
 
-export const ADDITIONAL_COST_CATEGORIES = [
+export const OTHER_EXPENSES_CATEGORIES = [
   { name: 'Additional equipment', id: '1' },
   { name: 'Consumable supplies', id: '2' },
   { name: 'Consumable supplies', id: '3' },

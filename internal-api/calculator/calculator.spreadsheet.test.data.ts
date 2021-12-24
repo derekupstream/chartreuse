@@ -1,6 +1,6 @@
 import { getProducts } from './datasets/single-use-products'
 import { ProjectInput } from './types/projects'
-import { AdditionalCost, DishWasher, ReusableLineItem, SingleUseLineItem, WasteHaulingService } from './types/projects'
+import { OtherExpense, DishWasher, ReusableLineItem, SingleUseLineItem, WasteHaulingService } from './types/projects'
 
 const projectId = 'aaa'
 
@@ -64,7 +64,7 @@ export const singleUseItems: SingleUseLineItem[] = [
 
 const reusableItems: ReusableLineItem[] = [{ categoryId: '1', projectId, productName: 'Cup', caseCost: 23, casesPurchased: 2, annualRepurchasePercentage: 0.23 }]
 
-const additionalCosts: AdditionalCost[] = [
+const otherExpenses: OtherExpense[] = [
   { projectId, cost: 80, frequency: 'Daily', categoryId: '3' },
   { projectId, cost: 5000, frequency: 'One Time', categoryId: '2' },
   { projectId, cost: 5000, frequency: 'One Time', categoryId: '6' },
@@ -83,6 +83,7 @@ const dishwasher: DishWasher = {
 
 const wasteHauling: WasteHaulingService[] = [
   {
+    description: 'Waste Hauling',
     monthlyCost: 125,
     newMonthlyCost: 85,
     projectId,
@@ -90,6 +91,7 @@ const wasteHauling: WasteHaulingService[] = [
     serviceType: 'Bin',
   },
   {
+    description: 'Waste Hauling',
     monthlyCost: 85,
     newMonthlyCost: 85,
     projectId,
@@ -100,8 +102,9 @@ const wasteHauling: WasteHaulingService[] = [
 
 const project: ProjectInput = {
   state: 'California',
+  laborCosts: [],
   singleUseItems: [],
-  additionalCosts,
+  otherExpenses,
   reusableItems,
   dishwasher,
   utilityRates: {

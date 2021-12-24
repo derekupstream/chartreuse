@@ -1,17 +1,20 @@
-import { ADDITIONAL_COSTS } from 'internal-api/calculator/constants/additional-costs'
+import { OTHER_EXPENSES, OTHER_EXPENSES_FREQUENCIES } from 'internal-api/calculator/constants/other-expenses'
 import { FREQUENCIES } from 'internal-api/calculator/constants/frequency'
 import { LABOR_CATEGORIES } from 'internal-api/calculator/constants/labor-categories'
 import { SERVICE_TYPES, WASTE_STREAMS } from 'internal-api/calculator/constants/waste-hauling'
 import { z } from 'zod'
 
-export const CreateAdditionalCostValidator = z.object({
+export const CreateOtherExpenseValidator = z.object({
   projectId: z.string().nonempty(),
-  categoryId: z.string().nonempty().refine(validateCategory(ADDITIONAL_COSTS), {
-    message: 'invalid value for frequency',
+  categoryId: z.string().nonempty().refine(validateCategory(OTHER_EXPENSES), {
+    message: 'invalid value for category',
   }),
-  frequency: z.string().nonempty().refine(validateFrequency(), {
-    message: 'invalid value for frequency',
-  }),
+  frequency: z
+    .string()
+    .nonempty()
+    .refine(isOneOf(OTHER_EXPENSES_FREQUENCIES.map(f => f.name)), {
+      message: 'invalid value for frequency',
+    }),
   cost: z.number(),
 })
 
