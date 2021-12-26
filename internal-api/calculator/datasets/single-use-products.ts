@@ -78,6 +78,7 @@ function csvRowToSingleUseProduct(csvProduct: CSVRow): SingleUseProduct {
     id: productId,
     boxWeight,
     category: category.id,
+    description: csvProduct['Product Description'],
     type: type.id,
     itemWeight,
     unitsPerCase,
@@ -85,8 +86,7 @@ function csvRowToSingleUseProduct(csvProduct: CSVRow): SingleUseProduct {
     primaryMaterialWeightPerUnit,
     secondaryMaterial: material2?.id || 0,
     secondaryMaterialWeightPerUnit,
-    size: csvProduct['Size/Options'],
-    title: csvProduct['Product Description'],
+    size: csvProduct['Size/Options'] || 'Standard', // product id 52 has no size set
   }
 }
 

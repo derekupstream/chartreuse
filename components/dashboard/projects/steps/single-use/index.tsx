@@ -121,7 +121,7 @@ const ItemRow = ({ item, onDelete }: { item: SingleUseItemRecord; onDelete: () =
   return (
     <Row gutter={10} css="margin: 2em 0">
       <Col span={8}>
-        <Typography.Title level={5}>{item.product.title}</Typography.Title>
+        <Typography.Title level={5}>{item.product.description}</Typography.Title>
         <Popconfirm title="Are you sure to delete this item?" onConfirm={confirm} okText="Yes" cancelText="No">
           <a href="#">Delete</a>
         </Popconfirm>

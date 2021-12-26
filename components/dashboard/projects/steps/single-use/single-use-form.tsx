@@ -7,7 +7,6 @@ import SingleUseProductForm from './single-use-product-form'
 import SingleUseBaselineForm from './single-use-baseline-form'
 import SingleUseForecastForm from './single-use-forecast-form'
 import { POST } from 'lib/http'
-import { GetServerSideProps } from 'next'
 
 type SingleUseProps = {
   lineItem: SingleUseLineItem | null
@@ -65,8 +64,8 @@ export default function SingleUseForm({ lineItem, onSubmit, projectId, products 
   return (
     <>
       {formStep === 1 && <SingleUseProductForm input={lineItemInput} products={products} onSubmit={enterProduct} />}
-      {formStep === 2 && <SingleUseBaselineForm input={lineItemInput} productName={product?.title} goBack={goBack} onSubmit={enterQuantity} />}
-      {formStep === 3 && <SingleUseForecastForm input={lineItemInput} productName={product?.title} goBack={goBack} onSubmit={enterForecast} />}
+      {formStep === 2 && <SingleUseBaselineForm input={lineItemInput} productName={product?.description} goBack={goBack} onSubmit={enterQuantity} />}
+      {formStep === 3 && <SingleUseForecastForm input={lineItemInput} productName={product?.description} goBack={goBack} onSubmit={enterForecast} />}
     </>
   )
 }

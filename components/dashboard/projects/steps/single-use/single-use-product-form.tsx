@@ -19,23 +19,23 @@ const StyledFormItem = styled(Form.Item)`
   }
 `
 
-const PRODUCT_FEATURES = [{ title: 'Category' }, { title: 'Product type' }, { title: 'Material' }, { title: 'Size' }] as const
+const PRODUCT_FEATURES = [{ title: 'Category' }, { title: 'Product type' }, { title: 'Material' }, { title: 'Size' }, { title: 'Product description' }] as const
 
 type FeatureOptions = Record<typeof PRODUCT_FEATURES[number]['title'], { name: string; id: string | number }[]>
 type SelectedFeatureOptions = Record<typeof PRODUCT_FEATURES[number]['title'] | 'productId', string | number | undefined | null>
 
 function getFormValues(features: SelectedFeatureOptions, products: SingleUseProduct[]) {
   const categories = PRODUCT_CATEGORIES.slice()
-  let remainingProducts = typeof features.Category === 'number' ? products.filter(product => product.category === features.Category) : []
+  let remainingProducts = features.Category ? products.filter(product => product.category === features.Category) : []
 
   const types = PRODUCT_TYPES.filter(type => remainingProducts.some(product => product.type === type.id))
   if (features['Product type'] !== 'number' && types.length === 1) {
     features['Product type'] = types[0].id
   }
-  remainingProducts = typeof features['Product type'] === 'number' ? remainingProducts.filter(product => product.type === features['Product type']) : []
+  remainingProducts = features['Product type'] ? remainingProducts.filter(product => product.type === features['Product type']) : []
 
   const materials = MATERIALS.filter(material => remainingProducts.some(product => product.primaryMaterial === material.id))
-  if (!features.Material && materials.length === 1) {
+  if (typeof features.Material !== 'number' && materials.length === 1) {
     features.Material = materials[0].id
   }
   remainingProducts = typeof features.Material === 'number' ? remainingProducts.filter(product => product.primaryMaterial === features.Material) : []
@@ -49,6 +49,13 @@ function getFormValues(features: SelectedFeatureOptions, products: SingleUseProd
   }
   remainingProducts = features.Size ? remainingProducts.filter(product => product.size === features.Size) : []
 
+  // if we have more than one product remaining but no sizes left, show the product descriptions to let the user decide
+  let descriptions: { name: string; id: string }[] = []
+  if (sizes.length === 1 && remainingProducts.length > 1) {
+    descriptions = remainingProducts.map(product => ({ name: product.description, id: product.description }))
+  }
+  remainingProducts = features['Product description'] ? remainingProducts.filter(product => product.description === features['Product description']) : remainingProducts
+
   const productId = remainingProducts.length === 1 ? remainingProducts[0].id : null
 
   const remainingOptions: FeatureOptions = {
@@ -56,17 +63,19 @@ function getFormValues(features: SelectedFeatureOptions, products: SingleUseProd
     'Product type': types,
     Material: materials,
     Size: sizes,
+    'Product description': descriptions,
   }
 
   return { features, productId, remainingOptions }
 }
 
 const featureDefaults = {
-  productId: '',
-  Category: '',
-  'Product type': '',
-  Material: '',
-  Size: '',
+  productId: null,
+  Category: null,
+  'Product description': null,
+  'Product type': null,
+  Material: null,
+  Size: null,
 }
 
 export default function SelectProductStep({ input, onSubmit, products }: { input?: Partial<SingleUseLineItem>; onSubmit: (productId: string) => void; products: SingleUseProduct[] }) {
@@ -91,6 +100,7 @@ export default function SelectProductStep({ input, onSubmit, products }: { input
         'Product type': null,
         Material: null,
         Size: null,
+        'Product description': null,
         productId: null,
       })
     } else if (feature === 'Product type') {
@@ -99,6 +109,7 @@ export default function SelectProductStep({ input, onSubmit, products }: { input
         'Product type': value,
         Material: null,
         Size: null,
+        'Product description': null,
         productId: null,
       })
     } else if (feature === 'Material') {
@@ -107,6 +118,16 @@ export default function SelectProductStep({ input, onSubmit, products }: { input
         'Product type': selected['Product type'],
         Material: value,
         Size: null,
+        'Product description': null,
+        productId: null,
+      })
+    } else if (feature === 'Size') {
+      selectFeatures({
+        Category: selected.Category,
+        'Product type': selected['Product type'],
+        Material: selected.Material,
+        Size: value,
+        'Product description': null,
         productId: null,
       })
     } else {
@@ -124,6 +145,7 @@ export default function SelectProductStep({ input, onSubmit, products }: { input
           Category: product.category,
           'Product type': product.type,
           Material: product.primaryMaterial,
+          'Product description': product.description,
           Size: product.size,
         })
       }
