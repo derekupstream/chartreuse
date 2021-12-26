@@ -30,6 +30,10 @@ const LaborSection = () => {
 
   const onCloseDrawer = () => {
     setIsDrawerVisible(false)
+  }
+
+  const onSubmit = () => {
+    setIsDrawerVisible(false)
     message.success('Labor created')
     refetch()
   }
@@ -98,7 +102,7 @@ const LaborSection = () => {
         </AddBlock>
       )}
       <Drawer title="Add labor expense" onClose={onCloseDrawer} visible={isDrawerVisible} contentWrapperStyle={contentWrapperStyle} destroyOnClose>
-        <LaborFormDrawer onClose={onCloseDrawer} />
+        <LaborFormDrawer onClose={onSubmit} />
       </Drawer>
     </Container>
   )

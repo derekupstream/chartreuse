@@ -30,6 +30,10 @@ const OtherExpenseSection = () => {
 
   const onCloseDrawer = () => {
     setIsDrawerVisible(false)
+  }
+
+  const onSubmit = () => {
+    setIsDrawerVisible(false)
     message.success('Additional expense created')
     refetch()
   }
@@ -98,7 +102,7 @@ const OtherExpenseSection = () => {
         </AddBlock>
       )}
       <Drawer title="Add other expenses" onClose={onCloseDrawer} visible={isDrawerVisible} contentWrapperStyle={contentWrapperStyle} destroyOnClose>
-        <OtherExpensesFormDrawer onClose={onCloseDrawer} />
+        <OtherExpensesFormDrawer onClose={onSubmit} />
       </Drawer>
     </Container>
   )
