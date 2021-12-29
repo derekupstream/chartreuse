@@ -8,10 +8,12 @@ import { DownOutlined } from '@ant-design/icons'
 import { MenuClickEventHandler, MenuInfo } from 'rc-menu/lib/interface'
 import { createGlobalStyle } from 'styled-components'
 import { DashboardUser } from 'components/dashboard'
-import * as S from '../components/dashboard/styles'
+import * as S from 'components/dashboard/styles'
+import Header from 'components/header'
 
 type DashboardProps = {
   selectedMenuItem?: string
+  title: string
   user: DashboardUser
 }
 
@@ -23,7 +25,7 @@ const GlobalStyles = createGlobalStyle`
 
 const INITIAL_SELECTED_MENU_ITEM = 'projects'
 
-const DashboardTemplate: React.FC<DashboardProps> = ({ user, selectedMenuItem, children }) => {
+const DashboardTemplate: React.FC<DashboardProps> = ({ user, selectedMenuItem, title, children }) => {
   const { signout } = useAuth()
   const router = useRouter()
 
@@ -44,30 +46,31 @@ const DashboardTemplate: React.FC<DashboardProps> = ({ user, selectedMenuItem, c
 
   return (
     <>
+      <Header title={title} />
       <GlobalStyles />
       <Layout>
         <S.LayoutHeader>
           <S.LogoAndMenuWrapper>
-            <Image src={Logo} alt="Chareuse logo" objectFit="contain" />
-            <Menu mode="horizontal" disabledOverflow={true} defaultSelectedKeys={[selectedMenuItem || INITIAL_SELECTED_MENU_ITEM]} onClick={handleMenuClick}>
-              <Menu.Item key="projects">Projects</Menu.Item>
-              <Menu.Item key="accounts">Accounts</Menu.Item>
-              <Menu.Item key="members">Members</Menu.Item>
+            <Image src={Logo} alt='Chareuse logo' objectFit='contain' />
+            <Menu mode='horizontal' disabledOverflow={true} defaultSelectedKeys={[selectedMenuItem || INITIAL_SELECTED_MENU_ITEM]} onClick={handleMenuClick}>
+              <Menu.Item key='projects'>Projects</Menu.Item>
+              <Menu.Item key='accounts'>Accounts</Menu.Item>
+              <Menu.Item key='members'>Members</Menu.Item>
             </Menu>
           </S.LogoAndMenuWrapper>
           <S.OrgAndUserWrapper>
-            <Typography.Text type="secondary">{user.org.name}</Typography.Text>
+            <Typography.Text type='secondary'>{user.org.name}</Typography.Text>
             <Dropdown
               overlay={
-                <Menu theme="light">
+                <Menu theme='light'>
                   <Menu.Item>
                     <a onClick={handleLogout}>Logout</a>
                   </Menu.Item>
                 </Menu>
               }
-              placement="bottomRight"
+              placement='bottomRight'
             >
-              <Button type="ghost">
+              <Button type='ghost'>
                 {user.name} <DownOutlined />
               </Button>
             </Dropdown>

@@ -7,8 +7,7 @@ type Props = {
 const Header: React.FC<Props> = ({ title, children }) => {
   return (
     <Head>
-      <title>Upstream Calculator - {title}</title>
-      <link rel="icon" href="/favicon.png" />
+      <title>{title} | Chartreuse by Upstream</title>
       {children}
     </Head>
   )

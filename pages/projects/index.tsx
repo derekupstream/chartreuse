@@ -14,7 +14,7 @@ const ProjectsPage = () => {
 
 ProjectsPage.getLayout = (page: React.ReactNode, pageProps: PageProps) => {
   return (
-    <Template {...pageProps} selectedMenuItem="projects">
+    <Template {...pageProps} selectedMenuItem="projects" title='Projects'>
       {page}
     </Template>
   )

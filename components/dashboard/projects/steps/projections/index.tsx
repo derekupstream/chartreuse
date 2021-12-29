@@ -17,7 +17,6 @@ const Projections = ({ projectId }: { projectId: string }) => {
       </Wrapper>
     )
   }
-  console.log('projections data', data)
 
   return (
     <Wrapper>

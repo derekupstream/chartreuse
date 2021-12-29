@@ -10,7 +10,7 @@ export const getServerSideProps: GetServerSideProps = async context => {
 
 function SingleUsePage({ project, user }: ProjectContext) {
   return (
-    <ProjectLayout currentStepIndex={1} project={project} user={user}>
+    <ProjectLayout currentStepIndex={1} project={project} title={`${project.name} - Single Use Items`} user={user}>
       <SingleUse project={project!} user={user} />
     </ProjectLayout>
   )

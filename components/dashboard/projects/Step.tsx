@@ -7,9 +7,9 @@ import { Project } from '@prisma/client'
 export const stepsMap = {
   SETUP: Setup,
   SINGLE_USE: SingleUsePurchasing,
-  RESUSABLE: () => <div>Reusable purchasing</div>,
+  RESUSABLE: () => <div>Reusables purchasing</div>,
   ADDITIONAL_COSTS: () => <div>Additional costs</div>,
-  SAVING_PROJECTIONS: () => <div>Saving projections</div>,
+  SAVING_PROJECTIONS: () => <div>Savings projections</div>,
 }
 
 const STEPS = Object.keys(stepsMap) as (keyof typeof stepsMap)[]

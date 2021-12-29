@@ -8,28 +8,17 @@ import { ProjectMetadata } from './steps/setup'
 import { useRouter } from 'next/router'
 import * as S from 'components/dashboard/styles'
 import ContentLoader from 'components/content-loader'
+import { DELETE, GET } from 'lib/http'
 
 const Projects = () => {
   const queryClient = useQueryClient()
   const router = useRouter()
-  const { data, isLoading, error } = useQuery('projects', async () => {
-    const response = await fetch('/api/projects', {
-      method: 'GET',
-      headers: {
-        'content-type': 'application/json',
-      },
-    })
-
-    return await response.json()
+  const { data, isLoading, error } = useQuery('projects', () => {
+    return GET<{ projects: Project[] }>('/api/projects')
   })
 
   const deleteProject = useMutation((id: string) => {
-    return fetch(`/api/projects/${id}`, {
-      method: 'DELETE',
-      headers: {
-        'content-type': 'application/json',
-      },
-    })
+    return DELETE(`/api/projects/${id}`)
   })
 
   useEffect(() => {
@@ -60,7 +49,7 @@ const Projects = () => {
       </S.SpaceBetween>
       {isLoading && <ContentLoader />}
       {!isLoading && data?.projects?.length === 0 && <Typography.Text>You have no active projects. Click ‘+ Add project’ above to get started.</Typography.Text>}
-      {!isLoading && data?.projects?.length > 0 && (
+      {!isLoading && data?.projects && data?.projects.length > 0 && (
         <Row gutter={[20, 20]}>
           {data?.projects?.map((project: Project) => {
             return (

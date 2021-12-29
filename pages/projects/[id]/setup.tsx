@@ -12,7 +12,7 @@ export const getServerSideProps: GetServerSideProps = async context => {
 
 export default function SetupPage({ user, project }: { user: DashboardUser; project?: Project }) {
   return (
-    <ProjectLayout currentStepIndex={0} user={user} project={project}>
+    <ProjectLayout currentStepIndex={0} user={user} project={project} title={`Project Setup`}>
       <ProjectSetup user={user} project={project} />
     </ProjectLayout>
   )

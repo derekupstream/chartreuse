@@ -48,6 +48,9 @@ export default function SelectQuantityForecastStep({
 
   return (
     <Form form={form} layout="vertical" onFieldsChange={handleFormChange} onFinish={_onSubmit}>
+      <p>
+        A forecast estimates the savings realized by reducing, or eliminating purchasing of a single-use item. You can also add actual purchasing data to view your savings and reductions over time.
+      </p>
       <Typography.Title level={4}>{productName}</Typography.Title>
 
       <Form.Item name="newCasesPurchased" label="Cases Purchased" rules={[{ required: true }]}>
@@ -61,7 +64,7 @@ export default function SelectQuantityForecastStep({
       <S.BoxEnd>
         <Button onClick={_goBack}>{'Go Back'}</Button>
         <Button disabled={disabledSave} size="large" type="primary" htmlType="submit">
-          Save
+          Add forecast
         </Button>
       </S.BoxEnd>
     </Form>

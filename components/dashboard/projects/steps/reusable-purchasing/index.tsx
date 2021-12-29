@@ -24,8 +24,8 @@ export interface ReusableFormValues {
 
 export default function ReusablePurchasing() {
   const [isDrawerVisible, setIsDrawerVisible] = useState<boolean>(false)
+  const [formStep, setFormStep] = useState<number>(1)
   const [formValues, setFormValues] = useState<ReusableFormValues | null>(null)
-  const [isShowingFirstStep, setIsShowingFirstStep] = useState(true)
   const [lineItems, setLineItems] = useState<ReusableLineItem[]>([])
   const [isLoading, setIsLoading] = useState(false)
 
@@ -53,13 +53,13 @@ export default function ReusablePurchasing() {
 
   function addItem() {
     setFormValues(null)
-    setIsShowingFirstStep(true)
+    setFormStep(1)
     setIsDrawerVisible(true)
   }
 
   function onPressNext(values: ReusableFormValues) {
     setFormValues(values)
-    setIsShowingFirstStep(false)
+    setFormStep(2)
   }
 
   function onSubmit({ annualRepurchasePercentage }: ReusableSecondPartForm) {
@@ -93,7 +93,7 @@ export default function ReusablePurchasing() {
   }
 
   function onPressPrevious() {
-    setIsShowingFirstStep(true)
+    setFormStep(1)
   }
 
   function closeDrawer() {
@@ -131,8 +131,9 @@ export default function ReusablePurchasing() {
               )
             )
           })}
-          <Drawer title="Add reusable replacement item" placement="right" onClose={closeDrawer} visible={isDrawerVisible} contentWrapperStyle={{ width: '600px' }}>
-            {isShowingFirstStep ? <ReusablePurchasingFirstStepForm onPressNext={onPressNext} /> : <ReusablePurchasingSecondStepForm onPressPrevious={onPressPrevious} onPressSubmit={onSubmit} />}
+          <Drawer title={formStep === 1 ? 'Add a reusable replacement item' : 'Estimate annual reusable re-purchasing rate'} placement="right" onClose={closeDrawer} visible={isDrawerVisible} contentWrapperStyle={{ width: '600px' }}>
+            {formStep === 1 && <ReusablePurchasingFirstStepForm onPressNext={onPressNext} />}
+            {formStep === 2 && <ReusablePurchasingSecondStepForm form={formValues!} onPressPrevious={onPressPrevious} onPressSubmit={onSubmit} />}
           </Drawer>
         </>
       )}

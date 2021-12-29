@@ -78,7 +78,7 @@ export default function SelectQuantityStep({
       <S.BoxEnd>
         <Button onClick={_goBack}>{'Go Back'}</Button>
         <Button disabled={disabledSave} size="large" type="primary" htmlType="submit">
-          {'Next >'}
+          {'Save'}
         </Button>
       </S.BoxEnd>
     </Form>

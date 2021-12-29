@@ -23,7 +23,6 @@ export const ContentContainer = styled(Layout.Content)`
   margin: 0 auto;
   width: 100%;
   background-color: #f4f3f0;
-  background-image: url(/images/chartreuse-bg.png);
   background-position: 100% 0;
   background-repeat: no-repeat;
   background-size: 400px;

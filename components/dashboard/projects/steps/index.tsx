@@ -43,9 +43,9 @@ const ProjectSteps = ({ user, project }: PageProps) => {
       >
         <Steps.Step title="Step 1" description="Setup" />
         <Steps.Step title="Step 2" description="Single-use purchasing" />
-        <Steps.Step title="Step 3" description="Reusable purchasing" />
+        <Steps.Step title="Step 3" description="Reusables purchasing" />
         <Steps.Step title="Step 4" description="Additional costs" />
-        <Steps.Step title="Step 5" description="Saving projections" />
+        <Steps.Step title="Step 5" description="Savings projections" />
       </S.Steps>
       <Step step={getStepByIndex(currentStepIndex)} user={user} project={project} onComplete={handleStepComplete} />
     </Space>

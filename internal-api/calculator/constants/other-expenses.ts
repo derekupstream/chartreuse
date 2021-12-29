@@ -56,7 +56,7 @@ export type AdditionalCostCategories = typeof OTHER_EXPENSES_CATEGORIES[number]
 export const OTHER_EXPENSES_CATEGORIES = [
   { name: 'Additional equipment', id: '1' },
   { name: 'Consumable supplies', id: '2' },
-  { name: 'Consumable supplies', id: '3' },
+  { name: 'External vendors', id: '3' },
   { name: 'Site renovation', id: '4' },
   { name: 'Other', id: '5' },
 ]

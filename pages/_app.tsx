@@ -31,7 +31,8 @@ function MyApp({ Component, pageProps }: Props) {
   return (
     <>
       <Head>
-        <title>Welcome to CharmVerse</title>
+        <title>Welcome to Chartreuse by Upstream</title>
+        <link rel="icon" href="/favicon.png" />
       </Head>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>

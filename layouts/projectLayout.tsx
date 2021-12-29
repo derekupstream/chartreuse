@@ -9,6 +9,7 @@ import { useRouter } from 'next/router'
 type Props = {
   currentStepIndex: number
   project?: Project
+  title: string
   user: DashboardUser
 }
 
@@ -18,10 +19,10 @@ export default function ProjectLayout({ children, project, currentStepIndex, ...
   const router = useRouter()
 
   return (
-    <Template {...pageProps} selectedMenuItem="projects">
-      <Space direction="vertical" size="large" style={{ width: '100%' }}>
-        <div css="display: flex; justify-content: space-between">
-          <Button type="text" href="/projects">
+    <Template {...pageProps} selectedMenuItem='projects'>
+      <Space direction='vertical' size='large' style={{ width: '100%' }}>
+        <div css='display: flex; justify-content: space-between'>
+          <Button type='text' href='/projects'>
             <ArrowLeftOutlined />
             Back to projects
           </Button>
@@ -33,11 +34,11 @@ export default function ProjectLayout({ children, project, currentStepIndex, ...
             router.push(`/projects/${project!.id}/${routes[id]}`)
           }}
         >
-          <Steps.Step title="Step 1" description="Setup" />
-          <Steps.Step title="Step 2" description="Single-use purchasing" />
-          <Steps.Step title="Step 3" description="Reusable purchasing" />
-          <Steps.Step title="Step 4" description="Additional costs" />
-          <Steps.Step title="Step 5" description="Saving projections" />
+          <Steps.Step title='Step 1' description='Setup' />
+          <Steps.Step title='Step 2' description='Single-use purchasing' />
+          <Steps.Step title='Step 3' description='Reusables purchasing' />
+          <Steps.Step title='Step 4' description='Additional costs' />
+          <Steps.Step title='Step 5' description='Savings projections' />
         </S.Steps>
       </Space>
       {children}
@@ -48,8 +49,8 @@ export default function ProjectLayout({ children, project, currentStepIndex, ...
 // const StepMenuItem = ({ title: string, href: string, description: string, icon: React.ReactNode }) => (
 //   <Steps.Step
 //     title={
-//       <Link to="/workshop/client-portal/stage/file-management/people">
-//         <Dataset.Icon type="people" /> People
+//       <Link to='/workshop/client-portal/stage/file-management/people'>
+//         <Dataset.Icon type='people' /> People
 //       </Link>
 //     }
 //   />

@@ -216,6 +216,7 @@ const SummaryRow = ({ lineItems }: { lineItems: SingleUseLineItem[] }) => {
 }
 
 export default function SingleUse({ project }: ServerSideProps) {
+  const [formStep, setFormStep] = useState<number>(1)
   const [isDrawerVisible, setIsDrawerVisible] = useState<boolean>(false)
   const [lineItem, setLineItem] = useState<SingleUseLineItem | null>(null)
   const [lineItems, setLineItems] = useLoadingState<{
@@ -306,8 +307,8 @@ export default function SingleUse({ project }: ServerSideProps) {
           {lineItems.data.length > 0 && <SummaryRow lineItems={lineItems.data} />}
         </>
       )}
-      <Drawer title="Add single-use item" placement="right" onClose={closeDrawer} visible={isDrawerVisible} contentWrapperStyle={{ width: '600px' }} destroyOnClose={true}>
-        <SingleUseForm lineItem={lineItem} projectId={project.id} products={products} onSubmit={onSubmitNewProduct} />
+      <Drawer title={formStep === 3 ? 'Add purchasing forecast' : 'Add a single-use item'} placement="right" onClose={closeDrawer} visible={isDrawerVisible} contentWrapperStyle={{ width: '600px' }} destroyOnClose={true}>
+        <SingleUseForm formStep={formStep} setFormStep={setFormStep} lineItem={lineItem} projectId={project.id} products={products} onSubmit={onSubmitNewProduct} />
       </Drawer>
     </S.Wrapper>
   )

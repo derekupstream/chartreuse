@@ -11,15 +11,16 @@ import { POST } from 'lib/http'
 type SingleUseProps = {
   lineItem: SingleUseLineItem | null
   onSubmit: () => void
+  formStep: number
+  setFormStep: (step: number) => void
   projectId: string
   products: SingleUseProduct[]
 }
 
-export default function SingleUseForm({ lineItem, onSubmit, projectId, products }: SingleUseProps) {
+export default function SingleUseForm({ lineItem, onSubmit, projectId, products, formStep, setFormStep }: SingleUseProps) {
   const [lineItemInput, setLineItemInput] = useState<Partial<SingleUseLineItem>>({
     projectId,
   })
-  const [formStep, setFormStep] = useState<number>(1)
 
   // reset the view whenever line item changes from parent scope
   useEffect(() => {

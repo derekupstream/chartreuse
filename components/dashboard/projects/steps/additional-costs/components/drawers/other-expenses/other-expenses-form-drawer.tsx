@@ -1,4 +1,4 @@
-import { OTHER_EXPENSES_CATEGORIES } from 'internal-api/calculator/constants/other-expenses'
+import { OTHER_EXPENSES_CATEGORIES, OTHER_EXPENSES_FREQUENCIES } from 'internal-api/calculator/constants/other-expenses'
 import { OptionSelection } from '../../../../styles'
 import { Button, Form, Input } from 'antd'
 import { requiredRule } from 'utils/forms'
@@ -10,7 +10,7 @@ import { FormItem } from '../../styles'
 import { FREQUENCIES } from 'internal-api/calculator/constants/frequency'
 
 const categoryOptions = OTHER_EXPENSES_CATEGORIES.map(i => ({ value: i.id, label: i.name }))
-const frequencyOptions = FREQUENCIES.map(i => ({ value: i.name, label: i.name }))
+const frequencyOptions = OTHER_EXPENSES_FREQUENCIES.map(i => ({ value: i.name, label: i.name }))
 
 type Props = {
   onClose(): void
