@@ -15,7 +15,7 @@ const AccountsPage = ({ user }: LoggedinProps) => {
 
 AccountsPage.getLayout = (page: React.ReactNode, pageProps: PageProps) => {
   return (
-    <Template {...pageProps} selectedMenuItem="accounts" title='Accounts'>
+    <Template {...pageProps} selectedMenuItem="accounts" title="Accounts">
       {page}
     </Template>
   )

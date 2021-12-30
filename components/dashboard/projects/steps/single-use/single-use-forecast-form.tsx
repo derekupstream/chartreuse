@@ -9,11 +9,13 @@ export default function SelectQuantityForecastStep({
   input,
   goBack,
   productName,
+  frequency,
   onSubmit,
 }: {
   input?: Partial<SingleUseLineItem>
   goBack: (form: Partial<Pick<SingleUseLineItem, 'newCaseCost' | 'newCasesPurchased'>>) => void
   productName?: string
+  frequency: string
   onSubmit: (form: Pick<SingleUseLineItem, 'newCaseCost' | 'newCasesPurchased'>) => void
 }) {
   const [form] = Form.useForm<FormProps>()
@@ -53,7 +55,7 @@ export default function SelectQuantityForecastStep({
       </p>
       <Typography.Title level={4}>{productName}</Typography.Title>
 
-      <Form.Item name="newCasesPurchased" label="Cases Purchased" rules={[{ required: true }]}>
+      <Form.Item name="newCasesPurchased" label={`New cases purchased (${frequency})`} rules={[{ required: true }]}>
         <Input type="number" />
       </Form.Item>
 

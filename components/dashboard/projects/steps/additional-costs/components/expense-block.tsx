@@ -11,11 +11,6 @@ type Props = {
   FormComponent: ReactNode
 }
 
-const ExpenseBlock: React.FC<Props> = props => {
-  const { sectionTitle, sectionSubtitle, drawerTitle, placeholder, FormComponent } = props
-  return null
-}
-
 export const Container = styled.div`
   margin-bottom: 36px;
 `
@@ -48,5 +43,3 @@ export const AddBlock = styled.div`
   flex-direction: column;
   border-radius: 8px;
 `
-
-export default ExpenseBlock

@@ -7,7 +7,6 @@ import { OtherExpense } from '@prisma/client'
 import { useRouter } from 'next/router'
 import React from 'react'
 import { FormItem } from '../../styles'
-import { FREQUENCIES } from 'internal-api/calculator/constants/frequency'
 
 const categoryOptions = OTHER_EXPENSES_CATEGORIES.map(i => ({ value: i.id, label: i.name }))
 const frequencyOptions = OTHER_EXPENSES_FREQUENCIES.map(i => ({ value: i.name, label: i.name }))
@@ -18,7 +17,7 @@ type Props = {
 
 const OtherExpensesFormDrawer: React.FC<Props> = ({ onClose }) => {
   const [form] = Form.useForm<OtherExpense>()
-  const createOtherExpense = useSimpleMutation('/api/additional-costs', 'POST')
+  const createOtherExpense = useSimpleMutation('/api/other-expenses', 'POST')
 
   const route = useRouter()
   const projectId = route.query.id as string

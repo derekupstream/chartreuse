@@ -7,27 +7,17 @@ import DishWashingSection from './components/drawers/dish-washing/dish-washing-s
 import LaborSection from './components/drawers/labor/labor-section'
 import WasteHaulingSection from './components/drawers/waste-hauling/waste-hauling-section'
 import OtherExpenseSection from './components/drawers/other-expenses/other-expenses-section'
+import FooterNavigator from 'components/footer-navigator'
+import { SectionHeader } from '../projections/components/styles'
 
 type ServerSideProps = {
   project: Project
 }
 
-type AdditionalCostItem = {
-  id: string
-  categoryId: string
-  cost: number
-  frequency: string
-  projectId: string
-}
-
 export default function AdditionalCosts({ project }: ServerSideProps) {
-  // const items = useSimpleQuery(`/api/additional-costs?projectId=${project.id}`)
-
-  // if (items.isLoading) return <ContentLoader />
-
   return (
     <Wrapper>
-      <Typography.Title level={2}>Additional expenses and savings</Typography.Title>
+      <SectionHeader>Additional expenses and savings</SectionHeader>
       <Typography.Title level={5}>
         You may incur additional expenses or savings when switching from single-use to reusable products. For example, dishwashing equiptment and labor, and modifications to your facilities. This
         section will help you accurately estimate addtional expenses.
@@ -37,6 +27,8 @@ export default function AdditionalCosts({ project }: ServerSideProps) {
       <DishWashingSection />
       <WasteHaulingSection />
       <OtherExpenseSection />
+
+      <FooterNavigator previousStepLinkSuffix="/reusable-items" previousStepTitle="Reusable purchasing" nextStepLinkSuffix="/projections" nextStepTitle="Projections" />
     </Wrapper>
   )
 }

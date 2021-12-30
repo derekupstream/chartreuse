@@ -11,6 +11,7 @@ import { PRODUCT_CATEGORIES } from 'internal-api/calculator/constants/product-ca
 import ItemRow from './components/ItemRow'
 import ContentLoader from 'components/content-loader'
 import { useQuery } from 'react-query'
+import FooterNavigator from 'components/footer-navigator'
 
 export type ReusableSecondPartForm = Pick<ReusableFormValues, 'annualRepurchasePercentage'>
 
@@ -131,12 +132,19 @@ export default function ReusablePurchasing() {
               )
             )
           })}
-          <Drawer title={formStep === 1 ? 'Add a reusable replacement item' : 'Estimate annual reusable re-purchasing rate'} placement="right" onClose={closeDrawer} visible={isDrawerVisible} contentWrapperStyle={{ width: '600px' }}>
+          <Drawer
+            title={formStep === 1 ? 'Add a reusable replacement item' : 'Estimate annual reusable re-purchasing rate'}
+            placement="right"
+            onClose={closeDrawer}
+            visible={isDrawerVisible}
+            contentWrapperStyle={{ width: '600px' }}
+          >
             {formStep === 1 && <ReusablePurchasingFirstStepForm onPressNext={onPressNext} />}
             {formStep === 2 && <ReusablePurchasingSecondStepForm form={formValues!} onPressPrevious={onPressPrevious} onPressSubmit={onSubmit} />}
           </Drawer>
         </>
       )}
+      <FooterNavigator previousStepLinkSuffix="/single-use" previousStepTitle="Single-use purchasing" nextStepLinkSuffix="/additional-costs" nextStepTitle="Additional costs" />
     </S.Wrapper>
   )
 }

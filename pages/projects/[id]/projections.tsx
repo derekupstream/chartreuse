@@ -11,7 +11,7 @@ export const getServerSideProps: GetServerSideProps = async context => {
 function ProjectionsPage({ project, user }: ProjectContext) {
   return (
     <ProjectLayout currentStepIndex={4} project={project} title={`${project.name} - Projections`} user={user}>
-      <Projections projectId={project.id} />
+      <Projections projectId={project.id} projectTitle={project.name} />
     </ProjectLayout>
   )
 }

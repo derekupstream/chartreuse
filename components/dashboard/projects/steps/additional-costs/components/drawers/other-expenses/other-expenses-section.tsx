@@ -10,6 +10,7 @@ import { PlusOutlined } from '@ant-design/icons'
 import { formatToDollar } from 'internal-api/calculator/utils'
 import { OTHER_EXPENSES_FREQUENCIES } from 'internal-api/calculator/constants/other-expenses'
 import OtherExpensesFormDrawer from './other-expenses-form-drawer'
+import ContentLoader from 'components/content-loader'
 
 type Response = {
   otherExpenses: OtherExpense[]
@@ -19,7 +20,7 @@ const OtherExpenseSection = () => {
   const route = useRouter()
   const projectId = route.query.id
   const url = `/api/other-expenses/?projectId=${projectId}`
-  const { data, refetch } = useSimpleQuery<Response>(url)
+  const { data, isLoading, refetch } = useSimpleQuery<Response>(url)
   const deleteOtherExpenses = useSimpleMutation(url, 'DELETE')
 
   const [isDrawerVisible, setIsDrawerVisible] = useState(false)
@@ -51,8 +52,8 @@ const OtherExpenseSection = () => {
     refetch()
   }
 
-  const getFrequencyInPlanText = (frequencyNumber: string) => {
-    return OTHER_EXPENSES_FREQUENCIES.find(freq => freq.annualOccurrence.toString() === frequencyNumber)?.name
+  if (isLoading) {
+    return <ContentLoader />
   }
 
   return (
@@ -85,8 +86,8 @@ const OtherExpenseSection = () => {
                 </thead>
                 <tbody>
                   <tr>
-                    <td>{getFrequencyInPlanText(additionalCost.frequency)}</td>
-                    <td>{formatToDollar(additionalCost.cost * Number(additionalCost.frequency))}</td>
+                    <td>{additionalCost.frequency}</td>
+                    <td>{formatToDollar(additionalCost.cost * getFrequencyInNumber(additionalCost.frequency))}</td>
                   </tr>
                 </tbody>
               </table>
@@ -106,6 +107,10 @@ const OtherExpenseSection = () => {
       </Drawer>
     </Container>
   )
+}
+
+const getFrequencyInNumber = (name: string) => {
+  return OTHER_EXPENSES_FREQUENCIES.find(freq => freq.name.toString() === name)?.annualOccurrence! || 1
 }
 
 export default OtherExpenseSection

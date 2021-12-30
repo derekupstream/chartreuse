@@ -40,7 +40,6 @@ export const AuthProvider: React.FC = ({ children }) => {
       setUser(user)
       const token = await user.getIdToken()
       setCookie(null, 'token', token, {
-        maxAge: 30 * 24 * 60 * 60,
         path: '/',
       })
     })

@@ -30,7 +30,7 @@ export const ContentContainer = styled(Layout.Content)`
 
 export const Content = styled.div`
   margin: 0 auto;
-  max-width: 980px;
+  max-width: 1100px;
   width: 100%;
 `
 

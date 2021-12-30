@@ -5,7 +5,7 @@ import styled from 'styled-components'
 type Color = 'success' | 'default'
 
 type Props = {
-  value: string
+  value: string | number
   percentage?: string
   color?: Color
 }

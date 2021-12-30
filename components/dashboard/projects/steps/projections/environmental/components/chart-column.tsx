@@ -1,8 +1,9 @@
 import dynamic from 'next/dynamic'
-// import { Column } from '@ant-design/charts'
-const Column = dynamic(() => import('@ant-design/charts').then(mod => mod.Column) as any, { ssr: false })
+import { ComponentType } from 'react'
+import type { BarConfig } from '@ant-design/plots'
+const Column: ComponentType<BarConfig> = dynamic(() => import('@ant-design/plots/es/components/column').then(mod => mod as any), { ssr: false })
 
-const Chart: React.FC = () => {
+const ChartColumn: React.FC = () => {
   const data = [
     {
       name: 'London',
@@ -28,18 +29,16 @@ const Chart: React.FC = () => {
 
   return (
     <Column
-      // @ts-ignore
       data={data}
       isGroup
+      color={['#E0FACA', '#95EE49']}
       xField="month"
       yField="value"
       seriesField="name"
-      legend={{
-        position: 'bottom-left',
-      }}
-      layout={[{ type: 'interval-adjust-position' }, { type: 'interval-hide-overlap' }, { type: 'adjust-color' }]}
+      legend={{ position: 'bottom-left' }}
+      // layout={[{ type: 'interval-adjust-position' }, { type: 'interval-hide-overlap' }, { type: 'adjust-color' }]}
     />
   )
 }
 
-export default Chart
+export default ChartColumn

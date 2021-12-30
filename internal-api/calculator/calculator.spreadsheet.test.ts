@@ -20,10 +20,36 @@ describe('Predictions Calculator: Spreadsheet results from Upstream', () => {
   it('calculates Annual Summary', () => {
     const results = getAnnualSummary(project)
     expect(results).toEqual({
-      dollarCost: -30197.65,
-      singleUseProductCount: -472160,
-      greenhouseGasEmissions: -59.91,
-      wasteWeight: -22100,
+      dollarCost: {
+        additionalCosts: 29200,
+        baseline: 88320,
+        change: -30198,
+        changePercent: -34,
+        followup: 58122,
+        laborCosts: 0,
+        otherExpenses: 29200,
+        reusableProductCosts: 10.58,
+        singleUseProductChange: -59800,
+        utilities: 871.77,
+        wasteHauling: -480,
+      },
+      greenhouseGasEmissions: {
+        dishwashing: 4.9,
+        landfillWaste: -64.81,
+        total: -59.91,
+      },
+      singleUseProductCount: {
+        baseline: 1924000,
+        change: -472160,
+        changePercent: -25,
+        followup: 1451840,
+      },
+      wasteWeight: {
+        baseline: 33644,
+        change: -22100,
+        changePercent: -66,
+        followup: 11544,
+      },
     })
   })
 
@@ -46,11 +72,11 @@ describe('Predictions Calculator: Spreadsheet results from Upstream', () => {
     expect(results.annualCostChanges.singleUseProductChange).toBe(-59800)
     expect(results.annualCostChanges.utilities).toBe(871.77)
     expect(results.annualCostChanges.wasteHauling).toBe(-480)
-    expect(results.annualCostChanges.total).toBe(-30197.65)
+    expect(results.annualCostChanges.change).toBe(-30198)
     expect(results.summary.oneTimeCost).toBe(10046)
-    expect(results.summary.annualCost).toBe(-30197.65)
+    expect(results.summary.annualCost).toBe(-30198)
     expect(results.summary.paybackPeriodsMonths).toBe(4)
-    expect(results.summary.annualROIPercent).toBe(200.59)
+    expect(results.summary.annualROIPercent).toBe(200.6)
   })
 
   it('calculates Single Use Product Results', () => {

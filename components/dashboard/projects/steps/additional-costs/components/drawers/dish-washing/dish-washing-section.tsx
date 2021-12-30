@@ -9,6 +9,7 @@ import { AddBlock, Container, contentWrapperStyle, Placeholder, Subtitle } from 
 import { Dishwasher } from '@prisma/client'
 import { SectionContainer, SectionData, SectionTitle } from '../../styles'
 import styled from 'styled-components'
+import ContentLoader from 'components/content-loader'
 
 interface Response {
   dishwasher: Dishwasher
@@ -29,7 +30,7 @@ interface Stats {
 const DishWashingSection = () => {
   const route = useRouter()
   const url = `/api/dishwasher/?projectId=${route.query.id}`
-  const { data, refetch } = useSimpleQuery<Response>(url)
+  const { data, isLoading, refetch } = useSimpleQuery<Response>(url)
   const deleteDishwasher = useSimpleMutation(url, 'DELETE')
 
   const [isDrawerVisible, setIsDrawerVisible] = useState(false)
@@ -58,6 +59,10 @@ const DishWashingSection = () => {
   }
 
   const pretifyValues = (value: number) => value.toFixed(3).replace('.', ',')
+
+  if (isLoading) {
+    return <ContentLoader />
+  }
 
   return (
     <Container>

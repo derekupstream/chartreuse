@@ -1,19 +1,66 @@
-import { Radio, RadioChangeEvent, Typography } from 'antd'
+import { Radio, RadioChangeEvent, Typography, Row, Col } from 'antd'
 import { ProjectionsResponse } from 'internal-api/calculator'
+import { changeValue } from 'lib/number'
+import { useState } from 'react'
 import BigNumber from '../components/big-number'
+import Card from '../components/card'
+import { SectionContainer, SectionHeader } from '../components/styles'
 import TitleWithTooltip from '../components/title-with-tooltip'
-import Chart from './components/charts'
-import { ViewResultsWrapper, CardsBox, Card, BigNumberWrapper, ChartTitle, Spacer } from './components/styles'
+import Chart from '../components/chart-column'
+import { poundsToTons } from 'internal-api/calculator/constants/conversions'
+import { ViewResultsWrapper, BigNumberWrapper, ChartTitle } from './components/styles'
 
-const EnvironmentalSummary: React.FC<{ projections: ProjectionsResponse }> = ({ projections }) => {
+type Props = {
+  data: ProjectionsResponse['environmentalResults']
+}
+
+const EnvironmentalSummary: React.FC<Props> = ({ data }) => {
+  const [units, setUnits] = useState<'pounds' | 'tons'>('pounds')
   const onChangeResults = (event: RadioChangeEvent) => {
-    console.log(event.target.value)
-    // @todo continue implementation!
+    setUnits(event.target.value)
   }
 
+  function formatWeight(value: number) {
+    return units === 'pounds' ? value : poundsToTons(value)
+  }
+
+  const annualWasteData = [
+    {
+      label: 'Single-Use Product Weight',
+      value: formatWeight(data.annualWasteChanges.disposableProductWeight.baseline),
+      wasteType: 'Baseline',
+    },
+    {
+      label: 'Single-Use Product Weight',
+      value: formatWeight(data.annualWasteChanges.disposableProductWeight.followup),
+      wasteType: 'Forecast',
+    },
+    {
+      label: 'Disposable Shipping Box Weight',
+      value: formatWeight(data.annualWasteChanges.disposableShippingBoxWeight.baseline),
+      wasteType: 'Baseline',
+    },
+    {
+      label: 'Disposable Shipping Box Weight',
+      value: formatWeight(data.annualWasteChanges.disposableShippingBoxWeight.followup),
+      wasteType: 'Forecast',
+    },
+  ]
+
+  const ghgData = [
+    {
+      label: 'Landfill waste (EPA WARM)',
+      value: data.annualGasEmissionChanges.landfillWaste,
+    },
+    {
+      label: 'Dishwashing',
+      value: data.annualGasEmissionChanges.dishwashing,
+    },
+  ]
+
   return (
-    <div>
-      <Typography.Title level={2}>Environmental summary</Typography.Title>
+    <SectionContainer>
+      <SectionHeader>Environmental summary</SectionHeader>
 
       <Typography.Title level={5}>
         Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed aliquam massa vel erat commodo, ut aliquam nibh convallis. Vivamus ullamcorper magna non sollicitudin pellentesque. Vestibulum
@@ -22,38 +69,40 @@ const EnvironmentalSummary: React.FC<{ projections: ProjectionsResponse }> = ({ 
 
       <ViewResultsWrapper>
         <Typography.Text css="margin-right: 20px;">View results in:</Typography.Text>
-        <Radio.Group onChange={onChangeResults} defaultValue="punds">
-          <Radio.Button value="punds">Punds</Radio.Button>
+        <Radio.Group onChange={onChangeResults} defaultValue={units}>
+          <Radio.Button value="pounds">Pounds</Radio.Button>
           <Radio.Button value="tons">Tons</Radio.Button>
         </Radio.Group>
       </ViewResultsWrapper>
 
-      <CardsBox>
-        <Card>
-          <TitleWithTooltip title="Your total annual waste changes" />
+      <Row gutter={30}>
+        <Col span={12}>
+          <Card>
+            <TitleWithTooltip title="Your total annual waste changes" />
 
-          <BigNumberWrapper>
-            <BigNumber value="- 33,644 lbs." />
-          </BigNumberWrapper>
+            <BigNumberWrapper>
+              <BigNumber value={`${changeValue(formatWeight(data.annualWasteChanges.total.change))} ${units === 'pounds' ? 'lbs.' : 'tons'}`} />
+            </BigNumberWrapper>
 
-          <ChartTitle>Annual waste changes</ChartTitle>
-          <Chart />
-        </Card>
+            <ChartTitle>Annual waste changes</ChartTitle>
+            <Chart data={annualWasteData} seriesField="wasteType" />
+          </Card>
+        </Col>
 
-        <Spacer />
+        <Col span={12}>
+          <Card>
+            <TitleWithTooltip title="Annual net GHG emissions changes" />
 
-        <Card>
-          <TitleWithTooltip title="Annual net GHG emissions changes" />
+            <BigNumberWrapper>
+              <BigNumber value={`${changeValue(data.annualGasEmissionChanges.total)} MTCO2e`} />
+            </BigNumberWrapper>
 
-          <BigNumberWrapper>
-            <BigNumber value="35.27 lbs." />
-          </BigNumberWrapper>
-
-          <ChartTitle>Annual waste changes (pounds)</ChartTitle>
-          <Chart />
-        </Card>
-      </CardsBox>
-    </div>
+            <ChartTitle>Annual greenhouse gas changes</ChartTitle>
+            <Chart data={ghgData} />
+          </Card>
+        </Col>
+      </Row>
+    </SectionContainer>
   )
 }
 

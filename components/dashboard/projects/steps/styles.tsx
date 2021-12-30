@@ -1,8 +1,8 @@
 import styled from 'styled-components'
-import { Card, Form, Radio } from 'antd'
+import { Card, Form, Radio, Typography } from 'antd'
 
 export const Wrapper = styled.div`
-  max-width: 960px;
+  max-width: 1100px;
   margin: 0 auto;
   width: 100%;
   margin-top: 50px;
@@ -40,4 +40,11 @@ export const OptionSelection = styled(Radio.Group)`
 export const StyledCard = styled(Card)`
   border-radius: 4px;
   height: 100%;
+`
+
+export const CardTitle = styled(Typography.Text)`
+  font-size: 16px;
+  line-height: 32px;
+  font-weight: bold;
+  color: #262626;
 `

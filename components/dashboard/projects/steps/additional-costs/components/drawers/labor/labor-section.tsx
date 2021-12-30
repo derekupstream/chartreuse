@@ -10,6 +10,7 @@ import ForecastCard from 'components/forecast-card/forecast-card'
 import { PlusOutlined } from '@ant-design/icons'
 import { formatToDollar } from 'internal-api/calculator/utils'
 import { OTHER_EXPENSES_FREQUENCIES } from 'internal-api/calculator/constants/other-expenses'
+import ContentLoader from 'components/content-loader'
 
 type Response = {
   laborCosts: LaborCost[]
@@ -19,7 +20,7 @@ const LaborSection = () => {
   const route = useRouter()
   const projectId = route.query.id
   const url = `/api/labor-costs/?projectId=${projectId}`
-  const { data, refetch } = useSimpleQuery<Response>(url)
+  const { data, isLoading, refetch } = useSimpleQuery<Response>(url)
   const deleteLabor = useSimpleMutation(url, 'DELETE')
 
   const [isDrawerVisible, setIsDrawerVisible] = useState(false)
@@ -50,9 +51,12 @@ const LaborSection = () => {
   }
 
   const getFrequencyInNumber = (name: string) => {
-    return OTHER_EXPENSES_FREQUENCIES.find(freq => freq.name.toString() === name)?.annualOccurrence!
+    return OTHER_EXPENSES_FREQUENCIES.find(freq => freq.name.toString() === name)?.annualOccurrence! || 1
   }
 
+  if (isLoading) {
+    return <ContentLoader />
+  }
   return (
     <Container>
       <SectionContainer>
@@ -78,14 +82,16 @@ const LaborSection = () => {
                 <thead>
                   <tr>
                     <td>Frequency</td>
-                    <td>Weekly total</td>
+                    <td></td>
+                    {/* <td>Weekly total</td> */}
                     <td>Annual total</td>
                   </tr>
                 </thead>
                 <tbody>
                   <tr>
                     <td>{labor.frequency}</td>
-                    <td>{formatToDollar(labor.cost)}</td>
+                    <td></td>
+                    {/* <td>{formatToDollar(labor.cost)}</td> */}
                     <td>{formatToDollar(labor.cost * getFrequencyInNumber(labor.frequency))}</td>
                   </tr>
                 </tbody>

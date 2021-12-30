@@ -7,7 +7,7 @@
     "build:production": "yarn prisma migrate deploy && yarn prisma generate && next build",
     "build": "yarn prisma generate && next build",
     "start": "next start",
-    "test": "jest --watch",
+    "test": "jest --watchAll",
     "test:ci": "jest",
     "lint": "next lint",
     "docs": "kerbs dev"

@@ -3,6 +3,7 @@ import styled from 'styled-components'
 export const ViewResultsWrapper = styled.div`
   text-align: right;
   margin-bottom: 20px;
+  margin-top: 24px;
 `
 
 export const BigNumberWrapper = styled.div`
@@ -13,16 +14,12 @@ export const Spacer = styled.div`
   width: 28px;
 `
 
-export const CardsBox = styled.div`
-  display: flex;
-  flex-direction: row;
-`
-
 export const Card = styled.div`
   width: 100%;
   background-color: white;
   border-radius: 8px;
   padding: 20px;
+  box-shadow: 0px 0px 12px rgba(0, 0, 0, 0.08);
 `
 
 export const ChartTitle = styled.p`

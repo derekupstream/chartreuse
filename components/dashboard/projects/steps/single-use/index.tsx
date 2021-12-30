@@ -13,6 +13,7 @@ import { PRODUCT_CATEGORIES } from 'internal-api/calculator/constants/product-ca
 import useLoadingState from 'hooks/useLoadingState'
 import ContentLoader from 'components/content-loader'
 import { getAnnualOccurence } from 'internal-api/calculator/constants/frequency'
+import FooterNavigator from 'components/footer-navigator'
 
 type ServerSideProps = {
   project: Project
@@ -307,9 +308,17 @@ export default function SingleUse({ project }: ServerSideProps) {
           {lineItems.data.length > 0 && <SummaryRow lineItems={lineItems.data} />}
         </>
       )}
-      <Drawer title={formStep === 3 ? 'Add purchasing forecast' : 'Add a single-use item'} placement="right" onClose={closeDrawer} visible={isDrawerVisible} contentWrapperStyle={{ width: '600px' }} destroyOnClose={true}>
+      <Drawer
+        title={formStep === 3 ? 'Add purchasing forecast' : 'Add a single-use item'}
+        placement="right"
+        onClose={closeDrawer}
+        visible={isDrawerVisible}
+        contentWrapperStyle={{ width: '600px' }}
+        destroyOnClose={true}
+      >
         <SingleUseForm formStep={formStep} setFormStep={setFormStep} lineItem={lineItem} projectId={project.id} products={products} onSubmit={onSubmitNewProduct} />
       </Drawer>
+      <FooterNavigator previousStepLinkSuffix="/setup" previousStepTitle="Setup" nextStepLinkSuffix="/reusable-items" nextStepTitle="Reusable purchasing" />
     </S.Wrapper>
   )
 }

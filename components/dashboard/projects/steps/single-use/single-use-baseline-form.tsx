@@ -39,6 +39,7 @@ export default function SelectQuantityStep({
       unitsPerCase: parseInt((values.unitsPerCase as string) || '0'),
       casesPurchased: parseInt((values.casesPurchased as string) || '0'),
       caseCost: parseInt((values.caseCost as string) || '0'),
+      newCaseCost: input?.newCaseCost || parseInt((values.caseCost as string) || '0'),
     })
   }
 

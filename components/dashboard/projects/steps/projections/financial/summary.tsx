@@ -1,87 +1,75 @@
 import { FallOutlined, SwapRightOutlined } from '@ant-design/icons'
-import { Tag, Typography } from 'antd'
-import { Background, CardsBox, Card, Text, Col, Title, Value } from './components/styles'
+import { Row, Col, Typography } from 'antd'
+import { Text, Title, Value } from './components/styles'
+import Card from '../components/card'
 import { FooterData } from './components/footer'
 import TitleWithTooltip from '../components/title-with-tooltip'
 import { ProjectionsResponse } from 'internal-api/calculator'
+import { formatToDollar } from 'internal-api/calculator/utils'
+import { SectionContainer, SectionHeader } from '../components/styles'
 
-const FinancialSummary = ({ projections }: { projections: ProjectionsResponse }) => {
+type Props = {
+  data: ProjectionsResponse['financialResults']
+}
+
+const FinancialSummary: React.FC<Props> = ({ data }) => {
   return (
-    <>
-      <Typography.Title level={2}>Financial summary</Typography.Title>
+    <SectionContainer>
+      <SectionHeader>Financial summary</SectionHeader>
 
       <Typography.Title level={5}>
         Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed aliquam massa vel erat commodo, ut aliquam nibh convallis. Vivamus ullamcorper magna non sollicitudin pellentesque.
       </Typography.Title>
 
-      <Background>
+      <Card>
         <TitleWithTooltip title="Annual program saving &amp; expenses" tooltipTitle="title" tooltipContent={<p>some description</p>} />
-        <CardsBox>
-          <Card>
+
+        <Row gutter={40}>
+          <Col span={8}>
             <Text strong>Savings</Text>
-            <Tag icon={<FallOutlined />} color="success">
-              73%
-            </Tag>
+            <Title>Annual total</Title>
+            <Value color="green">{formatToDollar(data.summary.annualCost)}</Value>
 
-            <Col>
-              <Title fontSize={11}>Annual total</Title>
-              <Value color="green">$ 1000.00</Value>
-            </Col>
-
-            <Col>
-              <Title fontSize={14}>Annual program ROI</Title>
-              <Value>100%</Value>
-            </Col>
+            <Title>Annual program ROI</Title>
+            <Value>{data.summary.annualROIPercent}</Value>
 
             <hr />
 
-            <FooterData title="Single use purchasing" value="- $59.000" />
-            <FooterData title="Waste hauling" value="- 480" />
-          </Card>
+            <FooterData title="Single-use purchasing" value={formatToDollar(data.annualCostChanges.singleUseProductChange)} />
+            <FooterData title="Waste hauling" value={formatToDollar(data.annualCostChanges.wasteHauling)} />
+          </Col>
 
-          <Card>
+          <Col span={8}>
             <Text strong>One-time expenses</Text>
-            <Tag icon={<SwapRightOutlined />} color="default">
-              10%
-            </Tag>
 
-            <Col>
-              <Title fontSize={11}>Annual total</Title>
-              <Value color="black">{`$${projections.financialResults.oneTimeCosts.total.toLocaleString()}`}</Value>
-            </Col>
+            <Title>Annual total</Title>
+            <Value color="black">{formatToDollar(data.oneTimeCosts.total)}</Value>
 
-            <Col>
-              <Title fontSize={14}>Payback Period</Title>
-              <Value>6.5 mos.</Value>
-            </Col>
+            <Title>Payback Period</Title>
+            <Value>{data.summary.paybackPeriodsMonths} mos.</Value>
 
             <hr />
 
-            <FooterData title="Reusable purchasing" value={`$${projections.financialResults.annualCostChanges.reusableProductCosts.toLocaleString()}`} />
-            <FooterData title="Additional one-time expenses" value={`$${projections.financialResults.oneTimeCosts.additionalCosts.toLocaleString()}`} />
-          </Card>
+            <FooterData title="Reusable purchasing" value={formatToDollar(data.oneTimeCosts.reusableProductCosts)} />
+            <FooterData title="Additional one-time expenses" value={formatToDollar(data.oneTimeCosts.additionalCosts)} />
+          </Col>
 
-          <Card>
+          <Col span={8}>
             <Text strong>Recurring expenses</Text>
-            <Tag icon={<SwapRightOutlined />} color="default">
-              10%
-            </Tag>
-
-            <Col>
-              <Title fontSize={11}>Annual total</Title>
-              <Value color="black">$ 6600.00</Value>
-            </Col>
+            <Title>Annual total</Title>
+            <Value color="black">{formatToDollar(data.annualCostChanges.change - data.annualCostChanges.singleUseProductChange)}</Value>
 
             <hr />
 
-            <FooterData title="Reusables restocking" value="$ 5.000" />
-            <FooterData title="Dishwashing" value="$ 480" />
-            <FooterData title="Labor" value="$ 27.000" />
-            <FooterData title="Recurring additional expenses" value="$ 1.234" />
-          </Card>
-        </CardsBox>
-      </Background>
-    </>
+            <FooterData title="Reusables restocking" value={formatToDollar(data.annualCostChanges.reusableProductCosts)} />
+            <FooterData title="Labor" value={formatToDollar(data.annualCostChanges.laborCosts)} />
+            <FooterData title="Dishwashing" value={formatToDollar(data.annualCostChanges.utilities)} />
+            <FooterData title="Waste hauling" value={formatToDollar(data.annualCostChanges.wasteHauling)} />
+            <FooterData title="Recurring additional expenses" value={formatToDollar(data.annualCostChanges.otherExpenses)} />
+          </Col>
+        </Row>
+      </Card>
+    </SectionContainer>
   )
 }
 

@@ -12,6 +12,7 @@ import WasteHaulingFormDrawer from './waste-hauling-form-drawer'
 import WasteHaulingSecondFormDrawer from './waste-hauling-second-form-drawer'
 import { useSimpleMutation, useSimpleQuery } from 'hooks/useSimpleQuery'
 import { WasteHaulingService } from 'internal-api/calculator/types/projects'
+import ContentLoader from 'components/content-loader'
 
 const annual = 12
 
@@ -23,7 +24,7 @@ const WasteHaulingSection = () => {
   const route = useRouter()
   const projectId = route.query.id
   const url = `/api/waste-hauling/?projectId=${projectId}`
-  const { data, refetch } = useSimpleQuery<Response>(url)
+  const { data, isLoading, refetch } = useSimpleQuery<Response>(url)
   const deleteWasteHauling = useSimpleMutation(url, 'DELETE')
   const createWasteHaulingCost = useSimpleMutation(url, 'POST')
   const [formValues, setFormValues] = useState({})
@@ -71,6 +72,10 @@ const WasteHaulingSection = () => {
         refetch()
       },
     })
+  }
+
+  if (isLoading) {
+    return <ContentLoader />
   }
 
   return (

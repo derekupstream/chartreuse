@@ -2,7 +2,7 @@ import styled from 'styled-components'
 
 type Props = {
   title: String
-  value: string
+  value: string | number
 }
 
 export const FooterData: React.FC<Props> = props => {

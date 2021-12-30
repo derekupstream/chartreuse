@@ -2,7 +2,7 @@ import { Frequency, getAnnualOccurence } from '../constants/frequency'
 import { ANNUAL_DISHWASHER_CONSUMPTION, BUILDING_WATER_HEATER, BOOSTER_WATER_HEATER } from '../constants/dishwashers'
 import { DishWasher, ProjectInput } from '../types/projects'
 import { getSingleUseProductSummary } from './single-use-product-results'
-import { round } from '../utils'
+import { getChangeSummaryRowRounded, round } from '../utils'
 
 interface FinancialResults {
   annualCostChanges: AnnualCostChanges
@@ -11,7 +11,7 @@ interface FinancialResults {
 }
 
 export function getFinancialResults(project: ProjectInput): FinancialResults {
-  const annualCostChanges = calculateAnnualCosts(project)
+  const annualCostChanges = calculateAnnualCostChanges(project)
   const oneTimeCosts = calculateOneTimeCosts(project)
   const summary = calculateSummary(project)
 
@@ -29,22 +29,37 @@ export function getFinancialResults(project: ProjectInput): FinancialResults {
 // all values in dollars
 interface AnnualCostChanges {
   additionalCosts: number
+  otherExpenses: number
+  laborCosts: number
   reusableProductCosts: number
   singleUseProductChange: number
   utilities: number
   wasteHauling: number
-  total: number // E46
+  baseline: number
+  followup: number
+  change: number // E46
+  changePercent: number
 }
 
-function calculateAnnualCosts(project: ProjectInput): AnnualCostChanges {
+function calculateAnnualCostChanges(project: ProjectInput): AnnualCostChanges {
 
-  const additionalCostsTotal = getAdditionalCosts(project).reduce((sum, item) => {
+  const otherExpensesCostTotal = project.otherExpenses.reduce((sum, item) => {
     if (item.frequency === 'One Time') {
       return sum
     }
     const annualCost = item.cost * getAnnualOccurence(item.frequency)
     return sum + annualCost
   }, 0)
+
+  const laborCostsTotal = project.laborCosts.reduce((sum, item) => {
+    if (item.frequency === 'One Time') {
+      return sum
+    }
+    const annualCost = item.cost * getAnnualOccurence(item.frequency)
+    return sum + annualCost
+  }, 0)
+
+  const additionalCostsTotal = otherExpensesCostTotal + laborCostsTotal
 
   const reusableProductCosts = project.reusableItems.reduce((sum, item) => {
     const oneTimeCost = item.caseCost * item.casesPurchased
@@ -57,17 +72,23 @@ function calculateAnnualCosts(project: ProjectInput): AnnualCostChanges {
 
   const utilities = project.dishwasher ? dishwasherAnnualCost(project.dishwasher, project.utilityRates) : 0
 
-  const wasteHauling = wasteHaulingAnnualCost(project)
+  const wasteHaulingBaseline = getBaselineWasteHaulingAnnualCost(project)
+  const wasteHaulingForecast = getForecastWasteHaulingAnnualCost(project)
+  const wasteHaulingChange = wasteHaulingForecast - wasteHaulingBaseline
 
-  const total = additionalCostsTotal + reusableProductCosts + singleUseProductChange + utilities + wasteHauling
+  const baseline = singleUseProductSummary.annualCost.baseline + wasteHaulingBaseline;
+  const followup = additionalCostsTotal + reusableProductCosts + singleUseProductSummary.annualCost.followup + utilities + wasteHaulingForecast
+  const total = additionalCostsTotal + reusableProductCosts + singleUseProductChange + utilities + wasteHaulingChange
 
   return {
     additionalCosts: additionalCostsTotal,
+    otherExpenses: otherExpensesCostTotal,
+    laborCosts: laborCostsTotal,
     reusableProductCosts,
     singleUseProductChange,
     utilities,
-    wasteHauling,
-    total: round(total, 2),
+    wasteHauling: round(wasteHaulingChange, 2),
+    ...getChangeSummaryRowRounded(baseline, followup),
   }
 }
 
@@ -127,10 +148,12 @@ export function dishwasherUtilityUsage(dishwasher: DishWasher) {
   return { electricUsage, gasUsage, waterUsage }
 }
 
-function wasteHaulingAnnualCost(project: ProjectInput) {
-  const baseWasteHaulingCost = project.wasteHauling.reduce((sum, item) => sum + item.monthlyCost, 0)
-  const newWasteHaulingCost = project.wasteHauling.reduce((sum, item) => sum + item.newMonthlyCost, 0)
-  return 12 * (newWasteHaulingCost - baseWasteHaulingCost)
+function getBaselineWasteHaulingAnnualCost(project: ProjectInput) {
+  return project.wasteHauling.reduce((sum, item) => sum + item.monthlyCost, 0) * 12
+}
+
+function getForecastWasteHaulingAnnualCost(project: ProjectInput) {
+  return project.wasteHauling.reduce((sum, item) => sum + item.newMonthlyCost, 0) * 12
 }
 
 /**
@@ -170,7 +193,7 @@ interface FinancialSummary {
 }
 
 function calculateSummary(project: ProjectInput): FinancialSummary {
-  const annualCost = calculateAnnualCosts(project).total
+  const annualCost = calculateAnnualCostChanges(project).change
   const oneTimeCost = calculateOneTimeCosts(project).total
 
   // =IF(E31<0,ROUND((E38/-E46)*12,1),"--")

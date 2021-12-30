@@ -12,7 +12,7 @@ export default function DashboardPage({ user }: LoggedinProps) {
 
   return (
     <>
-      <Dashboard title='Dashboard' user={user} />
+      <Dashboard title="Dashboard" user={user} />
     </>
   )
 }

@@ -32,4 +32,4 @@ export function getChangeSummaryRowRounded(baseline: number, followup: number): 
   }
 }
 
-export const formatToDollar = (value: number) => value.toLocaleString('en-US', { style: 'currency', currency: 'USD' })
+export const formatToDollar = (value: number) => value.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 })

@@ -6,6 +6,7 @@ import * as S from 'components/dashboard/projects/steps/styles'
 import { POST, PUT } from 'lib/http'
 import { useRouter } from 'next/router'
 import { DashboardUser } from 'components/dashboard'
+import FooterNavigator from 'components/footer-navigator'
 
 const ProjectTypes = ['Cafe/Cafeteria', 'Kitchenette/Employee Breakroom', 'Event Catering', 'Special Event (Venue)', 'Coffee Shop', 'Fast Casual Restaurant', 'Food Hall Stand', 'Other'] as const
 
@@ -149,6 +150,8 @@ export default function SetupPage({ user, project }: { user: DashboardUser; proj
           </Button>
         </Form.Item>
       </S.SetupForm>
+
+      <FooterNavigator nextStepLinkSuffix="/single-use" nextStepTitle="Single-use purchasing" />
     </S.Wrapper>
   )
 }
