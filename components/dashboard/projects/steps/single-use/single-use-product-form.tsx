@@ -44,6 +44,7 @@ function getFormValues(features: SelectedFeatureOptions, products: SingleUseProd
     .map(product => ({ name: product.size, id: product.size }))
     // find unique sizes since we are just grabbing them from list of products
     .filter((size, index, self) => self.findIndex(s => s.name === size.name) === index)
+    .sort((a, b) => parseInt(a.name, 10) - parseInt(b.name, 10))
   if (!features.Size && sizes.length === 1) {
     features.Size = sizes[0].id
   }
