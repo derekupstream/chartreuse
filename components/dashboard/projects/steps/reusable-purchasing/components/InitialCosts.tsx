@@ -1,5 +1,5 @@
 import { Col, Row, Typography } from 'antd'
-import { StyledCard } from '../../styles'
+import { InfoCard } from '../../styles'
 import { FC } from 'react'
 import { ReusableLineItem } from 'internal-api/calculator/types/projects'
 import { formatToDollar } from 'internal-api/calculator/utils'
@@ -14,7 +14,7 @@ const InitialCosts: FC<Props> = ({ item }) => {
   const annualCost = 12 * item.caseCost * item.casesPurchased
 
   return (
-    <StyledCard css="background: #ddd">
+    <InfoCard theme="baseline">
       <Row>
         <Col span={16}>
           <Typography.Title level={5}>Initial Costs</Typography.Title>
@@ -37,7 +37,7 @@ const InitialCosts: FC<Props> = ({ item }) => {
           </Typography.Text>
         </Col>
       </Row>
-    </StyledCard>
+    </InfoCard>
   )
 }
 

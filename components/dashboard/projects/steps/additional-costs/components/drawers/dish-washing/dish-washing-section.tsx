@@ -1,6 +1,5 @@
 import { PlusOutlined } from '@ant-design/icons'
-import { Button, Drawer, message, Popconfirm } from 'antd'
-import ForecastCard from 'components/forecast-card/forecast-card'
+import { Button, Col, Drawer, message, Popconfirm, Typography } from 'antd'
 import { useSimpleMutation, useSimpleQuery } from 'hooks/useSimpleQuery'
 import { useRouter } from 'next/router'
 import React, { useMemo, useState } from 'react'
@@ -8,6 +7,7 @@ import DishwashingFormDrawer from './dishwashing-form-drawer'
 import { AddBlock, Container, contentWrapperStyle, Placeholder, Subtitle } from '../../expense-block'
 import { Dishwasher } from '@prisma/client'
 import { SectionContainer, SectionData, SectionTitle } from '../../styles'
+import { InfoCard, InfoRow } from 'components/dashboard/projects/steps/styles'
 import styled from 'styled-components'
 import ContentLoader from 'components/content-loader'
 
@@ -71,48 +71,51 @@ const DishWashingSection = () => {
         Use this section to help calculate dishwashing energy and water costs. Energy and water rates are based on your <u>state average</u>.
       </Subtitle>
       {data?.dishwasher ? (
-        <SectionContainer>
-          <SectionData>
+        <InfoRow>
+          <Col span={16} flex-direction="column">
             <SectionTitle>{data.dishwasher.type}</SectionTitle>
+            <br />
             <Options>
-              {data.dishwasher.temperature}
-              {', '}
-              {data.dishwasher.energyStarCertified ? 'Energy star certified,' : null} {data.dishwasher.boosterWaterHeaterFuelType}{' '}
+              {data.dishwasher.temperature ? data.dishwasher.temperature + ' Temperature, ' : ''}
+              {data.dishwasher.energyStarCertified ? 'Energy star certified' : null} {data.dishwasher.boosterWaterHeaterFuelType} Fuel
             </Options>
+            <br />
             <Popconfirm title="Are you sure to delete this item?" onConfirm={onConfirmDelete} okText="Yes" cancelText="No">
               <a href="#">Delete</a>
             </Popconfirm>
-          </SectionData>
-          <ForecastCard borderTopColor="#5D798E">
-            <h4>Forecast</h4>
-            <table>
-              <thead>
-                <tr>
-                  <td>Annual usage</td>
-                  <td>Lbs. CO2/yr.</td>
-                  <td>Annual total</td>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>{data.stats.electricUsage}</td>
-                  <td>{pretifyValues(data.stats.electricCO2Weight)}</td>
-                  <td>$ {data.stats.electricCost.toFixed(2)}</td>
-                </tr>
-                <tr>
-                  <td>{data.stats.gasUsage}</td>
-                  <td>{pretifyValues(data.stats.gasCO2Weight)}</td>
-                  <td>$ {data.stats.gasCost.toFixed(2)}</td>
-                </tr>
-                <tr>
-                  <td>{data.stats.waterUsage}</td>
-                  <td>-</td>
-                  <td>$ {data.stats.waterCost.toFixed(2)}</td>
-                </tr>
-              </tbody>
-            </table>
-          </ForecastCard>
-        </SectionContainer>
+          </Col>
+          <Col span={8}>
+            <InfoCard theme="forecast">
+              <Typography.Title level={5}>Forecast</Typography.Title>
+              <table>
+                <thead>
+                  <tr>
+                    <td>Annual usage</td>
+                    <td>Lbs. CO2/yr.</td>
+                    <td>Annual total</td>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>{pretifyValues(data.stats.electricUsage)}</td>
+                    <td>{pretifyValues(data.stats.electricCO2Weight)}</td>
+                    <td>$ {data.stats.electricCost.toFixed(2)}</td>
+                  </tr>
+                  <tr>
+                    <td>{data.stats.gasUsage.toFixed(2)}</td>
+                    <td>{pretifyValues(data.stats.gasCO2Weight)}</td>
+                    <td>$ {data.stats.gasCost.toFixed(2)}</td>
+                  </tr>
+                  <tr>
+                    <td>{data.stats.waterUsage.toFixed(2)}</td>
+                    <td>-</td>
+                    <td>$ {data.stats.waterCost.toFixed(2)}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </InfoCard>
+          </Col>
+        </InfoRow>
       ) : (
         <>
           <AddBlock>

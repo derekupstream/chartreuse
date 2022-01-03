@@ -1,5 +1,5 @@
 import styled from 'styled-components'
-import { Card, Form, Radio, Typography } from 'antd'
+import { Card, Form, Radio, Row, Typography } from 'antd'
 
 export const Wrapper = styled.div`
   max-width: 1100px;
@@ -37,9 +37,58 @@ export const OptionSelection = styled(Radio.Group)`
   }
 `
 
-export const StyledCard = styled(Card)`
-  border-radius: 4px;
+type Props = {
+  theme: 'baseline' | 'forecast'
+}
+const COLORS: { [type in Props['theme']]: string } = {
+  baseline: '#767382',
+  forecast: '#5D798E',
+}
+
+// const InfoCard = styled.div<Props>`
+//   border-top: 8px solid ${props => COLORS[props.theme as Props['theme']]};
+//   background-color: white;
+//   border-radius: 8px;
+//   padding: 8px 16px;
+//   font-weight: normal;
+//   text-align: left;
+//   box-shadow: 0px 0px 12px rgba(0, 0, 0, 0.08);
+//   thead {
+//     font-weight: normal;
+//   }
+//   tbody {
+//     font-weight: 700;
+//   }
+//   td {
+//     font-size: 11px;
+//     line-height: 16px;
+//     padding-right: 20px;
+//   }
+// `
+
+export const InfoRow = styled(props => <Row gutter={[30, 30]} {...props} />)`
+  margin-bottom: 30px;
+`
+
+export const InfoCard = styled(Card)<{ theme?: Props['theme'] }>`
+  border-top: 8px solid ${props => COLORS[props.theme as Props['theme']] || 'white'};
+  box-shadow: 0px 0px 12px rgba(0, 0, 0, 0.08);
+  border-radius: 8px;
   height: 100%;
+  .ant-card-body {
+    padding: 16px;
+  }
+  thead {
+    font-weight: normal;
+  }
+  tbody {
+    font-weight: 700;
+  }
+  td {
+    font-size: 11px;
+    line-height: 16px;
+    padding-right: 20px;
+  }
 `
 
 export const CardTitle = styled(Typography.Text)`

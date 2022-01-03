@@ -1,11 +1,12 @@
-import { Button, Drawer, message, Popconfirm } from 'antd'
+import { Button, Col, Drawer, message, Popconfirm, Typography } from 'antd'
 import { useSimpleMutation, useSimpleQuery } from 'hooks/useSimpleQuery'
 import { useState } from 'react'
 import { AddBlock, Container, contentWrapperStyle, Placeholder, Subtitle } from '../../expense-block'
 import { SectionContainer, SectionData, SectionTitle } from '../../styles'
+import { InfoCard, InfoRow } from 'components/dashboard/projects/steps/styles'
+
 import { useRouter } from 'next/router'
 import { OtherExpense } from '@prisma/client'
-import ForecastCard from 'components/forecast-card/forecast-card'
 import { PlusOutlined } from '@ant-design/icons'
 import { formatToDollar } from 'internal-api/calculator/utils'
 import { OTHER_EXPENSES_FREQUENCIES } from 'internal-api/calculator/constants/other-expenses'
@@ -68,31 +69,33 @@ const OtherExpenseSection = () => {
       </SectionContainer>
       {data?.otherExpenses?.length ? (
         data.otherExpenses.map(additionalCost => (
-          <SectionContainer key={additionalCost.id}>
-            <SectionData>
+          <InfoRow key={additionalCost.id}>
+            <Col span={16}>
               <Subtitle>{additionalCost.description}</Subtitle>
               <Popconfirm title="Are you sure to delete this item?" onConfirm={() => onConfirmDelete(additionalCost.id)} okText="Yes" cancelText="No">
                 <a href="#">Delete</a>
               </Popconfirm>
-            </SectionData>
-            <ForecastCard borderTopColor="#5D798E">
-              <h4>Forecast</h4>
-              <table>
-                <thead>
-                  <tr>
-                    <td>Frequency</td>
-                    <td>Total</td>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td>{additionalCost.frequency}</td>
-                    <td>{formatToDollar(additionalCost.cost * getFrequencyInNumber(additionalCost.frequency))}</td>
-                  </tr>
-                </tbody>
-              </table>
-            </ForecastCard>
-          </SectionContainer>
+            </Col>
+            <Col span={8}>
+              <InfoCard theme="forecast">
+                <Typography.Title level={5}>Forecast</Typography.Title>
+                <table>
+                  <thead>
+                    <tr>
+                      <td>Frequency</td>
+                      <td>Total</td>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>{additionalCost.frequency}</td>
+                      <td>{formatToDollar(additionalCost.cost * getFrequencyInNumber(additionalCost.frequency))}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </InfoCard>
+            </Col>
+          </InfoRow>
         ))
       ) : (
         <AddBlock>

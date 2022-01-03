@@ -1,12 +1,12 @@
-import { Button, Drawer, message, Popconfirm } from 'antd'
+import { Button, Col, Drawer, message, Popconfirm, Typography } from 'antd'
 import { useSimpleMutation, useSimpleQuery } from 'hooks/useSimpleQuery'
 import { useEffect, useState } from 'react'
 import { AddBlock, Container, contentWrapperStyle, Placeholder, Subtitle } from '../../expense-block'
 import { SectionContainer, SectionData, SectionTitle } from '../../styles'
+import { InfoCard, InfoRow } from 'components/dashboard/projects/steps/styles'
 import { useRouter } from 'next/router'
 import { LaborCost } from '@prisma/client'
 import LaborFormDrawer from './labor-form-drawer'
-import ForecastCard from 'components/forecast-card/forecast-card'
 import { PlusOutlined } from '@ant-design/icons'
 import { formatToDollar } from 'internal-api/calculator/utils'
 import { OTHER_EXPENSES_FREQUENCIES } from 'internal-api/calculator/constants/other-expenses'
@@ -69,35 +69,37 @@ const LaborSection = () => {
       </SectionContainer>
       {data?.laborCosts?.length ? (
         data.laborCosts.map(labor => (
-          <SectionContainer key={labor.id}>
-            <SectionData>
+          <InfoRow key={labor.id}>
+            <Col span={16}>
               <Subtitle>{labor.description}</Subtitle>
               <Popconfirm title="Are you sure to delete this item?" onConfirm={() => onConfirmDelete(labor.id)} okText="Yes" cancelText="No">
                 <a href="#">Delete</a>
               </Popconfirm>
-            </SectionData>
-            <ForecastCard borderTopColor="#5D798E">
-              <h4>Forecast</h4>
-              <table>
-                <thead>
-                  <tr>
-                    <td>Frequency</td>
-                    <td></td>
-                    {/* <td>Weekly total</td> */}
-                    <td>Annual total</td>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td>{labor.frequency}</td>
-                    <td></td>
-                    {/* <td>{formatToDollar(labor.cost)}</td> */}
-                    <td>{formatToDollar(labor.cost * getFrequencyInNumber(labor.frequency))}</td>
-                  </tr>
-                </tbody>
-              </table>
-            </ForecastCard>
-          </SectionContainer>
+            </Col>
+            <Col span={8}>
+              <InfoCard theme="forecast">
+                <Typography.Title level={5}>Forecast</Typography.Title>
+                <table>
+                  <thead>
+                    <tr>
+                      <td>Frequency</td>
+                      <td></td>
+                      {/* <td>Weekly total</td> */}
+                      <td>Annual total</td>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>{labor.frequency}</td>
+                      <td></td>
+                      {/* <td>{formatToDollar(labor.cost)}</td> */}
+                      <td>{formatToDollar(labor.cost * getFrequencyInNumber(labor.frequency))}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </InfoCard>
+            </Col>
+          </InfoRow>
         ))
       ) : (
         <AddBlock>

@@ -29,7 +29,7 @@ const BaselineCard = ({ item }: { item: SingleUseItemRecord }) => {
   const annualOccurence = getAnnualOccurence(item.lineItem.frequency)
   const baselineTotal = annualOccurence * item.lineItem.caseCost * item.lineItem.casesPurchased
   return (
-    <S.StyledCard css="background: #ddd">
+    <S.InfoCard theme="baseline">
       <Row>
         <Col span={16}>
           <Typography.Title level={5}>Baseline</Typography.Title>
@@ -52,18 +52,18 @@ const BaselineCard = ({ item }: { item: SingleUseItemRecord }) => {
           </Typography.Text>
         </Col>
       </Row>
-    </S.StyledCard>
+    </S.InfoCard>
   )
 }
 
-const ForecastCard = ({ item }: { item: SingleUseItemRecord }) => {
+const InfoCard = ({ item }: { item: SingleUseItemRecord }) => {
   const annualOccurence = getAnnualOccurence(item.lineItem.frequency)
   const baselineTotal = annualOccurence * item.lineItem.caseCost * item.lineItem.casesPurchased
   const forecastTotal = annualOccurence * item.lineItem.newCaseCost * item.lineItem.newCasesPurchased
   const change = forecastTotal - baselineTotal
   const isNegativeChange = change < 0
   return (
-    <S.StyledCard css="background: #bbb">
+    <S.InfoCard theme="forecast">
       <Row>
         <Col span={10}>
           <Typography.Title level={5}>Forecast</Typography.Title>
@@ -99,7 +99,7 @@ const ForecastCard = ({ item }: { item: SingleUseItemRecord }) => {
           </Typography.Text>
         </Col>
       </Row>
-    </S.StyledCard>
+    </S.InfoCard>
   )
 }
 
@@ -120,7 +120,7 @@ const ItemRow = ({ item, onDelete }: { item: SingleUseItemRecord; onDelete: () =
   }
 
   return (
-    <Row gutter={10} css="margin: 2em 0">
+    <S.InfoRow>
       <Col span={8}>
         <Typography.Title level={5}>{item.product.description}</Typography.Title>
         <Popconfirm title="Are you sure to delete this item?" onConfirm={confirm} okText="Yes" cancelText="No">
@@ -131,9 +131,9 @@ const ItemRow = ({ item, onDelete }: { item: SingleUseItemRecord; onDelete: () =
         <BaselineCard item={item} />
       </Col>
       <Col span={8}>
-        <ForecastCard item={item} />
+        <InfoCard item={item} />
       </Col>
-    </Row>
+    </S.InfoRow>
   )
 }
 
@@ -153,7 +153,7 @@ const SummaryRow = ({ lineItems }: { lineItems: SingleUseLineItem[] }) => {
   const change = forecastCost - baselineCost
   const isChangeNegative = change < 0
   return (
-    <S.StyledCard css="background: #bbb">
+    <S.InfoCard>
       <Row>
         <Col span={8}>
           <Typography.Title level={4}>Total annual single-use purchasing</Typography.Title>
@@ -212,7 +212,7 @@ const SummaryRow = ({ lineItems }: { lineItems: SingleUseLineItem[] }) => {
           </Row>
         </Col>
       </Row>
-    </S.StyledCard>
+    </S.InfoCard>
   )
 }
 

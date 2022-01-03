@@ -1,11 +1,11 @@
 import { PlusOutlined } from '@ant-design/icons'
-import { Button, Drawer, message, Popconfirm, Row } from 'antd'
-import ForecastCard from 'components/forecast-card/forecast-card'
+import { Button, Col, Drawer, message, Popconfirm, Row, Typography } from 'antd'
 import { useRouter } from 'next/router'
 import React, { useState } from 'react'
 import { AddBlock, Container, contentWrapperStyle, Placeholder, Subtitle } from '../../expense-block'
 import { WasteHaulingCost } from '@prisma/client'
 import { SectionContainer, SectionData, SectionTitle } from '../../styles'
+import { InfoCard, InfoRow } from 'components/dashboard/projects/steps/styles'
 import styled from 'styled-components'
 import { formatToDollar } from 'internal-api/calculator/utils'
 import WasteHaulingFormDrawer from './waste-hauling-form-drawer'
@@ -90,16 +90,16 @@ const WasteHaulingSection = () => {
       </SectionContainer>
       {data?.wasteHaulingCosts?.length ? (
         data.wasteHaulingCosts.map(wasteHauling => (
-          <SectionContainer key={wasteHauling.id}>
-            <SectionData>
+          <InfoRow key={wasteHauling.id}>
+            <Col span={8}>
               <Subtitle>{wasteHauling.serviceType}</Subtitle>
               <Popconfirm title="Are you sure to delete this item?" onConfirm={() => onConfirmDelete(wasteHauling.id)} okText="Yes" cancelText="No">
                 <a href="#">Delete</a>
               </Popconfirm>
-            </SectionData>
-            <Row>
-              <ForecastCard borderTopColor="#1aD78E" css="margin-right: 16px;">
-                <h4>Baseline</h4>
+            </Col>
+            <Col span={8}>
+              <InfoCard theme="baseline">
+                <Typography.Title level={5}>Baseline</Typography.Title>
                 <table>
                   <thead>
                     <tr>
@@ -116,9 +116,11 @@ const WasteHaulingSection = () => {
                     </tr>
                   </tbody>
                 </table>
-              </ForecastCard>
-              <ForecastCard borderTopColor="#5D798E">
-                <h4>Forecast</h4>
+              </InfoCard>
+            </Col>
+            <Col span={8}>
+              <InfoCard theme="forecast">
+                <Typography.Title level={5}>Forecast</Typography.Title>
                 <table>
                   <thead>
                     <tr>
@@ -135,9 +137,9 @@ const WasteHaulingSection = () => {
                     </tr>
                   </tbody>
                 </table>
-              </ForecastCard>
-            </Row>
-          </SectionContainer>
+              </InfoCard>
+            </Col>
+          </InfoRow>
         ))
       ) : (
         <AddBlock>

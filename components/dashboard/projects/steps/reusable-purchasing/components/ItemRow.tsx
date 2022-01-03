@@ -2,6 +2,7 @@ import { Col, message, Popconfirm, Row, Typography } from 'antd'
 import { ReusableLineItem } from 'internal-api/calculator/types/projects'
 import { FC } from 'hoist-non-react-statics/node_modules/@types/react'
 import { DELETE } from 'lib/http'
+import { InfoRow as StyledInfoRow } from '../../styles'
 import InitialCosts from './InitialCosts'
 import Forecast from './Forecast'
 
@@ -29,7 +30,7 @@ const ItemRow: FC<Props> = ({ item, onDelete }) => {
   }
 
   return (
-    <Row gutter={10} css="margin: 2em 0">
+    <StyledInfoRow>
       <Col span={8}>
         <Typography.Title level={5}>{item.productName}</Typography.Title>
         <Popconfirm title="Are you sure to delete this item?" onConfirm={onClickConfirm} okText="Yes" cancelText="No">
@@ -42,7 +43,7 @@ const ItemRow: FC<Props> = ({ item, onDelete }) => {
       <Col span={8}>
         <Forecast item={item} />
       </Col>
-    </Row>
+    </StyledInfoRow>
   )
 }
 

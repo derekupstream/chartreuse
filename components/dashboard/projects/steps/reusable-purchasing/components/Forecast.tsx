@@ -1,5 +1,5 @@
 import { Col, Row, Typography } from 'antd'
-import { StyledCard } from '../../styles'
+import { InfoCard } from '../../styles'
 import { FC } from 'react'
 import { ReusableLineItem } from 'internal-api/calculator/types/projects'
 import { formatToDollar } from 'internal-api/calculator/utils'
@@ -12,7 +12,7 @@ const Forecast: FC<Props> = ({ item }) => {
   const annualCost = parseFloat('123').toFixed(2)
 
   return (
-    <StyledCard css="background: #bbb">
+    <InfoCard theme="forecast">
       <Row>
         <Col span={17}>
           <Typography.Title level={5}>Repurchase Forecast</Typography.Title>
@@ -45,7 +45,7 @@ const Forecast: FC<Props> = ({ item }) => {
           </Typography.Text>
         </Col>
       </Row>
-    </StyledCard>
+    </InfoCard>
   )
 }
 
