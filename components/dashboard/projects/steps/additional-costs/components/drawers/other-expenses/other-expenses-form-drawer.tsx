@@ -1,6 +1,6 @@
-import { OTHER_EXPENSES_CATEGORIES, OTHER_EXPENSES_FREQUENCIES } from 'internal-api/calculator/constants/other-expenses'
+import { OTHER_EXPENSES, OTHER_EXPENSES_CATEGORIES, OTHER_EXPENSES_FREQUENCIES } from 'internal-api/calculator/constants/other-expenses'
 import { OptionSelection } from '../../../../styles'
-import { Button, Form, Input } from 'antd'
+import { Button, Col, Form, Input, Popover, Row, Typography } from 'antd'
 import { requiredRule } from 'utils/forms'
 import { useSimpleMutation } from 'hooks/useSimpleQuery'
 import { OtherExpense } from '@prisma/client'
@@ -39,6 +39,13 @@ const OtherExpensesFormDrawer: React.FC<Props> = ({ onClose }) => {
 
   return (
     <Form form={form} layout="vertical" onFinish={handleSubmit} css="padding-bottom: 24px;">
+      <p>
+        For additional details on how to categorize your expenses,{' '}
+        <Popover content={OtherExpensesDetails} placement="bottom" trigger="click">
+          <a href="#">view help</a>
+        </Popover>
+        .
+      </p>
       <FormItem label="Category" name="categoryId" rules={requiredRule}>
         <OptionSelection options={categoryOptions} optionType="button" />
       </FormItem>
@@ -55,6 +62,22 @@ const OtherExpensesFormDrawer: React.FC<Props> = ({ onClose }) => {
         Add expense
       </Button>
     </Form>
+  )
+}
+
+const OtherExpensesDetails = () => {
+  return (
+    <div css="max-width: 900px; padding: 8px;">
+      <Typography.Title level={4}>Additional expense category help</Typography.Title>
+      <Row gutter={[10, 20]}>
+        {OTHER_EXPENSES.map(expense => (
+          <>
+            <Col span={12}>{expense.name}</Col>
+            <Col span={12}>{expense.description}</Col>
+          </>
+        ))}
+      </Row>
+    </div>
   )
 }
 

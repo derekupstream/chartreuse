@@ -67,7 +67,7 @@ const reusableItems: ReusableLineItem[] = [{ categoryId: '1', projectId, product
 const otherExpenses: OtherExpense[] = [
   { projectId, cost: 80, frequency: 'Daily', categoryId: '3' },
   { projectId, cost: 5000, frequency: 'One Time', categoryId: '2' },
-  { projectId, cost: 5000, frequency: 'One Time', categoryId: '6' },
+  { projectId, cost: 5000, frequency: 'One Time', categoryId: '3' },
 ]
 
 const dishwasher: DishWasher = {
