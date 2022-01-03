@@ -9,6 +9,11 @@ module.exports = withPlugins([withLess, removeImports], {
   async redirects() {
     return [
       {
+        source: '/',
+        destination: '/projects',
+        permanent: false,
+      },
+      {
         source: '/projects/:projectId',
         destination: '/projects/:projectId/setup',
         permanent: true,
