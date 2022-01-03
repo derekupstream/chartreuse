@@ -55,7 +55,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         const invite = ((account as any).invites || []).find((i: Invite) => i.email === email)
 
         await mailgun.messages().send({
-          from: 'Chartreuse <mattwad@gmail.com@gmail.com>',
+          from: 'Chartreuse <hello@chartreuse.eco>',
           to: email,
           subject: `Invite from ${invite.sentBy.name} to join ReuseIT`,
           template: 'invite',
