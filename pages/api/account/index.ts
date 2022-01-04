@@ -1,77 +1,76 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
+import nc from 'next-connect'
 import prisma from 'lib/prisma'
 import mailgun from 'lib/mailgun'
 import { Prisma, Account, Invite } from '@prisma/client'
+import { onError, onNoMatch, getUser, NextApiRequestWithUser } from 'lib/middleware'
+
+const handler = nc<NextApiRequest, NextApiResponse>({ onError, onNoMatch })
+
+handler.use(getUser).post(createAccount)
 
 type Response = {
-  account?: Account
-  error?: string
+  account: Account
 }
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse<Response>) {
-  if (req.method === 'POST') {
-    try {
-      const { name, email, useOrgEmail, orgId, userId } = req.body
+async function createAccount (req: NextApiRequestWithUser, res: NextApiResponse<Response>) {
 
-      const account = await prisma.account.create<Prisma.AccountCreateArgs>({
-        data: {
-          name,
-          accountContactEmail: email,
-          org: {
-            connect: {
-              id: orgId,
-            },
-          },
-          ...(useOrgEmail
-            ? {}
-            : {
-                invites: {
-                  create: [
-                    {
-                      email,
-                      sentByUserId: userId,
-                    },
-                  ],
+  const { name, email, useOrgEmail } = req.body
+
+  const account = await prisma.account.create<Prisma.AccountCreateArgs>({
+    data: {
+      name,
+      accountContactEmail: email,
+      org: {
+        connect: {
+          id: req.user.orgId,
+        },
+      },
+      ...(useOrgEmail
+        ? {}
+        : {
+            invites: {
+              create: [
+                {
+                  email,
+                  sentByUserId: req.user.id,
                 },
-              }),
+              ],
+            },
+          }),
+    },
+    include: {
+      invites: {
+        where: {
+          email,
         },
         include: {
-          invites: {
-            where: {
-              email,
-            },
+          sentBy: {
             include: {
-              sentBy: {
-                include: {
-                  org: true,
-                },
-              },
+              org: true,
             },
           },
         },
-      })
+      },
+    },
+  })
 
-      if (!useOrgEmail) {
-        const invite = ((account as any).invites || []).find((i: Invite) => i.email === email)
-
-        await mailgun.messages().send({
-          from: 'Chartreuse <hello@chartreuse.eco>',
-          to: email,
-          subject: `Invite from ${invite.sentBy.name} to join ReuseIT`,
-          template: 'invite',
-          'v:inviterName': invite.sentBy.name,
-          'v:inviterJobTitle': invite.sentBy.title,
-          'v:inviterOrg': invite.sentBy.org.name,
-          'v:inviteUrl': `${req.headers.origin}/accept?inviteId=${invite.id}`,
-        })
-      }
-
-      return res.status(200).json({ account })
-    } catch (error: any) {
-      return res.status(500).json({ error: error.message })
-    }
+  if (!useOrgEmail) {
+    const invite = ((account as any).invites || []).find((i: Invite) => i.email === email)
+    console.log('send invite');
+    await mailgun.messages().send({
+      from: 'Chartreuse <hello@chartreuse.eco>',
+      to: email,
+      subject: `Invite from ${invite.sentBy.name} to join ReuseIT`,
+      template: 'invite',
+      'v:inviterName': invite.sentBy.name,
+      'v:inviterJobTitle': invite.sentBy.title,
+      'v:inviterOrg': invite.sentBy.org.name,
+      'v:inviteUrl': `${req.headers.origin}/accept?inviteId=${invite.id}`,
+    })
   }
 
-  // Handle any other HTTP method
-  return res.status(405).json({ error: 'Method not allowed' })
+  return res.status(200).json({ account })
 }
+
+export default handler

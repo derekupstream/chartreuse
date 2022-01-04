@@ -30,7 +30,9 @@ export const AuthProvider: React.FC = ({ children }) => {
   const [user, setUser] = useState<User | null>(null)
 
   useEffect(() => {
+    console.log('subscribe to onIdTokenChanged')
     const unsubscribe = firebase.auth().onIdTokenChanged(async (user: User | null) => {
+      console.log('onIdTokenChanged user exists:', !!user);
       if (!user) {
         setUser(null)
         destroyCookie(null, 'token')
@@ -39,6 +41,7 @@ export const AuthProvider: React.FC = ({ children }) => {
 
       setUser(user)
       const token = await user.getIdToken()
+      console.log('getIdToken', token);
       setCookie(null, 'token', token, {
         path: '/',
       })

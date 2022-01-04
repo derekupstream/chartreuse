@@ -29,12 +29,12 @@ export default function AccountSetupForm({ onSubmit, isLoading }: Props) {
     <S.Wrapper>
       <S.AccountSetupForm form={form} name="accountSetup" layout="vertical" onFinish={onSubmit}>
         <Form.Item
-          label="Account Company Name"
+          label="Account Name"
           name="name"
           rules={[
             {
               required: true,
-              message: 'Please input the company name!',
+              message: 'Please input the account name!',
             },
           ]}
         >
@@ -59,7 +59,7 @@ export default function AccountSetupForm({ onSubmit, isLoading }: Props) {
         </Form.Item>
 
         <Form.Item name="useOrgEmail" valuePropName="checked">
-          <Checkbox onChange={handleUseOrgEmailChange}>Use your organization contact email for this account.</Checkbox>
+          <Checkbox onChange={handleUseOrgEmailChange}>Use your contact email for this account.</Checkbox>
         </Form.Item>
 
         <Form.Item>

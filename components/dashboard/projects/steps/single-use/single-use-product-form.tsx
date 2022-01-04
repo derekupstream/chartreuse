@@ -161,6 +161,9 @@ export default function SelectProductStep({ input, onSubmit, products }: { input
 
   return (
     <Form layout="vertical">
+      <p>
+        Select a product from our single-use product database. If a close match doesn&apos;t exist in the system, please contact Upstream.
+      </p>
       {PRODUCT_FEATURES.map(option => (
         <FeatureSelect value={selected[option.title]} key={option.title} items={options[option.title]} feature={option.title} onSelect={onSelect} />
       ))}
@@ -170,6 +173,7 @@ export default function SelectProductStep({ input, onSubmit, products }: { input
           {'Next >'}
         </Button>
       </S.BoxEnd>
+
     </Form>
   )
 }

@@ -18,7 +18,7 @@ export default function Members({ user }: LoggedinProps) {
       },
     })
   })
-
+  console.log(user.org.accounts)
   const handleAccountDeletion = useCallback(
     (id: string) => {
       deleteAccount.mutate(id, {
@@ -48,6 +48,7 @@ export default function Members({ user }: LoggedinProps) {
       title: 'Email',
       dataIndex: 'email',
       key: 'email',
+      sorter: (a: { email: string }, b: { email: string }) => a.email.toLowerCase() < b.email.toLowerCase() ? -1 : 1,
     },
     {
       title: 'Job title',
@@ -62,6 +63,13 @@ export default function Members({ user }: LoggedinProps) {
       title: 'Account',
       dataIndex: 'account',
       key: 'account',
+      filters: user.org.accounts.map(account => ({
+        text: account.name,
+        value: account.id
+      })),
+      onFilter: (value: string, record: { accountId: string }) => record.accountId === value,
+      defaultSortOrder: 'ascend',
+      sorter: (a: { account: string }, b: { account: string }) => a.account.toLowerCase() < b.account.toLowerCase() ? -1 : 1,
     },
     {
       title: 'Status',
@@ -117,6 +125,7 @@ export default function Members({ user }: LoggedinProps) {
             email: user.email,
             jobTitle: user.title,
             account: user.account.name,
+            accountId: user.account.id,
             status: invitingPending ? 'Pending' : 'Active',
             invitingPending,
           }
@@ -130,6 +139,7 @@ export default function Members({ user }: LoggedinProps) {
               email: invite.email,
               jobTitle: '',
               account: invite.account.name,
+              accountId: invite.account.id,
               status: 'Pending',
               invitingPending: true,
             }))
@@ -149,6 +159,7 @@ export default function Members({ user }: LoggedinProps) {
           Add user
         </Button>
       </S.SpaceBetween>
+      {/* @ts-ignore */}
       {data.length > 0 && <Table columns={columns} dataSource={data} pagination={false} />}
       {data.length === 0 && <Typography.Text>You have no users in your account. Click ‘+ Add user’ above to get started.</Typography.Text>}
     </Space>

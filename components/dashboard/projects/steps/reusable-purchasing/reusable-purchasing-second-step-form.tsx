@@ -16,8 +16,8 @@ const ReusablePurchasingSecondStepForm: FC<Props> = props => {
 
   return (
     <div>
-      <Typography.Title level={2}>Estimate annual reusable re-purchasing rate</Typography.Title>
-      <p>You’ll occassionally need to replenish your reusable stock due to product loss (breakage, damage, loss, etc.). Calculate your re-purchase rate by ___________________________.</p>
+      <Typography.Title level={2}>Estimate annual reusable re-purchasing needed</Typography.Title>
+      <p>You will occasionally need to replenish reusable stock due to loss, damage, or breakage. Estimate the number of cases you will need to re-purchase.</p>
       <Typography.Title level={3}>{form.productName}</Typography.Title>
       <Form layout="vertical" onFinish={onPressSubmit}>
         <Form.Item label="Cases Annually" name="annualRepurchasePercentage" rules={[{ required: true, message: 'This field is required' }]}>

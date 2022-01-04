@@ -133,7 +133,7 @@ export default function SetupPage({ user, project }: { user: DashboardUser; proj
           />
         </Form.Item>
 
-        <Form.Item label="Where is the food is primarily prepared?" name="whereIsFoodPrepared">
+        <Form.Item label="Where is the food primarily prepared?" name="whereIsFoodPrepared">
           <S.RadioGroup
             style={{ width: '100%' }}
             options={WhereFoodIsPrepared.map(wfp => ({

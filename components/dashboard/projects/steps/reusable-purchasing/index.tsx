@@ -133,7 +133,7 @@ export default function ReusablePurchasing() {
             )
           })}
           <Drawer
-            title={formStep === 1 ? 'Add a reusable replacement item' : 'Estimate annual reusable re-purchasing rate'}
+            title={formStep === 1 ? 'Add a reusable replacement item' : 'Estimate annual reusable re-purchasing needed'}
             placement="right"
             onClose={closeDrawer}
             visible={isDrawerVisible}

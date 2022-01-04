@@ -26,7 +26,7 @@ export default function ProjectLayout({ children, project, currentStepIndex, ...
             <ArrowLeftOutlined />
             Back to projects
           </Button>
-          <Typography.Title level={4}>{project?.name}</Typography.Title>
+          <Typography.Title level={3} css='margin-bottom: 5px !important; color: #2bbe50 !important'>{project?.name}</Typography.Title>
         </div>
         <S.Steps
           current={currentStepIndex}

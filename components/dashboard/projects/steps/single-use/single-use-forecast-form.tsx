@@ -51,7 +51,7 @@ export default function SelectQuantityForecastStep({
   return (
     <Form form={form} layout="vertical" onFieldsChange={handleFormChange} onFinish={_onSubmit}>
       <p>
-        A forecast estimates the savings realized by reducing, or eliminating purchasing of a single-use item. You can also add actual purchasing data to view your savings and reductions over time.
+        Set your project goals by forecasting estimated savings realized by reducing, or eliminating purchase of single-use item(s). Later, post reuse implementation, users go back in to report actuals to see how progress compares to originally set goals.
       </p>
       <Typography.Title level={4}>{productName}</Typography.Title>
 

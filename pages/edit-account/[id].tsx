@@ -128,11 +128,11 @@ export default function EditAccount({ org }: Props) {
 
   return (
     <>
-      <Header title="Edit Company Account" />
+      <Header title="Edit Account" />
 
       <main>
         <FormPageTemplate
-          title="Edit company account"
+          title="Edit account"
           navBackLink={
             <Link href="/">
               <a>

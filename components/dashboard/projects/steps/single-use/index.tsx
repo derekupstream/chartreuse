@@ -286,8 +286,7 @@ export default function SingleUse({ project }: ServerSideProps) {
       ) : (
         <>
           <Typography.Title level={5}>
-            Next: Create an inventory of all single-use items you purchase regularly. If a close match doesn&apos;t exist in the system, please contact Upstream to add to the single-use product
-            database.
+            Create an inventory of all single-use items you purchase regularly.
           </Typography.Title>
           <div css="margin: 2em 0;">
             <Button type="primary" onClick={addItem} icon={<PlusOutlined />}>

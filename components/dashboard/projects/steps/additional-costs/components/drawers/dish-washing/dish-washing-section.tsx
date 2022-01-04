@@ -58,7 +58,7 @@ const DishWashingSection = () => {
     })
   }
 
-  const pretifyValues = (value: number) => value.toFixed(3).replace('.', ',')
+  const pretifyValues = (value: number) => value.toLocaleString(undefined, { maximumFractionDigits: 2 })
 
   if (isLoading) {
     return <ContentLoader />
@@ -99,17 +99,17 @@ const DishWashingSection = () => {
                   <tr>
                     <td>{pretifyValues(data.stats.electricUsage)}</td>
                     <td>{pretifyValues(data.stats.electricCO2Weight)}</td>
-                    <td>$ {data.stats.electricCost.toFixed(2)}</td>
+                    <td>$ {data.stats.electricCost.toLocaleString(undefined, { maximumFractionDigits: 2 })}</td>
                   </tr>
                   <tr>
-                    <td>{data.stats.gasUsage.toFixed(2)}</td>
+                    <td>{data.stats.gasUsage.toLocaleString(undefined, { maximumFractionDigits: 2 })}</td>
                     <td>{pretifyValues(data.stats.gasCO2Weight)}</td>
-                    <td>$ {data.stats.gasCost.toFixed(2)}</td>
+                    <td>$ {data.stats.gasCost.toLocaleString(undefined, { maximumFractionDigits: 2 })}</td>
                   </tr>
                   <tr>
-                    <td>{data.stats.waterUsage.toFixed(2)}</td>
+                    <td>{data.stats.waterUsage.toLocaleString(undefined, { maximumFractionDigits: 2 })}</td>
                     <td>-</td>
-                    <td>$ {data.stats.waterCost.toFixed(2)}</td>
+                    <td>$ {data.stats.waterCost.toLocaleString(undefined, { maximumFractionDigits: 2 })}</td>
                   </tr>
                 </tbody>
               </table>

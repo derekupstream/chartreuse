@@ -88,17 +88,16 @@ export default function AccountSetup({ org, user }: Props) {
         {
           name,
           email,
-          useOrgEmail,
-          orgId: org.id,
-          userId: user.id,
+          useOrgEmail
         },
         {
           onSuccess: () => {
             if (!useOrgEmail) {
               message.success('Account contact invited.')
+              router.push('/accounts')
             } else {
               // send user to first step of the calculator
-              router.push('/projects/new')
+              router.push('/projects')
             }
           },
           onError: err => {
@@ -120,7 +119,7 @@ export default function AccountSetup({ org, user }: Props) {
 
       <main>
         <FormPageTemplate
-          title="Setup a company account"
+          title="Set up an account"
           subtitle="Create an account for any of your clients. Don’t have client accounts? You can use your organization information for the account section."
           navBackLink={
             fromDashboard ? (

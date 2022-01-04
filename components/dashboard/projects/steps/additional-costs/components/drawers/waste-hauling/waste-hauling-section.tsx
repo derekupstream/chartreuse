@@ -149,10 +149,10 @@ const WasteHaulingSection = () => {
           <Placeholder>You have no waste hauling entries yet. Click &apos;+ Add expense&apos; above to get started.</Placeholder>
         </AddBlock>
       )}
-      <Drawer title="Add Current Waste Hauling Service" onClose={onCloseForms} visible={isDrawerVisible} contentWrapperStyle={contentWrapperStyle} destroyOnClose>
+      <Drawer title="Add current monthly waste hauling service fees" onClose={onCloseForms} visible={isDrawerVisible} contentWrapperStyle={contentWrapperStyle} destroyOnClose>
         <WasteHaulingFormDrawer onClose={onCloseFirstForm} />
       </Drawer>
-      <Drawer title="Add Forecast for Waste Hauling Service" onClose={onCloseForms} visible={isSecondDrawerVisible} contentWrapperStyle={contentWrapperStyle} destroyOnClose>
+      <Drawer title="Add forecast for monthly waste hauling service fees" onClose={onCloseForms} visible={isSecondDrawerVisible} contentWrapperStyle={contentWrapperStyle} destroyOnClose>
         <WasteHaulingSecondFormDrawer onClose={onCloseSecondForm} />
       </Drawer>
     </Container>
