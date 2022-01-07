@@ -2,9 +2,10 @@ import { Project } from '.prisma/client'
 import { DashboardUser } from 'components/dashboard'
 import { Button, Space, Steps, Typography } from 'antd'
 import { ArrowLeftOutlined } from '@ant-design/icons'
-import Template from './dashboardLayout'
+import BaseLayout from './baseLayout'
 import * as S from 'components/dashboard/styles'
 import { useRouter } from 'next/router'
+import CalculatorFooter, { FooterProvider } from 'components/calculator/footer'
 
 type Props = {
   currentStepIndex: number
@@ -19,39 +20,36 @@ export default function ProjectLayout({ children, project, currentStepIndex, ...
   const router = useRouter()
 
   return (
-    <Template {...pageProps} selectedMenuItem='projects'>
-      <Space direction='vertical' size='large' style={{ width: '100%' }}>
-        <div css='display: flex; justify-content: space-between'>
-          <Button type='text' href='/projects'>
-            <ArrowLeftOutlined />
-            Back to projects
-          </Button>
-          <Typography.Title level={3} css='margin-bottom: 5px !important; color: #2bbe50 !important'>{project?.name}</Typography.Title>
-        </div>
-        <S.Steps
-          current={currentStepIndex}
-          onChange={(id: number) => {
-            router.push(`/projects/${project!.id}/${routes[id]}`)
-          }}
-        >
-          <Steps.Step title='Step 1' description='Setup' />
-          <Steps.Step title='Step 2' description='Single-use purchasing' />
-          <Steps.Step title='Step 3' description='Reusables purchasing' />
-          <Steps.Step title='Step 4' description='Additional costs' />
-          <Steps.Step title='Step 5' description='Savings projections' />
-        </S.Steps>
-      </Space>
-      {children}
-    </Template>
+    <BaseLayout {...pageProps} selectedMenuItem='projects'>
+      <FooterProvider>
+        <S.ContentContainer>
+          <S.Content>
+            <Space direction='vertical' size='large' style={{ width: '100%' }}>
+              <div css='display: flex; justify-content: space-between'>
+                <Button type='text' href='/projects'>
+                  <ArrowLeftOutlined />
+                  Back to projects
+                </Button>
+                <Typography.Title level={3} css='margin-bottom: 5px !important; color: #2bbe50 !important'>{project?.name}</Typography.Title>
+              </div>
+              <S.Steps
+                current={currentStepIndex}
+                onChange={(id: number) => {
+                  router.push(`/projects/${project!.id}/${routes[id]}`)
+                }}
+              >
+                <Steps.Step title='Step 1' description='Setup' />
+                <Steps.Step title='Step 2' description='Single-use purchasing' />
+                <Steps.Step title='Step 3' description='Reusables purchasing' />
+                <Steps.Step title='Step 4' description='Additional costs' />
+                <Steps.Step title='Step 5' description='Savings projections' />
+              </S.Steps>
+            </Space>
+            {children}
+          </S.Content>
+        </S.ContentContainer>
+        <CalculatorFooter />
+      </FooterProvider>
+    </BaseLayout>
   )
 }
-
-// const StepMenuItem = ({ title: string, href: string, description: string, icon: React.ReactNode }) => (
-//   <Steps.Step
-//     title={
-//       <Link to='/workshop/client-portal/stage/file-management/people'>
-//         <Dataset.Icon type='people' /> People
-//       </Link>
-//     }
-//   />
-// );

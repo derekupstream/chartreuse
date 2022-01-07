@@ -1,7 +1,7 @@
-import { OTHER_EXPENSES, OTHER_EXPENSES_FREQUENCIES } from 'internal-api/calculator/constants/other-expenses'
-import { FREQUENCIES } from 'internal-api/calculator/constants/frequency'
-import { LABOR_CATEGORIES } from 'internal-api/calculator/constants/labor-categories'
-import { SERVICE_TYPES, WASTE_STREAMS } from 'internal-api/calculator/constants/waste-hauling'
+import { OTHER_EXPENSES, OTHER_EXPENSES_FREQUENCIES } from 'lib/calculator/constants/other-expenses'
+import { FREQUENCIES } from 'lib/calculator/constants/frequency'
+import { LABOR_CATEGORIES } from 'lib/calculator/constants/labor-categories'
+import { SERVICE_TYPES, WASTE_STREAMS } from 'lib/calculator/constants/waste-hauling'
 import { z } from 'zod'
 
 export const CreateOtherExpenseValidator = z.object({

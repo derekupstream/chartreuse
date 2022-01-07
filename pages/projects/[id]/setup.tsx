@@ -3,7 +3,7 @@ import { getProjectContext, ProjectContext } from 'lib/middleware'
 import { Project } from '@prisma/client'
 import ProjectLayout from 'layouts/projectLayout'
 import { DashboardUser } from 'components/dashboard'
-import ProjectSetup from 'components/dashboard/projects/steps/setup'
+import ProjectSetup from 'components/calculator/setup'
 
 export const getServerSideProps: GetServerSideProps = async context => {
   const result = await getProjectContext(context)

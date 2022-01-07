@@ -5,9 +5,9 @@ import { Dishwasher as PrismaDishwasher, Prisma } from '.prisma/client'
 import prisma from 'lib/prisma'
 import { validateProject } from 'lib/middleware/validateProject'
 import { DishWasherValidator } from 'lib/validators'
-import { dishwasherUtilityUsage, dishwasherAnnualCostBreakdown } from 'internal-api/calculator/outputs/financial-results'
-import { DishWasher } from 'internal-api/calculator/types/projects'
-import { getUtilityGasEmissions } from 'internal-api/calculator/outputs/environmental-results'
+import { dishwasherUtilityUsage, dishwasherAnnualCostBreakdown } from 'lib/calculator/outputs/financial-results'
+import { DishWasher } from 'lib/calculator/types/projects'
+import { getUtilityGasEmissions } from 'lib/calculator/outputs/environmental-results'
 
 const handler = nc<NextApiRequest, NextApiResponse>({ onError, onNoMatch })
 

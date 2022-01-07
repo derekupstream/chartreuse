@@ -1,19 +1,19 @@
-import Projections from 'components/calculator/projections'
 import ProjectLayout from 'layouts/projectLayout'
 import { getProjectContext, ProjectContext } from 'lib/middleware'
 import { GetServerSideProps } from 'next'
+import SingleUse from 'components/calculator/single-use'
 
 export const getServerSideProps: GetServerSideProps = async context => {
   const result = await getProjectContext(context)
   return result
 }
 
-function ProjectionsPage({ project, user }: ProjectContext) {
+function SingleUsePage({ project, user }: ProjectContext) {
   return (
-    <ProjectLayout currentStepIndex={4} project={project} title={`${project.name} - Projections`} user={user}>
-      <Projections projectId={project.id} projectTitle={project.name} />
+    <ProjectLayout currentStepIndex={1} project={project} title={`${project.name} - Single Use Items`} user={user}>
+      <SingleUse project={project!} user={user} />
     </ProjectLayout>
   )
 }
 
-export default ProjectionsPage
+export default SingleUsePage

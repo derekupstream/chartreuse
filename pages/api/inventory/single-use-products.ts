@@ -1,4 +1,4 @@
-import { getProducts } from 'internal-api/calculator/datasets/single-use-products'
+import { getProducts } from 'lib/calculator/datasets/single-use-products'
 import { NextApiRequest, NextApiResponse } from 'next'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {

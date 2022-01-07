@@ -2,7 +2,7 @@ import nc from 'next-connect'
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { onError, onNoMatch, getUser, NextApiRequestWithUser } from 'lib/middleware'
 import { validateProject } from 'lib/middleware/validateProject'
-import { getProjections, ProjectionsResponse } from 'internal-api/calculator'
+import { getProjections, ProjectionsResponse } from 'lib/calculator'
 
 const handler = nc<NextApiRequest, NextApiResponse>({ onError, onNoMatch })
 
