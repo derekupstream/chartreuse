@@ -49,7 +49,7 @@ const ReusablePurchasingFirstStepForm: React.FC<Props> = ({ onPressNext }) => {
       <S.BoxEnd>
         <div></div>
         <Button htmlType="submit" type="primary">
-          {'Next >'}
+          {'Next'}
         </Button>
       </S.BoxEnd>
     </Form>

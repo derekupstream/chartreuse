@@ -48,7 +48,7 @@ const DashboardTemplate: React.FC<DashboardProps> = ({ user, selectedMenuItem, t
     <>
       <Header title={title} />
       <GlobalStyles />
-      <Layout>
+      <Layout style={{ display: 'flex', minHeight: '100vh' }}>
         <S.LayoutHeader>
           <S.LogoAndMenuWrapper>
             <Image src={Logo} alt='Chareuse logo' objectFit='contain' />
@@ -63,6 +63,9 @@ const DashboardTemplate: React.FC<DashboardProps> = ({ user, selectedMenuItem, t
             <Dropdown
               overlay={
                 <Menu theme='light'>
+                <Menu.Item>
+                  <a href='https://chartreuse.eco'>Help</a>
+                </Menu.Item>
                   <Menu.Item>
                     <a onClick={handleLogout}>Logout</a>
                   </Menu.Item>

@@ -1,12 +1,12 @@
 import { PlusOutlined } from '@ant-design/icons'
-import { Button, Col, Drawer, message, Popconfirm, Typography } from 'antd'
+import { Button, Col, Divider, Drawer, message, Popconfirm, Typography } from 'antd'
 import { useSimpleMutation, useSimpleQuery } from 'hooks/useSimpleQuery'
 import { useRouter } from 'next/router'
 import React, { useMemo, useState } from 'react'
 import DishwashingFormDrawer from './dishwashing-form-drawer'
-import { AddBlock, Container, contentWrapperStyle, Placeholder, Subtitle } from '../../expense-block'
+import { AddBlock, Container, contentWrapperStyle, Placeholder, Subtitle } from '../expense-block'
 import { Dishwasher } from '@prisma/client'
-import { SectionContainer, SectionData, SectionTitle } from '../../styles'
+import { SectionContainer, SectionData, SectionTitle } from '../styles'
 import { InfoCard, InfoRow } from 'components/calculator/styles'
 import styled from 'styled-components'
 import ContentLoader from 'components/content-loader'
@@ -67,9 +67,10 @@ const DishWashingSection = () => {
   return (
     <Container>
       <SectionTitle>Dishwashing</SectionTitle>
-      <Subtitle>
+      <Typography.Title level={5}>
         Use this section to help calculate dishwashing energy and water costs. Energy and water rates are based on your <u>state average</u>.
-      </Subtitle>
+      </Typography.Title>
+      <Divider />
       {data?.dishwasher ? (
         <InfoRow>
           <Col span={16} flex-direction="column">
@@ -90,7 +91,7 @@ const DishWashingSection = () => {
               <table>
                 <thead>
                   <tr>
-                    <td>Annual usage</td>
+                    <td>Annual usage (kWh)</td>
                     <td>Lbs. CO2/yr.</td>
                     <td>Annual total</td>
                   </tr>
@@ -119,10 +120,10 @@ const DishWashingSection = () => {
       ) : (
         <>
           <AddBlock>
-            <Button onClick={onClick} icon={<PlusOutlined />}>
-              Add expense
+            <Button onClick={onClick} icon={<PlusOutlined />} type="primary" style={{ paddingRight: '4em', paddingLeft: '4em' }}>
+              Add dishwashing
             </Button>
-            <Placeholder>You have no dishwashing entries yet. Click &apos;+ Add expense&apos; above to get started.</Placeholder>
+            <Placeholder>You have no dishwashing entries yet. Click &apos;+ Add dishwashing&apos; above to get started.</Placeholder>
           </AddBlock>
           <Drawer title="Add dishwashing expense" onClose={onCloseDrawer} visible={isDrawerVisible} contentWrapperStyle={contentWrapperStyle} destroyOnClose>
             <DishwashingFormDrawer onClose={onSubmit} />

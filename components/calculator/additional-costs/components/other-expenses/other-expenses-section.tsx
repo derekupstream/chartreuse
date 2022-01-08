@@ -1,8 +1,8 @@
-import { Button, Col, Drawer, message, Popconfirm, Typography } from 'antd'
+import { Button, Col, Divider, Drawer, message, Popconfirm, Typography } from 'antd'
 import { useSimpleMutation, useSimpleQuery } from 'hooks/useSimpleQuery'
 import { useState } from 'react'
-import { AddBlock, Container, contentWrapperStyle, Placeholder, Subtitle } from '../../expense-block'
-import { SectionContainer, SectionData, SectionTitle } from '../../styles'
+import { AddBlock, Container, contentWrapperStyle, Placeholder, Subtitle } from '../expense-block'
+import { SectionContainer, SectionData, SectionTitle } from '../styles'
 import { InfoCard, InfoRow } from 'components/calculator/styles'
 
 import { useRouter } from 'next/router'
@@ -60,13 +60,14 @@ const OtherExpenseSection = () => {
   return (
     <Container>
       <SectionContainer>
-        <SectionTitle>Other expenses</SectionTitle>
+        <SectionTitle>Other cost impacts</SectionTitle>
         {!!data?.otherExpenses?.length && (
-          <Button onClick={onClickAddExpense} icon={<PlusOutlined />}>
-            Add item
+          <Button onClick={onClickAddExpense} icon={<PlusOutlined />} type="primary" style={{ paddingRight: '4em', paddingLeft: '4em' }}>
+            Add cost impact
           </Button>
         )}
       </SectionContainer>
+      <Divider />
       {data?.otherExpenses?.length ? (
         data.otherExpenses.map(additionalCost => (
           <InfoRow key={additionalCost.id}>
@@ -79,11 +80,11 @@ const OtherExpenseSection = () => {
             <Col span={8}>
               <InfoCard theme="forecast">
                 <Typography.Title level={5}>Forecast</Typography.Title>
-                <table>
+                <table style={{ width: '100%' }}>
                   <thead>
                     <tr>
                       <td>Frequency</td>
-                      <td>Total</td>
+                      <td>Annual Total</td>
                     </tr>
                   </thead>
                   <tbody>
@@ -99,13 +100,13 @@ const OtherExpenseSection = () => {
         ))
       ) : (
         <AddBlock>
-          <Button onClick={onClickAddExpense} icon={<PlusOutlined />}>
-            Add expense
+          <Button onClick={onClickAddExpense} icon={<PlusOutlined />} type="primary" style={{ paddingRight: '4em', paddingLeft: '4em' }}>
+            Add cost impact
           </Button>
-          <Placeholder>You have no additional expense entries yet. Click &apos;+ Add expense&apos; above to get started.</Placeholder>
+          <Placeholder>You have no additional expense entries yet. Click &apos;+ Add cost impact&apos; above to get started.</Placeholder>
         </AddBlock>
       )}
-      <Drawer title="Add other expenses" onClose={onCloseDrawer} visible={isDrawerVisible} contentWrapperStyle={contentWrapperStyle} destroyOnClose>
+      <Drawer title="Add cost impact" onClose={onCloseDrawer} visible={isDrawerVisible} contentWrapperStyle={contentWrapperStyle} destroyOnClose>
         <OtherExpensesFormDrawer onClose={onSubmit} />
       </Drawer>
     </Container>

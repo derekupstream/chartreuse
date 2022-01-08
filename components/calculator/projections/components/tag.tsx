@@ -3,11 +3,11 @@ import { Tag as AntdTag } from 'antd'
 import { FallOutlined } from '@ant-design/icons'
 import { RiseOutlined } from '@ant-design/icons'
 
-const Tag: React.FC<{ rising?: boolean }> = props => {
-  const { children, rising } = props
-
+const Tag: React.FC<{ rising?: boolean; flipColor?: boolean }> = props => {
+  const { children, rising, flipColor } = props
+  const color = (rising && !flipColor) || (!rising && flipColor) ? '#2bbe50' : 'red'
   return (
-    <AntdTag icon={rising ? <RiseOutlined /> : <FallOutlined />} css="border-radius: 16px;" color={rising ? '#2BBE50' : 'red'}>
+    <AntdTag icon={rising ? <RiseOutlined /> : <FallOutlined />} css="border-radius: 16px;" color={color}>
       {children}
     </AntdTag>
   )

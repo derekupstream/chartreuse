@@ -43,7 +43,7 @@ const Projects = () => {
     <Space direction="vertical" size="large" style={{ width: '100%' }}>
       <S.SpaceBetween>
         <Typography.Title>Projects</Typography.Title>
-        <Button onClick={() => router.push('/projects/new')} icon={<PlusOutlined />}>
+        <Button type='primary' onClick={() => router.push('/projects/new')} icon={<PlusOutlined />}>
           Add project
         </Button>
       </S.SpaceBetween>

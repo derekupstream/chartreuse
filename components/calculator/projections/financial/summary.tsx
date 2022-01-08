@@ -17,10 +17,6 @@ const FinancialSummary: React.FC<Props> = ({ data }) => {
     <SectionContainer>
       <SectionHeader>Financial summary</SectionHeader>
 
-      <Typography.Title level={5}>
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed aliquam massa vel erat commodo, ut aliquam nibh convallis. Vivamus ullamcorper magna non sollicitudin pellentesque.
-      </Typography.Title>
-
       <Card>
         <TitleWithTooltip title="Annual program saving &amp; expenses" tooltipTitle="title" tooltipContent={<p>some description</p>} />
 
@@ -28,7 +24,7 @@ const FinancialSummary: React.FC<Props> = ({ data }) => {
           <Col span={8}>
             <Text strong>Savings</Text>
             <Title>Annual total</Title>
-            <Value color="green">{formatToDollar(data.summary.annualCost)}</Value>
+            <Value color="green">{formatToDollar(data.summary.annualCost * -1)}</Value>
 
             <Title>Annual program ROI</Title>
             <Value>{data.summary.annualROIPercent}</Value>

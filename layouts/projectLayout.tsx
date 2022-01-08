@@ -6,6 +6,7 @@ import BaseLayout from './baseLayout'
 import * as S from 'components/dashboard/styles'
 import { useRouter } from 'next/router'
 import CalculatorFooter, { FooterProvider } from 'components/calculator/footer'
+import { CALCULATOR_STEPS } from 'components/calculator/steps'
 
 type Props = {
   currentStepIndex: number
@@ -13,8 +14,6 @@ type Props = {
   title: string
   user: DashboardUser
 }
-
-const routes = ['setup', 'single-use', 'reusable-items', 'additional-costs', 'projections']
 
 export default function ProjectLayout({ children, project, currentStepIndex, ...pageProps }: React.PropsWithChildren<Props>) {
   const router = useRouter()
@@ -35,14 +34,12 @@ export default function ProjectLayout({ children, project, currentStepIndex, ...
               <S.Steps
                 current={currentStepIndex}
                 onChange={(id: number) => {
-                  router.push(`/projects/${project!.id}/${routes[id]}`)
+                  router.push(`/projects/${project!.id}${CALCULATOR_STEPS[id].path}`)
                 }}
               >
-                <Steps.Step title='Step 1' description='Setup' />
-                <Steps.Step title='Step 2' description='Single-use purchasing' />
-                <Steps.Step title='Step 3' description='Reusables purchasing' />
-                <Steps.Step title='Step 4' description='Additional costs' />
-                <Steps.Step title='Step 5' description='Savings projections' />
+                {CALCULATOR_STEPS.map((step, i) => (
+                  <Steps.Step key={step.title} title={`Step ${i+1}`} description={step.title} />
+                ))}
               </S.Steps>
             </Space>
             {children}

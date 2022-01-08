@@ -41,7 +41,7 @@ export const Container = styled.div`
   justify-content: space-between;
   align-items: center;
   width: 100%;
-  height: 80px;
+  height: 90px;
   background-color: #ffffff;
   box-shadow: 0px -2px 8px rgba(0, 0, 0, 0.05);
   padding: 0 24px;

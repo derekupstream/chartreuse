@@ -1,7 +1,7 @@
 import { ProjectionsResponse } from 'lib/calculator'
 import React from 'react'
 import { Divider, SectionContainer, SectionHeader, ChartTitle } from '../components/styles'
-import Card from './components/kpi-card'
+import Card from '../components/kpi-card'
 import { Row, Col } from 'antd'
 import { changeValue } from 'lib/number'
 import BarChart from '../components/chart-bar'
@@ -11,8 +11,6 @@ type Props = {
 }
 
 const ProjectImpacts: React.FC<Props> = ({ data }) => {
-  console.log('data', data)
-
   const savingsData = [
     { label: 'Baseline', value: data.dollarCost.baseline },
     { label: 'Forecast', value: data.dollarCost.followup },
@@ -28,7 +26,7 @@ const ProjectImpacts: React.FC<Props> = ({ data }) => {
     { label: 'Forecast', value: data.wasteWeight.followup },
   ]
 
-  const ghgData = [{ label: 'Forecast', value: data.greenhouseGasEmissions.total }]
+  const ghgData = [{ label: 'Forecast', value: data.greenhouseGasEmissions.total * -1 }]
 
   return (
     <SectionContainer>
@@ -38,7 +36,7 @@ const ProjectImpacts: React.FC<Props> = ({ data }) => {
         <Col span={12}>
           <Card
             title="Your estimated annual savings"
-            change={data.dollarCost.change}
+            change={data.dollarCost.change * -1}
             changePercent={data.dollarCost.changePercent * -1}
             changeStr={`${changeValue(data.dollarCost.change * -1, { preUnit: '$' }).toLocaleString()}`}
           >
@@ -49,7 +47,7 @@ const ProjectImpacts: React.FC<Props> = ({ data }) => {
         <Col span={12}>
           <Card
             title="Reductions in single-use purchasing"
-            change={data.singleUseProductCount.change}
+            change={data.singleUseProductCount.change * -1}
             changePercent={data.singleUseProductCount.changePercent * -1}
             changeStr={changeValue(data.singleUseProductCount.change * -1) + ' units'}
           >

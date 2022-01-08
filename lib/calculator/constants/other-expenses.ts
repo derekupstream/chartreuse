@@ -1,23 +1,23 @@
 export const OTHER_EXPENSES = [
   {
     id: '1',
-    name: 'Additional Equipment',
+    name: 'Equipment',
     description:
       'Machine purchase, lease, and installation. Dish racks, drying racks, shelving, tables, storage ventilation equipment, or any other durable equipment purchased specifically to suppor the reusable program.',
   },
   {
     id: '2',
-    name: 'Consumable Supplies',
+    name: 'Supplies',
     description: 'Detergent, rinse agents, sanitizer, gloves, and other neccessary supplies purchased repeatedly.',
   },
   {
     id: '3',
-    name: 'External vendors',
+    name: 'Vendors',
     description: 'Dishwasher external vendors, payments to third-party dishwashing service, linen service, etc.',
   },
   {
     id: '4',
-    name: 'Site Renovation',
+    name: 'Renovation',
     description: 'Cost of any renovations required to accomodate washing and serving reusable products.',
   },
   {
@@ -40,9 +40,9 @@ export const OTHER_EXPENSES_FREQUENCIES = [
 export type AdditionalCostCategories = typeof OTHER_EXPENSES_CATEGORIES[number]
 
 export const OTHER_EXPENSES_CATEGORIES = [
-  { name: 'Additional equipment', id: '1' },
-  { name: 'Consumable supplies', id: '2' },
-  { name: 'External vendors', id: '3' },
-  { name: 'Site renovation', id: '4' },
+  { name: 'Equipment', id: '1' },
+  { name: 'Supplies', id: '2' },
+  { name: 'Vendors', id: '3' },
+  { name: 'Renovation', id: '4' },
   { name: 'Other', id: '5' },
 ]

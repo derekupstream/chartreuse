@@ -1,10 +1,10 @@
 import { PlusOutlined } from '@ant-design/icons'
-import { Button, Col, Drawer, message, Popconfirm, Row, Typography } from 'antd'
+import { Button, Col, Divider, Drawer, message, Popconfirm, Row, Typography } from 'antd'
 import { useRouter } from 'next/router'
 import React, { useState } from 'react'
-import { AddBlock, Container, contentWrapperStyle, Placeholder, Subtitle } from '../../expense-block'
+import { AddBlock, Container, contentWrapperStyle, Placeholder, Subtitle } from '../expense-block'
 import { WasteHaulingCost } from '@prisma/client'
-import { SectionContainer, SectionData, SectionTitle } from '../../styles'
+import { SectionContainer, SectionData, SectionTitle } from '../styles'
 import { InfoCard, InfoRow } from 'components/calculator/styles'
 import styled from 'styled-components'
 import { formatToDollar } from 'lib/calculator/utils'
@@ -83,11 +83,12 @@ const WasteHaulingSection = () => {
       <SectionContainer>
         <SectionTitle>Waste Hauling</SectionTitle>
         {!!data?.wasteHaulingCosts?.length && (
-          <Button onClick={onClickAddExpense} icon={<PlusOutlined />}>
-            Add item
+          <Button onClick={onClickAddExpense} icon={<PlusOutlined />} type="primary" style={{ paddingRight: '4em', paddingLeft: '4em' }}>
+            Add waste hauling cost
           </Button>
         )}
       </SectionContainer>
+      <Divider />
       {data?.wasteHaulingCosts?.length ? (
         data.wasteHaulingCosts.map(wasteHauling => (
           <InfoRow key={wasteHauling.id}>
@@ -143,10 +144,10 @@ const WasteHaulingSection = () => {
         ))
       ) : (
         <AddBlock>
-          <Button onClick={onClickAddExpense} icon={<PlusOutlined />}>
-            Add expense
+          <Button onClick={onClickAddExpense} icon={<PlusOutlined />} type="primary" style={{ paddingRight: '4em', paddingLeft: '4em' }}>
+            Add waste hauling cost
           </Button>
-          <Placeholder>You have no waste hauling entries yet. Click &apos;+ Add expense&apos; above to get started.</Placeholder>
+          <Placeholder>You have no waste hauling entries yet. Click &apos;+ Add waste hauling cost&apos; above to get started.</Placeholder>
         </AddBlock>
       )}
       <Drawer title="Add current monthly waste hauling service fees" onClose={onCloseForms} visible={isDrawerVisible} contentWrapperStyle={contentWrapperStyle} destroyOnClose>

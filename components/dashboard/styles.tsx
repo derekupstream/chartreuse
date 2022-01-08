@@ -18,7 +18,6 @@ export const LayoutHeader = styled(Layout.Header)`
 `
 
 export const ContentContainer = styled(Layout.Content)`
-  min-height: calc(100vh - 64px);
   padding: 2rem;
   margin: 0 auto;
   width: 100%;

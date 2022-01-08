@@ -12,6 +12,7 @@ import { useEffect } from 'react'
 const ProjectTypes = ['Cafe/Cafeteria', 'Kitchenette/Employee Breakroom', 'Event Catering', 'Special Event (Venue)', 'Coffee Shop', 'Fast Casual Restaurant', 'Food Hall Stand', 'Other'] as const
 
 const WhereFoodIsPrepared = ['On-Site', 'Off-Site', 'Both'] as const
+const dishwashingTypes = ['Mechanized Dishwasher (owned)', 'Mechanized Dishwasher (leased)', 'Wash by hand (3 sink system)', 'Combination']
 
 export type ProjectMetadata = {
   type: typeof ProjectTypes[number]
@@ -36,7 +37,7 @@ export default function SetupPage({ user, project }: { user: DashboardUser; proj
 
     req
       .then(res => {
-        router.push(`/projects/${res.project.id}/single-use`)
+        router.push(`/projects/${res.project.id}/single-use-items`)
       })
       .catch(err => {
         message.error((err as Error)?.message)
@@ -50,10 +51,11 @@ export default function SetupPage({ user, project }: { user: DashboardUser; proj
 
   return (
     <S.Wrapper css="display: flex; flex-direction: column; align-items: center; justify-content: center;">
-      <Typography.Title level={2}>Setup your project</Typography.Title>
+      <Typography.Title level={1}>Setup your project</Typography.Title>
       <S.SetupForm
         layout="vertical"
         initialValues={{
+          accountId: user.org.accounts[0].id,
           customers: 0,
           dineInVsTakeOut: 0,
           ...(project || {}),
@@ -148,6 +150,18 @@ export default function SetupPage({ user, project }: { user: DashboardUser; proj
             }))}
             optionType="button"
           />
+        </Form.Item>
+
+        <Form.Item label="What type of dishwashing capacity best describes your operation?" name="dishwashingType">
+          <Select placeholder="Select dishwashing type">
+            {dishwashingTypes.map(type => {
+              return (
+                <Select.Option key={type} value={type}>
+                  {type}
+                </Select.Option>
+              )
+            })}
+          </Select>
         </Form.Item>
 
         <Form.Item>

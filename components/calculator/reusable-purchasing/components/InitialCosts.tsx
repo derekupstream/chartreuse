@@ -8,10 +8,8 @@ interface Props {
   item: ReusableLineItem
 }
 
-const annual = 12
-
 const InitialCosts: FC<Props> = ({ item }) => {
-  const annualCost = 12 * item.caseCost * item.casesPurchased
+  const annualCost = item.caseCost * item.casesPurchased
 
   return (
     <InfoCard theme="baseline">
@@ -28,7 +26,7 @@ const InitialCosts: FC<Props> = ({ item }) => {
           <Typography.Text css="font-size: .8rem">Total one-time cost</Typography.Text>
           <br />
           <Typography.Text css="font-size: .7rem">
-            ({formatToDollar(item.caseCost)}/case x {annual})
+            ({formatToDollar(item.caseCost)}/case x {item.casesPurchased})
           </Typography.Text>
         </Col>
         <Col span={8}>

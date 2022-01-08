@@ -1,4 +1,4 @@
-import { Button, Drawer, Typography, Spin, Row, Col, Popconfirm, message, Card } from 'antd'
+import { Button, Divider, Drawer, Typography, Spin, Row, Col, Popconfirm, message, Card } from 'antd'
 import { useState } from 'react'
 import { PlusOutlined } from '@ant-design/icons'
 import SingleUseForm from './single-use-form'
@@ -159,7 +159,7 @@ const SummaryRow = ({ lineItems }: { lineItems: SingleUseLineItem[] }) => {
   const change = forecastCost - baselineCost
   const isChangeNegative = change < 0
   return (
-    <S.InfoCard>
+    <S.InfoCard style={{ boxShadow: 'none' }}>
       <Row>
         <Col span={8}>
           <Typography.Title level={4}>Total annual single-use purchasing</Typography.Title>
@@ -286,22 +286,23 @@ export default function SingleUse({ project }: ServerSideProps) {
 
   return (
     <S.Wrapper>
-      <Typography.Title level={2}>Single-use purchasing</Typography.Title>
+      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+        <Typography.Title level={1}>Single-use purchasing</Typography.Title>
+        <Button type="primary" onClick={addItem} icon={<PlusOutlined />} style={{ paddingRight: '4em', paddingLeft: '4em' }}>
+          Add a single-use item
+        </Button>
+      </div>
+      <Typography.Title level={5}>Create an inventory of all single-use items you purchase regularly.</Typography.Title>
       {lineItems.isLoading ? (
         <ContentLoader />
       ) : (
         <>
-          <Typography.Title level={5}>Create an inventory of all single-use items you purchase regularly.</Typography.Title>
-          <div css="margin: 2em 0;">
-            <Button type="primary" onClick={addItem} icon={<PlusOutlined />}>
-              Add item
-            </Button>
-          </div>
           {PRODUCT_CATEGORIES.map(
             category =>
               items[category.id] && (
                 <div key={category.id}>
                   <Typography.Title level={3}>{category.name}</Typography.Title>
+                  <Divider />
                   {items[category.id].map(item => (
                     <ItemRow key={item.lineItem.id} item={item} onDelete={getLineItems} />
                   ))}

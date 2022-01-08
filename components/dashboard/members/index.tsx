@@ -155,7 +155,7 @@ export default function Members({ user }: LoggedinProps) {
     <Space direction="vertical" size="large" style={{ width: '100%' }}>
       <S.SpaceBetween>
         <Typography.Title>Account members</Typography.Title>
-        <Button onClick={handleAddAccountUser} icon={<PlusOutlined />}>
+        <Button type='primary' onClick={handleAddAccountUser} icon={<PlusOutlined />}>
           Add user
         </Button>
       </S.SpaceBetween>

@@ -1,5 +1,5 @@
 import styled from 'styled-components'
-import { OptionSelection } from '../../../../styles'
+import { OptionSelection } from '../../../styles'
 import { Button, Form, Input, RadioChangeEvent } from 'antd'
 import { requiredRule } from 'utils/forms'
 import { useSimpleMutation } from 'hooks/useSimpleQuery'

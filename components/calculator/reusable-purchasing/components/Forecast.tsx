@@ -9,8 +9,8 @@ interface Props {
 }
 
 const Forecast: FC<Props> = ({ item }) => {
-  const annualCost = parseFloat('123').toFixed(2)
-
+  const annualCost = item.annualRepurchasePercentage * item.caseCost
+  console.log('forecast', item)
   return (
     <InfoCard theme="forecast">
       <Row>
@@ -27,7 +27,7 @@ const Forecast: FC<Props> = ({ item }) => {
         </Col>
         <Col span={7}>
           <Typography.Text>
-            <strong>{`${item.annualRepurchasePercentage}%`}</strong>
+            <strong>{`${item.annualRepurchasePercentage * 100}%`}</strong>
           </Typography.Text>
         </Col>
       </Row>
@@ -36,12 +36,12 @@ const Forecast: FC<Props> = ({ item }) => {
           <Typography.Text css="font-size: .8rem">Annual cost</Typography.Text>
           <br />
           <Typography.Text css="font-size: .7rem">
-            ({formatToDollar(item.caseCost)}/case x{' 12'})
+            ({formatToDollar(item.caseCost)}/case x {item.casesPurchased * item.annualRepurchasePercentage})
           </Typography.Text>
         </Col>
         <Col span={7}>
           <Typography.Text>
-            <strong>{formatToDollar(Number(annualCost))}</strong>
+            <strong>{formatToDollar(annualCost)}</strong>
           </Typography.Text>
         </Col>
       </Row>

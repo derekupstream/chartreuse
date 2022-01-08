@@ -3,16 +3,8 @@ import { useRouter } from 'next/router'
 import Link from 'next/link'
 import { createContext, useContext, useState } from 'react'
 import { Container, LinkBox, Row } from './styles'
+import { CALCULATOR_STEPS, ProjectPath } from '../steps'
 
-const CALCULATOR_STEPS = [
-  { path: '/setup', title: 'Project Settings' },
-  { path: '/single-use-items', title: 'Single-Use Purchasing' },
-  { path: '/reusable-items', title: 'Reusables Purchasing' },
-  { path: '/additional-costs', title: 'Additional Costs' },
-  { path: '/projections', title: 'Projections' },
-]
-
-type ProjectPath = typeof CALCULATOR_STEPS[number]['path']
 type FooterState = { path: ProjectPath; stepCompleted: boolean }
 
 const FooterContext = createContext<{ state: FooterState | null, setFooterState: (state: FooterState) => void }>({

@@ -1,14 +1,9 @@
 import { Typography } from 'antd'
 import styled, { css } from 'styled-components'
+import _Card from '../components/card'
 
-export const Card = styled.div`
+export const Card = styled(_Card)`
   margin: 0 29px 29px 0;
-  padding: 16px;
-  background-color: #ffffff;
-  border: 1px solid #eeeeed;
-  box-sizing: border-box;
-  box-shadow: 0px 0px 12px rgba(0, 0, 0, 0.08);
-  border-radius: 8px;
   display: flex;
   flex-direction: column;
 `

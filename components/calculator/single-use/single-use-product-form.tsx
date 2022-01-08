@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Button, Form, Typography } from 'antd'
+import { Button, Divider, Form, Typography } from 'antd'
 import * as S from '../styles'
 import { PRODUCT_CATEGORIES } from 'lib/calculator/constants/product-categories'
 import { MATERIALS } from 'lib/calculator/constants/materials'
@@ -168,7 +168,7 @@ export default function SelectProductStep({ input, onSubmit, products }: { input
       <S.BoxEnd>
         <div></div>
         <Button size="large" type="primary" disabled={!selected.productId} onClick={_onSubmit}>
-          {'Next >'}
+          {'Next'}
         </Button>
       </S.BoxEnd>
     </Form>

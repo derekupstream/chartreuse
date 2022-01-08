@@ -13,9 +13,11 @@ export const SetupForm = styled(Form)`
 `
 
 export const BoxEnd = styled.div`
+  border-top: 1px solid #e8e8e8;
   display: flex;
   justify-content: space-between;
-  margin-top: 4em;
+  margin: 4em -24px 0;
+  padding: 8px 24px 0;
 `
 
 export const RadioGroup = styled(Radio.Group)`

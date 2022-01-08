@@ -1,4 +1,4 @@
-import { Button, Drawer, message, Typography } from 'antd'
+import { Button, Divider, Row, Col, Drawer, message, Typography } from 'antd'
 import { useState, useEffect } from 'react'
 import { PlusOutlined } from '@ant-design/icons'
 import * as S from '../styles'
@@ -11,8 +11,7 @@ import { PRODUCT_CATEGORIES } from 'lib/calculator/constants/product-categories'
 import ItemRow from './components/ItemRow'
 import ContentLoader from 'components/content-loader'
 import { useFooterState } from '../footer'
-
-export type ReusableSecondPartForm = Pick<ReusableFormValues, 'annualRepurchasePercentage'>
+import { formatToDollar } from 'lib/calculator/utils'
 
 export interface ReusableFormValues {
   annualRepurchasePercentage: string
@@ -67,7 +66,10 @@ export default function ReusablePurchasing() {
     setFormStep(2)
   }
 
-  function onSubmit({ annualRepurchasePercentage }: ReusableSecondPartForm) {
+  function onSubmitForecast({ casesAnnually }: { casesAnnually: number }) {
+    console.log('form values', formValues, casesAnnually)
+    const annualRepurchasePercentage = (casesAnnually / parseInt(formValues!.casesPurchased)).toString()
+    console.log(annualRepurchasePercentage)
     const newFormValues = { ...formValues!, annualRepurchasePercentage }
     setFormValues(newFormValues)
     saveData(newFormValues)
@@ -77,7 +79,7 @@ export default function ReusablePurchasing() {
     const body: ReusableLineItem = {
       ...values,
       casesPurchased: parseInt(values.casesPurchased),
-      annualRepurchasePercentage: parseInt(values.annualRepurchasePercentage),
+      annualRepurchasePercentage: parseFloat(values.annualRepurchasePercentage),
       caseCost: parseInt(values.caseCost),
       projectId,
     }
@@ -107,20 +109,20 @@ export default function ReusablePurchasing() {
 
   return (
     <S.Wrapper>
-      <Typography.Title level={2}>Reusables purchasing</Typography.Title>
+      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+        <Typography.Title level={1}>Reusables purchasing</Typography.Title>
+        <Button type="primary" onClick={addItem} icon={<PlusOutlined />} style={{ paddingRight: '4em', paddingLeft: '4em' }}>
+          Add reusable item
+        </Button>
+      </div>
+      <Typography.Title level={5}>
+        Enter reusable items to replace single-use items as appropriate. It is possible to eliminate a single-use item without a purchase of a reusable ware. For example, if you have three sizes of
+        single-use plastic forks, you may only move to one size/type of durable fork.
+      </Typography.Title>
       {isLoading ? (
         <ContentLoader />
       ) : (
         <>
-          <Typography.Title level={5}>
-            Next: Enter reusable items to replace your single-use items. If you have multiple items that will replace a single-use item, enter both. In the following step you&apos;ll be able to
-            specify which items will replace each single-use item.
-          </Typography.Title>
-          <div css="margin: 2em 0;">
-            <Button type="primary" onClick={addItem} icon={<PlusOutlined />}>
-              Add item
-            </Button>
-          </div>
           {PRODUCT_CATEGORIES.map(category => {
             const getItemsWithSameId = (item: ReusableLineItem) => item.categoryId === category.id.toString()
             const item = lineItems.find(getItemsWithSameId)
@@ -129,6 +131,7 @@ export default function ReusablePurchasing() {
               item && (
                 <div key={category.id}>
                   <Typography.Title level={3}>{category.name}</Typography.Title>
+                  <Divider />
                   {lineItems.filter(getItemsWithSameId).map(item => (
                     <ItemRow key={item.annualRepurchasePercentage} item={item} onDelete={getLineItems} />
                   ))}
@@ -136,6 +139,7 @@ export default function ReusablePurchasing() {
               )
             )
           })}
+          {lineItems.length > 0 && <SummaryRow lineItems={lineItems} />}
           <Drawer
             title={formStep === 1 ? 'Add a reusable replacement item' : 'Estimate annual reusable re-purchasing needed'}
             placement="right"
@@ -144,10 +148,84 @@ export default function ReusablePurchasing() {
             contentWrapperStyle={{ width: '600px' }}
           >
             {formStep === 1 && <ReusablePurchasingFirstStepForm onPressNext={onPressNext} />}
-            {formStep === 2 && <ReusablePurchasingSecondStepForm form={formValues!} onPressPrevious={onPressPrevious} onPressSubmit={onSubmit} />}
+            {formStep === 2 && <ReusablePurchasingSecondStepForm form={formValues!} onPressPrevious={onPressPrevious} onPressSubmit={onSubmitForecast} />}
           </Drawer>
         </>
       )}
     </S.Wrapper>
+  )
+}
+
+const SummaryRow = ({ lineItems }: { lineItems: ReusableLineItem[] }) => {
+  const baselineProductCount = lineItems.filter(item => item.casesPurchased > 0).length
+  const baselineCost = lineItems.reduce((total, item) => {
+    const itemTotal = item.caseCost * item.casesPurchased
+    return total + itemTotal
+  }, 0)
+  const averageRepurchaseRate = Math.round(
+    (lineItems.reduce((total, item) => {
+      return total + item.annualRepurchasePercentage
+    }, 0) /
+      lineItems.length) *
+      100
+  )
+  const forecastCost = lineItems.reduce((total, item) => {
+    const itemTotal = item.caseCost * item.annualRepurchasePercentage * item.casesPurchased
+    return total + itemTotal
+  }, 0)
+  return (
+    <S.InfoCard style={{ boxShadow: 'none' }}>
+      <Row>
+        <Col span={8}>
+          <Typography.Title level={4}>Repurchase totals</Typography.Title>
+        </Col>
+        <Col span={8}>
+          <Row gutter={[0, 20]}>
+            <Col span={24}>
+              <Typography.Text css="font-size: .9rem">
+                <strong>Initial costs</strong>
+              </Typography.Text>
+            </Col>
+            {/* next row */}
+            <Col span={16}>
+              <Typography.Text css="font-size: .9rem">Number of products</Typography.Text>
+            </Col>
+            <Col span={8}>
+              <Typography.Text css="font-size: .9rem">{baselineProductCount}</Typography.Text>
+            </Col>
+            {/* next row */}
+            <Col span={16}>
+              <Typography.Text css="font-size: .9rem">Total</Typography.Text>
+            </Col>
+            <Col span={8}>
+              <Typography.Text css="font-size: .9rem">{formatToDollar(baselineCost)}</Typography.Text>
+            </Col>
+          </Row>
+        </Col>
+        <Col span={8}>
+          <Row gutter={[0, 20]}>
+            <Col span={24}>
+              <Typography.Text css="font-size: .9rem">
+                <strong>Repurchase forecast</strong>
+              </Typography.Text>
+            </Col>
+            {/* next row */}
+            <Col span={16}>
+              <Typography.Text css="font-size: .9rem">Average repurchase rate</Typography.Text>
+            </Col>
+            <Col span={8}>
+              <Typography.Text css="font-size: .9rem">{averageRepurchaseRate}%</Typography.Text>
+            </Col>
+            {/* next row */}
+            <Col span={16}>
+              <Typography.Text css="font-size: .9rem">Annual repurchase cost</Typography.Text>
+            </Col>
+            <Col span={8}>
+              <Typography.Text css="font-size: .9rem">{formatToDollar(forecastCost)}</Typography.Text>
+            </Col>
+          </Row>
+        </Col>
+      </Row>
+    </S.InfoCard>
   )
 }

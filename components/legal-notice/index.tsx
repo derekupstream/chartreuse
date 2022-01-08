@@ -4,9 +4,11 @@ import * as S from './styles'
 const LegalNotice = () => {
   return (
     <S.Wrapper>
-      <Typography.Text italic type="secondary">
-        Legal notice. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec a fermentum metus. Proin enim eros.
+      <Typography.Text italic type='secondary'>
+        View our Privacy Policy
       </Typography.Text>
+      <br />
+      <br />
     </S.Wrapper>
   )
 }

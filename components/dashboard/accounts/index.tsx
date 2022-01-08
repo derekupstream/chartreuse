@@ -99,7 +99,7 @@ export default function Accounts({ user }: LoggedinProps) {
     <Space direction="vertical" size="large" style={{ width: '100%' }}>
       <S.SpaceBetween>
         <Typography.Title>Accounts</Typography.Title>
-        <Button onClick={handleAddAcount} icon={<PlusOutlined />}>
+        <Button type='primary' onClick={handleAddAcount} icon={<PlusOutlined />}>
           Add account
         </Button>
       </S.SpaceBetween>

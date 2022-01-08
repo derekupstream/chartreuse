@@ -62,11 +62,6 @@ const EnvironmentalSummary: React.FC<Props> = ({ data }) => {
     <SectionContainer>
       <SectionHeader>Environmental summary</SectionHeader>
 
-      <Typography.Title level={5}>
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed aliquam massa vel erat commodo, ut aliquam nibh convallis. Vivamus ullamcorper magna non sollicitudin pellentesque. Vestibulum
-        cursus fringilla interdum. Etiam gravida sem sed magna luctus, ut faucibus nisi interdum. In blandit quis elit volutpat consequat.
-      </Typography.Title>
-
       <ViewResultsWrapper>
         <Typography.Text css="margin-right: 20px;">View results in:</Typography.Text>
         <Radio.Group onChange={onChangeResults} defaultValue={units}>

@@ -96,7 +96,7 @@ model SingleUseLineItem {
 
 model ReusableLineItem {
   id                         String  @id @default(uuid()) @db.Uuid
-  annualRepurchasePercentage Int
+  annualRepurchasePercentage Float
   caseCost                   Int
   casesPurchased             Int
   categoryId                 String

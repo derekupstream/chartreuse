@@ -1,8 +1,8 @@
-import { Button, Col, Drawer, message, Popconfirm, Typography } from 'antd'
+import { Button, Col, Divider, Drawer, message, Popconfirm, Typography } from 'antd'
 import { useSimpleMutation, useSimpleQuery } from 'hooks/useSimpleQuery'
-import { useEffect, useState } from 'react'
-import { AddBlock, Container, contentWrapperStyle, Placeholder, Subtitle } from '../../expense-block'
-import { SectionContainer, SectionData, SectionTitle } from '../../styles'
+import { useState } from 'react'
+import { AddBlock, Container, contentWrapperStyle, Placeholder, Subtitle } from '../expense-block'
+import { SectionContainer } from '../styles'
 import { InfoCard, InfoRow } from 'components/calculator/styles'
 import { useRouter } from 'next/router'
 import { LaborCost } from '@prisma/client'
@@ -60,13 +60,18 @@ const LaborSection = () => {
   return (
     <Container>
       <SectionContainer>
-        <SectionTitle>Labor</SectionTitle>
+        <Typography.Title level={3}>Labor</Typography.Title>
         {!!data?.laborCosts?.length && (
-          <Button onClick={onClickAddExpense} icon={<PlusOutlined />}>
-            Add item
+          <Button type="primary" onClick={onClickAddExpense} icon={<PlusOutlined />} style={{ paddingRight: '4em', paddingLeft: '4em' }}>
+            Add labor
           </Button>
         )}
       </SectionContainer>
+      <Typography.Title level={5}>
+        Use this section to quantify labor impacts from changing operations. For example, estimate time / cost saved by procurement staff and janitorial staff from moving materials off the floor to
+        necessary bins or enclosures. Also, estimate additional staff hours needed to support washing needs.
+      </Typography.Title>
+      <Divider />
       {data?.laborCosts?.length ? (
         data.laborCosts.map(labor => (
           <InfoRow key={labor.id}>
@@ -103,13 +108,13 @@ const LaborSection = () => {
         ))
       ) : (
         <AddBlock>
-          <Button onClick={onClickAddExpense} icon={<PlusOutlined />}>
-            Add expense
+          <Button onClick={onClickAddExpense} icon={<PlusOutlined />} type="primary" style={{ paddingRight: '4em', paddingLeft: '4em' }}>
+            Add labor
           </Button>
-          <Placeholder>You have no labor entries yet. Click &apos;+ Add expense&apos; above to get started.</Placeholder>
+          <Placeholder>You have no labor entries yet. Click &apos;+ Add labor&apos; above to get started.</Placeholder>
         </AddBlock>
       )}
-      <Drawer title="Add labor expense" onClose={onCloseDrawer} visible={isDrawerVisible} contentWrapperStyle={contentWrapperStyle} destroyOnClose>
+      <Drawer title="Add labor" onClose={onCloseDrawer} visible={isDrawerVisible} contentWrapperStyle={contentWrapperStyle} destroyOnClose>
         <LaborFormDrawer onClose={onSubmit} />
       </Drawer>
     </Container>
