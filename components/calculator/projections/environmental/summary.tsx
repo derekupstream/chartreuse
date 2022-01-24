@@ -52,11 +52,14 @@ const EnvironmentalSummary: React.FC<Props> = ({ data }) => {
       label: 'Landfill waste (EPA WARM)',
       value: data.annualGasEmissionChanges.landfillWaste,
     },
-    {
+  ]
+  console.log('data.annualGasEmissionChanges.dishwashing', data.annualGasEmissionChanges.dishwashing)
+  if (data.annualGasEmissionChanges.dishwashing) {
+    ghgData.push({
       label: 'Dishwashing',
       value: data.annualGasEmissionChanges.dishwashing,
-    },
-  ]
+    })
+  }
 
   return (
     <SectionContainer>

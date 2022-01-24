@@ -57,11 +57,11 @@ export default function SelectQuantityForecastStep({
       <Typography.Title level={4}>{productName}</Typography.Title>
 
       <Form.Item name="newCasesPurchased" label={`New cases purchased (${frequency})`} rules={[{ required: true }]}>
-        <Input type="number" />
+        <Input type="number" autoFocus />
       </Form.Item>
 
       <Form.Item name="newCaseCost" label="Cost per case" rules={[{ required: true }]}>
-        <Input type="number" />
+        <Input type="number" prefix="$" />
       </Form.Item>
 
       <S.BoxEnd>

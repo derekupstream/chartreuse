@@ -44,8 +44,15 @@ export default function SelectQuantityStep({
   }
 
   useEffect(() => {
+    console.log('useEffect', input)
     if (input) {
       form.setFieldsValue(input)
+      // set default vlaues
+      if (!input.frequency) {
+        form.setFieldsValue({
+          frequency: 'Annually',
+        })
+      }
       handleFormChange()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -73,7 +80,7 @@ export default function SelectQuantityStep({
       </Form.Item>
 
       <Form.Item name="caseCost" label="Cost per case" rules={[{ required: true }]}>
-        <Input type="number" />
+        <Input type="number" prefix="$" />
       </Form.Item>
 
       <S.BoxEnd>

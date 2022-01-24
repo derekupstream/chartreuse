@@ -15,6 +15,7 @@ interface TableData {
   product: string
   baselineSpending: number
   forecastSpending: number
+  gasReductions: number
   change: string
 }
 
@@ -25,14 +26,37 @@ const columns = [
     key: 'product',
   },
   {
-    title: 'Baseline spending',
+    title: 'Baseline',
     dataIndex: 'baselineStr',
     key: 'baselineSpending',
   },
   {
-    title: 'Forecast spending',
+    title: 'Forecast',
     dataIndex: 'forecastStr',
     key: 'forecastSpending',
+  },
+  {
+    title: 'Change',
+    dataIndex: 'change',
+    key: 'change',
+  },
+]
+
+const gasColumns = [
+  {
+    title: 'Product',
+    dataIndex: 'product',
+    key: 'product',
+  },
+  {
+    title: 'Greenhouse Reduction (MTCO2e)',
+    dataIndex: 'reductionStr',
+    key: 'reductionStr',
+  },
+  {
+    title: 'Share of Reduction',
+    dataIndex: 'reductionShareStr',
+    key: 'reductionShareStr',
   },
   {
     title: 'Change',
@@ -98,10 +122,15 @@ const SingleUseDetails: React.FC<Props> = ({ data }) => {
       }
     }
     return {
+      key: index, // for @antd/table
       product: item.title,
       baselineSpending: baseline,
       forecastStr: formatNumber(forecast),
       baselineStr: formatNumber(baseline),
+      // for gas\
+      gasReductions: item.gasEmissions.reduction,
+      reductionStr: formatNumber(item.gasEmissions.reduction),
+      reductionShareStr: formatNumber(item.gasEmissions.shareOfReduction * 100) + '%',
       forecastSpending: forecast,
       change: baseline ? `${formatNumber(forecast - baseline)} (${forecast > baseline ? '-' : ''}${Math.round(((forecast - baseline) / baseline) * 100)}%)` : 'N/A',
     }
@@ -196,21 +225,35 @@ const SingleUseDetails: React.FC<Props> = ({ data }) => {
         <Spacer horizontal={16} />
         <Table<TableData>
           dataSource={dataSource}
-          columns={columns}
+          columns={changeType === 'ghg' ? gasColumns : columns}
           summary={pageData => {
             const baselineTotal = pageData.reduce((acc, curr) => acc + curr.baselineSpending, 0)
             const forecastTotal = pageData.reduce((acc, curr) => acc + curr.forecastSpending, 0)
+            const gasReductionsTotal = pageData.reduce((acc, curr) => acc + curr.gasReductions, 0)
 
             return (
               <Table.Summary.Row>
                 <Table.Summary.Cell index={0}>Total</Table.Summary.Cell>
-                <Table.Summary.Cell index={1}>
-                  <Typography.Text strong>{formatNumber(baselineTotal)}</Typography.Text>
-                </Table.Summary.Cell>
-                <Table.Summary.Cell index={2}>
-                  <Typography.Text strong>{formatNumber(forecastTotal)}</Typography.Text>
-                </Table.Summary.Cell>
-                <Table.Summary.Cell index={2}>
+                {changeType === 'ghg' ? (
+                  <>
+                    <Table.Summary.Cell index={1}>
+                      <Typography.Text strong>{formatNumber(gasReductionsTotal)}</Typography.Text>
+                    </Table.Summary.Cell>
+                    <Table.Summary.Cell index={2}>
+                      <Typography.Text strong>100%</Typography.Text>
+                    </Table.Summary.Cell>
+                  </>
+                ) : (
+                  <>
+                    <Table.Summary.Cell index={1}>
+                      <Typography.Text strong>{formatNumber(baselineTotal)}</Typography.Text>
+                    </Table.Summary.Cell>
+                    <Table.Summary.Cell index={2}>
+                      <Typography.Text strong>{formatNumber(forecastTotal)}</Typography.Text>
+                    </Table.Summary.Cell>
+                  </>
+                )}
+                <Table.Summary.Cell index={3}>
                   <Typography.Text strong>{formatNumber(forecastTotal - baselineTotal)}</Typography.Text>
                   {/* <Tag>76%</Tag> */}
                 </Table.Summary.Cell>

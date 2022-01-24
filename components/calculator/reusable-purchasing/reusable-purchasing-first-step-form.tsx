@@ -42,7 +42,7 @@ const ReusablePurchasingFirstStepForm: React.FC<Props> = ({ onPressNext }) => {
         </Form.Item>
 
         <Form.Item label="Cost per case" name="caseCost" rules={requiredRule}>
-          <Input type="number" />
+          <Input type="number" prefix="$" />
         </Form.Item>
       </StyledFormItem>
 

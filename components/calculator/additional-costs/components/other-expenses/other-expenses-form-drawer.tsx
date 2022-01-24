@@ -71,10 +71,10 @@ const OtherExpensesDetails = () => {
       <Typography.Title level={4}>Additional expense category help</Typography.Title>
       <Row gutter={[10, 20]}>
         {OTHER_EXPENSES.map(expense => (
-          <>
+          <React.Fragment key={expense.name}>
             <Col span={12}>{expense.name}</Col>
             <Col span={12}>{expense.description}</Col>
-          </>
+          </React.Fragment>
         ))}
       </Row>
     </div>
