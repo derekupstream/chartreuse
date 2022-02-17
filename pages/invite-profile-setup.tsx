@@ -128,7 +128,7 @@ export default function InviteProfile({ org, account, error }: Props) {
       <Header title="Setup Profile" />
 
       <main>
-        <FormPageTemplate title="Setup your Profile" subtitle={`Setup your profile to accept the invite to join ${org?.name} and ${account?.name} at Chartreuse.`}>
+        <FormPageTemplate title="Setup your Profile" subtitle={`Setup your profile to accept the invite to join ${org?.name} at Chartreuse.`}>
           <InviteProfileForm onSubmit={handleInviteProfileCreation as (values: unknown) => void} isLoading={createInviteProfile.isLoading} />
         </FormPageTemplate>
       </main>
