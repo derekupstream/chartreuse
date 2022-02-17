@@ -3,28 +3,27 @@ import mailgun from '../lib/mailgun'
 
 export { }
 
-const orgName = 'My Org';
-const email = 'mattwad+00000@gmail.com';
-const inviterEmail = 'mattwad@gmail.com';
+const orgId = '79cb54a3-8b75-4841-93d4-a23fd1c07553';
+const email = 'mattwad+upstream@gmail.com';
+const inviterEmail = 'matt@upstreamsolutions.org';
 const webHost = 'https://app.chartreuse.eco';
 
 (async () => {
 
   try {
     const org = await prisma.org.findFirst({
-      where: { name: orgName }
+      where: { id: orgId }
     })
     const inviter = await prisma.user.findFirst({
       where: { email: inviterEmail }
     })
     if (!org) {
-      throw new Error('No org found by name: ' + orgName)
+      throw new Error('No org found: ' + orgId)
     }
     if (!inviter) {
       throw new Error('No user found by email: ' + inviter)
     }
 
-    const orgId = org.id
     const invite = await prisma.invite.create({
       data: {
         email,

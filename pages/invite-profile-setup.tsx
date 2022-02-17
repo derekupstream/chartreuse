@@ -17,7 +17,7 @@ export const getServerSideProps: GetServerSideProps = async context => {
 
     if (!inviteId) {
       return {
-        props: { org: null, account: null, error: 'Invalid Invite' },
+        props: { error: 'Invalid Invite' },
       }
     }
 
@@ -34,30 +34,26 @@ export const getServerSideProps: GetServerSideProps = async context => {
 
     if (!invite) {
       return {
-        props: { org: null, account: null, error: 'Invalid Invite' },
+        props: { error: 'Invalid Invite' },
       }
     }
 
     if (invite.accepted) {
       return {
         props: {
-          org: null,
-          account: null,
           error: 'Invite was already accepted',
         },
       }
     }
 
     return {
-      props: JSON.parse(
-        JSON.stringify({
-          org: invite.org,
-          account: invite.account,
-        })
-      ),
+      props: {
+        org: invite.org,
+        account: invite.account,
+      },
     }
   } catch (error: any) {
-    return { props: { org: null, account: null, error: error.message } }
+    return { props: { error: error.message } }
   }
 }
 
@@ -123,7 +119,7 @@ export default function InviteProfile({ org, account, error }: Props) {
     return <MessagePage title="Oops!" message={error} />
   }
 
-  if (!user || !org || !account) {
+  if (!user || !org) {
     return <PageLoader />
   }
 
