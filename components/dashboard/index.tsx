@@ -1,9 +1,8 @@
-import SelectedItem from 'components/dashboard/selected-item'
 import Template from './template'
 
 export { Template }
 
-export type AccountDataType = {
+type AccountDataType = {
   id: string
   name: string
   accountContactEmail: string
@@ -29,6 +28,7 @@ export type AccountDataType = {
 }
 
 export type DashboardUser = {
+  accountId?: string
   id: string
   email: string
   name: string
@@ -37,20 +37,4 @@ export type DashboardUser = {
     name: string
     accounts: AccountDataType[]
   }
-}
-
-export type Props = {
-  user: DashboardUser
-  products?: any
-  selectedMenuItem?: string
-}
-
-const INITIAL_SELECTED_MENU_ITEM = 'projects'
-
-export default function Dashboard({ user }: Props) {
-  return (
-    <Template user={user} selectedMenuItem={INITIAL_SELECTED_MENU_ITEM}>
-      <SelectedItem item={INITIAL_SELECTED_MENU_ITEM} user={user} />
-    </Template>
-  )
 }

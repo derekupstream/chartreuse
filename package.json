@@ -10,7 +10,8 @@
     "test": "jest --watchAll",
     "test:ci": "jest",
     "lint": "next lint",
-    "docs": "kerbs dev"
+    "docs": "kerbs dev",
+    "sendInvite": "dotenv -e .env ts-node scripts/sendInvite.ts"
   },
   "dependencies": {
     "@ant-design/colors": "^6.0.0",

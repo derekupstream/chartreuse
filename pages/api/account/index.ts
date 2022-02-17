@@ -13,8 +13,7 @@ type Response = {
   account: Account
 }
 
-async function createAccount (req: NextApiRequestWithUser, res: NextApiResponse<Response>) {
-
+async function createAccount(req: NextApiRequestWithUser, res: NextApiResponse<Response>) {
   const { name, email, useOrgEmail } = req.body
 
   const account = await prisma.account.create<Prisma.AccountCreateArgs>({
@@ -33,6 +32,7 @@ async function createAccount (req: NextApiRequestWithUser, res: NextApiResponse<
               create: [
                 {
                   email,
+                  orgId: req.user.orgId,
                   sentByUserId: req.user.id,
                 },
               ],
@@ -57,11 +57,11 @@ async function createAccount (req: NextApiRequestWithUser, res: NextApiResponse<
 
   if (!useOrgEmail) {
     const invite = ((account as any).invites || []).find((i: Invite) => i.email === email)
-    console.log('send invite');
+    console.log('send invite')
     await mailgun.messages().send({
       from: 'Chartreuse <hello@chartreuse.eco>',
       to: email,
-      subject: `Invite from ${invite.sentBy.name} to join ReuseIT`,
+      subject: `Invite from ${invite.sentBy.name} to join Chart Reuse`,
       template: 'invite',
       'v:inviterName': invite.sentBy.name,
       'v:inviterJobTitle': invite.sentBy.title,

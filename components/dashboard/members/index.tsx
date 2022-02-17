@@ -1,29 +1,47 @@
 import { useRouter } from 'next/router'
 import { Button, Space, Table, Tag, Typography, Popconfirm, message } from 'antd'
 import { DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons'
+import { ColumnType } from 'antd/lib/table/interface'
 import { useMutation } from 'react-query'
 import { useCallback } from 'react'
+import { Account, User, Invite } from '@prisma/client'
 
 import * as S from '../styles'
-import { LoggedinProps } from 'lib/middleware'
 
-export default function Members({ user }: LoggedinProps) {
+interface Member {
+  key: string
+  name: string
+  email: string
+  jobTitle: string
+  account?: string
+  accountId?: string
+  isInvite: boolean
+}
+
+export interface PageProps {
+  accounts: Account[]
+  users: User[]
+  invites: Invite[]
+}
+
+export default function Members({ accounts, users, invites }: PageProps) {
   const router = useRouter()
 
-  const deleteAccount = useMutation((id: string) => {
-    return fetch(`/api/profile/${id}`, {
+  const deleteAccount = useMutation((member: Member) => {
+    const resource = member.isInvite ? 'invite' : 'profile'
+    return fetch(`/api/${resource}/${member.key}`, {
       method: 'DELETE',
       headers: {
         'content-type': 'application/json',
       },
     })
   })
-  console.log(user.org.accounts)
+
   const handleAccountDeletion = useCallback(
-    (id: string) => {
-      deleteAccount.mutate(id, {
+    (member: Member) => {
+      deleteAccount.mutate(member, {
         onSuccess: () => {
-          message.success(`Account deleted`)
+          message.success(member.isInvite ? 'Invitation cancelled' : 'Account deleted')
           router.replace(router.asPath)
         },
         onError: err => {
@@ -34,7 +52,7 @@ export default function Members({ user }: LoggedinProps) {
     [deleteAccount, router]
   )
 
-  const columns = [
+  const columns: (ColumnType<Member> & { showPending?: boolean })[] = [
     {
       title: 'Name',
       dataIndex: 'name',
@@ -48,14 +66,15 @@ export default function Members({ user }: LoggedinProps) {
       title: 'Email',
       dataIndex: 'email',
       key: 'email',
-      sorter: (a: { email: string }, b: { email: string }) => a.email.toLowerCase() < b.email.toLowerCase() ? -1 : 1,
+      sorter: (a, b) => (a.email.toLowerCase() < b.email.toLowerCase() ? -1 : 1),
+      showPending: true,
     },
     {
       title: 'Job title',
       dataIndex: 'jobTitle',
       key: 'jobTitle',
       // eslint-disable-next-line react/display-name
-      render: (text: string) => {
+      render: text => {
         return text || '-'
       },
     },
@@ -63,89 +82,70 @@ export default function Members({ user }: LoggedinProps) {
       title: 'Account',
       dataIndex: 'account',
       key: 'account',
-      filters: user.org.accounts.map(account => ({
+      filters: accounts.map(account => ({
         text: account.name,
-        value: account.id
+        value: account.id,
       })),
-      onFilter: (value: string, record: { accountId: string }) => record.accountId === value,
+      onFilter: (value, member) => member.accountId === value,
       defaultSortOrder: 'ascend',
-      sorter: (a: { account: string }, b: { account: string }) => a.account.toLowerCase() < b.account.toLowerCase() ? -1 : 1,
-    },
-    {
-      title: 'Status',
-      dataIndex: 'status',
-      key: 'status',
-      // eslint-disable-next-line react/display-name
-      render: (_: string, record: any) => {
-        return <Space size="small">{record.invitingPending ? <Tag color="orange">Pending</Tag> : <Tag color="blue">Active</Tag>}</Space>
-      },
+      sorter: (a, b) => (a.account?.toLowerCase() || '' < (b.account?.toLowerCase() || '') ? -1 : 1),
+      showPending: true,
     },
     {
       title: 'Actions',
       key: 'actions',
       // eslint-disable-next-line react/display-name
-      render: (_: any, record: any) => {
+      render: (_, member) => {
         return (
           <Space size="middle">
-            <Button
-              // TODO: Edit member
-              onClick={() => router.push(`/edit-member-profile/${record.key}`)}
-              icon={<EditOutlined />}
-              disabled={!record.name}
-            />
+            {!member.isInvite && <Button onClick={() => router.push(`/edit-member-profile/${member.key}`)} icon={<EditOutlined />} />}
             <Popconfirm
               title={
                 <Space direction="vertical" size="small">
                   <Typography.Title level={4}>
-                    Are you sure you want to delete the user &quot;
-                    {record.name}&quot;?
+                    Are you sure you want to delete the {member.isInvite ? 'invitation to' : 'member'} &quot;{member.email}&quot;?
                   </Typography.Title>
-                  <Typography.Text>It&apos;s permanent.</Typography.Text>
+                  <Typography.Text>This action cannot be undone</Typography.Text>
                 </Space>
               }
-              onConfirm={() => handleAccountDeletion(record.key)}
+              onConfirm={() => handleAccountDeletion(member)}
             >
-              <Button icon={<DeleteOutlined />} loading={deleteAccount.isLoading} disabled={!record.name} />
+              <Button icon={<DeleteOutlined />} loading={deleteAccount.isLoading && deleteAccount.variables?.key === member.key} />
             </Popconfirm>
           </Space>
         )
       },
+      showPending: true,
     },
   ]
 
-  const data = user.org.accounts.reduce((data: any[], account) => {
-    return data.concat(
-      account.users
-        .map(user => {
-          const invitingPending = account.invites.some(i => i.email === user.email && !i.accepted)
+  const pendingColumns = columns.filter(col => col.showPending)
 
-          return {
-            key: user.id,
-            name: user.name,
-            email: user.email,
-            jobTitle: user.title,
-            account: user.account.name,
-            accountId: user.account.id,
-            status: invitingPending ? 'Pending' : 'Active',
-            invitingPending,
-          }
-        })
-        .concat(
-          account.invites
-            .filter(i => !i.accepted)
-            .map(invite => ({
-              key: invite.id,
-              name: '',
-              email: invite.email,
-              jobTitle: '',
-              account: invite.account.name,
-              accountId: invite.account.id,
-              status: 'Pending',
-              invitingPending: true,
-            }))
-        )
-    )
-  }, [])
+  const activeUsers: Member[] = users.map((user): Member => {
+    const account = accounts.find(account => account.id === user.accountId)
+    return {
+      key: user.id,
+      name: user.name || '',
+      email: user.email,
+      jobTitle: user.title || '',
+      account: account?.name,
+      accountId: account?.id,
+      isInvite: false,
+    }
+  })
+
+  const pendingUsers = invites.map((invite): Member => {
+    const account = accounts.find(account => account.id === invite.accountId)
+    return {
+      key: invite.id,
+      name: '',
+      email: invite.email,
+      jobTitle: '',
+      account: account?.name,
+      accountId: account?.id,
+      isInvite: true,
+    }
+  })
 
   const handleAddAccountUser = () => {
     router.push('/invite-member?dashboard=1')
@@ -155,13 +155,24 @@ export default function Members({ user }: LoggedinProps) {
     <Space direction="vertical" size="large" style={{ width: '100%' }}>
       <S.SpaceBetween>
         <Typography.Title>Account members</Typography.Title>
-        <Button type='primary' onClick={handleAddAccountUser} icon={<PlusOutlined />}>
-          Add user
+        <Button type="primary" onClick={handleAddAccountUser} icon={<PlusOutlined />}>
+          Invite new member
         </Button>
       </S.SpaceBetween>
       {/* @ts-ignore */}
-      {data.length > 0 && <Table columns={columns} dataSource={data} pagination={false} />}
-      {data.length === 0 && <Typography.Text>You have no users in your account. Click ‘+ Add user’ above to get started.</Typography.Text>}
+      {activeUsers.length > 0 && <Table columns={columns} dataSource={activeUsers} pagination={false} />}
+      {activeUsers.length === 0 && (
+        <Typography.Text>
+          You have no users in your organization. Click <strong>+ Invite new member</strong> above to get started.
+        </Typography.Text>
+      )}
+      {pendingUsers.length > 0 && (
+        <>
+          <br />
+          <Typography.Title level={2}>Pending Invitations</Typography.Title>
+          <Table<Member> columns={pendingColumns} dataSource={pendingUsers} pagination={false} />
+        </>
+      )}
     </Space>
   )
 }

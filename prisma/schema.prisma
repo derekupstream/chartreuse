@@ -35,6 +35,7 @@ model Org {
   users     User[]
   accounts  Account[]
   projects  Project[]
+  Invite    Invite[]
 }
 
 model Account {
@@ -54,8 +55,10 @@ model Account {
 model Invite {
   id           String   @id @default(uuid()) @db.Uuid
   email        String
-  account      Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
-  accountId    String   @db.Uuid
+  account      Account? @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  accountId    String?  @db.Uuid
+  orgId        String   @db.Uuid
+  org          Org      @relation(fields: [orgId], references: [id], onDelete: Cascade)
   accepted     Boolean  @default(false)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt

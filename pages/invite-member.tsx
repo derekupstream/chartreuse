@@ -65,7 +65,9 @@ type InviteFields = {
 
 type Props = {
   user: {
+    accountId?: string
     id: string
+    orgId: string
   }
   org: {
     id: string
@@ -95,13 +97,14 @@ export default function InviteMember({ org, user }: Props) {
         {
           email,
           accountId,
+          orgId: user.orgId,
           userId: user.id,
         },
         {
           onSuccess: () => {
             message.success('Account member invited.')
 
-            router.push('/')
+            router.push('/members')
           },
           onError: err => {
             message.error((err as Error)?.message)
@@ -134,7 +137,7 @@ export default function InviteMember({ org, user }: Props) {
             ) : undefined
           }
         >
-          <InviteForm onSubmit={handleAccountSetupCreation as (values: unknown) => void} isLoading={createInvite.isLoading} accounts={org.accounts} />
+          <InviteForm onSubmit={handleAccountSetupCreation as (values: unknown) => void} isLoading={createInvite.isLoading} accounts={org.accounts} isOrgAdmin={!user.accountId} />
         </FormPageTemplate>
       </main>
     </>

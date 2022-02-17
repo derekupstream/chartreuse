@@ -16,7 +16,7 @@ export const checkLogin = async (context: GetServerSidePropsContext) => {
     const cookies = nookies.get(context)
     const token = await verifyIdToken(cookies.token)
 
-    const user = await prisma.user.findUnique<Prisma.UserFindUniqueArgs>({
+    const user = await prisma.user.findUnique({
       where: {
         id: token.uid,
       },
@@ -30,6 +30,11 @@ export const checkLogin = async (context: GetServerSidePropsContext) => {
           destination: '/org-setup',
         },
       }
+    }
+
+    // only provide access to accounts this user has access to
+    if (user.accountId !== null) {
+      user.org.accounts = user.org.accounts.filter(account => account.id === user.accountId)
     }
 
     return {

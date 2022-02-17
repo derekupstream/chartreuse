@@ -26,11 +26,7 @@ export const getServerSideProps: GetServerSideProps = async context => {
       },
       include: {
         sentBy: true,
-        account: {
-          include: {
-            org: true,
-          },
-        },
+        org: true,
       },
     })
 
@@ -55,7 +51,7 @@ export const getServerSideProps: GetServerSideProps = async context => {
       props: JSON.parse(
         JSON.stringify({
           user: invite.sentBy,
-          org: invite.account.org,
+          org: invite.org,
           email: invite.email,
         })
       ),

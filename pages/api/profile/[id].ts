@@ -8,10 +8,6 @@ type Response = {
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<Response>) {
-  const { id } = req.query
-
-  if (!id) return res.status(400).json({ error: 'Missing id' })
-
   if (req.method === 'DELETE') {
     try {
       const user = await prisma.user.delete<Prisma.UserDeleteArgs>({

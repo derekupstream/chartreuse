@@ -25,20 +25,11 @@ export default function InviteProfileForm({ onSubmit, isLoading }: Props) {
           <Input placeholder="Your name" />
         </Form.Item>
 
-        <Form.Item label="Your job title" name="title" rules={[{ required: true, message: 'Please input your title!' }]}>
+        <Form.Item label="Your job title" name="title">
           <Input placeholder="Your job title" />
         </Form.Item>
 
-        <Form.Item
-          label="Your contact phone number"
-          name="phone"
-          rules={[
-            {
-              required: true,
-              message: 'Please input your phone!',
-            },
-          ]}
-        >
+        <Form.Item label="Your contact phone number" name="phone">
           <Input placeholder="(720) 555-1234" />
         </Form.Item>
 

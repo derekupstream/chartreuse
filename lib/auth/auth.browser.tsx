@@ -30,7 +30,6 @@ export const AuthProvider: React.FC = ({ children }) => {
   const [user, setUser] = useState<User | null>(null)
 
   useEffect(() => {
-    console.log('subscribe to onIdTokenChanged')
     const unsubscribe = firebase.auth().onIdTokenChanged(async (user: User | null) => {
       if (!user) {
         setUser(null)

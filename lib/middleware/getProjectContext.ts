@@ -69,7 +69,7 @@ export const getProjectContext: GetServerSideProps = async context => {
     }
 
     return {
-      props: JSON.parse(JSON.stringify(projectContext)),
+      props: projectContext,
     }
   } catch (error: any) {
     console.error('Error getting project context', error)

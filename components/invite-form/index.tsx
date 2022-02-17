@@ -10,23 +10,16 @@ type Props = {
     id: string
     name: string
   }[]
+  isOrgAdmin: boolean
 }
 
-export default function InviteForm({ onSubmit, isLoading, accounts }: Props) {
+export default function InviteForm({ onSubmit, isLoading, accounts, isOrgAdmin }: Props) {
   return (
     <S.Wrapper>
       <S.InviteForm name="inviteForm" layout="vertical" onFinish={onSubmit}>
-        <Form.Item
-          label="Choose account to assign member"
-          name="accountId"
-          rules={[
-            {
-              required: true,
-              message: 'Account is required!',
-            },
-          ]}
-        >
+        <Form.Item label="Choose account to assign member" name="accountId" initialValue={isOrgAdmin ? '' : accounts[0].id} hidden={!isOrgAdmin}>
           <Select placeholder="Account name">
+            <Select.Option value="">-- Access All Accounts --</Select.Option>
             {accounts.map(account => {
               return (
                 <Select.Option key={account.id} value={account.id}>

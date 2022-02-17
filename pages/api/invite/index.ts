@@ -2,52 +2,59 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import prisma from 'lib/prisma'
 import { Prisma, Invite, User, Org } from '@prisma/client'
 import mailgun from 'lib/mailgun'
+import nc from 'next-connect'
+import { onError, onNoMatch, getUser, NextApiRequestWithUser } from 'lib/middleware'
 
-type UserWithOrg = User & { org: Org }
-type InviteWithSentBy = Invite & { sentBy: UserWithOrg }
+const handler = nc<NextApiRequest, NextApiResponse>({ onError, onNoMatch })
+
+handler.use(getUser).post(sendInvite)
 
 type Response = {
-  invite?: InviteWithSentBy
-  error?: string
+  invite: Invite
 }
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse<Response>) {
-  if (req.method === 'POST') {
-    try {
-      const { email, accountId, userId } = req.body
-
-      const invite = (await prisma.invite.create<Prisma.InviteCreateArgs>({
-        data: {
-          email,
-          accountId,
-          sentByUserId: userId,
+async function sendInvite(req: NextApiRequestWithUser, res: NextApiResponse<Response>) {
+  const { email, accountId } = req.body
+  const orgId = req.user.orgId
+  const userId = req.user.id
+  const invite = await prisma.invite.create({
+    data: {
+      email,
+      sentBy: {
+        connect: {
+          id: userId,
         },
-        include: {
-          sentBy: {
-            include: {
-              org: true,
+      },
+      account: accountId
+        ? {
+            connect: {
+              id: accountId,
             },
-          },
+          }
+        : undefined,
+      org: {
+        connect: {
+          id: orgId,
         },
-      })) as InviteWithSentBy
+      },
+    },
+    include: {
+      org: true,
+    },
+  })
 
-      await mailgun.messages().send({
-        from: 'Chartreuse <hello@chartreuse.eco>',
-        to: email,
-        subject: `Invite from ${invite.sentBy.name} to join ReuseIT`,
-        template: 'invite',
-        'v:inviterName': invite.sentBy.name,
-        'v:inviterJobTitle': invite.sentBy.title,
-        'v:inviterOrg': invite.sentBy.org.name,
-        'v:inviteUrl': `${req.headers.origin}/accept?inviteId=${invite.id}`,
-      })
+  await mailgun.messages().send({
+    from: 'Chartreuse <hello@chartreuse.eco>',
+    to: email,
+    subject: `Invite from ${req.user.name} to join Chart Reuse`,
+    template: 'invite',
+    'v:inviterName': req.user.name,
+    'v:inviterJobTitle': req.user.title,
+    'v:inviterOrg': invite.org.name,
+    'v:inviteUrl': `${req.headers.origin}/accept?inviteId=${invite.id}`,
+  })
 
-      return res.status(200).json({ invite })
-    } catch (error: any) {
-      return res.status(500).json({ error: error.message })
-    }
-  }
-
-  // Handle any other HTTP method
-  return res.status(405).json({ error: 'Method not allowed' })
+  return res.status(200).json({ invite })
 }
+
+export default handler
