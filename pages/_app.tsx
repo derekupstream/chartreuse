@@ -31,7 +31,7 @@ function MyApp({ Component, pageProps }: Props) {
   return (
     <>
       <Head>
-        <title>Welcome to Chartreuse by Upstream</title>
+        <title>Welcome to Chart Reuse by Upstream</title>
         <link rel="icon" href="/favicon.png" />
       </Head>
       <QueryClientProvider client={queryClient}>

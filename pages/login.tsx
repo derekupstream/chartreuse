@@ -33,7 +33,7 @@ export default function Login() {
       <Header title="Sign in" />
 
       <main>
-        <FormPageTemplate title="Welcome to Chartreuse" subtitle="Sign in with your email and password, or use your Google account.">
+        <FormPageTemplate title="Welcome to Chart Reuse" subtitle="Sign in with your email and password, or use your Google account.">
           <LoginForm onSubmit={handleLogin as (values: unknown) => void} onSubmitWithProvider={handleLoginWithProvider} />
         </FormPageTemplate>
       </main>

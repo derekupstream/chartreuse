@@ -51,7 +51,7 @@ const webHost = 'https://app.chartreuse.eco';
     })
 
     await mailgun.messages().send({
-      from: 'Chartreuse <hello@chartreuse.eco>',
+      from: 'Chart Reuse <hello@chartreuse.eco>',
       to: email,
       subject: `Invite from ${inviter.name} to join Chart Reuse`,
       template: 'invite',

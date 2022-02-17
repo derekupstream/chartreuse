@@ -1,1 +1,1 @@
-export default { name: 'Chartreuse - The Waste Calculator' }
+export default { name: 'Chart Reuse - The Waste Calculator' }

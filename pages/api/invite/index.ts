@@ -44,7 +44,7 @@ async function sendInvite(req: NextApiRequestWithUser, res: NextApiResponse<Resp
   })
 
   await mailgun.messages().send({
-    from: 'Chartreuse <hello@chartreuse.eco>',
+    from: 'Chart Reuse <hello@chartreuse.eco>',
     to: email,
     subject: `Invite from ${req.user.name} to join Chart Reuse`,
     template: 'invite',

@@ -59,7 +59,7 @@ async function createAccount(req: NextApiRequestWithUser, res: NextApiResponse<R
     const invite = ((account as any).invites || []).find((i: Invite) => i.email === email)
     console.log('send invite')
     await mailgun.messages().send({
-      from: 'Chartreuse <hello@chartreuse.eco>',
+      from: 'Chart Reuse <hello@chartreuse.eco>',
       to: email,
       subject: `Invite from ${invite.sentBy.name} to join Chart Reuse`,
       template: 'invite',

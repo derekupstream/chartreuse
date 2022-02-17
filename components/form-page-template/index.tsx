@@ -17,11 +17,11 @@ const FormPageTemplate: React.FC<Props> = ({ children, title, subtitle, navBackL
     <Container>
       <S.Wrapper>
         <Space direction="vertical" size={54} style={{ width: '100%' }}>
-          {!navBackLink && <Image src={Logo} width={300} height={70} alt="Chartreuse" />}
+          {!navBackLink && <Image src={Logo} width={300} height={70} alt="Chart Reuse" />}
           {navBackLink && (
             <S.LogoWithNavBackLink>
               {navBackLink}
-              <Image src={Logo} alt="Chartreuse" />
+              <Image src={Logo} alt="Chart Reuse" />
               <div style={{ visibility: 'hidden' }}>{navBackLink}</div>
             </S.LogoWithNavBackLink>
           )}
