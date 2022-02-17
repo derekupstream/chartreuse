@@ -25,31 +25,42 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
               id: orgId,
             },
           },
-          account: {
-            connect: {
+          account: accountId
+            ? {
+                connect: {
+                  id: accountId,
+                },
+              }
+            : undefined,
+        },
+      })
+
+      if (accountId) {
+        const account = await prisma.account.findFirst({
+          where: { id: accountId },
+        })
+        if (!account?.accountContactEmail) {
+          await prisma.account.update<Prisma.AccountUpdateArgs>({
+            where: {
               id: accountId,
             },
+            data: {
+              accountContactEmail: email,
+            },
+          })
+        }
+      }
+
+      if (inviteId) {
+        await prisma.invite.update<Prisma.InviteUpdateArgs>({
+          where: {
+            id: inviteId,
           },
-        },
-      })
-
-      await prisma.account.update<Prisma.AccountUpdateArgs>({
-        where: {
-          id: accountId,
-        },
-        data: {
-          accountContactEmail: email,
-        },
-      })
-
-      await prisma.invite.update<Prisma.InviteUpdateArgs>({
-        where: {
-          id: inviteId,
-        },
-        data: {
-          accepted: true,
-        },
-      })
+          data: {
+            accepted: true,
+          },
+        })
+      }
 
       return res.status(200).json({ user })
     } catch (error: any) {
