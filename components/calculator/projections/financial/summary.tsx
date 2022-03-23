@@ -27,7 +27,7 @@ const FinancialSummary: React.FC<Props> = ({ data }) => {
             <Value color="green">{formatToDollar(data.summary.annualCost * -1)}</Value>
 
             <Title>Annual program ROI</Title>
-            <Value>{data.summary.annualROIPercent}</Value>
+            <Value>{data.summary.annualROIPercent}%</Value>
 
             <hr />
 
