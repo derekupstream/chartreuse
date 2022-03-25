@@ -1,4 +1,4 @@
-# Chartruese by Upstream
+# Chart Reuse by Upstream
 
 Chart Reuse is an app by Upstream Solutions for calculating the cost savings of switching from disposable food products to reusable products.
 
