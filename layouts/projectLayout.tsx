@@ -7,6 +7,12 @@ import * as S from 'components/dashboard/styles'
 import { useRouter } from 'next/router'
 import CalculatorFooter, { FooterProvider } from 'components/calculator/footer'
 import { CALCULATOR_STEPS } from 'components/calculator/steps'
+import styled from 'styled-components'
+
+const Title = styled(Typography.Title)`
+  margin-bottom: 5px !important;
+  color: #2bbe50 !important;
+`
 
 type Props = {
   currentStepIndex: number
@@ -24,12 +30,12 @@ export default function ProjectLayout({ children, project, currentStepIndex, ...
         <S.ContentContainer>
           <S.Content>
             <Space direction='vertical' size='large' style={{ width: '100%' }}>
-              <div css='display: flex; justify-content: space-between'>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <Button type='text' href='/projects'>
                   <ArrowLeftOutlined />
                   Back to projects
                 </Button>
-                <Typography.Title level={3} css='margin-bottom: 5px !important; color: #2bbe50 !important'>{project?.name}</Typography.Title>
+                <Title level={3}>{project?.name}</Title>
               </div>
               <S.Steps
                 current={currentStepIndex}
@@ -38,7 +44,7 @@ export default function ProjectLayout({ children, project, currentStepIndex, ...
                 }}
               >
                 {CALCULATOR_STEPS.map((step, i) => (
-                  <Steps.Step key={step.title} title={`Step ${i+1}`} description={step.title} />
+                  <Steps.Step key={step.title} title={`Step ${i + 1}`} description={step.title} />
                 ))}
               </S.Steps>
             </Space>

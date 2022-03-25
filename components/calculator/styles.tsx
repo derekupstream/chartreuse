@@ -99,3 +99,10 @@ export const CardTitle = styled(Typography.Text)`
   font-weight: bold;
   color: #262626;
 `
+
+export const SmallText = styled(Typography.Text)`
+  font-size: 0.8rem;
+`
+export const SmallerText = styled(Typography.Text)`
+  font-size: 0.7rem;
+`

@@ -1,5 +1,4 @@
 import styled from 'styled-components'
-// import { Bar } from "@ant-design/charts"
 import dynamic from 'next/dynamic'
 import { ComponentType } from 'react'
 import type { BarConfig } from '@ant-design/plots'

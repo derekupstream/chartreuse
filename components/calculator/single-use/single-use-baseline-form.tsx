@@ -44,7 +44,6 @@ export default function SelectQuantityStep({
   }
 
   useEffect(() => {
-    console.log('useEffect', input)
     if (input) {
       form.setFieldsValue(input)
       // set default vlaues

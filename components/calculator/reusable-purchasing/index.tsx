@@ -12,6 +12,11 @@ import ItemRow from './components/ItemRow'
 import ContentLoader from 'components/content-loader'
 import { useFooterState } from '../footer'
 import { formatToDollar } from 'lib/calculator/utils'
+import styled from 'styled-components'
+
+const SmallText = styled(Typography.Text)`
+  font-size: 0.9rem;
+`
 
 export interface ReusableFormValues {
   annualRepurchasePercentage: string
@@ -182,46 +187,46 @@ const SummaryRow = ({ lineItems }: { lineItems: ReusableLineItem[] }) => {
         <Col span={8}>
           <Row gutter={[0, 20]}>
             <Col span={24}>
-              <Typography.Text css="font-size: .9rem">
+              <SmallText>
                 <strong>Initial costs</strong>
-              </Typography.Text>
+              </SmallText>
             </Col>
             {/* next row */}
             <Col span={16}>
-              <Typography.Text css="font-size: .9rem">Number of products</Typography.Text>
+              <SmallText>Number of products</SmallText>
             </Col>
             <Col span={8}>
-              <Typography.Text css="font-size: .9rem">{baselineProductCount}</Typography.Text>
+              <SmallText>{baselineProductCount}</SmallText>
             </Col>
             {/* next row */}
             <Col span={16}>
-              <Typography.Text css="font-size: .9rem">Total</Typography.Text>
+              <SmallText>Total</SmallText>
             </Col>
             <Col span={8}>
-              <Typography.Text css="font-size: .9rem">{formatToDollar(baselineCost)}</Typography.Text>
+              <SmallText>{formatToDollar(baselineCost)}</SmallText>
             </Col>
           </Row>
         </Col>
         <Col span={8}>
           <Row gutter={[0, 20]}>
             <Col span={24}>
-              <Typography.Text css="font-size: .9rem">
+              <SmallText>
                 <strong>Repurchase forecast</strong>
-              </Typography.Text>
+              </SmallText>
             </Col>
             {/* next row */}
             <Col span={16}>
-              <Typography.Text css="font-size: .9rem">Average repurchase rate</Typography.Text>
+              <SmallText>Average repurchase rate</SmallText>
             </Col>
             <Col span={8}>
-              <Typography.Text css="font-size: .9rem">{averageRepurchaseRate}%</Typography.Text>
+              <SmallText>{averageRepurchaseRate}%</SmallText>
             </Col>
             {/* next row */}
             <Col span={16}>
-              <Typography.Text css="font-size: .9rem">Annual repurchase cost</Typography.Text>
+              <SmallText>Annual repurchase cost</SmallText>
             </Col>
             <Col span={8}>
-              <Typography.Text css="font-size: .9rem">{formatToDollar(forecastCost)}</Typography.Text>
+              <SmallText>{formatToDollar(forecastCost)}</SmallText>
             </Col>
           </Row>
         </Col>

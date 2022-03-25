@@ -1,8 +1,5 @@
 const withPlugins = require('next-compose-plugins')
 const withLess = require('next-with-less')
-// next-remove-imports fixes an issue that next.js does not support global CSS imports from node_modules.
-// We should try removing this workaround when we upgrade to next.js v12.
-const removeImports = require('next-remove-imports')()
 
 /**
  * Remove undefined values so Next.js doesn't complain during serialization
@@ -40,4 +37,4 @@ const config = {
   },
 }
 
-module.exports = withPlugins([withLess, removeImports], config)
+module.exports = withPlugins([withLess], config)

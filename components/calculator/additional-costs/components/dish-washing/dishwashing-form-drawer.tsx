@@ -53,7 +53,7 @@ const DishwashingFormDrawer: React.FC<Props> = ({ onClose }) => {
   }
 
   return (
-    <Form form={form} layout="vertical" onFinish={handleSubmit} css="padding-bottom: 24px;">
+    <Form form={form} layout="vertical" onFinish={handleSubmit} style={{ paddingBottom: '24px' }}>
       <FormItem label="Dishwasher type" name="type" rules={requiredRule}>
         <OptionSelection options={typeOptions} optionType="button" />
       </FormItem>
@@ -77,7 +77,7 @@ const DishwashingFormDrawer: React.FC<Props> = ({ onClose }) => {
       <FormItem label="Average additional racks/day for reusables" name="additionalRacksPerDay">
         <Input type="number" />
       </FormItem>
-      <Button htmlType="submit" size="large" type="primary" css="float: right;">
+      <Button htmlType="submit" size="large" type="primary" style={{ float: 'right' }}>
         Add expense
       </Button>
     </Form>

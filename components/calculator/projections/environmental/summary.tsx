@@ -53,7 +53,7 @@ const EnvironmentalSummary: React.FC<Props> = ({ data }) => {
       value: data.annualGasEmissionChanges.landfillWaste,
     },
   ]
-  console.log('data.annualGasEmissionChanges.dishwashing', data.annualGasEmissionChanges.dishwashing)
+
   if (data.annualGasEmissionChanges.dishwashing) {
     ghgData.push({
       label: 'Dishwashing',
@@ -66,7 +66,7 @@ const EnvironmentalSummary: React.FC<Props> = ({ data }) => {
       <SectionHeader>Environmental summary</SectionHeader>
 
       <ViewResultsWrapper>
-        <Typography.Text css="margin-right: 20px;">View results in:</Typography.Text>
+        <Typography.Text style={{ marginRight: '20px' }}>View results in:</Typography.Text>
         <Radio.Group onChange={onChangeResults} defaultValue={units}>
           <Radio.Button value="pounds">Pounds</Radio.Button>
           <Radio.Button value="tons">Tons</Radio.Button>

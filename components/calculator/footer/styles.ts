@@ -7,7 +7,7 @@ export const Row = styled.div`
   align-items: end;
 `
 
-export const LinkBox = styled.div`
+export const LinkBox = styled.a`
   cursor: pointer;
   display: flex;
   flex-direction: column;
@@ -22,6 +22,9 @@ export const LinkBox = styled.div`
   }
 
   .page-title {
+    display: flex;
+    align-items: center;
+    gap: 24px;
     font-size: 20px;
     font-weight: 600;
     line-height: 28px;

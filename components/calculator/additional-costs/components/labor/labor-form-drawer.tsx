@@ -39,7 +39,7 @@ const LaborFormDrawer: React.FC<Props> = ({ onClose }) => {
   }
 
   return (
-    <Form form={form} layout="vertical" onFinish={handleSubmit} css="padding-bottom: 24px;">
+    <Form form={form} layout="vertical" onFinish={handleSubmit} style={{ paddingBottom: '24px' }}>
       <FormItem label="Category" name="categoryId" rules={requiredRule}>
         <OptionSelection options={categoryOptions} optionType="button" />
       </FormItem>
@@ -52,7 +52,7 @@ const LaborFormDrawer: React.FC<Props> = ({ onClose }) => {
       <FormItem label="Description" name="description" rules={requiredRule}>
         <Input.TextArea rows={4} />
       </FormItem>
-      <Button htmlType="submit" size="large" type="primary" css="float: right;">
+      <Button htmlType="submit" size="large" type="primary" style={{ float: 'right' }}>
         Add labor cost
       </Button>
     </Form>

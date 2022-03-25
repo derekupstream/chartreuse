@@ -14,6 +14,7 @@ import useLoadingState from 'hooks/useLoadingState'
 import ContentLoader from 'components/content-loader'
 import { getAnnualOccurence } from 'lib/calculator/constants/frequency'
 import { useFooterState } from '../footer'
+import styled from 'styled-components'
 
 type ServerSideProps = {
   project: Project
@@ -24,6 +25,10 @@ interface SingleUseItemRecord {
   lineItem: SingleUseLineItem
   product: SingleUseProduct
 }
+
+const SmallText = styled(Typography.Text)`
+  font-size: 0.9rem;
+`
 
 const BaselineCard = ({ item }: { item: SingleUseItemRecord }) => {
   const annualOccurence = getAnnualOccurence(item.lineItem.frequency)
@@ -46,11 +51,11 @@ const BaselineCard = ({ item }: { item: SingleUseItemRecord }) => {
       </Row>
       <Row>
         <Col span={16}>
-          <Typography.Text css="font-size: .8rem">Annual cost</Typography.Text>
+          <S.SmallText>Annual cost</S.SmallText>
           <br />
-          <Typography.Text css="font-size: .7rem">
+          <S.SmallerText>
             (${item.lineItem.caseCost}/case x {annualOccurence * item.lineItem.casesPurchased})
-          </Typography.Text>
+          </S.SmallerText>
         </Col>
         <Col span={8}>
           <Typography.Text>
@@ -75,15 +80,15 @@ const InfoCard = ({ item }: { item: SingleUseItemRecord }) => {
           <Typography.Title level={5}>Forecast</Typography.Title>
         </Col>
         <Col span={7}>
-          <Typography.Text css="font-size: .8rem">Total</Typography.Text>
+          <S.SmallText>Total</S.SmallText>
         </Col>
         <Col span={7}>
-          <Typography.Text css="font-size: .8rem">Change</Typography.Text>
+          <S.SmallText>Change</S.SmallText>
         </Col>
       </Row>
       <Row>
         <Col span={10}>
-          <Typography.Text css="font-size: .8rem">Annual cost</Typography.Text>
+          <S.SmallText>Annual cost</S.SmallText>
         </Col>
         <Col span={7}>
           <Typography.Text>
@@ -100,9 +105,9 @@ const InfoCard = ({ item }: { item: SingleUseItemRecord }) => {
       </Row>
       <Row>
         <Col span={24}>
-          <Typography.Text css="font-size: .7rem">
+          <S.SmallerText>
             (${item.lineItem.newCaseCost}/case x {annualOccurence * item.lineItem.newCasesPurchased})
-          </Typography.Text>
+          </S.SmallerText>
         </Col>
       </Row>
     </S.InfoCard>
@@ -111,7 +116,7 @@ const InfoCard = ({ item }: { item: SingleUseItemRecord }) => {
 
 const ItemRow = ({ item, onDelete }: { item: SingleUseItemRecord; onDelete: () => void }) => {
   function confirm() {
-    DELETE(`/api/projects/${item.lineItem.projectId}/single-use-items`, {
+    DELETE(`/ api / projects / ${item.lineItem.projectId}/single-use-items`, {
       id: item.lineItem.id,
     })
       .then(() => {
@@ -167,53 +172,53 @@ const SummaryRow = ({ lineItems }: { lineItems: SingleUseLineItem[] }) => {
         <Col span={8}>
           <Row gutter={[0, 20]}>
             <Col span={24}>
-              <Typography.Text css="font-size: .9rem">
+              <SmallText>
                 <strong>Baseline</strong>
-              </Typography.Text>
+              </SmallText>
             </Col>
             {/* next row */}
             <Col span={16}>
-              <Typography.Text css="font-size: .9rem">Number of products</Typography.Text>
+              <SmallText>Number of products</SmallText>
             </Col>
             <Col span={8}>
-              <Typography.Text css="font-size: .9rem">{baselineProductCount}</Typography.Text>
+              <SmallText>{baselineProductCount}</SmallText>
             </Col>
             {/* next row */}
             <Col span={16}>
-              <Typography.Text css="font-size: .9rem">Annual cost</Typography.Text>
+              <SmallText>Annual cost</SmallText>
             </Col>
             <Col span={8}>
-              <Typography.Text css="font-size: .9rem">${baselineCost.toLocaleString()}</Typography.Text>
+              <SmallText>${baselineCost.toLocaleString()}</SmallText>
             </Col>
           </Row>
         </Col>
         <Col span={8}>
           <Row gutter={[0, 20]}>
             <Col span={12}>
-              <Typography.Text css="font-size: .9rem">
+              <SmallText>
                 <strong>Forecast</strong>
-              </Typography.Text>
+              </SmallText>
             </Col>
             <Col span={12}>
-              <Typography.Text css="font-size: .9rem">
+              <SmallText>
                 <strong>Change</strong>
-              </Typography.Text>
+              </SmallText>
             </Col>
             {/* next row */}
             <Col span={12}>
-              <Typography.Text css="font-size: .9rem">{forecastProductCount}</Typography.Text>
+              <SmallText>{forecastProductCount}</SmallText>
             </Col>
             <Col span={12}>
-              <Typography.Text css="font-size: .9rem">{forecastProductCount - baselineProductCount}</Typography.Text>
+              <SmallText>{forecastProductCount - baselineProductCount}</SmallText>
             </Col>
             {/* next row */}
             <Col span={12}>
-              <Typography.Text css="font-size: .9rem">${forecastCost.toLocaleString()}</Typography.Text>
+              <SmallText>${forecastCost.toLocaleString()}</SmallText>
             </Col>
             <Col span={12}>
-              <Typography.Text css="font-size: .9rem">
+              <SmallText>
                 {isChangeNegative ? '-' : '+'}${Math.abs(change).toLocaleString()}
-              </Typography.Text>
+              </SmallText>
             </Col>
           </Row>
         </Col>

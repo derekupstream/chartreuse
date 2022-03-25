@@ -331,7 +331,6 @@ function combineResultsByCategory(items: { title: string; items: SingleUseDetail
     if (row.gasEmissions.reduction < 0) {
       row.gasEmissions.shareOfReduction = round(row.gasEmissions.reduction / totalGasReduction, 2)
       row.gasEmissions.reduction = round(row.gasEmissions.reduction, 2)
-      console.log(row.gasEmissions.reduction)
     }
     if (row.weight.change < 0) {
       row.weight.shareOfReduction = round(row.gasEmissions.reduction / totalWeightReduction)

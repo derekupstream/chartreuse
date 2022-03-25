@@ -38,7 +38,7 @@ const OtherExpensesFormDrawer: React.FC<Props> = ({ onClose }) => {
   }
 
   return (
-    <Form form={form} layout="vertical" onFinish={handleSubmit} css="padding-bottom: 24px;">
+    <Form form={form} layout="vertical" onFinish={handleSubmit} style={{ paddingBottom: '24px' }}>
       <p>
         For additional details on how to categorize your expenses,{' '}
         <Popover content={OtherExpensesDetails} placement="bottom" trigger="click">
@@ -58,7 +58,7 @@ const OtherExpensesFormDrawer: React.FC<Props> = ({ onClose }) => {
       <FormItem label="Description" name="description" rules={requiredRule}>
         <Input.TextArea rows={4} />
       </FormItem>
-      <Button htmlType="submit" size="large" type="primary" css="float: right;">
+      <Button htmlType="submit" size="large" type="primary" style={{ float: 'right' }}>
         Add expense
       </Button>
     </Form>
@@ -67,7 +67,7 @@ const OtherExpensesFormDrawer: React.FC<Props> = ({ onClose }) => {
 
 const OtherExpensesDetails = () => {
   return (
-    <div css="max-width: 900px; padding: 8px;">
+    <div style={{ maxWidth: '900px', padding: '8px' }}>
       <Typography.Title level={4}>Additional expense category help</Typography.Title>
       <Row gutter={[10, 20]}>
         {OTHER_EXPENSES.map(expense => (

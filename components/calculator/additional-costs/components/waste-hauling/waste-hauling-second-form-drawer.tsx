@@ -25,11 +25,11 @@ const WasteHaulingSecondFormDrawer: React.FC<Props> = ({ onClose }) => {
   }
 
   return (
-    <Form form={form} layout="vertical" onFinish={handleSubmit} css="padding-bottom: 24px;">
+    <Form form={form} layout="vertical" onFinish={handleSubmit} style={{ paddingBottom: '24px' }}>
       <FormItem label="Monthly cost" name="monthlyCost" rules={requiredRule}>
         <Input type="number" prefix="$" />
       </FormItem>
-      <Button htmlType="submit" size="large" type="primary" css="float: right;">
+      <Button htmlType="submit" size="large" type="primary" style={{ float: 'right' }}>
         Add expense
       </Button>
     </Form>

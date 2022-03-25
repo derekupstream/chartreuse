@@ -8,6 +8,14 @@ import { useRouter } from 'next/router'
 import { DashboardUser } from 'components/dashboard'
 import { useFooterState } from '../footer'
 import { useEffect } from 'react'
+import styled from 'styled-components'
+
+const Wrapper = styled(S.Wrapper)`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+`
 
 const ProjectTypes = ['Cafe/Cafeteria', 'Kitchenette/Employee Breakroom', 'Event Catering', 'Special Event (Venue)', 'Coffee Shop', 'Fast Casual Restaurant', 'Food Hall Stand', 'Other'] as const
 
@@ -50,7 +58,7 @@ export default function SetupPage({ user, project }: { user: DashboardUser; proj
   }, [setFooterState])
 
   return (
-    <S.Wrapper css="display: flex; flex-direction: column; align-items: center; justify-content: center;">
+    <Wrapper>
       <Typography.Title level={1}>Setup your project</Typography.Title>
       <S.SetupForm
         layout="vertical"
@@ -170,6 +178,6 @@ export default function SetupPage({ user, project }: { user: DashboardUser; proj
           </Button>
         </Form.Item>
       </S.SetupForm>
-    </S.Wrapper>
+    </Wrapper>
   )
 }

@@ -1,8 +1,9 @@
 import { Col, Row, Typography } from 'antd'
-import { InfoCard } from '../../styles'
+import { InfoCard, SmallText, SmallerText } from '../../styles'
 import { FC } from 'react'
 import { ReusableLineItem } from 'lib/calculator/types/projects'
 import { formatToDollar } from 'lib/calculator/utils'
+import styled from 'styled-components'
 
 interface Props {
   item: ReusableLineItem
@@ -23,11 +24,11 @@ const InitialCosts: FC<Props> = ({ item }) => {
       </Row>
       <Row>
         <Col span={16}>
-          <Typography.Text css="font-size: .8rem">Total one-time cost</Typography.Text>
+          <SmallText>Total one-time cost</SmallText>
           <br />
-          <Typography.Text css="font-size: .7rem">
+          <SmallerText>
             ({formatToDollar(item.caseCost)}/case x {item.casesPurchased})
-          </Typography.Text>
+          </SmallerText>
         </Col>
         <Col span={8}>
           <Typography.Text>

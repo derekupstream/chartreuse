@@ -1,8 +1,4 @@
-import dynamic from 'next/dynamic'
-import { ComponentType } from 'react'
-import type { ColumnConfig } from '@ant-design/plots'
-
-const Column: ComponentType<ColumnConfig> = dynamic(() => import('@ant-design/charts').then(mod => mod.Column) as any, { ssr: false })
+import { Column } from '@ant-design/plots'
 
 type Props = {
   data: { label: string; value: number }[]

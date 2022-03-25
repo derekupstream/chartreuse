@@ -3,9 +3,9 @@ import mailgun from '../lib/mailgun'
 
 export { }
 
-const orgId = '79cb54a3-8b75-4841-93d4-a23fd1c07553';
-const email = 'mattwad+upstream@gmail.com';
-const inviterEmail = 'matt@upstreamsolutions.org';
+const orgId = 'a2c6a7d5-d6aa-4172-8d7f-a775a5ba18b4';
+const email = 'mattwad+upstream2@gmail.com';
+const inviterEmail = 'samantha@upstreamsolutions.org';
 const webHost = 'https://app.chartreuse.eco';
 
 (async () => {
