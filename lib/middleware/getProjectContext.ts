@@ -29,7 +29,7 @@ export const UserDataToInclude = {
       },
     },
   },
-}
+} as const
 
 export const getProjectContext: GetServerSideProps = async context => {
   try {

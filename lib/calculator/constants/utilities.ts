@@ -59,7 +59,7 @@ export const STATES = [
 
 export type USState = typeof STATES[number]['name']
 
-type UtilityRates = { gas: number; electric: number; water: number }
+export type UtilityRates = { gas: number; electric: number; water: number }
 
 export function getUtilitiesByState(state: USState): UtilityRates {
   const localRates = STATES.find(s => s.name === state)

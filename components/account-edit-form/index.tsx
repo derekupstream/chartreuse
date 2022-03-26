@@ -1,5 +1,6 @@
-import { Form, Input, Button } from 'antd'
+import { Form, Input, Button, Select, Typography } from 'antd'
 import { Store } from 'antd/lib/form/interface'
+import { STATES } from 'lib/calculator/constants/utilities'
 
 import * as S from './styles'
 
@@ -25,6 +26,16 @@ export default function AccountEditForm({ onSubmit, onCancel, isLoading, initial
           ]}
         >
           <Input placeholder="Company name" />
+        </Form.Item>
+
+        <Form.Item label="Account US State" name="USState">
+          <Select showSearch style={{ width: '100%' }}>
+            {STATES.map(state => (
+              <Select.Option key={state.name} value={state.name}>
+                {state.name}
+              </Select.Option>
+            ))}
+          </Select>
         </Form.Item>
 
         <Form.Item>

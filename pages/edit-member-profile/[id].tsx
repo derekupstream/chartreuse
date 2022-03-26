@@ -12,6 +12,7 @@ import { useRouter } from 'next/router'
 import Link from 'next/link'
 import { ArrowLeftOutlined } from '@ant-design/icons'
 import MemberEditForm from 'components/member-edit-form'
+import * as http from 'lib/http'
 
 export const getServerSideProps: GetServerSideProps = async context => {
   try {
@@ -109,37 +110,18 @@ type Props = {
 export default function EditMemberProfile({ org, user }: Props) {
   const router = useRouter()
 
-  const updateAccount = useMutation(({ id, data }: { id: string; data: any }) => {
-    return fetch(`/api/profile/${id}`, {
-      method: 'PATCH',
-      body: JSON.stringify(data),
-      headers: {
-        'content-type': 'application/json',
-      },
-    })
-  })
+  function handleAccountUpdate(data: MemberEditFields) {
+    http
+      .PUT(`/api/profile/${user.id}`, data)
+      .then(() => {
+        message.success('Account member edited with success.')
 
-  const handleAccountUpdate = useCallback(
-    (data: MemberEditFields) => {
-      updateAccount.mutate(
-        {
-          id: user.id,
-          data,
-        },
-        {
-          onSuccess: () => {
-            message.success('Account member edited with success.')
-
-            router.push('/')
-          },
-          onError: err => {
-            message.error((err as Error)?.message)
-          },
-        }
-      )
-    },
-    [router, updateAccount, user.id]
-  )
+        router.push('/')
+      })
+      .catch(err => {
+        message.error((err as Error)?.message)
+      })
+  }
 
   if (!org) return <PageLoader />
 
@@ -159,9 +141,8 @@ export default function EditMemberProfile({ org, user }: Props) {
           }
         >
           <MemberEditForm
-            onSubmit={handleAccountUpdate as (values: unknown) => void}
+            onSubmit={handleAccountUpdate}
             onCancel={() => router.push('/')}
-            isLoading={updateAccount.isLoading}
             initialValues={{
               name: user.name,
               email: user.email,

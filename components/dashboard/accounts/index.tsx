@@ -1,38 +1,32 @@
 import { useRouter } from 'next/router'
 import { Button, Space, Table, Tag, Typography, Popconfirm, message } from 'antd'
 import { DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons'
-import { useMutation } from 'react-query'
-import { useCallback } from 'react'
+import * as http from 'lib/http'
 
 import * as S from '../styles'
 import { LoggedinProps } from 'lib/middleware'
 
+interface AccountRow {
+  invitingPending: boolean
+  key: string
+  name: string
+}
+
 export default function Accounts({ user }: LoggedinProps) {
   const router = useRouter()
 
-  const deleteAccount = useMutation((id: string) => {
-    return fetch(`/api/account/${id}`, {
-      method: 'DELETE',
-      headers: {
-        'content-type': 'application/json',
-      },
-    })
-  })
-
-  const handleAccountDeletion = useCallback(
-    (id: string) => {
-      deleteAccount.mutate(id, {
-        onSuccess: () => {
-          message.success(`Account deleted`)
-          router.replace(router.asPath)
-        },
-        onError: err => {
-          message.error((err as Error)?.message)
-        },
+  function handleAccountDeletion(id: string) {
+    return http
+      .DELETE(`/api/account/${id}`)
+      .then(() => {
+        message.success(`Account deleted`)
+        router.replace(router.asPath)
       })
-    },
-    [deleteAccount, router]
-  )
+      .catch(err => {
+        console.log('error')
+        message.error((err as Error)?.message)
+      })
+  }
 
   const columns = [
     {
@@ -45,7 +39,7 @@ export default function Accounts({ user }: LoggedinProps) {
       dataIndex: 'contact',
       key: 'contact',
       // eslint-disable-next-line react/display-name
-      render: (text: string, record: any) => {
+      render: (text: string, record: AccountRow) => {
         return (
           <Space size="small">
             {text}
@@ -58,7 +52,7 @@ export default function Accounts({ user }: LoggedinProps) {
       title: 'Actions',
       key: 'actions',
       // eslint-disable-next-line react/display-name
-      render: (_: any, record: any) => {
+      render: (_: any, record: AccountRow) => {
         return (
           <Space size="middle">
             <Button onClick={() => router.push(`/edit-account/${record.key}`)} icon={<EditOutlined />} />
@@ -74,7 +68,7 @@ export default function Accounts({ user }: LoggedinProps) {
               }
               onConfirm={() => handleAccountDeletion(record.key)}
             >
-              <Button icon={<DeleteOutlined />} loading={deleteAccount.isLoading} />
+              <Button icon={<DeleteOutlined />} />
             </Popconfirm>
           </Space>
         )
@@ -82,7 +76,7 @@ export default function Accounts({ user }: LoggedinProps) {
     },
   ]
 
-  const data = user.org.accounts.map(account => {
+  const data: AccountRow[] = user.org.accounts.map(account => {
     return {
       key: account.id,
       name: account.name,
@@ -99,7 +93,7 @@ export default function Accounts({ user }: LoggedinProps) {
     <Space direction="vertical" size="large" style={{ width: '100%' }}>
       <S.SpaceBetween>
         <Typography.Title>Accounts</Typography.Title>
-        <Button type='primary' onClick={handleAddAcount} icon={<PlusOutlined />}>
+        <Button type="primary" onClick={handleAddAcount} icon={<PlusOutlined />}>
           Add account
         </Button>
       </S.SpaceBetween>

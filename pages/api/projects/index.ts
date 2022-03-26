@@ -40,6 +40,9 @@ async function getProjects(req: NextApiRequestWithUser, res: NextApiResponse<{ p
       accountId: req.user.accountId || undefined,
       orgId: req.user.orgId,
     },
+    include: {
+      account: true,
+    },
   })
 
   return res.status(200).json({ projects })

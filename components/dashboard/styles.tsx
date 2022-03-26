@@ -77,6 +77,7 @@ export const ProjectType = styled.div`
 
 export const ProjectInfo = styled.div`
   margin-bottom: 20px;
+  margin-top: 20px;
 `
 
 export const Actions = styled.div`

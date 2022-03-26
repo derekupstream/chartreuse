@@ -1,19 +1,24 @@
 import { PlusOutlined } from '@ant-design/icons'
-import { Button, Col, Divider, Drawer, message, Popconfirm, Typography } from 'antd'
-import { useSimpleMutation, useSimpleQuery } from 'hooks/useSimpleQuery'
+import { Button, Col, Divider, Drawer, message, Popconfirm, Typography, Popover } from 'antd'
+import { useSimpleQuery } from 'hooks/useSimpleQuery'
 import { useRouter } from 'next/router'
-import React, { useMemo, useState } from 'react'
+import React, { useState } from 'react'
 import DishwashingFormDrawer from './dishwashing-form-drawer'
-import { AddBlock, Container, contentWrapperStyle, Placeholder, Subtitle } from '../expense-block'
+import { AddBlock, Container, contentWrapperStyle, Placeholder } from '../expense-block'
 import { Dishwasher } from '@prisma/client'
-import { SectionContainer, SectionData, SectionTitle } from '../styles'
+import { SectionTitle } from '../styles'
 import { InfoCard, InfoRow } from 'components/calculator/styles'
 import styled from 'styled-components'
 import ContentLoader from 'components/content-loader'
+import * as http from 'lib/http'
+import type { UtilityRates } from 'lib/calculator/constants/utilities'
 
 interface Response {
+  accountId: string
   dishwasher: Dishwasher
   stats: Stats
+  state: string
+  rates: UtilityRates
 }
 
 interface Stats {
@@ -29,9 +34,7 @@ interface Stats {
 
 const DishWashingSection = () => {
   const route = useRouter()
-  const url = `/api/dishwasher/?projectId=${route.query.id}`
-  const { data, isLoading, refetch } = useSimpleQuery<Response>(url)
-  const deleteDishwasher = useSimpleMutation(url, 'DELETE')
+  const { data, isLoading, refetch } = useSimpleQuery<Response>(`/api/dishwasher?projectId=${route.query.id}`)
 
   const [isDrawerVisible, setIsDrawerVisible] = useState(false)
 
@@ -50,11 +53,9 @@ const DishWashingSection = () => {
   }
 
   const onConfirmDelete = () => {
-    deleteDishwasher.mutate(data?.dishwasher.id, {
-      onSuccess: () => {
-        message.success('Dishwasher deleted')
-        refetch()
-      },
+    http.DELETE(`/api/dishwasher`, { projectId: route.query.id }).then(() => {
+      message.success('Dishwasher deleted')
+      refetch()
     })
   }
 
@@ -64,11 +65,43 @@ const DishWashingSection = () => {
     return <ContentLoader />
   }
 
+  const utilities = {
+    title: 'Utility Rates for ' + data?.state,
+    content: (
+      <>
+        <Typography.Paragraph style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <span style={{ paddingRight: '1em' }}>
+            Electric <span style={{ color: 'grey' }}>($/kWh)</span>:
+          </span>
+          <span>${data?.rates?.electric}</span>
+        </Typography.Paragraph>
+        <Typography.Paragraph style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <span style={{ paddingRight: '1em' }}>
+            Gas <span style={{ color: 'grey' }}>($/therm)</span>:
+          </span>
+          <span>${data?.rates?.gas}</span>
+        </Typography.Paragraph>
+        <Typography.Paragraph style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <span style={{ paddingRight: '1em' }}>
+            Water <span style={{ color: 'grey' }}>($/thousand gallons)</span>:
+          </span>
+          <span>${data?.rates?.water}</span>
+        </Typography.Paragraph>
+      </>
+    ),
+  }
+
   return (
     <Container>
       <SectionTitle>Dishwashing</SectionTitle>
       <Typography.Title level={5}>
-        Use this section to help calculate dishwashing energy and water costs. Energy and water rates are based on your <u>state average</u>.
+        Use this section to help calculate dishwashing energy and water costs. Energy and water rates are based on your{' '}
+        <Popover content={utilities.content} title={utilities.title} trigger="hover">
+          <Typography.Link underline href={`/edit-account/${data?.accountId}`}>
+            state average
+          </Typography.Link>
+        </Popover>
+        .
       </Typography.Title>
       <Divider />
       {data?.dishwasher ? (

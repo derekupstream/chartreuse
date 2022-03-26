@@ -55,11 +55,13 @@ export default function AccountSetupForm({ onSubmit, isLoading }: Props) {
             },
           ]}
         >
-          <Input type="email" placeholder="Your email" disabled={useOrgEmail} />
+          <Input defaultValue={user?.email || ''} type="email" placeholder="Your email" disabled={useOrgEmail} />
         </Form.Item>
 
         <Form.Item name="useOrgEmail" valuePropName="checked">
-          <Checkbox onChange={handleUseOrgEmailChange}>Use your contact email for this account.</Checkbox>
+          <Checkbox defaultChecked={true} onChange={handleUseOrgEmailChange}>
+            Use your contact email for this account.
+          </Checkbox>
         </Form.Item>
 
         <Form.Item>

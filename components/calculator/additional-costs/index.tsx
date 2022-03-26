@@ -1,14 +1,11 @@
 import { Typography } from 'antd'
 import { Wrapper } from '../styles'
 import { Project } from '.prisma/client'
-import ContentLoader from 'components/content-loader'
-import { useSimpleQuery } from 'hooks/useSimpleQuery'
 import DishWashingSection from './components/dish-washing/dish-washing-section'
 import LaborSection from './components/labor/labor-section'
 import WasteHaulingSection from './components/waste-hauling/waste-hauling-section'
 import OtherExpenseSection from './components/other-expenses/other-expenses-section'
 import { useFooterState } from '../footer'
-import { SectionHeader } from '../projections/components/styles'
 import { useEffect } from 'react'
 
 type ServerSideProps = {

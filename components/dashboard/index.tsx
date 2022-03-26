@@ -15,6 +15,9 @@ type AccountDataType = {
       name: string
     }
   }[]
+  projects: {
+    id: string
+  }[]
   users: {
     id: string
     email: string

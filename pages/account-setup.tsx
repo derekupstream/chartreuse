@@ -1,9 +1,7 @@
-import { useCallback } from 'react'
 import AccountSetupForm from 'components/account-setup-form'
 import Header from 'components/header'
 import { message } from 'antd'
 import FormPageTemplate from 'components/form-page-template'
-import { useMutation } from 'react-query'
 import { GetServerSideProps } from 'next'
 import nookies from 'nookies'
 import { verifyIdToken } from 'lib/auth/firebaseAdmin'
@@ -12,6 +10,7 @@ import prisma from 'lib/prisma'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
 import { ArrowLeftOutlined } from '@ant-design/icons'
+import * as http from 'lib/http'
 
 export const getServerSideProps: GetServerSideProps = async context => {
   try {
@@ -58,6 +57,7 @@ type AccountSetupFields = {
   name: string
   email: string
   useOrgEmail: boolean
+  USState: string
 }
 
 type Props = {
@@ -72,42 +72,22 @@ type Props = {
 export default function AccountSetup({ org, user }: Props) {
   const router = useRouter()
 
-  const createAccount = useMutation((data: any) => {
-    return fetch('/api/account', {
-      method: 'POST',
-      body: JSON.stringify(data),
-      headers: {
-        'content-type': 'application/json',
-      },
-    })
-  })
-
-  const handleAccountSetupCreation = useCallback(
-    ({ name, email, useOrgEmail }: AccountSetupFields) => {
-      createAccount.mutate(
-        {
-          name,
-          email,
-          useOrgEmail
-        },
-        {
-          onSuccess: () => {
-            if (!useOrgEmail) {
-              message.success('Account contact invited.')
-              router.push('/accounts')
-            } else {
-              // send user to first step of the calculator
-              router.push('/projects')
-            }
-          },
-          onError: err => {
-            message.error((err as Error)?.message)
-          },
+  function handleAccountSetupCreation(params: AccountSetupFields) {
+    http
+      .POST('/api/account', params)
+      .then(() => {
+        if (!params.useOrgEmail) {
+          message.success('Account contact invited.')
+          router.push('/accounts')
+        } else {
+          // send user to first step of the calculator
+          router.push('/projects')
         }
-      )
-    },
-    [createAccount, org.id, router, user.id]
-  )
+      })
+      .catch(err => {
+        message.error((err as Error)?.message)
+      })
+  }
 
   if (!org) return <PageLoader />
 
@@ -131,7 +111,7 @@ export default function AccountSetup({ org, user }: Props) {
             ) : undefined
           }
         >
-          <AccountSetupForm onSubmit={handleAccountSetupCreation as (values: unknown) => void} isLoading={createAccount.isLoading} />
+          <AccountSetupForm onSubmit={handleAccountSetupCreation as (values: unknown) => void} />
         </FormPageTemplate>
       </main>
     </>

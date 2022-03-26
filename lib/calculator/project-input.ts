@@ -1,6 +1,6 @@
 import { ProjectInput, WasteHaulingService } from './types/projects'
 import prisma from 'lib/prisma'
-import { getUtilitiesByState } from './constants/utilities'
+import { getUtilitiesByState, USState } from './constants/utilities'
 import { OtherExpenseCategory } from './constants/other-expenses'
 import { Frequency } from './constants/frequency'
 import { getProducts } from './datasets/single-use-products'
@@ -14,6 +14,7 @@ export async function getProjectData(projectId: string): Promise<ProjectInput> {
       id: projectId,
     },
     include: {
+      account: true,
       otherExpenses: true,
       laborCosts: true,
       singleUseItems: true,
@@ -27,8 +28,8 @@ export async function getProjectData(projectId: string): Promise<ProjectInput> {
   }
 
   // get utility rates
-  const USState = 'California' // TODO: request state from user
-  const utilityRates = getUtilitiesByState(USState)
+  const state = project.account.USState as USState
+  const utilityRates = getUtilitiesByState(state)
 
   // map db model types to frontend types
   const products = await getProducts()
@@ -42,7 +43,7 @@ export async function getProjectData(projectId: string): Promise<ProjectInput> {
     otherExpenses,
     reusableItems: project.reusableItems,
     singleUseItems,
-    state: USState,
+    state,
     utilityRates,
     wasteHauling,
   }

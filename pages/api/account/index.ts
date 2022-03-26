@@ -14,12 +14,13 @@ type Response = {
 }
 
 async function createAccount(req: NextApiRequestWithUser, res: NextApiResponse<Response>) {
-  const { name, email, useOrgEmail } = req.body
+  const { name, email, useOrgEmail, USState } = req.body
 
   const account = await prisma.account.create<Prisma.AccountCreateArgs>({
     data: {
       name,
       accountContactEmail: email,
+      USState,
       org: {
         connect: {
           id: req.user.orgId,
@@ -57,7 +58,6 @@ async function createAccount(req: NextApiRequestWithUser, res: NextApiResponse<R
 
   if (!useOrgEmail) {
     const invite = ((account as any).invites || []).find((i: Invite) => i.email === email)
-    console.log('send invite')
     await mailgun.messages().send({
       from: 'Chart Reuse <hello@chartreuse.eco>',
       to: email,

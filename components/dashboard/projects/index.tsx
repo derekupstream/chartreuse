@@ -3,18 +3,22 @@ import { DeleteOutlined, PlusOutlined } from '@ant-design/icons'
 import { Button, Card, Col, message, Popconfirm, Row, Space, Typography } from 'antd'
 import { useEffect } from 'react'
 import { useMutation, useQuery, useQueryClient } from 'react-query'
-import { Project } from '@prisma/client'
+import { Project, Account } from '@prisma/client'
 import { ProjectMetadata } from 'components/calculator/setup'
 import { useRouter } from 'next/router'
 import * as S from 'components/dashboard/styles'
 import ContentLoader from 'components/content-loader'
 import { DELETE, GET } from 'lib/http'
 
+interface PopulatedProject extends Project {
+  account: Account
+}
+
 const Projects = () => {
   const queryClient = useQueryClient()
   const router = useRouter()
   const { data, isLoading, error } = useQuery('projects', () => {
-    return GET<{ projects: Project[] }>('/api/projects')
+    return GET<{ projects: PopulatedProject[] }>('/api/projects')
   })
 
   const deleteProject = useMutation((id: string) => {
@@ -43,7 +47,7 @@ const Projects = () => {
     <Space direction="vertical" size="large" style={{ width: '100%' }}>
       <S.SpaceBetween>
         <Typography.Title>Projects</Typography.Title>
-        <Button type='primary' onClick={() => router.push('/projects/new')} icon={<PlusOutlined />}>
+        <Button type="primary" onClick={() => router.push('/projects/new')} icon={<PlusOutlined />}>
           Add project
         </Button>
       </S.SpaceBetween>
@@ -51,11 +55,16 @@ const Projects = () => {
       {!isLoading && data?.projects?.length === 0 && <Typography.Text>You have no active projects. Click ‘+ Add project’ above to get started.</Typography.Text>}
       {!isLoading && data?.projects && data?.projects.length > 0 && (
         <Row gutter={[20, 20]}>
-          {data?.projects?.map((project: Project) => {
+          {data?.projects?.map((project: PopulatedProject) => {
             return (
               <Col xs={24} md={12} lg={8} key={project.id}>
                 <Card>
-                  <Typography.Title level={3}>{project.name}</Typography.Title>
+                  <Typography.Title level={3} style={{ marginBottom: 0 }}>
+                    {project.name}
+                  </Typography.Title>
+                  <Typography.Title level={5} style={{ marginTop: 0 }}>
+                    {project.account.name}
+                  </Typography.Title>
                   <S.ProjectInfo>
                     <S.ProjectType>Location Type</S.ProjectType>
                     <S.Actions>

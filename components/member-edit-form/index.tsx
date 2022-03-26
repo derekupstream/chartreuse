@@ -4,7 +4,7 @@ import { Store } from 'antd/lib/form/interface'
 import * as S from './styles'
 
 type Props = {
-  onSubmit: (values: unknown) => void
+  onSubmit: (values: any) => void
   onCancel: () => void
   isLoading?: boolean
   initialValues?: Store

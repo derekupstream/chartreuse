@@ -44,10 +44,11 @@ model Account {
   metadata            Json?
   createdAt           DateTime  @default(now())
   updatedAt           DateTime  @updatedAt
+  accountContactEmail String
+  USState             String    @default("California")
   org                 Org       @relation(fields: [orgId], references: [id], onDelete: Cascade)
   orgId               String    @db.Uuid
   users               User[]
-  accountContactEmail String
   invites             Invite[]
   projects            Project[]
 }

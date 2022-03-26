@@ -20,7 +20,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     } catch (error: any) {
       return res.status(500).json({ error: error.message })
     }
-  } else if (req.method === 'PATCH') {
+  } else if (req.method === 'PUT') {
     try {
       const user = await prisma.user.update<Prisma.UserUpdateArgs>({
         where: {
