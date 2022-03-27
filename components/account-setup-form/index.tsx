@@ -2,7 +2,7 @@ import { RightOutlined } from '@ant-design/icons'
 import { Form, Input, Button, Checkbox } from 'antd'
 import { CheckboxChangeEvent } from 'antd/lib/checkbox'
 import { useAuth } from 'hooks/useAuth'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 import * as S from './styles'
 
@@ -14,16 +14,26 @@ type Props = {
 export default function AccountSetupForm({ onSubmit, isLoading }: Props) {
   const { user } = useAuth()
   const [form] = Form.useForm()
-  const [useOrgEmail, setUseOrgEmail] = useState<boolean>(false)
+  const [useOrgEmail, setUseOrgEmail] = useState<boolean>(true)
 
   const handleUseOrgEmailChange = (e: CheckboxChangeEvent) => {
     const { checked } = e.target
     setUseOrgEmail(checked)
-    form.setFieldsValue({
-      useOrgEmail: checked,
-      email: checked ? user?.email : '',
-    })
+    if (checked) {
+      form.setFieldsValue({
+        useOrgEmail: checked,
+        email: user?.email || '',
+      })
+    }
   }
+
+  useEffect(() => {
+    if (user) {
+      form.setFieldsValue({
+        email: user.email,
+      })
+    }
+  }, [user])
 
   return (
     <S.Wrapper>
@@ -44,6 +54,7 @@ export default function AccountSetupForm({ onSubmit, isLoading }: Props) {
         <Form.Item
           label="Account Contact's Email"
           name="email"
+          tooltip="If you enter a new email address, an invite will be sent to join this account"
           rules={[
             {
               required: true,
@@ -58,11 +69,11 @@ export default function AccountSetupForm({ onSubmit, isLoading }: Props) {
           <Input defaultValue={user?.email || ''} type="email" placeholder="Your email" disabled={useOrgEmail} />
         </Form.Item>
 
-        <Form.Item name="useOrgEmail" valuePropName="checked">
-          <Checkbox defaultChecked={true} onChange={handleUseOrgEmailChange}>
+        <div className="ant-form-item">
+          <Checkbox onChange={handleUseOrgEmailChange} defaultChecked>
             Use your contact email for this account.
           </Checkbox>
-        </Form.Item>
+        </div>
 
         <Form.Item>
           <Button type="primary" htmlType="submit" block loading={isLoading}>

@@ -9,6 +9,7 @@ import { useAuth } from 'hooks/useAuth'
 import nookies from 'nookies'
 import FormPageTemplate from 'components/form-page-template'
 import { checkLogin, LoggedinProps } from 'lib/middleware'
+import chartreuseClient from 'lib/chartreuseClient'
 
 export const getServerSideProps: GetServerSideProps = async context => {
   const { emailVerified } = nookies.get(context)
@@ -38,13 +39,7 @@ export default function OrgSetup() {
   const { user } = useAuth()
 
   const createOrgSetup = useMutation((data: any) => {
-    return fetch('/api/org', {
-      method: 'POST',
-      body: JSON.stringify(data),
-      headers: {
-        'content-type': 'application/json',
-      },
-    })
+    return chartreuseClient.createOrganization(data)
   })
 
   const handleOrgSetupCreation = useCallback(

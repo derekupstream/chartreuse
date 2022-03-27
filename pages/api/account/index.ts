@@ -2,21 +2,24 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import nc from 'next-connect'
 import prisma from 'lib/prisma'
 import mailgun from 'lib/mailgun'
-import { Prisma, Account, Invite } from '@prisma/client'
+import { Invite } from '@prisma/client'
 import { onError, onNoMatch, getUser, NextApiRequestWithUser } from 'lib/middleware'
+import { trackEvent } from 'lib/tracking'
 
 const handler = nc<NextApiRequest, NextApiResponse>({ onError, onNoMatch })
 
 handler.use(getUser).post(createAccount)
 
 type Response = {
-  account: Account
+  invitedUser: boolean
 }
 
 async function createAccount(req: NextApiRequestWithUser, res: NextApiResponse<Response>) {
-  const { name, email, useOrgEmail, USState } = req.body
+  const { name, email, USState } = req.body
 
-  const account = await prisma.account.create<Prisma.AccountCreateArgs>({
+  const invitedUser = email !== req.user.email
+
+  const account = await prisma.account.create({
     data: {
       name,
       accountContactEmail: email,
@@ -26,9 +29,8 @@ async function createAccount(req: NextApiRequestWithUser, res: NextApiResponse<R
           id: req.user.orgId,
         },
       },
-      ...(useOrgEmail
-        ? {}
-        : {
+      ...(invitedUser
+        ? {
             invites: {
               create: [
                 {
@@ -38,9 +40,11 @@ async function createAccount(req: NextApiRequestWithUser, res: NextApiResponse<R
                 },
               ],
             },
-          }),
+          }
+        : {}),
     },
     include: {
+      org: true,
       invites: {
         where: {
           email,
@@ -56,7 +60,7 @@ async function createAccount(req: NextApiRequestWithUser, res: NextApiResponse<R
     },
   })
 
-  if (!useOrgEmail) {
+  if (invitedUser) {
     const invite = ((account as any).invites || []).find((i: Invite) => i.email === email)
     await mailgun.messages().send({
       from: 'Chart Reuse <hello@chartreuse.eco>',
@@ -70,7 +74,14 @@ async function createAccount(req: NextApiRequestWithUser, res: NextApiResponse<R
     })
   }
 
-  return res.status(200).json({ account })
+  trackEvent({
+    type: 'create_account',
+    orgName: account.org.name,
+    accountName: account.name,
+    userEmail: req.user.email,
+  })
+
+  return res.status(200).json({ invitedUser })
 }
 
 export default handler

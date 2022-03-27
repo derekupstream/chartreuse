@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import prisma from 'lib/prisma'
 import { User, Prisma, Role } from '@prisma/client'
+import { trackEvent } from 'lib/tracking'
 
 type Response = {
   user?: User
@@ -27,6 +28,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
             },
           },
         },
+      })
+
+      trackEvent({
+        type: 'signup',
+        orgName: name,
+        userEmail: email,
       })
 
       return res.status(200).json({ user })

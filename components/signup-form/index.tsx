@@ -40,10 +40,6 @@ export default function SignupForm({ onSubmit, onSubmitWithProvider, ...rest }: 
                 required: true,
                 message: 'Password is required!',
               },
-              {
-                pattern: new RegExp('^(?=.*[@#$%^&+=])(?=\\S+$).{8,}$'),
-                message: 'Please input a valid pasword!',
-              },
             ]}
             help="Must be at least 8 characters, and contain at least 1 special character."
           >

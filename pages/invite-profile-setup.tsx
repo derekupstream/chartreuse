@@ -10,6 +10,7 @@ import FormPageTemplate from 'components/form-page-template'
 import prisma from 'lib/prisma'
 import MessagePage from 'components/message-page'
 import PageLoader from 'components/page-loader'
+import chartreuseClient, { CreateProfileInput } from 'lib/chartreuseClient'
 
 export const getServerSideProps: GetServerSideProps = async context => {
   try {
@@ -64,11 +65,11 @@ type InviteProfileFields = {
 }
 
 type Props = {
-  org?: {
+  org: {
     id: string
     name: string
   }
-  account?: {
+  account: {
     id: string
     name: string
   }
@@ -79,25 +80,22 @@ export default function InviteProfile({ org, account, error }: Props) {
   const router = useRouter()
   const { user } = useAuth()
 
-  const createInviteProfile = useMutation((data: any) => {
-    return fetch('/api/profile', {
-      method: 'POST',
-      body: JSON.stringify(data),
-      headers: {
-        'content-type': 'application/json',
-      },
-    })
+  const createInviteProfile = useMutation((data: CreateProfileInput) => {
+    return chartreuseClient.createProfile(data)
   })
 
   const handleInviteProfileCreation = useCallback(
     async ({ name, title, phone }: InviteProfileFields) => {
+      if (!user || !org) {
+        throw new Error('No user or org authed')
+      }
       createInviteProfile.mutate(
         {
-          id: user?.uid,
-          email: user?.email,
-          orgId: org?.id,
+          id: user.uid,
+          email: user.email || '',
+          orgId: org.id,
           accountId: account?.id,
-          inviteId: router?.query.inviteId,
+          inviteId: router?.query.inviteId as string,
           title,
           name,
           phone,

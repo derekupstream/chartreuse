@@ -12,6 +12,7 @@ import { useRouter } from 'next/router'
 import Link from 'next/link'
 import { ArrowLeftOutlined } from '@ant-design/icons'
 import AccountEditForm from 'components/account-edit-form'
+import chartreuseClient from 'lib/chartreuseClient'
 
 export const getServerSideProps: GetServerSideProps = async context => {
   try {
@@ -84,8 +85,11 @@ export default function EditAccount({ org }: Props) {
   const router = useRouter()
   console.log(org)
   function updateAccount(data: any) {
-    return http
-      .PUT(`/api/account/${router.query.id}`, data)
+    chartreuseClient
+      .updateAccount({
+        id: router.query.id,
+        ...data,
+      })
       .then(() => {
         message.success('Account edited with success.')
         router.push('/accounts')

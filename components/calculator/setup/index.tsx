@@ -9,6 +9,7 @@ import { DashboardUser } from 'components/dashboard'
 import { useFooterState } from '../footer'
 import { useEffect } from 'react'
 import styled from 'styled-components'
+import chartreuseClient, { ProjectInput } from 'lib/chartreuseClient'
 
 const Wrapper = styled(S.Wrapper)`
   display: flex;
@@ -33,7 +34,8 @@ export default function SetupPage({ user, project }: { user: DashboardUser; proj
   const router = useRouter()
 
   async function saveProject({ name, accountId, ...metadata }: Store) {
-    const params = {
+    const params: ProjectInput = {
+      id: project?.id,
       name,
       metadata,
       accountId,
@@ -41,7 +43,7 @@ export default function SetupPage({ user, project }: { user: DashboardUser; proj
       orgId: user.org.id,
     }
 
-    const req = project ? PUT<{ project: Project }>(`/api/projects/${project.id}`, params) : POST<{ project: Project }>('/api/projects', params)
+    const req = project ? chartreuseClient.updateProject(params) : chartreuseClient.createProject(params)
 
     req
       .then(res => {

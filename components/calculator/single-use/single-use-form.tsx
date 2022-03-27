@@ -7,6 +7,7 @@ import SingleUseProductForm from './single-use-product-form'
 import SingleUseBaselineForm from './single-use-baseline-form'
 import SingleUseForecastForm from './single-use-forecast-form'
 import { POST } from 'lib/http'
+import chartreuseClient from 'lib/chartreuseClient'
 
 type SingleUseProps = {
   lineItem: SingleUseLineItem | null
@@ -47,7 +48,7 @@ export default function SingleUseForm({ lineItem, onSubmit, projectId, products,
 
   async function saveLineItem(item: SingleUseLineItem) {
     try {
-      await POST(`/api/projects/${projectId}/single-use-items`, item)
+      await chartreuseClient.addSingleUseLineItem(projectId, item)
       message.success('Single-use item saved successfully')
       onSubmit()
     } catch (response) {

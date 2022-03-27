@@ -13,6 +13,7 @@ import ContentLoader from 'components/content-loader'
 import { useFooterState } from '../footer'
 import { formatToDollar } from 'lib/calculator/utils'
 import styled from 'styled-components'
+import chartreuseClient from 'lib/chartreuseClient'
 
 const SmallText = styled(Typography.Text)`
   font-size: 0.9rem;
@@ -90,7 +91,7 @@ export default function ReusablePurchasing() {
     }
 
     try {
-      await POST(`/api/projects/${projectId}/reusable-items`, body)
+      await chartreuseClient.addReusableLineItem(projectId, body)
       message.success('Reusable-use item saved successfully')
       closeDrawer()
     } catch (err) {

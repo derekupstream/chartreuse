@@ -12,6 +12,7 @@ import { useRouter } from 'next/router'
 import Link from 'next/link'
 import { ArrowLeftOutlined } from '@ant-design/icons'
 import InviteForm from 'components/invite-form'
+import chartreuseClient, { InviteMemberInput } from 'lib/chartreuseClient'
 
 export const getServerSideProps: GetServerSideProps = async context => {
   try {
@@ -81,14 +82,8 @@ type Props = {
 export default function InviteMember({ org, user }: Props) {
   const router = useRouter()
 
-  const createInvite = useMutation((data: any) => {
-    return fetch('/api/invite', {
-      method: 'POST',
-      body: JSON.stringify(data),
-      headers: {
-        'content-type': 'application/json',
-      },
-    })
+  const createInvite = useMutation((data: InviteMemberInput) => {
+    return chartreuseClient.inviteMember(data)
   })
 
   const handleAccountSetupCreation = useCallback(

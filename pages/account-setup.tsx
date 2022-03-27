@@ -11,6 +11,7 @@ import { useRouter } from 'next/router'
 import Link from 'next/link'
 import { ArrowLeftOutlined } from '@ant-design/icons'
 import * as http from 'lib/http'
+import chartreuseClient, { AccountSetupFields } from 'lib/chartreuseClient'
 
 export const getServerSideProps: GetServerSideProps = async context => {
   try {
@@ -53,13 +54,6 @@ export const getServerSideProps: GetServerSideProps = async context => {
   }
 }
 
-type AccountSetupFields = {
-  name: string
-  email: string
-  useOrgEmail: boolean
-  USState: string
-}
-
 type Props = {
   user: {
     id: string
@@ -73,10 +67,10 @@ export default function AccountSetup({ org, user }: Props) {
   const router = useRouter()
 
   function handleAccountSetupCreation(params: AccountSetupFields) {
-    http
-      .POST('/api/account', params)
-      .then(() => {
-        if (!params.useOrgEmail) {
+    chartreuseClient
+      .createAccount(params)
+      .then(({ invitedUser }) => {
+        if (invitedUser) {
           message.success('Account contact invited.')
           router.push('/accounts')
         } else {

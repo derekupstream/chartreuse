@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import prisma from 'lib/prisma'
 import { User, Prisma, Role } from '@prisma/client'
+import { trackEvent } from 'lib/tracking'
 
 type Response = {
   user?: User
@@ -12,7 +13,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     try {
       const { id, name, email, title, phone, orgId, accountId, inviteId } = req.body
 
-      const user = await prisma.user.create<Prisma.UserCreateArgs>({
+      const user = await prisma.user.create({
         data: {
           id,
           name,
@@ -32,6 +33,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
                 },
               }
             : undefined,
+        },
+        include: {
+          org: true,
         },
       })
 
@@ -59,6 +63,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           data: {
             accepted: true,
           },
+        })
+        trackEvent({
+          type: 'join_org',
+          userEmail: user.email,
+          orgName: user.org.name,
         })
       }
 

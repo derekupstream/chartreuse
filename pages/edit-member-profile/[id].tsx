@@ -12,7 +12,7 @@ import { useRouter } from 'next/router'
 import Link from 'next/link'
 import { ArrowLeftOutlined } from '@ant-design/icons'
 import MemberEditForm from 'components/member-edit-form'
-import * as http from 'lib/http'
+import chartreuseClient from 'lib/chartreuseClient'
 
 export const getServerSideProps: GetServerSideProps = async context => {
   try {
@@ -111,8 +111,11 @@ export default function EditMemberProfile({ org, user }: Props) {
   const router = useRouter()
 
   function handleAccountUpdate(data: MemberEditFields) {
-    http
-      .PUT(`/api/profile/${user.id}`, data)
+    chartreuseClient
+      .updateProfile({
+        id: user.id,
+        ...data,
+      })
       .then(() => {
         message.success('Account member edited with success.')
 
