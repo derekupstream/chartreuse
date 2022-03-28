@@ -73,7 +73,7 @@ class Client {
   }
 
   addSingleUseLineItem(projectId: string, lineItem: SingleUseLineItem) {
-    return http.POST(`/api/projects/${projectId}/reusable-items`, lineItem)
+    return http.POST(`/api/projects/${projectId}/single-use-items`, lineItem)
   }
 }
 
