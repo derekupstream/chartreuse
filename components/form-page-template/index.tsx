@@ -1,6 +1,6 @@
 import Container from 'components/container'
 import Image from 'next/image'
-import Logo from 'public/images/chartreuse-logo-black.png'
+import Logo from 'public/images/chart-reuse-logo-black.png'
 import { Space, Typography } from 'antd'
 import LegalNotice from 'components/legal-notice'
 
@@ -17,7 +17,7 @@ const FormPageTemplate: React.FC<Props> = ({ children, title, subtitle, navBackL
     <Container>
       <S.Wrapper>
         <Space direction="vertical" size={54} style={{ width: '100%' }}>
-          {!navBackLink && <Image src={Logo} width={300} height={70} alt="Chart Reuse" />}
+          {!navBackLink && <Image src={Logo} width={384} height={99} alt="Chart Reuse" />}
           {navBackLink && (
             <S.LogoWithNavBackLink>
               {navBackLink}

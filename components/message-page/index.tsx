@@ -1,6 +1,6 @@
 import Container from 'components/container'
 import Image from 'next/image'
-import Logo from 'public/images/chartreuse-logo.png'
+import Logo from 'public/images/chart-reuse-logo-black.png'
 import { Space, Typography } from 'antd'
 import LegalNotice from 'components/legal-notice'
 import * as S from './styles'
@@ -14,7 +14,7 @@ const MessagePage: React.FC<Props> = ({ title, message }) => {
   return (
     <Container>
       <S.Wrapper>
-        <Image src={Logo} alt="upstream logo" />
+        <Image src={Logo} width={384} height={99} alt="Chart Reuse" />
         <Space direction="vertical">
           <Typography.Title>{title}</Typography.Title>
           <Typography.Text strong>{message}</Typography.Text>
