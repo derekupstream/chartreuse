@@ -1,48 +1,41 @@
-import type { NextApiRequest, NextApiResponse } from 'next'
 import prisma from 'lib/prisma'
 import { Prisma, SingleUseLineItem } from '@prisma/client'
+import nc from 'next-connect'
+import type { NextApiRequest, NextApiResponse } from 'next'
+import getUser, { NextApiRequestWithUser } from 'lib/middleware/getUser'
+import onError from 'lib/middleware/onError'
+import onNoMatch from 'lib/middleware/onNoMatch'
+import { validateProject } from 'lib/middleware/validateProject'
 
-type Response = {
-  lineItem?: SingleUseLineItem
-  lineItems?: SingleUseLineItem[]
-  error?: string
-}
+const handler = nc<NextApiRequest, NextApiResponse>({ onError, onNoMatch })
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse<Response>) {
+handler.use(getUser).use(validateProject).get(getItems).post(addItem).delete(deleteItem)
+
+async function getItems(req: NextApiRequestWithUser, res: NextApiResponse<{ lineItems?: SingleUseLineItem[] }>) {
   const projectId = req.query.id as string
-
-  if (req.method === 'GET') {
-    const lineItems = await prisma.singleUseLineItem.findMany<Prisma.SingleUseLineItemFindManyArgs>({
-      where: {
-        projectId,
-      },
-    })
-
-    return res.status(200).json({ lineItems })
-  } else if (req.method === 'POST') {
-    try {
-      const lineItem = await prisma.singleUseLineItem.create<Prisma.SingleUseLineItemCreateArgs>({
-        data: req.body,
-      })
-
-      return res.status(200).json({ lineItem })
-    } catch (error: any) {
-      console.error('Error saving single use item', error)
-      return res.status(500).json({ error: error.message })
-    }
-  } else if (req.method === 'DELETE') {
-    try {
-      await prisma.singleUseLineItem.delete<Prisma.SingleUseLineItemDeleteArgs>({
-        where: {
-          id: req.body.id,
-        },
-      })
-      return res.end()
-    } catch (error: any) {
-      return res.status(500).json({ error: error.message })
-    }
-  }
-
-  // Handle any other HTTP method
-  return res.status(405).json({ error: 'Method not allowed' })
+  const lineItems = await prisma.singleUseLineItem.findMany<Prisma.SingleUseLineItemFindManyArgs>({
+    where: {
+      projectId,
+    },
+  })
+  res.status(200).json({ lineItems })
 }
+
+async function addItem(req: NextApiRequestWithUser, res: NextApiResponse) {
+  const lineItem = await prisma.singleUseLineItem.create<Prisma.SingleUseLineItemCreateArgs>({
+    data: req.body,
+  })
+  res.status(200).json({ lineItem })
+}
+
+async function deleteItem(req: NextApiRequestWithUser, res: NextApiResponse) {
+  console.log('delete item')
+  await prisma.singleUseLineItem.delete<Prisma.SingleUseLineItemDeleteArgs>({
+    where: {
+      id: req.body.id,
+    },
+  })
+  res.status(200).json({ success: true })
+}
+
+export default handler

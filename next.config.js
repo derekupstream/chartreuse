@@ -21,6 +21,13 @@ next.isSerializableProps = function _isSerializableProps(page, method, input) {
 
 const config = {
   reactStrictMode: true,
+  webpack(_config, { isServer }) {
+    _config.module.rules.push({
+      test: /\.svg$/,
+      use: ['@svgr/webpack']
+    });
+    return _config;
+  },
   async redirects() {
     return [
       {

@@ -19,6 +19,7 @@
     "@ant-design/icons": "^4.7.0",
     "@ant-design/plots": "^1.0.9",
     "@prisma/client": "^3.6.0",
+    "@svgr/webpack": "^6.2.1",
     "antd": "^4.19.3",
     "firebase": "^8.7.0",
     "firebase-admin": "^10.0.2",

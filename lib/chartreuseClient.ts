@@ -75,6 +75,10 @@ class Client {
   addSingleUseLineItem(projectId: string, lineItem: SingleUseLineItem) {
     return http.POST(`/api/projects/${projectId}/single-use-items`, lineItem)
   }
+
+  deleteSingleUseItem(projectId: string, lineItemId: string) {
+    return http.DELETE(`/api/projects/${projectId}/single-use-items`, { id: lineItemId })
+  }
 }
 
 export default new Client()

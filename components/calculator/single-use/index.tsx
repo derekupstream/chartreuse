@@ -15,6 +15,8 @@ import ContentLoader from 'components/content-loader'
 import { getAnnualOccurence } from 'lib/calculator/constants/frequency'
 import { useFooterState } from '../footer'
 import styled from 'styled-components'
+import { CATEGORY_ICONS } from './category-icons'
+import chartreuseClient from 'lib/chartreuseClient'
 
 type ServerSideProps = {
   project: Project
@@ -116,9 +118,8 @@ const InfoCard = ({ item }: { item: SingleUseItemRecord }) => {
 
 const ItemRow = ({ item, onDelete }: { item: SingleUseItemRecord; onDelete: () => void }) => {
   function confirm() {
-    DELETE(`/ api / projects / ${item.lineItem.projectId}/single-use-items`, {
-      id: item.lineItem.id,
-    })
+    chartreuseClient
+      .deleteSingleUseItem(item.lineItem.projectId, item.lineItem.id)
       .then(() => {
         message.success('Item removed')
         onDelete()
@@ -303,10 +304,13 @@ export default function SingleUse({ project }: ServerSideProps) {
       ) : (
         <>
           {PRODUCT_CATEGORIES.map(
-            category =>
+            (category, index) =>
               items[category.id] && (
                 <div key={category.id}>
-                  <Typography.Title level={3}>{category.name}</Typography.Title>
+                  <S.TitleRow>
+                    <S.CategoryIcon>{CATEGORY_ICONS[index]}</S.CategoryIcon>
+                    <Typography.Title level={3}>{category.name}</Typography.Title>
+                  </S.TitleRow>
                   <Divider />
                   {items[category.id].map(item => (
                     <ItemRow key={item.lineItem.id} item={item} onDelete={getLineItems} />

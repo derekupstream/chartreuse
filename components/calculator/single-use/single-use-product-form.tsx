@@ -29,10 +29,10 @@ function getFormValues(features: SelectedFeatureOptions, products: SingleUseProd
   let remainingProducts = features.Category ? products.filter(product => product.category === features.Category) : []
 
   const types = PRODUCT_TYPES.filter(type => remainingProducts.some(product => product.type === type.id))
-  if (features['Product type'] !== 'number' && types.length === 1) {
+  if (typeof features['Product type'] !== 'number' && types.length === 1) {
     features['Product type'] = types[0].id
   }
-  remainingProducts = features['Product type'] ? remainingProducts.filter(product => product.type === features['Product type']) : []
+  remainingProducts = typeof features['Product type'] === 'number' ? remainingProducts.filter(product => product.type === features['Product type']) : []
 
   const materials = MATERIALS.filter(material => remainingProducts.some(product => product.primaryMaterial === material.id))
   if (typeof features.Material !== 'number' && materials.length === 1) {
@@ -52,7 +52,7 @@ function getFormValues(features: SelectedFeatureOptions, products: SingleUseProd
 
   // if we have more than one product remaining but no sizes left, show the product descriptions to let the user decide
   let descriptions: { name: string; id: string }[] = []
-  if (sizes.length === 1 && remainingProducts.length > 1) {
+  if (features.Size && remainingProducts.length > 1) {
     descriptions = remainingProducts.map(product => ({ name: product.description, id: product.description }))
   }
   remainingProducts = features['Product description'] ? remainingProducts.filter(product => product.description === features['Product description']) : remainingProducts
@@ -67,6 +67,8 @@ function getFormValues(features: SelectedFeatureOptions, products: SingleUseProd
     'Product description': descriptions,
   }
 
+  console.log('remaining options', { sizes, descriptions, remainingProducts, features, productId, remainingOptions })
+
   return { features, productId, remainingOptions }
 }
 
@@ -80,6 +82,7 @@ const featureDefaults = {
 }
 
 export default function SelectProductStep({ input, onSubmit, products }: { input?: Partial<SingleUseLineItem>; onSubmit: (productId: string) => void; products: SingleUseProduct[] }) {
+  // get default values if they exist
   const { productId, features, remainingOptions } = getFormValues(featureDefaults, products)
 
   const [selected, setSelected] = useState<SelectedFeatureOptions>({ ...features, productId })

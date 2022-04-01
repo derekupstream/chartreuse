@@ -106,3 +106,28 @@ export const SmallText = styled(Typography.Text)`
 export const SmallerText = styled(Typography.Text)`
   font-size: 0.7rem;
 `
+
+export const CategoryIcon = styled.div`
+  background-color: #c1c0bd;
+  height: 72px;
+  width: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 100%;
+  svg {
+    height: 48px;
+    width: 48px;
+  }
+`
+
+export const TitleRow = styled.div`
+  display: flex;
+  margin-top: 24px;
+  gap: 10px;
+  justify-content: flex-start;
+  align-items: center;
+  h3 {
+    margin-bottom: 0;
+  }
+`

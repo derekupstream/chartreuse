@@ -6,7 +6,6 @@ import { SingleUseLineItem } from 'lib/calculator/types/projects'
 import SingleUseProductForm from './single-use-product-form'
 import SingleUseBaselineForm from './single-use-baseline-form'
 import SingleUseForecastForm from './single-use-forecast-form'
-import { POST } from 'lib/http'
 import chartreuseClient from 'lib/chartreuseClient'
 
 type SingleUseProps = {
