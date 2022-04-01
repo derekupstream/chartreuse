@@ -108,7 +108,7 @@ export const SmallerText = styled(Typography.Text)`
 `
 
 export const CategoryIcon = styled.div`
-  background-color: #c1c0bd;
+  background-color: #e3e2e0;
   height: 72px;
   width: 72px;
   display: flex;
