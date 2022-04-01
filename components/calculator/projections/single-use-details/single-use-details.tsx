@@ -195,7 +195,7 @@ const SingleUseDetails: React.FC<Props> = ({ data }) => {
             <Radio.Group defaultValue="productType" buttonStyle="solid" onChange={changeRowType}>
               <Radio.Button value="productType">Product</Radio.Button>
               <Radio.Button value="productCategory">Category</Radio.Button>
-              <Radio.Button value="material">Materal</Radio.Button>
+              <Radio.Button value="material">Material</Radio.Button>
             </Radio.Group>
             <Spacer horizontal={16} />
             {changeType === 'waste' && (
