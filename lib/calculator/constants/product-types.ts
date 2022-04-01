@@ -38,4 +38,5 @@ export const PRODUCT_TYPES = [
   { id: 36, name: 'Teaspoon (Heavy Weight)' },
   { id: 37, name: 'Tooth Picks' },
   { id: 38, name: 'Wrap (Wax Lined Paper)' },
+  { id: 39, name: 'Knife (Medium Weight)' },
 ] as const
