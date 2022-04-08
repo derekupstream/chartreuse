@@ -87,5 +87,7 @@ export async function trackEvent(event: UserEvent) {
       console.error('Error sending user event:', error)
     }
     console.log('Sent user event email for event: ' + event.type)
+  } else {
+    console.log('User event: ' + event.type)
   }
 }
