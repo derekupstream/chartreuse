@@ -14,6 +14,7 @@ import { useFooterState } from '../footer'
 import { formatToDollar } from 'lib/calculator/utils'
 import styled from 'styled-components'
 import chartreuseClient from 'lib/chartreuseClient'
+import { CATEGORY_ICONS } from '../single-use/category-icons'
 
 const SmallText = styled(Typography.Text)`
   font-size: 0.9rem;
@@ -129,14 +130,17 @@ export default function ReusablePurchasing() {
         <ContentLoader />
       ) : (
         <>
-          {PRODUCT_CATEGORIES.map(category => {
+          {PRODUCT_CATEGORIES.map((category, index) => {
             const getItemsWithSameId = (item: ReusableLineItem) => item.categoryId === category.id.toString()
             const item = lineItems.find(getItemsWithSameId)
 
             return (
               item && (
                 <div key={category.id}>
-                  <Typography.Title level={3}>{category.name}</Typography.Title>
+                  <S.TitleRow>
+                    <S.CategoryIcon>{CATEGORY_ICONS[index]}</S.CategoryIcon>
+                    <Typography.Title level={3}>{category.name}</Typography.Title>
+                  </S.TitleRow>
                   <Divider />
                   {lineItems.filter(getItemsWithSameId).map(item => (
                     <ItemRow key={item.annualRepurchasePercentage} item={item} onDelete={getLineItems} />
