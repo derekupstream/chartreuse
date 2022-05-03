@@ -7,7 +7,7 @@ const Text = styled(Typography.Text)`
   font-size: 16px;
 `
 
-const SectionSubTitle: React.FC = ({ children }) => {
+const SectionSubTitle: React.FC<{ children: any }> = ({ children }) => {
   return <Text>{children}</Text>
 }
 

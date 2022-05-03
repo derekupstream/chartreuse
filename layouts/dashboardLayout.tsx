@@ -6,6 +6,7 @@ import BaseLayout from './baseLayout'
 import HaveQuestions from 'components/have-questions'
 
 type DashboardProps = {
+  children: any
   selectedMenuItem?: string
   title: string
   user: DashboardUser

@@ -7,6 +7,7 @@ import LegalNotice from 'components/legal-notice'
 import * as S from './styles'
 
 type Props = {
+  children: any
   title: string
   subtitle?: string
   navBackLink?: React.ReactElement

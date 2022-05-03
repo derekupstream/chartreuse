@@ -26,7 +26,7 @@ export const AuthContext = createContext<AuthContextType>({
   signout: () => Promise.resolve(),
 })
 
-export const AuthProvider: React.FC = ({ children }) => {
+export const AuthProvider: React.FC<{ children: any }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null)
 
   useEffect(() => {

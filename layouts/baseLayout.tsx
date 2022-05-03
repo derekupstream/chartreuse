@@ -12,6 +12,7 @@ import * as S from 'components/dashboard/styles'
 import Header from 'components/header'
 
 type DashboardProps = {
+  children: any
   selectedMenuItem?: string
   title: string
   user: DashboardUser

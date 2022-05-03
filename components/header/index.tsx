@@ -1,6 +1,7 @@
 import Head from 'next/head'
 
 type Props = {
+  children?: any
   title: string
 }
 

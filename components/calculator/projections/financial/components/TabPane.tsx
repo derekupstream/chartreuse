@@ -6,6 +6,6 @@ const Title = styled.span`
   line-height: 24px;
 `
 
-export const TabPaneTitle: React.FC = ({ children }) => {
+export const TabPaneTitle: React.FC<{ children: any }> = ({ children }) => {
   return <Title>{children}</Title>
 }

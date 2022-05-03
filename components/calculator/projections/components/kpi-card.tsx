@@ -25,6 +25,7 @@ export const Header = styled.div`
 `
 
 type Props = {
+  children?: any
   baseline?: number
   followup?: number
   change: number

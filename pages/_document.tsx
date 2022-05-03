@@ -1,6 +1,7 @@
 /* eslint-disable react/display-name */
 import Document, { Html, Head, Main, NextScript } from 'next/document'
 import { ServerStyleSheet } from 'styled-components'
+import * as React from 'react'
 
 export default class MyDocument extends Document {
   static async getInitialProps(ctx: any) {
@@ -17,17 +18,19 @@ export default class MyDocument extends Document {
 
       return {
         ...initialProps,
-        styles: (
+        styles: [
           <>
             {initialProps.styles}
             {sheet.getStyleElement()}
-          </>
-        ),
+          </>,
+        ],
       }
-    } finally {
+    } catch (err) {
       sheet.seal()
+      return Document.getInitialProps(ctx)
     }
   }
+
   render() {
     return (
       <Html>
