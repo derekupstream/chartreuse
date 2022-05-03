@@ -1,5 +1,5 @@
 import { OTHER_EXPENSES, OTHER_EXPENSES_FREQUENCIES } from 'lib/calculator/constants/other-expenses'
-import { FREQUENCIES } from 'lib/calculator/constants/frequency'
+import { FREQUENCIES_WITH_ONE_TIME } from 'lib/calculator/constants/frequency'
 import { LABOR_CATEGORIES } from 'lib/calculator/constants/labor-categories'
 import { SERVICE_TYPES, WASTE_STREAMS } from 'lib/calculator/constants/waste-hauling'
 import { z } from 'zod'
@@ -9,12 +9,9 @@ export const CreateOtherExpenseValidator = z.object({
   categoryId: z.string().nonempty().refine(validateCategory(OTHER_EXPENSES), {
     message: 'invalid value for category',
   }),
-  frequency: z
-    .string()
-    .nonempty()
-    .refine(isOneOf(OTHER_EXPENSES_FREQUENCIES.map(f => f.name)), {
-      message: 'invalid value for frequency',
-    }),
+  frequency: z.string().nonempty().refine(validateFrequency(OTHER_EXPENSES_FREQUENCIES), {
+    message: 'invalid value for frequency',
+  }),
   cost: z.number(),
 })
 
@@ -34,7 +31,7 @@ export const CreateLaborCostValidator = z.object({
   projectId: z.string().nonempty(),
   categoryId: z.string().nonempty().refine(validateCategory(LABOR_CATEGORIES)),
   description: z.string(),
-  frequency: z.string().nonempty().refine(validateFrequency(), {
+  frequency: z.string().nonempty().refine(validateFrequency(FREQUENCIES_WITH_ONE_TIME), {
     message: 'invalid value for frequency',
   }),
   cost: z.number(),
@@ -55,8 +52,8 @@ function validateCategory(categories: readonly { id: string }[]) {
   return isOneOf(categories.map(f => f.id))
 }
 
-function validateFrequency() {
-  return isOneOf(FREQUENCIES.map(f => f.name))
+function validateFrequency(frequencies: readonly { name: string }[]) {
+  return isOneOf(frequencies.map(f => f.name))
 }
 
 function isOneOf(values: readonly string[]) {

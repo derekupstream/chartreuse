@@ -12,7 +12,7 @@ import { DashboardUser } from 'components/dashboard'
 import { PRODUCT_CATEGORIES } from 'lib/calculator/constants/product-categories'
 import useLoadingState from 'hooks/useLoadingState'
 import ContentLoader from 'components/content-loader'
-import { getAnnualOccurence } from 'lib/calculator/constants/frequency'
+import { getannualOccurrence } from 'lib/calculator/constants/frequency'
 import { useFooterState } from '../footer'
 import styled from 'styled-components'
 import { CATEGORY_ICONS } from './category-icons'
@@ -33,8 +33,8 @@ const SmallText = styled(Typography.Text)`
 `
 
 const BaselineCard = ({ item }: { item: SingleUseItemRecord }) => {
-  const annualOccurence = getAnnualOccurence(item.lineItem.frequency)
-  const baselineTotal = annualOccurence * item.lineItem.caseCost * item.lineItem.casesPurchased
+  const annualOccurrence = getannualOccurrence(item.lineItem.frequency)
+  const baselineTotal = annualOccurrence * item.lineItem.caseCost * item.lineItem.casesPurchased
 
   const { setFooterState } = useFooterState()
   useEffect(() => {
@@ -56,7 +56,7 @@ const BaselineCard = ({ item }: { item: SingleUseItemRecord }) => {
           <S.SmallText>Annual cost</S.SmallText>
           <br />
           <S.SmallerText>
-            (${item.lineItem.caseCost}/case x {annualOccurence * item.lineItem.casesPurchased})
+            (${item.lineItem.caseCost}/case x {annualOccurrence * item.lineItem.casesPurchased})
           </S.SmallerText>
         </Col>
         <Col span={8}>
@@ -70,9 +70,9 @@ const BaselineCard = ({ item }: { item: SingleUseItemRecord }) => {
 }
 
 const InfoCard = ({ item }: { item: SingleUseItemRecord }) => {
-  const annualOccurence = getAnnualOccurence(item.lineItem.frequency)
-  const baselineTotal = annualOccurence * item.lineItem.caseCost * item.lineItem.casesPurchased
-  const forecastTotal = annualOccurence * item.lineItem.newCaseCost * item.lineItem.newCasesPurchased
+  const annualOccurrence = getannualOccurrence(item.lineItem.frequency)
+  const baselineTotal = annualOccurrence * item.lineItem.caseCost * item.lineItem.casesPurchased
+  const forecastTotal = annualOccurrence * item.lineItem.newCaseCost * item.lineItem.newCasesPurchased
   const change = forecastTotal - baselineTotal
   const isNegativeChange = change < 0
   return (
@@ -108,7 +108,7 @@ const InfoCard = ({ item }: { item: SingleUseItemRecord }) => {
       <Row>
         <Col span={24}>
           <S.SmallerText>
-            (${item.lineItem.newCaseCost}/case x {annualOccurence * item.lineItem.newCasesPurchased})
+            (${item.lineItem.newCaseCost}/case x {annualOccurrence * item.lineItem.newCasesPurchased})
           </S.SmallerText>
         </Col>
       </Row>
@@ -153,13 +153,13 @@ const SummaryRow = ({ lineItems }: { lineItems: SingleUseLineItem[] }) => {
   const baselineProductCount = lineItems.filter(item => item.casesPurchased > 0).length
   const forecastProductCount = lineItems.filter(item => item.newCasesPurchased > 0).length
   const baselineCost = lineItems.reduce((total, item) => {
-    const annualOccurence = getAnnualOccurence(item.frequency)
-    const itemTotal = annualOccurence * item.caseCost * item.casesPurchased
+    const annualOccurrence = getannualOccurrence(item.frequency)
+    const itemTotal = annualOccurrence * item.caseCost * item.casesPurchased
     return total + itemTotal
   }, 0)
   const forecastCost = lineItems.reduce((total, item) => {
-    const annualOccurence = getAnnualOccurence(item.frequency)
-    const itemTotal = annualOccurence * item.newCaseCost * item.newCasesPurchased
+    const annualOccurrence = getannualOccurrence(item.frequency)
+    const itemTotal = annualOccurrence * item.newCaseCost * item.newCasesPurchased
     return total + itemTotal
   }, 0)
   const change = forecastCost - baselineCost

@@ -1,8 +1,16 @@
-import mailgunFactory from 'mailgun-js'
+import Mailgun from 'mailgun.js'
+import formData from 'form-data'
 
-const mailgun = mailgunFactory({
-  apiKey: process.env.MAILGUN_API_KEY || '',
-  domain: process.env.MAILGUN_DOMAIN || '',
-})
+const API_KEY = process.env.MAILGUN_API_KEY as string
+const DOMAIN = process.env.MAILGUN_DOMAIN as string
 
-export default mailgun
+const mailgun = new Mailgun(formData)
+const client = mailgun.client({ username: 'api', key: API_KEY })
+
+export default client
+
+type MailgunMessageData = Parameters<typeof client.messages.create>[1]
+
+export function sendEmail(data: MailgunMessageData) {
+  return client.messages.create(DOMAIN, data)
+}

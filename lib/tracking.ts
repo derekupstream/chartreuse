@@ -1,4 +1,4 @@
-import mailgun from './mailgun'
+import { sendEmail } from './mailgun'
 
 const WEB_HOST = process.env.NODE_ENV === 'production' ? 'https://app.chartreuse.eco' : 'http://localhost:3000'
 
@@ -77,7 +77,7 @@ export async function trackEvent(event: UserEvent) {
 
   if (process.env.NOTIFICATIONS_EMAIL) {
     try {
-      await mailgun.messages().send({
+      await sendEmail({
         from: 'Chart Reuse Events<bot@chartreuse.eco>',
         to: process.env.NOTIFICATIONS_EMAIL,
         subject: `New Event: ${template.subject}`,

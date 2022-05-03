@@ -1,5 +1,5 @@
 import prisma from '../lib/prisma';
-import mailgun from '../lib/mailgun'
+import { sendEmail } from '../lib/mailgun'
 
 export { }
 
@@ -50,7 +50,7 @@ const webHost = 'https://app.chartreuse.eco';
       },
     })
 
-    await mailgun.messages().send({
+    await sendEmail({
       from: 'Chart Reuse <hello@chartreuse.eco>',
       to: email,
       subject: `Invite from ${inviter.name} to join Chart Reuse`,

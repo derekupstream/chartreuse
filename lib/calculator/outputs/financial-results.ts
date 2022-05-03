@@ -1,4 +1,4 @@
-import { Frequency, getAnnualOccurence } from '../constants/frequency'
+import { Frequency, getannualOccurrence } from '../constants/frequency'
 import { ANNUAL_DISHWASHER_CONSUMPTION, BUILDING_WATER_HEATER, BOOSTER_WATER_HEATER } from '../constants/dishwashers'
 import { DishWasher, ProjectInput } from '../types/projects'
 import { getSingleUseProductSummary } from './single-use-product-results'
@@ -46,7 +46,7 @@ function calculateAnnualCostChanges(project: ProjectInput): AnnualCostChanges {
     if (item.frequency === 'One Time') {
       return sum
     }
-    const annualCost = item.cost * getAnnualOccurence(item.frequency)
+    const annualCost = item.cost * getannualOccurrence(item.frequency)
     return sum + annualCost
   }, 0)
 
@@ -54,7 +54,7 @@ function calculateAnnualCostChanges(project: ProjectInput): AnnualCostChanges {
     if (item.frequency === 'One Time') {
       return sum
     }
-    const annualCost = item.cost * getAnnualOccurence(item.frequency)
+    const annualCost = item.cost * getannualOccurrence(item.frequency)
     return sum + annualCost
   }, 0)
 

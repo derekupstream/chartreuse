@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import nc from 'next-connect'
 import prisma from 'lib/prisma'
-import mailgun from 'lib/mailgun'
+import { sendEmail } from 'lib/mailgun'
 import { Invite } from '@prisma/client'
 import { onError, onNoMatch, getUser, NextApiRequestWithUser } from 'lib/middleware'
 import { trackEvent } from 'lib/tracking'
@@ -62,7 +62,7 @@ async function createAccount(req: NextApiRequestWithUser, res: NextApiResponse<R
 
   if (invitedUser) {
     const invite = ((account as any).invites || []).find((i: Invite) => i.email === email)
-    await mailgun.messages().send({
+    await sendEmail({
       from: 'Chart Reuse <hello@chartreuse.eco>',
       to: email,
       subject: `Invite from ${invite.sentBy.name} to join Chart Reuse`,

@@ -1,6 +1,5 @@
 import { Typography, Form, Button, Input } from 'antd'
 import React from 'react'
-import { FC } from 'hoist-non-react-statics/node_modules/@types/react'
 import * as S from '../styles'
 import { LeftOutlined } from '@ant-design/icons'
 
@@ -12,7 +11,7 @@ type Props = {
   onPressSubmit(values: ReusableSecondPartForm): void
 }
 
-const ReusablePurchasingSecondStepForm: FC<Props> = props => {
+const ReusablePurchasingSecondStepForm: React.FC<Props> = props => {
   const { form, onPressPrevious, onPressSubmit } = props
   return (
     <div>

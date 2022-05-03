@@ -1,7 +1,7 @@
 import { NATURAL_GAS_CO2_EMISSIONS_FACTOR, ELECTRIC_CO2_EMISSIONS_FACTOR } from '../constants/carbon-dioxide-emissions'
 import { POUND_TO_TONNE } from '../constants/conversions'
 import { CORRUGATED_CARDBOARD, MATERIALS } from '../constants/materials'
-import { Frequency, getAnnualOccurence } from '../constants/frequency'
+import { Frequency, getannualOccurrence } from '../constants/frequency'
 import { DishWasher, ProjectInput, SingleUseLineItemPopulated } from '../types/projects'
 import { ChangeSummary, getChangeSummaryRowRounded, round } from '../utils'
 import { dishwasherUtilityUsage } from './financial-results'
@@ -69,23 +69,23 @@ function getAnnualGasEmissionChanges(project: ProjectInput): AnnualGasEmissionCh
 export function singleUseItemGasEmissions(item: SingleUseLineItemPopulated) {
   const { casesPurchased, frequency, newCasesPurchased, unitsPerCase, product } = item
 
-  const annualOccurence = getAnnualOccurence(frequency)
+  const annualOccurrence = getannualOccurrence(frequency)
 
   // Column: AS
-  const primaryGasReduction = calculateMaterialGasReduction(casesPurchased, newCasesPurchased, annualOccurence, unitsPerCase, product.primaryMaterial, product.primaryMaterialWeightPerUnit)
+  const primaryGasReduction = calculateMaterialGasReduction(casesPurchased, newCasesPurchased, annualOccurrence, unitsPerCase, product.primaryMaterial, product.primaryMaterialWeightPerUnit)
 
   // Column: AU: calculate secondary material emissions
-  const secondaryGasReduction = calculateMaterialGasReduction(casesPurchased, newCasesPurchased, annualOccurence, unitsPerCase, product.secondaryMaterial, product.secondaryMaterialWeightPerUnit)
+  const secondaryGasReduction = calculateMaterialGasReduction(casesPurchased, newCasesPurchased, annualOccurrence, unitsPerCase, product.secondaryMaterial, product.secondaryMaterialWeightPerUnit)
 
   // Column AW: calculate shipping box emissions
   let shippingBoxGasReduction = 0
 
   // Columns: X, Y
   const boxWeight = product.boxWeight
-  const annualBoxWeight = boxWeight * casesPurchased * annualOccurence
+  const annualBoxWeight = boxWeight * casesPurchased * annualOccurrence
   // Columns: AM, AN
   const followupBoxWeight = product.boxWeight
-  const followupAnnualBoxWeight = followupBoxWeight * newCasesPurchased * annualOccurence
+  const followupAnnualBoxWeight = followupBoxWeight * newCasesPurchased * annualOccurrence
   // Column: AV
   const changeInShippingBoxWeight = followupAnnualBoxWeight - annualBoxWeight
 
@@ -110,10 +110,10 @@ export function singleUseItemGasEmissions(item: SingleUseLineItemPopulated) {
   Example calculations:
 
   // Column: N, V
-  const annualUnits = casesPurchased * product.unitsPerCase * annualOccurence;
+  const annualUnits = casesPurchased * product.unitsPerCase * annualOccurrence;
   const annualSecondaryWeight = secondaryMaterialWeightPerUnit * annualUnits;
   // Column: AC, AK
-  const followupAnnualUnits = newCasesPurchased * product.unitsPerCase * annualOccurence;
+  const followupAnnualUnits = newCasesPurchased * product.unitsPerCase * annualOccurrence;
   const followupAnnualSecondaryWeight = secondaryMaterialWeightPerUnit * followupAnnualUnits;
   // Column: AT
   const changeInSecondaryWeight = followupAnnualSecondaryWeight - annualSecondaryWeight;
@@ -121,13 +121,13 @@ export function singleUseItemGasEmissions(item: SingleUseLineItemPopulated) {
     secondaryGHGReduction = -1 * changeInSecondaryWeight * epaWARMAssumption.mtco2ePerLb;
   }
 */
-function calculateMaterialGasReduction(casesPurchased: number, newCasesPurchased: number, annualOccurence: number, unitsPerCase: number, material: number, weightPerUnit: number): number {
+function calculateMaterialGasReduction(casesPurchased: number, newCasesPurchased: number, annualOccurrence: number, unitsPerCase: number, material: number, weightPerUnit: number): number {
   const epaWARMAssumption = MATERIALS.find(m => m.id === material)
   if (!epaWARMAssumption) {
     throw new Error('Could not find EPA Warm assumption for material: ' + material)
   }
-  const annualWeight = annualSingleUseWeight(casesPurchased, annualOccurence, unitsPerCase, weightPerUnit)
-  const followupAnnualWeight = annualSingleUseWeight(newCasesPurchased, annualOccurence, unitsPerCase, weightPerUnit)
+  const annualWeight = annualSingleUseWeight(casesPurchased, annualOccurrence, unitsPerCase, weightPerUnit)
+  const followupAnnualWeight = annualSingleUseWeight(newCasesPurchased, annualOccurrence, unitsPerCase, weightPerUnit)
   const changeInWeight = followupAnnualWeight - annualWeight
   let gasReduction = 0
   if (changeInWeight !== 0) {
@@ -177,10 +177,10 @@ interface AnnualWaste {
 function getAnnualWaste(lineItems: { casesPurchased: number; frequency: Frequency; product: SingleUseProduct }[]): AnnualWaste {
   return lineItems.reduce<AnnualWaste>(
     (sums, lineItem) => {
-      const annualOccurence = getAnnualOccurence(lineItem.frequency)
+      const annualOccurrence = getannualOccurrence(lineItem.frequency)
       const product = lineItem.product
-      const annualWeight = annualSingleUseWeight(lineItem.casesPurchased, annualOccurence, product.unitsPerCase, product.itemWeight)
-      const boxAnnualWeight = lineItem.casesPurchased * product.boxWeight * annualOccurence
+      const annualWeight = annualSingleUseWeight(lineItem.casesPurchased, annualOccurrence, product.unitsPerCase, product.itemWeight)
+      const boxAnnualWeight = lineItem.casesPurchased * product.boxWeight * annualOccurrence
       return {
         productWeight: sums.productWeight + annualWeight,
         shippingBoxWeight: sums.shippingBoxWeight + boxAnnualWeight,

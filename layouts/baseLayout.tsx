@@ -59,7 +59,10 @@ const DashboardTemplate: React.FC<DashboardProps> = ({ user, selectedMenuItem, t
             </Menu>
             {user.org.isUpstream && (
               <Menu mode='horizontal' disabledOverflow={true} defaultSelectedKeys={[selectedMenuItem || INITIAL_SELECTED_MENU_ITEM]} onClick={handleMenuClick}>
-                <Divider type='vertical' style={{ height: '3em' }} />
+
+                <Menu.Item key='divider' disabled style={{ cursor: 'default' }}>
+                  <Divider type='vertical' style={{ height: '3em' }} />
+                </Menu.Item>
                 <Menu.Item key='orgs'>All Organizations</Menu.Item>
               </Menu>
             )}

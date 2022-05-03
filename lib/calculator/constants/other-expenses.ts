@@ -1,3 +1,5 @@
+import { FREQUENCIES_WITH_ONE_TIME } from 'lib/calculator/constants/frequency'
+
 export const OTHER_EXPENSES = [
   {
     id: '1',
@@ -29,13 +31,7 @@ export const OTHER_EXPENSES = [
 
 export type OtherExpenseCategory = typeof OTHER_EXPENSES[number]['id']
 
-export const OTHER_EXPENSES_FREQUENCIES = [
-  { name: 'One Time', annualOccurrence: 0 },
-  { name: 'Daily', annualOccurrence: 365 },
-  { name: 'Weekly', annualOccurrence: 52 },
-  { name: 'Monthly', annualOccurrence: 12 },
-  { name: 'Annually', annualOccurrence: 1 },
-]
+export const OTHER_EXPENSES_FREQUENCIES = FREQUENCIES_WITH_ONE_TIME
 
 export type AdditionalCostCategories = typeof OTHER_EXPENSES_CATEGORIES[number]
 

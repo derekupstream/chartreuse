@@ -1,5 +1,5 @@
 import { MATERIALS } from '../constants/materials'
-import { Frequency, getAnnualOccurence } from '../constants/frequency'
+import { Frequency, getannualOccurrence } from '../constants/frequency'
 import { PRODUCT_CATEGORIES } from '../constants/product-categories'
 import { PRODUCT_TYPES } from '../constants/product-types'
 import { ProjectInput } from '../types/projects'
@@ -110,12 +110,12 @@ function annualSingleUseCost(item: { caseCost: number; casesPurchased: number; f
 
 // Detailed Results, Column N
 function annualSingleUseCaseCount(item: { casesPurchased: number; frequency: Frequency }) {
-  const frequencyVal = getAnnualOccurence(item.frequency)
+  const frequencyVal = getannualOccurrence(item.frequency)
   return item.casesPurchased * frequencyVal
 }
 
-export function annualSingleUseWeight(casesPurchased: number, annualOccurence: number, unitsPerCase: number, weightPerUnit: number) {
-  const annualUnits = casesPurchased * unitsPerCase * annualOccurence
+export function annualSingleUseWeight(casesPurchased: number, annualOccurrence: number, unitsPerCase: number, weightPerUnit: number) {
+  const annualUnits = casesPurchased * unitsPerCase * annualOccurrence
   return annualUnits * weightPerUnit
 }
 
@@ -148,15 +148,15 @@ function getDetailedLineItemResults(singleUseItems: ProjectInput['singleUseItems
       casesPurchased: lineItem.newCasesPurchased,
       frequency: lineItem.frequency,
     })
-    const annualOccurence = getAnnualOccurence(lineItem.frequency)
+    const annualOccurrence = getannualOccurrence(lineItem.frequency)
     const product = lineItem.product
-    const annualWeight = annualSingleUseWeight(lineItem.casesPurchased, annualOccurence, product.unitsPerCase, product.primaryMaterialWeightPerUnit)
-    const followupAnnualWeight = annualSingleUseWeight(lineItem.newCasesPurchased, annualOccurence, product.unitsPerCase, product.primaryMaterialWeightPerUnit)
+    const annualWeight = annualSingleUseWeight(lineItem.casesPurchased, annualOccurrence, product.unitsPerCase, product.primaryMaterialWeightPerUnit)
+    const followupAnnualWeight = annualSingleUseWeight(lineItem.newCasesPurchased, annualOccurrence, product.unitsPerCase, product.primaryMaterialWeightPerUnit)
 
     const { primaryGasReduction, secondaryGasReduction, shippingBoxGasReduction, totalGasReductions } = singleUseItemGasEmissions(lineItem)
 
-    const annualBoxWeight = lineItem.casesPurchased * lineItem.product.boxWeight * annualOccurence
-    const followupAnnualBoxWeight = lineItem.newCasesPurchased * lineItem.product.boxWeight * annualOccurence
+    const annualBoxWeight = lineItem.casesPurchased * lineItem.product.boxWeight * annualOccurrence
+    const followupAnnualBoxWeight = lineItem.newCasesPurchased * lineItem.product.boxWeight * annualOccurrence
 
     const detailedResult: SingleUseDetailedResult = {
       annualBoxWeight,

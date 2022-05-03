@@ -1,6 +1,6 @@
 import { Col, message, Popconfirm, Row, Typography } from 'antd'
 import { ReusableLineItem } from 'lib/calculator/types/projects'
-import { FC } from 'hoist-non-react-statics/node_modules/@types/react'
+import { FC } from 'react'
 import { DELETE } from 'lib/http'
 import { InfoRow as StyledInfoRow } from '../../styles'
 import InitialCosts from './InitialCosts'
