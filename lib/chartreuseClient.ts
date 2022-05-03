@@ -40,6 +40,10 @@ class Client {
     return http.POST('/api/org', org)
   }
 
+  deleteOrganization(orgId: string) {
+    return http.DELETE('/api/org/' + orgId)
+  }
+
   createAccount(account: AccountSetupFields) {
     return http.POST<{ invitedUser: true }>('/api/account', account)
   }

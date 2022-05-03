@@ -11,7 +11,7 @@ export type LoggedinProps = {
   user: DashboardUser
 }
 
-export const checkLogin = async (context: GetServerSidePropsContext) => {
+export const checkLogin = async (context: GetServerSidePropsContext): Promise<{ redirect?: any; props: { user?: DashboardUser } }> => {
   try {
     const cookies = nookies.get(context)
     const token = await verifyIdToken(cookies.token)
@@ -25,6 +25,7 @@ export const checkLogin = async (context: GetServerSidePropsContext) => {
 
     if (!user) {
       return {
+        props: {},
         redirect: {
           permanent: false,
           destination: '/org-setup',
@@ -39,12 +40,13 @@ export const checkLogin = async (context: GetServerSidePropsContext) => {
 
     return {
       props: {
-        user: JSON.parse(JSON.stringify(user)),
+        user,
       },
     }
   } catch (error: any) {
     console.error('Error checking user auth', error)
     return {
+      props: {},
       redirect: {
         permanent: false,
         destination: '/login',

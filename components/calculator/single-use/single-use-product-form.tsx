@@ -67,7 +67,7 @@ function getFormValues(features: SelectedFeatureOptions, products: SingleUseProd
     'Product description': descriptions,
   }
 
-  console.log('remaining options', { sizes, descriptions, remainingProducts, features, productId, remainingOptions })
+  // console.log('remaining options', { sizes, descriptions, remainingProducts, features, productId, remainingOptions })
 
   return { features, productId, remainingOptions }
 }

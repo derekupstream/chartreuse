@@ -1,14 +1,14 @@
 import { GetServerSideProps } from 'next'
 import prisma from 'lib/prisma'
-import { Account, Invite } from '@prisma/client'
 import Members, { PageProps as MembersProps } from 'components/dashboard/members'
 import Template from 'layouts/dashboardLayout'
 import { PageProps } from 'pages/_app'
 import { checkLogin } from 'lib/middleware'
 
+// @ts-ignore TODO: rewrite checkLogin()
 export const getServerSideProps: GetServerSideProps<MembersProps> = async context => {
   const response = await checkLogin(context)
-  if (response.props) {
+  if (response.props.user?.orgId) {
     const users = await prisma.user.findMany({
       where: {
         orgId: response.props.user.orgId,

@@ -154,7 +154,7 @@ export default function Members({ accounts, users, invites }: PageProps) {
   return (
     <Space direction="vertical" size="large" style={{ width: '100%' }}>
       <S.SpaceBetween>
-        <Typography.Title>Account members</Typography.Title>
+        <Typography.Title>Members</Typography.Title>
         <Button type="primary" onClick={handleAddAccountUser} icon={<PlusOutlined />}>
           Invite new member
         </Button>

@@ -1,6 +1,6 @@
 import { useRouter } from 'next/router'
 import Image from 'next/image'
-import { Button, Dropdown, message, Typography } from 'antd'
+import { Button, Dropdown, message, Typography, Divider } from 'antd'
 import { useAuth } from 'hooks/useAuth'
 import { Layout, Menu } from 'antd'
 import Logo from 'public/images/chartreuse-logo-icon.png'
@@ -57,15 +57,21 @@ const DashboardTemplate: React.FC<DashboardProps> = ({ user, selectedMenuItem, t
               <Menu.Item key='accounts'>Accounts</Menu.Item>
               <Menu.Item key='members'>Members</Menu.Item>
             </Menu>
+            {user.org.isUpstream && (
+              <Menu mode='horizontal' disabledOverflow={true} defaultSelectedKeys={[selectedMenuItem || INITIAL_SELECTED_MENU_ITEM]} onClick={handleMenuClick}>
+                <Divider type='vertical' style={{ height: '3em' }} />
+                <Menu.Item key='orgs'>All Organizations</Menu.Item>
+              </Menu>
+            )}
           </S.LogoAndMenuWrapper>
           <S.OrgAndUserWrapper>
             <Typography.Text type='secondary'>{user.org.name}</Typography.Text>
             <Dropdown
               overlay={
                 <Menu theme='light'>
-                <Menu.Item>
-                  <a href='https://chartreuse.eco'>Help</a>
-                </Menu.Item>
+                  <Menu.Item>
+                    <a href='https://chartreuse.eco'>Help</a>
+                  </Menu.Item>
                   <Menu.Item>
                     <a onClick={handleLogout}>Logout</a>
                   </Menu.Item>
