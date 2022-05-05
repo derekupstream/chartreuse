@@ -154,7 +154,7 @@ const defaultFormatter = (val: number) => {
 }
 
 const ColoredChange = ({ value, formatter = defaultFormatter }: { value: { change: number; changePercent?: number }; formatter?: (val: number) => string | ReactNode }) => (
-  <Row style={{ color: value.change > 0 ? 'green' : value.change < 0 ? 'red' : 'inherit' }}>
+  <Row style={{ color: value.change > 0 ? 'red' : value.change < 0 ? 'green' : 'inherit' }}>
     <Col span={12}>
       {value.change > 0 && '+'}
       {formatter(value.change)}
@@ -180,9 +180,7 @@ export default function AnalyticsPage({ user, data, isUpstreamView }: PageProps)
         score,
       }
     })
-    .sort((a, b) => b.score - a.score)
-
-  const orgs = new Set(rows.map(row => row.orgId))
+    .sort((a, b) => a.score - b.score)
 
   return (
     <Space direction="vertical" size="large" style={{ width: '100%' }}>
