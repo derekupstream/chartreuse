@@ -11,7 +11,7 @@ import { useEffect, useState } from 'react'
 import SingleUseDetails from './single-use-details/single-use-details'
 
 const Projections = ({ projectId, projectTitle }: { projectId: string; projectTitle: string }) => {
-  const url = `/api/projections/?projectId=${projectId}`
+  const url = `/api/projections/${projectId}`
   const { data, isLoading } = useSimpleQuery<ProjectionsResponse>(url)
   const [showSingleUse, setShowSingleUse] = useState(false)
 

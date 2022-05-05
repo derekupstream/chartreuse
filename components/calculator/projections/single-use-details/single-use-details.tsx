@@ -107,7 +107,7 @@ const SingleUseDetails: React.FC<Props> = ({ data }) => {
   }
 
   const items = data.singleUseProductResults.resultsByType[rowType]
-  const dataSource = items.rows.map((item, index) => {
+  const dataSource: TableData[] = items.rows.map((item, index) => {
     let baseline = 0
     let forecast = 0
     if (changeType === 'cost') {

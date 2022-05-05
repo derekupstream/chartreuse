@@ -2,7 +2,6 @@ import styled from 'styled-components'
 
 export const ViewResultsWrapper = styled.div`
   text-align: right;
-  margin-bottom: 20px;
   margin-top: 24px;
 `
 

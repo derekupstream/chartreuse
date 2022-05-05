@@ -65,16 +65,8 @@ const EnvironmentalSummary: React.FC<Props> = ({ data }) => {
     <SectionContainer>
       <SectionHeader>Environmental summary</SectionHeader>
 
-      <ViewResultsWrapper>
-        <Typography.Text style={{ marginRight: '20px' }}>View results in:</Typography.Text>
-        <Radio.Group onChange={onChangeResults} defaultValue={units}>
-          <Radio.Button value="pounds">Pounds</Radio.Button>
-          <Radio.Button value="tons">Tons</Radio.Button>
-        </Radio.Group>
-      </ViewResultsWrapper>
-
       <Row gutter={30}>
-        <Col span={12}>
+        <Col span={12} style={{ display: 'flex' }}>
           <Card>
             <TitleWithTooltip title="Your total annual waste changes" />
 
@@ -84,10 +76,17 @@ const EnvironmentalSummary: React.FC<Props> = ({ data }) => {
 
             <ChartTitle>Annual waste changes</ChartTitle>
             <Chart data={annualWasteData} seriesField="wasteType" />
+            <ViewResultsWrapper>
+              <Typography.Text style={{ marginRight: '20px' }}>View results in:</Typography.Text>
+              <Radio.Group onChange={onChangeResults} defaultValue={units}>
+                <Radio.Button value="pounds">Pounds</Radio.Button>
+                <Radio.Button value="tons">Tons</Radio.Button>
+              </Radio.Group>
+            </ViewResultsWrapper>
           </Card>
         </Col>
 
-        <Col span={12}>
+        <Col span={12} style={{ display: 'flex' }}>
           <Card>
             <TitleWithTooltip title="Annual net GHG emissions changes" />
 

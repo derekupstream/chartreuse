@@ -1,11 +1,8 @@
-import nookies from 'nookies'
-import prisma from 'lib/prisma'
-import { Prisma } from '@prisma/client'
-import { verifyIdToken } from 'lib/auth/firebaseAdmin'
 import { GetServerSidePropsContext } from 'next'
 import { DashboardUser } from 'components/dashboard'
 
 import { UserDataToInclude } from './getProjectContext'
+import { getUserFromContext } from './getUserFromContext'
 
 export type LoggedinProps = {
   user: DashboardUser
@@ -13,15 +10,7 @@ export type LoggedinProps = {
 
 export const checkLogin = async (context: GetServerSidePropsContext): Promise<{ redirect?: any; props: { user?: DashboardUser } }> => {
   try {
-    const cookies = nookies.get(context)
-    const token = await verifyIdToken(cookies.token)
-
-    const user = await prisma.user.findUnique({
-      where: {
-        id: token.uid,
-      },
-      include: UserDataToInclude,
-    })
+    const user = await getUserFromContext(context, UserDataToInclude)
 
     if (!user) {
       return {

@@ -11,6 +11,7 @@ const Chart: React.FC<Props> = props => {
   const { data, seriesField } = props
   return (
     <Column
+      height={300}
       data={data}
       theme={{
         styleSheet: {

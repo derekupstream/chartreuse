@@ -2,6 +2,7 @@ import * as http from './http'
 import { Project } from '@prisma/client'
 
 import { ReusableLineItem, SingleUseLineItem } from 'lib/calculator/types/projects'
+import type { AllProjectsSummary } from 'pages/api/projections'
 
 export type AccountSetupFields = {
   name: string
@@ -82,6 +83,10 @@ class Client {
 
   deleteSingleUseItem(projectId: string, lineItemId: string) {
     return http.DELETE(`/api/projects/${projectId}/single-use-items`, { id: lineItemId })
+  }
+
+  getProjectSummaries() {
+    return http.GET<AllProjectsSummary>('/api/projections')
   }
 }
 

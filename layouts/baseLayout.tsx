@@ -3,6 +3,7 @@ import Image from 'next/image'
 import { Button, Dropdown, message, Typography, Divider } from 'antd'
 import { useAuth } from 'hooks/useAuth'
 import { Layout, Menu } from 'antd'
+import Link from 'next/link'
 import Logo from 'public/images/chartreuse-logo-icon.png'
 import { DownOutlined } from '@ant-design/icons'
 import { MenuClickEventHandler, MenuInfo } from 'rc-menu/lib/interface'
@@ -55,6 +56,7 @@ const DashboardTemplate: React.FC<DashboardProps> = ({ user, selectedMenuItem, t
             <Image src={Logo} alt='Chareuse logo' objectFit='contain' />
             <Menu mode='horizontal' disabledOverflow={true} defaultSelectedKeys={[selectedMenuItem || INITIAL_SELECTED_MENU_ITEM]} onClick={handleMenuClick}>
               <Menu.Item key='projects'>Projects</Menu.Item>
+              <Menu.Item key='analytics'>Analytics</Menu.Item>
               <Menu.Item key='accounts'>Accounts</Menu.Item>
               <Menu.Item key='members'>Members</Menu.Item>
             </Menu>
