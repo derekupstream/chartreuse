@@ -2,7 +2,7 @@ import * as http from './http'
 import { Project } from '@prisma/client'
 
 import { ReusableLineItem, SingleUseLineItem } from 'lib/calculator/types/projects'
-import type { AllProjectsSummary } from 'pages/api/projections'
+import { AllProjectsSummary } from 'lib/calculator'
 
 export type AccountSetupFields = {
   name: string

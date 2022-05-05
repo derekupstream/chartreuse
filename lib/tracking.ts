@@ -78,7 +78,6 @@ export async function trackEvent(event: UserEvent) {
   if (process.env.NOTIFICATIONS_EMAIL) {
     try {
       await sendEmail({
-        from: 'Chart Reuse Events<bot@chartreuse.eco>',
         to: process.env.NOTIFICATIONS_EMAIL,
         subject: `New Event: ${template.subject}`,
         html: `${template.body(event)}<br /><p>Sent from <a href="${WEB_HOST}">app.chartreuse.eco</a></p>`,

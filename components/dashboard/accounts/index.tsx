@@ -23,7 +23,6 @@ export default function Accounts({ user }: LoggedinProps) {
         router.replace(router.asPath)
       })
       .catch(err => {
-        console.log('error')
         message.error((err as Error)?.message)
       })
   }

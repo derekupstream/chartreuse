@@ -5,5 +5,5 @@ export function formatDate(date: Date) {
 
 // "7/2/2021"
 export function formatDateShort(date: Date) {
-  return new Date().toLocaleDateString()
+  return new Date(date).toLocaleDateString()
 }

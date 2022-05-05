@@ -25,6 +25,14 @@ const GlobalStyles = createGlobalStyle`
   }
 `
 
+const menuLinks = [
+  { key: 'projects', label: 'Projects' },
+  { key: 'annual-impact', label: 'Annual Impact' },
+  { key: 'accounts', label: 'Accounts' },
+  { key: 'members', label: 'Members' },
+]
+
+
 const INITIAL_SELECTED_MENU_ITEM = 'projects'
 
 const DashboardTemplate: React.FC<DashboardProps> = ({ user, selectedMenuItem, title, children }) => {
@@ -54,19 +62,23 @@ const DashboardTemplate: React.FC<DashboardProps> = ({ user, selectedMenuItem, t
         <S.LayoutHeader>
           <S.LogoAndMenuWrapper>
             <Image src={Logo} alt='Chareuse logo' objectFit='contain' />
-            <Menu mode='horizontal' disabledOverflow={true} defaultSelectedKeys={[selectedMenuItem || INITIAL_SELECTED_MENU_ITEM]} onClick={handleMenuClick}>
-              <Menu.Item key='projects'>Projects</Menu.Item>
-              <Menu.Item key='annual-impact'>Annual Impact</Menu.Item>
-              <Menu.Item key='accounts'>Accounts</Menu.Item>
-              <Menu.Item key='members'>Members</Menu.Item>
-            </Menu>
+            <Menu
+              items={menuLinks}
+              mode='horizontal'
+              disabledOverflow
+              defaultSelectedKeys={[selectedMenuItem || INITIAL_SELECTED_MENU_ITEM]} onClick={handleMenuClick}
+            />
             {user.org.isUpstream && (
-              <Menu mode='horizontal' disabledOverflow={true} defaultSelectedKeys={[selectedMenuItem || INITIAL_SELECTED_MENU_ITEM]} onClick={handleMenuClick}>
+              <Menu mode='horizontal' disabledOverflow defaultSelectedKeys={[selectedMenuItem || INITIAL_SELECTED_MENU_ITEM]} onClick={handleMenuClick}>
 
                 <Menu.Item key='divider' disabled style={{ cursor: 'default' }}>
                   <Divider type='vertical' style={{ height: '3em' }} />
                 </Menu.Item>
-                <Menu.Item key='orgs'>All Organizations</Menu.Item>
+
+                <Menu.SubMenu title='Upstream' key='upstream'>
+                  <Menu.Item key='upstream/orgs'>Organizations</Menu.Item>
+                  <Menu.Item key='upstream/total-annual-impact'>Total Annual Impact</Menu.Item>
+                </Menu.SubMenu>
               </Menu>
             )}
           </S.LogoAndMenuWrapper>

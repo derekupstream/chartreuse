@@ -29,7 +29,6 @@ async function addItem(req: NextApiRequestWithUser, res: NextApiResponse) {
 }
 
 async function deleteItem(req: NextApiRequestWithUser, res: NextApiResponse) {
-  console.log('delete item')
   await prisma.singleUseLineItem.delete<Prisma.SingleUseLineItemDeleteArgs>({
     where: {
       id: req.body.id,

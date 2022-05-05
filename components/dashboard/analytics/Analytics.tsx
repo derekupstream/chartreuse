@@ -1,22 +1,14 @@
-import { useRouter } from 'next/router'
-import { Button, Col, Row, Space, Table, Tag, Typography, Popconfirm, Divider } from 'antd'
-import { DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons'
-import * as http from 'lib/http'
+import { Col, Row, Space, Table, Typography, Divider } from 'antd'
 import { ReactNode } from 'react'
 
-import { LoggedinProps } from 'lib/middleware'
-import { Org, Project, User } from '@prisma/client'
+import { Org, User } from '@prisma/client'
 import Card from '../../calculator/projections/components/card'
-import KPIBullet from '../../calculator/projections/components/bullet-bar'
+import GroupedBar from '../../calculator/projections/components/grouped-bar'
 import * as S from '../../calculator/projections/components/styles'
-import { ProjectionsResponse } from 'lib/calculator'
 import Spacer from 'components/spacer/spacer'
-import chartreuseClient from 'lib/chartreuseClient'
-import type { AllProjectsSummary, SummaryValues, ProjectSummary } from 'pages/api/projections'
+import type { SummaryValues, AllProjectsSummary, ProjectSummary } from 'lib/calculator'
 import ContentLoader from 'components/content-loader'
-import useSWR from 'swr'
-import { formatToDollar, round } from 'lib/calculator/utils'
-import { poundsToTons } from 'lib/calculator/constants/conversions'
+import { formatToDollar } from 'lib/calculator/utils'
 
 function median(vals: number[]) {
   const sorted = vals.sort((a, b) => a - b)
@@ -25,36 +17,47 @@ function median(vals: number[]) {
 }
 
 export interface PageProps {
+  isUpstreamView?: boolean
   user: User & { org: Org }
+  data?: AllProjectsSummary
 }
 
-const SummaryCardWithBullet = ({ label, units, value, format = defaultFormat }: { label: string; units?: string; value: SummaryValues; format?: (val: number) => string | ReactNode }) => {
-  const bulletData = {
-    current: value.baseline,
-    target: median(value.forecasts),
-    max: Math.max(value.baseline, value.forecast),
+const SummaryCardWithGraph = ({ label, units, value, formatter = defaultFormatter }: { label: string; units?: string; value: SummaryValues; formatter?: (val: number) => string | ReactNode }) => {
+  const graphData = {
+    baseline: value.baseline,
+    forecast: value.forecast,
   }
-  console.log('target', value, bulletData)
+
   const change = value.forecast - value.baseline
 
   return (
-    <Card bordered={false}>
-      <Typography.Title>
-        {format(change)} <span style={{ fontSize: '.6em' }}>{units}</span>
-      </Typography.Title>
-      <Typography.Paragraph>{label}</Typography.Paragraph>
-      <KPIBullet data={bulletData} formatter={val => (val ? format(val) : val)} />
+    <Card bordered={false} style={{ height: '100%' }}>
+      <Row>
+        <Col xs={24} sm={13}>
+          <Typography.Paragraph>
+            <strong>{label}</strong>
+          </Typography.Paragraph>
+          <Typography.Title style={{ margin: 0 }}>
+            {formatter(change)} <span style={{ fontSize: '.6em' }}>{units}</span>
+          </Typography.Title>
+        </Col>
+        <Col xs={24} sm={11}>
+          <GroupedBar data={graphData} formatter={val => (val ? formatter(val) : val)} />
+        </Col>
+      </Row>
     </Card>
   )
 }
 
-const SummaryCard = ({ label, units, value, format = defaultFormat }: { label: string; units?: string; value: number; format?: (val: number) => string | ReactNode }) => {
+const SummaryCard = ({ label, units, value, formatter = defaultFormatter }: { label: string; units?: string; value: number; formatter?: (val: number) => string | ReactNode }) => {
   return (
     <Card bordered={false} style={{ height: '100%' }}>
-      <Typography.Title>
-        {format(value)} <span style={{ fontSize: '.6em' }}>{units}</span>
+      <Typography.Paragraph>
+        <strong>{label}</strong>
+      </Typography.Paragraph>
+      <Typography.Title style={{ margin: 0 }}>
+        {formatter(value)} <span style={{ fontSize: '.6em' }}>{units}</span>
       </Typography.Title>
-      <Typography.Paragraph>{label}</Typography.Paragraph>
     </Card>
   )
 }
@@ -70,7 +73,7 @@ const columns = [
             {record.name}
           </Typography.Title>
           <Typography.Paragraph style={{ color: 'grey', marginTop: 0, marginBottom: '1em' }}>{record.account.name}</Typography.Paragraph>
-          <Typography.Paragraph>
+          <Typography.Text>
             Estimated Savings
             <br />
             Waste Reduction <span style={{ color: 'grey' }}>(lb)</span>
@@ -78,7 +81,7 @@ const columns = [
             Single-Use Reduction <span style={{ color: 'grey' }}>(units)</span>
             <br />
             GHG Reduction <span style={{ color: 'grey' }}>(MTC02e)</span>
-          </Typography.Paragraph>
+          </Typography.Text>
         </>
       )
     },
@@ -90,7 +93,8 @@ const columns = [
       return (
         <>
           <Typography.Title level={4}>&nbsp;</Typography.Title>
-          <Typography.Paragraph>
+          <Typography.Paragraph>&nbsp;</Typography.Paragraph>
+          <Typography.Text>
             {formatToDollar(record.projections.annualSummary.dollarCost.baseline)}
             <br />
             {record.projections.annualSummary.wasteWeight.baseline.toLocaleString()}
@@ -98,7 +102,7 @@ const columns = [
             {record.projections.annualSummary.singleUseProductCount.baseline.toLocaleString()}
             <br />
             &nbsp;
-          </Typography.Paragraph>
+          </Typography.Text>
         </>
       )
     },
@@ -110,7 +114,8 @@ const columns = [
       return (
         <>
           <Typography.Title level={4}>&nbsp;</Typography.Title>
-          <Typography.Paragraph>
+          <Typography.Paragraph>&nbsp;</Typography.Paragraph>
+          <Typography.Text>
             {formatToDollar(record.projections.annualSummary.dollarCost.followup)}
             <br />
             {record.projections.annualSummary.wasteWeight.followup.toLocaleString()}
@@ -118,7 +123,7 @@ const columns = [
             {record.projections.annualSummary.singleUseProductCount.followup.toLocaleString()}
             <br />
             &nbsp;
-          </Typography.Paragraph>
+          </Typography.Text>
         </>
       )
     },
@@ -130,25 +135,29 @@ const columns = [
       return (
         <>
           <Typography.Title level={4}>&nbsp;</Typography.Title>
-          <Typography.Paragraph>
-            <ColoredChange value={record.projections.annualSummary.dollarCost} format={formatToDollar} />
+          <Typography.Paragraph>&nbsp;</Typography.Paragraph>
+          <Typography.Text>
+            <ColoredChange value={record.projections.annualSummary.dollarCost} formatter={formatToDollar} />
             <ColoredChange value={record.projections.annualSummary.wasteWeight} />
             <ColoredChange value={record.projections.annualSummary.singleUseProductCount} />
             <ColoredChange value={{ change: record.projections.annualSummary.greenhouseGasEmissions.total }} />
-          </Typography.Paragraph>
+          </Typography.Text>
         </>
       )
     },
   },
 ]
 
-const defaultFormat = (val: number) => (val ? val.toLocaleString() : <span style={{ color: 'grey', fontSize: '12px' }}>N/A</span>)
+const defaultFormatter = (val: number) => {
+  console.log('val', val)
+  return val ? val.toLocaleString() : <span style={{ color: 'grey', fontSize: '12px' }}>N/A</span>
+}
 
-const ColoredChange = ({ value, format = defaultFormat }: { value: { change: number; changePercent?: number }; format?: (val: number) => string | ReactNode }) => (
+const ColoredChange = ({ value, formatter = defaultFormatter }: { value: { change: number; changePercent?: number }; formatter?: (val: number) => string | ReactNode }) => (
   <Row style={{ color: value.change > 0 ? 'green' : value.change < 0 ? 'red' : 'inherit' }}>
     <Col span={12}>
       {value.change > 0 && '+'}
-      {format(value.change)}
+      {formatter(value.change)}
     </Col>
     <Col span={12}>
       {value.changePercent! > 0 && '+'}
@@ -157,9 +166,7 @@ const ColoredChange = ({ value, format = defaultFormat }: { value: { change: num
   </Row>
 )
 
-export default function AnalyticsPage({ user }: PageProps) {
-  const { data } = useSWR('/projections', () => chartreuseClient.getProjectSummaries())
-
+export default function AnalyticsPage({ user, data, isUpstreamView }: PageProps) {
   if (!data) {
     return <ContentLoader />
   }
@@ -175,39 +182,46 @@ export default function AnalyticsPage({ user }: PageProps) {
     })
     .sort((a, b) => b.score - a.score)
 
+  const orgs = new Set(rows.map(row => row.orgId))
+
   return (
     <Space direction="vertical" size="large" style={{ width: '100%' }}>
-      <Typography.Title>{user.org.name}&apos;s Annual Impact</Typography.Title>
+      <Typography.Title>{isUpstreamView ? 'Total Annual Impact' : `${user.org.name}'s Annual Impact`}</Typography.Title>
 
-      <S.SectionHeader style={{ margin: 0 }}>Impact Summary of {data.projects.length} Projects</S.SectionHeader>
+      <Typography.Title level={3} style={{ margin: 0 }}>
+        High-Level Overview
+      </Typography.Title>
       <Divider style={{ margin: 0 }} />
 
-      <Row gutter={24}>
-        <Col span={12}>
-          <SummaryCardWithBullet label="Estimated Savings" format={formatToDollar} value={data.summary.savings} />
+      <Row gutter={[24, 24]}>
+        <Col xs={24} md={12}>
+          <SummaryCardWithGraph label="Estimated Savings" formatter={formatToDollar} value={data.summary.savings} />
         </Col>
-        <Col span={12}>
-          <SummaryCardWithBullet label="Single-Use Reduction" units="units" value={data.summary.singleUse} />
+        <Col xs={24} md={12}>
+          <SummaryCardWithGraph label="Single-Use Reduction" units="units" value={data.summary.singleUse} />
         </Col>
-      </Row>
-      <Row gutter={24}>
-        <Col span={12}>
-          <SummaryCardWithBullet label="Waste Reduction" units="lbs" value={data.summary.waste} />
+        <Col xs={24} md={12}>
+          <SummaryCardWithGraph label="Waste Reduction" units="lbs" value={data.summary.waste} />
         </Col>
-        <Col span={12}>
+        <Col xs={24} md={12}>
           <SummaryCard label="GHG Reduction" units="MTC02e" value={data.summary.gas.change} />
         </Col>
       </Row>
 
       <Spacer vertical={0} />
 
-      <Typography.Title level={2} style={{ marginBottom: 0 }}>
-        Project Leaderboard
-      </Typography.Title>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+        <Typography.Title level={3} style={{ marginBottom: 0 }}>
+          Project Leaderboard
+        </Typography.Title>
+        <S.SectionHeader style={{ color: 'grey', marginBottom: 0, display: 'flex', justifyContent: 'space-between' }}>
+          <span>{`${data.projects.length} Projects`}</span>
+        </S.SectionHeader>
+      </div>
       <Divider style={{ margin: 0 }} />
 
       <Card>
-        <Table<ProjectSummary> dataSource={rows} columns={columns} />
+        <Table<ProjectSummary> dataSource={rows} columns={columns} rowKey="id" />
       </Card>
     </Space>
   )

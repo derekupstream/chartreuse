@@ -56,7 +56,7 @@ const OrganizationsPage = (props: { user: DashboardUser; orgs: OrgSummary[] }) =
 
 OrganizationsPage.getLayout = (page: React.ReactNode, pageProps: PageProps) => {
   return (
-    <Template {...pageProps} selectedMenuItem="orgs" title="Organizations">
+    <Template {...pageProps} selectedMenuItem="upstream/orgs" title="Organizations">
       {page}
     </Template>
   )
