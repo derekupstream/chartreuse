@@ -56,7 +56,7 @@ const DashboardTemplate: React.FC<DashboardProps> = ({ user, selectedMenuItem, t
             <Image src={Logo} alt='Chareuse logo' objectFit='contain' />
             <Menu mode='horizontal' disabledOverflow={true} defaultSelectedKeys={[selectedMenuItem || INITIAL_SELECTED_MENU_ITEM]} onClick={handleMenuClick}>
               <Menu.Item key='projects'>Projects</Menu.Item>
-              <Menu.Item key='analytics'>Analytics</Menu.Item>
+              <Menu.Item key='annual-impact'>Annual Impact</Menu.Item>
               <Menu.Item key='accounts'>Accounts</Menu.Item>
               <Menu.Item key='members'>Members</Menu.Item>
             </Menu>
