@@ -2,9 +2,7 @@ import { GetServerSideProps } from 'next'
 
 import Analytics, { PageProps } from 'components/dashboard/analytics'
 import Template from 'layouts/dashboardLayout'
-import { getUserFromContext, checkIsUpstream } from 'lib/middleware'
-import useSWR from 'swr'
-import chartreuseClient from 'lib/chartreuseClient'
+import { getUserFromContext } from 'lib/middleware'
 import { getAllProjections } from 'lib/calculator'
 
 export const getServerSideProps: GetServerSideProps<PageProps> = async context => {

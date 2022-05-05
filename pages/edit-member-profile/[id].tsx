@@ -117,9 +117,9 @@ export default function EditMemberProfile({ org, user }: Props) {
         ...data,
       })
       .then(() => {
-        message.success('Account member edited with success.')
+        message.success('Member edited with success.')
 
-        router.push('/')
+        router.push('/members')
       })
       .catch(err => {
         message.error((err as Error)?.message)
@@ -151,7 +151,7 @@ export default function EditMemberProfile({ org, user }: Props) {
               email: user.email,
               title: user.title,
               phone: user.phone,
-              accountId: user.account.id,
+              accountId: user.account?.id,
             }}
             accounts={org.accounts}
           />

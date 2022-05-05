@@ -1,5 +1,5 @@
 import { GetServerSidePropsContext } from 'next'
-import { DashboardUser } from 'components/dashboard'
+import type { DashboardUser } from 'components/dashboard'
 
 import { UserDataToInclude } from './getProjectContext'
 import { getUserFromContext } from './getUserFromContext'

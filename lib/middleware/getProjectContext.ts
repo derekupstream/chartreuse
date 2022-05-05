@@ -3,7 +3,7 @@ import { Project } from '@prisma/client'
 import { GetServerSideProps } from 'next'
 import { verifyIdToken } from 'lib/auth/firebaseAdmin'
 import prisma from 'lib/prisma'
-import { DashboardUser } from 'components/dashboard'
+import type { DashboardUser } from 'components/dashboard'
 
 export type ProjectContext = {
   user: DashboardUser

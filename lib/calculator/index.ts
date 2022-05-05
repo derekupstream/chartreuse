@@ -29,13 +29,16 @@ export interface SummaryValues {
   forecasts: number[]
 }
 
-export interface ProjectSummary {
+export interface ProjectData {
   id: string
   orgId: string
   name: string
   account: {
     name: string
   }
+}
+
+export interface ProjectSummary extends ProjectData {
   projections: ProjectionsResponse
 }
 
@@ -49,7 +52,7 @@ export interface AllProjectsSummary {
   projects: ProjectSummary[]
 }
 
-export async function getAllProjections(_projects: (Project & { account: Account })[]): Promise<AllProjectsSummary> {
+export async function getAllProjections(_projects: ProjectData[]): Promise<AllProjectsSummary> {
   const projects: ProjectSummary[] = await Promise.all(_projects.map(p => getProjections(p.id).then(r => ({ ...p, projections: r }))))
 
   const defaultSummary = () => ({ baseline: 0, forecast: 0, forecasts: [] })

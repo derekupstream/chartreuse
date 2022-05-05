@@ -1,0 +1,217 @@
+import ExcelJS from 'exceljs'
+import { Project, Org, Account, Dishwasher, OtherExpense, LaborCost, ReusableLineItem, SingleUseLineItem } from '@prisma/client'
+import { getAllProjections, AllProjectsSummary as _AllProjectsSummary, ProjectionsResponse } from 'lib/calculator'
+import { poundsToTons } from 'lib/calculator/constants/conversions'
+import { getProducts } from 'lib/calculator/datasets/single-use-products'
+import { SingleUseProduct } from 'lib/calculator/types/products'
+import { round } from 'lib/calculator/utils'
+
+// create our own version of ProjectData. Nicer would be to make teh types in lib/calculator generic
+interface ProjectData extends Project {
+  org: Org
+  account: Account
+  dishwasher: Dishwasher[]
+  otherExpenses: OtherExpense[]
+  laborCosts: LaborCost[]
+  reusableItems: ReusableLineItem[]
+  singleUseItems: SingleUseLineItem[]
+}
+
+interface ProjectSummary extends ProjectData {
+  projections: ProjectionsResponse
+}
+
+interface AllProjectsSummary extends Omit<_AllProjectsSummary, 'projects'> {
+  projects: ProjectSummary[]
+}
+
+export async function getOrgExport(orgId: string) {
+  const projects = await prisma.project.findMany({
+    where: {
+      orgId,
+    },
+    include: {
+      account: true,
+      org: true,
+      dishwasher: true,
+      otherExpenses: true,
+      laborCosts: true,
+      reusableItems: true,
+      singleUseItems: true,
+    },
+  })
+  const data = await getAllProjections(projects)
+  const products = await getProducts()
+
+  return getExportFile(data as AllProjectsSummary, products)
+}
+
+const worksheetOptions: Partial<ExcelJS.AddWorksheetOptions> = {
+  views: [{ state: 'frozen', xSplit: 1, ySplit: 1 }], // lock the first row
+}
+
+function getExportFile(data: AllProjectsSummary, products: SingleUseProduct[]) {
+  const workbook = new ExcelJS.Workbook()
+
+  addSummarySheet(workbook, data)
+  addProjectsSheet(workbook, data)
+  addSingleUseSheet(workbook, data, products)
+  addReusablesSheet(workbook, data)
+
+  return workbook
+}
+
+// Define Summary Worksheet
+function addSummarySheet(workbook: ExcelJS.Workbook, data: AllProjectsSummary) {
+  const sheet = workbook.addWorksheet('Summary', worksheetOptions)
+
+  sheet.columns = [
+    { header: '', key: 'title', width: 30 },
+    { header: 'Baseline', key: 'baseline', width: 20 },
+    { header: 'Forecast', key: 'forecast', width: 20 },
+    { header: 'Change', key: 'change', width: 20 },
+  ]
+
+  sheet.addRows([
+    {
+      title: 'Estimated Savings ($)',
+      baseline: data.summary.savings.baseline,
+      forecast: data.summary.savings.forecast,
+      change: data.summary.savings.forecast - data.summary.savings.baseline,
+    },
+    {
+      title: 'Single-Use Reduction (units)',
+      baseline: data.summary.singleUse.baseline,
+      forecast: data.summary.singleUse.forecast,
+      change: data.summary.singleUse.forecast - data.summary.singleUse.baseline,
+    },
+    {
+      title: 'Waste Reduction (lbs)',
+      baseline: data.summary.waste.baseline,
+      forecast: data.summary.waste.forecast,
+      change: data.summary.waste.forecast - data.summary.waste.baseline,
+    },
+    {
+      title: 'Waste Reduction (tons)',
+      baseline: poundsToTons(data.summary.waste.baseline),
+      forecast: poundsToTons(data.summary.waste.forecast),
+      change: poundsToTons(data.summary.waste.forecast - data.summary.waste.baseline),
+    },
+    {
+      title: 'GHG Reduction (MTC02e)',
+      baseline: '',
+      forecast: '',
+      change: data.summary.gas.change,
+    },
+  ])
+}
+
+// Define Projects Worksheet
+function addProjectsSheet(workbook: ExcelJS.Workbook, data: AllProjectsSummary) {
+  const sheet = workbook.addWorksheet('Projects', worksheetOptions)
+
+  sheet.columns = [
+    { header: 'Project', key: 'title', width: 30 },
+    { header: 'Account', key: 'account', width: 30 },
+    { header: 'Organization', key: 'org', width: 30 },
+    ...['Costs', 'Single-Use', 'Waste', 'GHG']
+      .map(title => [
+        { header: `${title}: Baseline`, key: `${title}_baseline`, width: 20 },
+        { header: `${title}: Forecast`, key: `${title}_forecast`, width: 20 },
+        { header: `${title}: Change`, key: `${title}_change`, width: 20 },
+      ])
+      .flat(),
+  ]
+
+  sheet.addRows(
+    data.projects.map(project => ({
+      title: project.name,
+      account: project.account.name,
+      org: project.org.name,
+      Costs_baseline: project.projections.financialResults.annualCostChanges.baseline,
+      Costs_forecast: project.projections.financialResults.annualCostChanges.followup,
+      Costs_change: project.projections.financialResults.annualCostChanges.change,
+      'Single-Use_baseline': project.projections.singleUseProductResults.summary.annualUnits.baseline,
+      'Single-Use_forecast': project.projections.singleUseProductResults.summary.annualUnits.followup,
+      'Single-Use_change': project.projections.singleUseProductResults.summary.annualUnits.change,
+      Waste_baseline: project.projections.environmentalResults.annualWasteChanges.total.baseline,
+      Waste_forecast: project.projections.environmentalResults.annualWasteChanges.total.followup,
+      Waste_change: project.projections.environmentalResults.annualWasteChanges.total.change,
+      GHG_baseline: '',
+      GHG_forecast: '',
+      GHG_change: project.projections.environmentalResults.annualGasEmissionChanges.total,
+    }))
+  )
+}
+
+// Define Single-Use Worksheet
+function addSingleUseSheet(workbook: ExcelJS.Workbook, data: AllProjectsSummary, products: SingleUseProduct[]) {
+  const sheet = workbook.addWorksheet('Single-Use Items', worksheetOptions)
+
+  function getProduct(item: { productId: string }): Partial<SingleUseProduct> {
+    return products.find(product => product.id === item.productId) || {}
+  }
+
+  sheet.columns = [
+    { header: 'Product description', key: 'title', width: 40 },
+    { header: 'Project', key: 'project', width: 30 },
+    { header: 'Account', key: 'account', width: 30 },
+    { header: 'Organization', key: 'org', width: 30 },
+    { header: 'Units per case', key: 'unitsPerCase', width: 20 },
+    { header: 'Frequency', key: 'frequency', width: 20 },
+    { header: 'Case Cost: Baseline', key: 'caseCost', width: 20 },
+    { header: 'Cases Purchased: Baseline', key: 'casesPurchased', width: 20 },
+    { header: 'Case Cost: Forecast', key: 'newCaseCost', width: 20 },
+    { header: 'Cases Purchased: Forecast', key: 'newCasesPurchased', width: 20 },
+  ]
+
+  sheet.addRows(
+    data.projects
+      .map(project =>
+        project.singleUseItems.map(item => ({
+          title: getProduct(item).description || '',
+          project: project.name,
+          account: project.account.name,
+          org: project.org.name,
+          caseCost: item.caseCost,
+          casesPurchased: item.casesPurchased,
+          frequency: item.frequency,
+          newCaseCost: item.newCaseCost,
+          newCasesPurchased: item.newCasesPurchased,
+          unitsPerCase: item.unitsPerCase,
+        }))
+      )
+      .flat()
+  )
+}
+
+// Define Reusables Worksheet
+function addReusablesSheet(workbook: ExcelJS.Workbook, data: AllProjectsSummary) {
+  const sheet = workbook.addWorksheet('Reusable Items', worksheetOptions)
+
+  sheet.columns = [
+    { header: 'Name', key: 'title', width: 30 },
+    { header: 'Project', key: 'project', width: 30 },
+    { header: 'Account', key: 'account', width: 30 },
+    { header: 'Organization', key: 'org', width: 30 },
+    { header: 'Repurchase %', key: 'repurchase', width: 20 },
+    { header: 'Case cost', key: 'caseCost', width: 20 },
+    { header: 'Cases Purchased', key: 'casesPurchased', width: 20 },
+  ]
+  console.log(data.projects[0].reusableItems)
+  sheet.addRows(
+    data.projects
+      .map(project =>
+        project.reusableItems.map(item => ({
+          title: item.productName,
+          project: project.name,
+          account: project.account.name,
+          org: project.org.name,
+          repurchase: round(item.annualRepurchasePercentage, 2),
+          caseCost: item.caseCost,
+          casesPurchased: item.casesPurchased,
+        }))
+      )
+      .flat()
+  )
+}

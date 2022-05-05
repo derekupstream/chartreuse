@@ -10,12 +10,6 @@ import type { SummaryValues, AllProjectsSummary, ProjectSummary } from 'lib/calc
 import ContentLoader from 'components/content-loader'
 import { formatToDollar } from 'lib/calculator/utils'
 
-function median(vals: number[]) {
-  const sorted = vals.sort((a, b) => a - b)
-  const mid = Math.floor(sorted.length / 2)
-  return sorted[mid]
-}
-
 export interface PageProps {
   isUpstreamView?: boolean
   user: User & { org: Org }

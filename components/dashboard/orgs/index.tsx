@@ -1,6 +1,6 @@
 import { useRouter } from 'next/router'
-import { Button, Space, Table, Tag, Typography, Popconfirm, message } from 'antd'
-import { DeleteOutlined } from '@ant-design/icons'
+import { Button, Space, Table, Tag, Typography, Popconfirm, Tooltip, message } from 'antd'
+import { DeleteOutlined, DownloadOutlined } from '@ant-design/icons'
 import { ColumnType } from 'antd/lib/table/interface'
 import { User } from '@prisma/client'
 import { OrgSummary } from 'pages/upstream/orgs'
@@ -17,7 +17,7 @@ export interface PageProps {
 export default function Organizations({ orgs }: PageProps) {
   const router = useRouter()
 
-  const handleAccountDeletion = (org: OrgSummary) => {
+  function handleAccountDeletion(org: OrgSummary) {
     chartreuseClient
       .deleteOrganization(org.id)
       .then(() => {
@@ -27,6 +27,34 @@ export default function Organizations({ orgs }: PageProps) {
       .catch(err => {
         message.error((err as Error)?.message)
       })
+  }
+
+  async function exportData(org: OrgSummary) {
+    try {
+      fetch(`/api/org/${org.id}/export`, {
+        method: 'GET',
+      })
+        .then(response => {
+          if (response.status !== 200) {
+            throw new Error('Sorry, I could not find that file.')
+          }
+          return response.blob()
+        })
+        .then(blob => {
+          console.log('blob', blob)
+          const url = window.URL.createObjectURL(blob)
+          const a = document.createElement('a')
+          a.style.display = 'none'
+          a.href = url
+          a.setAttribute('download', 'Org export.xlsx')
+          document.body.appendChild(a)
+          a.click()
+          window.URL.revokeObjectURL(url)
+          a.remove()
+        })
+    } catch (e) {
+      console.log('error downloading file', e)
+    }
   }
 
   const columns: ColumnType<OrgSummary>[] = [
@@ -78,6 +106,9 @@ export default function Organizations({ orgs }: PageProps) {
       render: (_, org: OrgSummary) => {
         return (
           <Space size="middle">
+            <Tooltip title="Download results">
+              <Button onClick={() => exportData(org)} icon={<DownloadOutlined />} />
+            </Tooltip>
             {!org.isUpstream && (
               <Popconfirm
                 title={
@@ -88,7 +119,9 @@ export default function Organizations({ orgs }: PageProps) {
                 }
                 onConfirm={() => handleAccountDeletion(org)}
               >
-                <Button icon={<DeleteOutlined />} />
+                <Tooltip title="Delete">
+                  <Button icon={<DeleteOutlined />} />
+                </Tooltip>
               </Popconfirm>
             )}
           </Space>

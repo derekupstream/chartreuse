@@ -31,11 +31,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           email: req.body.email,
           title: req.body.title,
           phone: req.body.phone,
-          account: {
-            connect: {
-              id: req.body.accountId,
-            },
-          },
+          account: req.body.accountId
+            ? {
+                connect: {
+                  id: req.body.accountId,
+                },
+              }
+            : undefined,
         },
       })
 

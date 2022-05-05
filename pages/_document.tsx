@@ -3,6 +3,8 @@ import Document, { Html, Head, Main, NextScript } from 'next/document'
 import { ServerStyleSheet } from 'styled-components'
 import * as React from 'react'
 
+// example here: https://github.com/vercel/next.js/blob/canary/examples/with-styled-components/pages/_document.js
+
 export default class MyDocument extends Document {
   static async getInitialProps(ctx: any) {
     const sheet = new ServerStyleSheet()
@@ -25,9 +27,9 @@ export default class MyDocument extends Document {
           </>,
         ],
       }
-    } catch (err) {
+    } finally {
       sheet.seal()
-      return Document.getInitialProps(ctx)
+      //return Document.getInitialProps(ctx)
     }
   }
 
@@ -35,7 +37,7 @@ export default class MyDocument extends Document {
     return (
       <Html>
         <Head>
-          <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=optional" rel="stylesheet" />
+          <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=optional" rel="stylesheet" key="google-font" />
         </Head>
         <body>
           <Main />

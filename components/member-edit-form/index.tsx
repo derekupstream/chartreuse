@@ -18,16 +18,7 @@ export default function MemberEditForm({ onSubmit, onCancel, isLoading, initialV
   return (
     <S.Wrapper>
       <S.MemberEditForm initialValues={initialValues} name="memberEdit" layout="vertical" onFinish={onSubmit}>
-        <Form.Item
-          label="Choose account to assign member"
-          name="accountId"
-          rules={[
-            {
-              required: true,
-              message: 'Account is required!',
-            },
-          ]}
-        >
+        <Form.Item label="Choose account to assign member" name="accountId">
           <Select placeholder="Account name">
             {accounts.map(account => {
               return (
@@ -39,7 +30,7 @@ export default function MemberEditForm({ onSubmit, onCancel, isLoading, initialV
           </Select>
         </Form.Item>
         <Form.Item
-          label="Account members's name"
+          label="Member's name"
           name="name"
           rules={[
             {
@@ -52,7 +43,7 @@ export default function MemberEditForm({ onSubmit, onCancel, isLoading, initialV
         </Form.Item>
 
         <Form.Item
-          label="Account members's email"
+          label="Member's email"
           name="email"
           rules={[
             {
@@ -68,29 +59,11 @@ export default function MemberEditForm({ onSubmit, onCancel, isLoading, initialV
           <Input placeholder="Account member's email" />
         </Form.Item>
 
-        <Form.Item
-          label="Account members's job title"
-          name="title"
-          rules={[
-            {
-              required: true,
-              message: "Please input the member's job title!",
-            },
-          ]}
-        >
+        <Form.Item label="Member's job title" name="title">
           <Input placeholder="Account member's job title" />
         </Form.Item>
 
-        <Form.Item
-          label="Account members's phone"
-          name="phone"
-          rules={[
-            {
-              required: true,
-              message: "Please input the member's phone!",
-            },
-          ]}
-        >
+        <Form.Item label="Member's phone" name="phone">
           <Input placeholder="Account member's phone" />
         </Form.Item>
 

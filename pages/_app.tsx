@@ -9,7 +9,7 @@ import { NextPage } from 'next'
 
 const GlobalStyles = createGlobalStyle`
   body {
-    background-color: white;
+    background-color: #f4f3f0;
   }
 `
 
@@ -32,7 +32,7 @@ function MyApp({ Component, pageProps }: Props) {
     <>
       <Head>
         <title>Welcome to Chart Reuse by Upstream</title>
-        <link rel="icon" href="/favicon.png" />
+        <link rel="icon" href="/favicon.png" key="favicon" />
       </Head>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
