@@ -1,8 +1,11 @@
 import ExcelJS from 'exceljs'
-import { Project, Org, Account, Dishwasher, OtherExpense, LaborCost, ReusableLineItem, SingleUseLineItem } from '@prisma/client'
+import { Project, Org, Account, Dishwasher, OtherExpense, LaborCost, ReusableLineItem, SingleUseLineItem, WasteHaulingCost } from '@prisma/client'
 import { getAllProjections, AllProjectsSummary as _AllProjectsSummary, ProjectionsResponse } from 'lib/calculator'
 import { poundsToTons } from 'lib/calculator/constants/conversions'
 import { getProducts } from 'lib/calculator/datasets/single-use-products'
+import { LABOR_CATEGORIES } from 'lib/calculator/constants/labor-categories'
+import { Frequency, getannualOccurrence } from 'lib/calculator/constants/frequency'
+import { OTHER_EXPENSES } from 'lib/calculator/constants/other-expenses'
 import { SingleUseProduct } from 'lib/calculator/types/products'
 import { round } from 'lib/calculator/utils'
 
@@ -15,6 +18,7 @@ interface ProjectData extends Project {
   laborCosts: LaborCost[]
   reusableItems: ReusableLineItem[]
   singleUseItems: SingleUseLineItem[]
+  wasteHaulingCosts: WasteHaulingCost[]
 }
 
 interface ProjectSummary extends ProjectData {
@@ -38,6 +42,7 @@ export async function getOrgExport(orgId: string) {
       laborCosts: true,
       reusableItems: true,
       singleUseItems: true,
+      wasteHaulingCosts: true,
     },
   })
   const data = await getAllProjections(projects)
@@ -57,13 +62,15 @@ function getExportFile(data: AllProjectsSummary, products: SingleUseProduct[]) {
   addProjectsSheet(workbook, data)
   addSingleUseSheet(workbook, data, products)
   addReusablesSheet(workbook, data)
+  addAdditionalCostsSheet(workbook, data)
+  addDishwasherSheet(workbook, data)
 
   return workbook
 }
 
 // Define Summary Worksheet
 function addSummarySheet(workbook: ExcelJS.Workbook, data: AllProjectsSummary) {
-  const sheet = workbook.addWorksheet('Summary', worksheetOptions)
+  const sheet = workbook.addWorksheet('All Projects Summary', worksheetOptions)
 
   sheet.columns = [
     { header: '', key: 'title', width: 30 },
@@ -114,6 +121,11 @@ function addProjectsSheet(workbook: ExcelJS.Workbook, data: AllProjectsSummary) 
     { header: 'Project', key: 'title', width: 30 },
     { header: 'Account', key: 'account', width: 30 },
     { header: 'Organization', key: 'org', width: 30 },
+    { header: 'Project Type', key: 'projectType', width: 20 },
+    { header: 'Daily Customers', key: 'dailyCustomers', width: 20 },
+    { header: 'Dine-in vs Take-out', key: 'dineInVsTakeOut', width: 20 },
+    { header: 'Food Prep', key: 'whereIsFoodPrepared', width: 20 },
+    { header: 'Dishwashing Type', key: 'dishwashingType', width: 30 },
     ...['Savings', 'Single-Use', 'Waste', 'GHG']
       .map(title => [
         { header: `${title}: Baseline`, key: `${title}_baseline`, width: 20 },
@@ -124,23 +136,31 @@ function addProjectsSheet(workbook: ExcelJS.Workbook, data: AllProjectsSummary) 
   ]
 
   sheet.addRows(
-    data.projects.map(project => ({
-      title: project.name,
-      account: project.account.name,
-      org: project.org.name,
-      Costs_baseline: project.projections.financialResults.annualCostChanges.baseline,
-      Costs_forecast: project.projections.financialResults.annualCostChanges.followup,
-      Costs_change: project.projections.financialResults.annualCostChanges.change,
-      'Single-Use_baseline': project.projections.singleUseProductResults.summary.annualUnits.baseline,
-      'Single-Use_forecast': project.projections.singleUseProductResults.summary.annualUnits.followup,
-      'Single-Use_change': project.projections.singleUseProductResults.summary.annualUnits.change,
-      Waste_baseline: project.projections.environmentalResults.annualWasteChanges.total.baseline,
-      Waste_forecast: project.projections.environmentalResults.annualWasteChanges.total.followup,
-      Waste_change: project.projections.environmentalResults.annualWasteChanges.total.change,
-      GHG_baseline: '',
-      GHG_forecast: '',
-      GHG_change: project.projections.environmentalResults.annualGasEmissionChanges.total,
-    }))
+    data.projects.map(project => {
+      const metadata = project.metadata as any
+      return {
+        title: project.name,
+        account: project.account.name,
+        org: project.org.name,
+        projectType: metadata.type,
+        dailyCustomers: metadata.customers,
+        dineInVsTakeOut: metadata.hasOwnProperty('dineInVsTakeOut') ? metadata.dineInVsTakeOut + '%' : '',
+        whereIsFoodPrepared: metadata.whereIsFoodPrepared,
+        dishwashingType: metadata.dishwashingType,
+        Costs_baseline: project.projections.financialResults.annualCostChanges.baseline,
+        Costs_forecast: project.projections.financialResults.annualCostChanges.followup,
+        Costs_change: project.projections.financialResults.annualCostChanges.change,
+        'Single-Use_baseline': project.projections.singleUseProductResults.summary.annualUnits.baseline,
+        'Single-Use_forecast': project.projections.singleUseProductResults.summary.annualUnits.followup,
+        'Single-Use_change': project.projections.singleUseProductResults.summary.annualUnits.change,
+        Waste_baseline: project.projections.environmentalResults.annualWasteChanges.total.baseline,
+        Waste_forecast: project.projections.environmentalResults.annualWasteChanges.total.followup,
+        Waste_change: project.projections.environmentalResults.annualWasteChanges.total.change,
+        GHG_baseline: '',
+        GHG_forecast: '',
+        GHG_change: project.projections.environmentalResults.annualGasEmissionChanges.total,
+      }
+    })
   )
 }
 
@@ -154,15 +174,15 @@ function addSingleUseSheet(workbook: ExcelJS.Workbook, data: AllProjectsSummary,
 
   sheet.columns = [
     { header: 'Product description', key: 'title', width: 40 },
-    { header: 'Project', key: 'project', width: 30 },
-    { header: 'Account', key: 'account', width: 30 },
-    { header: 'Organization', key: 'org', width: 30 },
     { header: 'Units per case', key: 'unitsPerCase', width: 20 },
     { header: 'Frequency', key: 'frequency', width: 20 },
     { header: 'Case Cost: Baseline', key: 'caseCost', width: 20 },
     { header: 'Cases Purchased: Baseline', key: 'casesPurchased', width: 20 },
     { header: 'Case Cost: Forecast', key: 'newCaseCost', width: 20 },
     { header: 'Cases Purchased: Forecast', key: 'newCasesPurchased', width: 20 },
+    { header: 'Project', key: 'project', width: 30 },
+    { header: 'Account', key: 'account', width: 30 },
+    { header: 'Organization', key: 'org', width: 30 },
   ]
 
   sheet.addRows(
@@ -190,15 +210,15 @@ function addReusablesSheet(workbook: ExcelJS.Workbook, data: AllProjectsSummary)
   const sheet = workbook.addWorksheet('Reusable Items', worksheetOptions)
 
   sheet.columns = [
-    { header: 'Name', key: 'title', width: 30 },
-    { header: 'Project', key: 'project', width: 30 },
-    { header: 'Account', key: 'account', width: 30 },
-    { header: 'Organization', key: 'org', width: 30 },
+    { header: 'Description', key: 'title', width: 30 },
     { header: 'Repurchase %', key: 'repurchase', width: 20 },
     { header: 'Case cost', key: 'caseCost', width: 20 },
     { header: 'Cases Purchased', key: 'casesPurchased', width: 20 },
+    { header: 'Project', key: 'project', width: 30 },
+    { header: 'Account', key: 'account', width: 30 },
+    { header: 'Organization', key: 'org', width: 30 },
   ]
-  console.log(data.projects[0].reusableItems)
+
   sheet.addRows(
     data.projects
       .map(project =>
@@ -213,5 +233,87 @@ function addReusablesSheet(workbook: ExcelJS.Workbook, data: AllProjectsSummary)
         }))
       )
       .flat()
+  )
+}
+
+// Define Additional Costs Worksheet
+function addAdditionalCostsSheet(workbook: ExcelJS.Workbook, data: AllProjectsSummary) {
+  const sheet = workbook.addWorksheet('Additional Costs', worksheetOptions)
+
+  sheet.columns = [
+    { header: 'Name', key: 'title', width: 30 },
+    { header: 'Category', key: 'category', width: 20 },
+    { header: 'Frequency', key: 'frequency', width: 20 },
+    { header: 'Baseline Cost', key: 'baselineCost', width: 20 },
+    { header: 'Forecast Cost', key: 'forecastCost', width: 20 },
+    { header: 'Annual Forecast Cost', key: 'forecastAnnualCost', width: 20 },
+    { header: 'Project', key: 'project', width: 30 },
+    { header: 'Account', key: 'account', width: 30 },
+    { header: 'Organization', key: 'org', width: 30 },
+  ]
+
+  sheet.addRows(
+    data.projects
+      .map(project => [
+        ...project.laborCosts.map(item => ({
+          title: item.description,
+          project: project.name,
+          account: project.account.name,
+          org: project.org.name,
+          category: LABOR_CATEGORIES.find(cat => cat.id === item.categoryId)?.name || '',
+          frequency: item.frequency,
+          forecastCost: item.cost,
+          forecastAnnualCost: getAnnualCost(item),
+        })),
+        ...project.wasteHaulingCosts.map(item => ({
+          title: item.description,
+          project: project.name,
+          account: project.account.name,
+          org: project.org.name,
+          category: `${item.wasteStream} / ${item.serviceType}`,
+          frequency: 'Monthly',
+          baselineCost: item.monthlyCost,
+          forecastCost: item.newMonthlyCost,
+          forecastAnnualCost: getAnnualCost({ cost: item.newMonthlyCost, frequency: 'Monthly' }),
+        })),
+        ...project.otherExpenses.map(item => ({
+          title: item.description,
+          project: project.name,
+          account: project.account.name,
+          org: project.org.name,
+          category: OTHER_EXPENSES.find(cat => cat.id === item.categoryId)?.name || '',
+          frequency: item.frequency,
+          forecastCost: item.cost,
+          forecastAnnualCost: getAnnualCost(item),
+        })),
+      ])
+      .flat()
+  )
+}
+
+function getAnnualCost({ frequency, cost }: { frequency: string; cost: number }) {
+  if (frequency === 'One Time') {
+    return ''
+  }
+  return cost * getannualOccurrence(frequency as Frequency)
+}
+
+// Define Reusables Worksheet
+function addDishwasherSheet(workbook: ExcelJS.Workbook, data: AllProjectsSummary) {
+  const sheet = workbook.addWorksheet('Dishwasher Usage', worksheetOptions)
+
+  sheet.columns = [
+    { header: '', key: 'type', width: 30 },
+    { header: 'Annual usage (kWh)', key: 'electric', width: 30 },
+    { header: 'Lbs.CO2 / yr.', key: 'gas', width: 20 },
+    { header: 'Annual total', key: 'cost', width: 20 },
+  ]
+  sheet.addRows(
+    data.projects.map(project => [
+      // {
+      //   type: 'Electric Usage',
+      //   electric: project.projections.environmentalResults.electricUsage, gas: data.dishwasher.gas, cost: data.dishwasher.cost
+      // },
+    ])
   )
 }
