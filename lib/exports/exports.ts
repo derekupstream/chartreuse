@@ -241,7 +241,7 @@ function addAdditionalCostsSheet(workbook: ExcelJS.Workbook, data: AllProjectsSu
   const sheet = workbook.addWorksheet('Additional Costs', worksheetOptions)
 
   sheet.columns = [
-    { header: 'Name', key: 'title', width: 30 },
+    { header: 'Description', key: 'title', width: 30 },
     { header: 'Category', key: 'category', width: 20 },
     { header: 'Frequency', key: 'frequency', width: 20 },
     { header: 'Baseline Cost', key: 'baselineCost', width: 20 },
