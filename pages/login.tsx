@@ -3,12 +3,20 @@ import Header from 'components/header'
 import LoginForm from 'components/login-form'
 import { useAuth, Credentials } from 'hooks/useAuth'
 import { message } from 'antd'
+import { useEffect } from 'react'
 import { FirebaseAuthProvider } from 'lib/auth/firebaseClient'
 import FormPageTemplate from 'components/form-page-template'
 
 export default function Login() {
-  const { login, loginWithProvider } = useAuth()
+  const { login, loginWithProvider, user } = useAuth()
   const router = useRouter()
+
+  useEffect(() => {
+    // this may occur when the user is logged in already, but the cookie needed to be refreshed on the frontend
+    if (user) {
+      router.push('/')
+    }
+  }, [user])
 
   const handleLogin = async ({ email, password }: Credentials) => {
     try {

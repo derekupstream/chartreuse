@@ -65,6 +65,7 @@ type Props = {
 
 export default function AccountSetup({ org, user }: Props) {
   const router = useRouter()
+  const fromDashboard = !!parseInt(router.query.dashboard as string, 10)
 
   function handleAccountSetupCreation(params: AccountSetupFields) {
     chartreuseClient
@@ -73,9 +74,11 @@ export default function AccountSetup({ org, user }: Props) {
         if (invitedUser) {
           message.success('Account contact invited.')
           router.push('/accounts')
+        } else if (fromDashboard) {
+          router.push('/projects')
         } else {
           // send user to first step of the calculator
-          router.push('/projects')
+          router.push('/projects/new')
         }
       })
       .catch(err => {
@@ -84,8 +87,6 @@ export default function AccountSetup({ org, user }: Props) {
   }
 
   if (!org) return <PageLoader />
-
-  const fromDashboard = !!parseInt(router.query.dashboard as string, 10)
 
   return (
     <>

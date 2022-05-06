@@ -20,6 +20,9 @@ next.isSerializableProps = function _isSerializableProps(page, method, input) {
 }
 
 const config = {
+  compiler: {
+    styledComponents: true
+  },
   reactStrictMode: true,
   webpack(_config, { isServer }) {
     _config.module.rules.push({

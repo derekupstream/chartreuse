@@ -77,25 +77,25 @@ function addSummarySheet(workbook: ExcelJS.Workbook, data: AllProjectsSummary) {
       title: 'Estimated Savings ($)',
       baseline: data.summary.savings.baseline,
       forecast: data.summary.savings.forecast,
-      change: data.summary.savings.forecast - data.summary.savings.baseline,
+      change: data.summary.savings.baseline - data.summary.savings.forecast,
     },
     {
       title: 'Single-Use Reduction (units)',
       baseline: data.summary.singleUse.baseline,
       forecast: data.summary.singleUse.forecast,
-      change: data.summary.singleUse.forecast - data.summary.singleUse.baseline,
+      change: data.summary.singleUse.baseline - data.summary.singleUse.forecast,
     },
     {
       title: 'Waste Reduction (lbs)',
       baseline: data.summary.waste.baseline,
       forecast: data.summary.waste.forecast,
-      change: data.summary.waste.forecast - data.summary.waste.baseline,
+      change: data.summary.waste.baseline - data.summary.waste.forecast,
     },
     {
       title: 'Waste Reduction (tons)',
       baseline: poundsToTons(data.summary.waste.baseline),
       forecast: poundsToTons(data.summary.waste.forecast),
-      change: poundsToTons(data.summary.waste.forecast - data.summary.waste.baseline),
+      change: poundsToTons(data.summary.waste.baseline - data.summary.waste.forecast),
     },
     {
       title: 'GHG Reduction (MTC02e)',
@@ -114,7 +114,7 @@ function addProjectsSheet(workbook: ExcelJS.Workbook, data: AllProjectsSummary) 
     { header: 'Project', key: 'title', width: 30 },
     { header: 'Account', key: 'account', width: 30 },
     { header: 'Organization', key: 'org', width: 30 },
-    ...['Costs', 'Single-Use', 'Waste', 'GHG']
+    ...['Savings', 'Single-Use', 'Waste', 'GHG']
       .map(title => [
         { header: `${title}: Baseline`, key: `${title}_baseline`, width: 20 },
         { header: `${title}: Forecast`, key: `${title}_forecast`, width: 20 },

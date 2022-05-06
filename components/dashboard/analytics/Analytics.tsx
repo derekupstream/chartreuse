@@ -22,7 +22,7 @@ const SummaryCardWithGraph = ({ label, units, value, formatter = defaultFormatte
     forecast: value.forecast,
   }
 
-  const change = value.forecast - value.baseline
+  const change = (value.forecast - value.baseline) * -1
 
   return (
     <Card bordered={false} style={{ height: '100%' }}>
@@ -147,18 +147,22 @@ const defaultFormatter = (val: number) => {
   return val ? val.toLocaleString() : <span style={{ color: 'grey', fontSize: '12px' }}>N/A</span>
 }
 
-const ColoredChange = ({ value, formatter = defaultFormatter }: { value: { change: number; changePercent?: number }; formatter?: (val: number) => string | ReactNode }) => (
-  <Row style={{ color: value.change > 0 ? 'red' : value.change < 0 ? 'green' : 'inherit' }}>
-    <Col span={12}>
-      {value.change > 0 && '+'}
-      {formatter(value.change)}
-    </Col>
-    <Col span={12}>
-      {value.changePercent! > 0 && '+'}
-      {value.changePercent && `${value.changePercent}%`}
-    </Col>
-  </Row>
-)
+const ColoredChange = ({ value, formatter = defaultFormatter }: { value: { change: number; changePercent?: number }; formatter?: (val: number) => string | ReactNode }) => {
+  const change = value.change * -1
+  const changePercent = value.changePercent ? value.changePercent * -1 : 0
+  return (
+    <Row>
+      <Col span={12}>
+        {change > 0 && '+'}
+        {formatter(change)}
+      </Col>
+      <Col span={12} style={{ color: change < 0 ? 'red' : change > 0 ? '#2bbe50' : 'inherit' }}>
+        {changePercent > 0 && '+'}
+        {changePercent ? `${changePercent}%` : null}
+      </Col>
+    </Row>
+  )
+}
 
 export default function AnalyticsPage({ user, data, isUpstreamView }: PageProps) {
   if (!data) {

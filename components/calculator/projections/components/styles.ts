@@ -30,3 +30,11 @@ export const Divider = styled(BaseDivider)`
   margin-top: 16px;
   margin-bottom: 24px;
 `
+
+export const ChangeColumn = styled.div`
+  display: flex;
+  justify-content: space-between;
+  span:last-child {
+    color: rgba(0, 0, 0, 0.45);
+  }
+`

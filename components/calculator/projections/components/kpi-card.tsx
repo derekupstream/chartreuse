@@ -2,7 +2,7 @@ import { Typography } from 'antd'
 import styled from 'styled-components'
 import Card from './card'
 import { CardTitle } from './styles'
-import Tag from './tag'
+import PercentTag from './percent-tag'
 
 const Value = styled(Typography.Text)`
   font-weight: bold;
@@ -50,12 +50,7 @@ export const KPIContent: React.FC<Props> = props => {
     <Header>
       {props.title && <CardTitle>{props.title}</CardTitle>}
       <div>
-        <Value>{changeStr}</Value>{' '}
-        {changePercent && (
-          <Tag flipColor={true} rising={changePercent < 0}>
-            {changePercent}%
-          </Tag>
-        )}
+        <Value>{changeStr}</Value> {changePercent && <PercentTag value={changePercent} />}
       </div>
     </Header>
   )

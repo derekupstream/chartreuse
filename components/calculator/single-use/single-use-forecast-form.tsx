@@ -1,4 +1,4 @@
-import { Button, Form, Input, Radio, Typography } from 'antd'
+import { Alert, Button, Form, Input, Radio, Typography } from 'antd'
 import { useEffect, useState } from 'react'
 import * as S from '../styles'
 import { SingleUseLineItem } from 'lib/calculator/types/projects'
@@ -50,17 +50,24 @@ export default function SelectQuantityForecastStep({
 
   return (
     <Form form={form} layout="vertical" onFieldsChange={handleFormChange} onFinish={_onSubmit}>
-      <p>
-        Set your project goals by forecasting estimated savings realized by reducing, or eliminating purchase of single-use item(s). Later, post reuse implementation, users go back in to report
-        actuals to see how progress compares to originally set goals.
-      </p>
+      <Alert
+        type="info"
+        message={
+          <>
+            <Typography.Paragraph>Set your project goals by forecasting estimated savings realized by reducing, or eliminating purchase of single-use item(s).</Typography.Paragraph>
+            <Typography.Text>Later, post reuse implementation, users go back in to report actuals to see how progress compares to originally set goals.</Typography.Text>
+          </>
+        }
+      />
+      <br />
+
       <Typography.Title level={4}>{productName}</Typography.Title>
 
-      <Form.Item name="newCasesPurchased" label={`New cases purchased (${frequency})`} rules={[{ required: true }]}>
-        <Input type="number" autoFocus />
+      <Form.Item name="newCasesPurchased" label={`New cases purchased ${frequency.toLowerCase()}`} rules={[{ message: 'This field is required', required: true }]}>
+        <Input placeholder={`Current amount: ${input?.casesPurchased?.toString()}`} type="number" autoFocus />
       </Form.Item>
 
-      <Form.Item name="newCaseCost" label="Cost per case" rules={[{ required: true }]}>
+      <Form.Item name="newCaseCost" label="Cost per case" rules={[{ message: 'This field is required', required: true }]}>
         <Input type="number" prefix="$" />
       </Form.Item>
 

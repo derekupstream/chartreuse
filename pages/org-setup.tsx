@@ -14,6 +14,7 @@ export const getServerSideProps: GetServerSideProps = async context => {
   const { emailVerified } = nookies.get(context)
 
   if (!emailVerified) {
+    console.log('Redirect to verify email')
     return {
       redirect: {
         permanent: false,

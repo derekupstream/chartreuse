@@ -3,12 +3,12 @@ import { Radio, Table, Typography, Menu, Dropdown } from 'antd'
 import { ProjectionsResponse } from 'lib/calculator'
 import Spacer from 'components/spacer/spacer'
 import BarChart from '../components/chart-bar'
-import { CardTitle, ChartTitle, Divider, SectionContainer, SectionHeader } from '../components/styles'
+import { CardTitle, ChangeColumn, Divider, SectionContainer, SectionHeader } from '../components/styles'
 import { KPIContent } from '../components/kpi-card'
-import Tag from '../components/tag'
+import Tag from '../components/percent-tag'
 import { changeValue } from 'lib/number'
 import { Card, Body, Section, Header, Value, Row, Label } from './styles'
-import { useState } from 'react'
+import { useState, ReactNode } from 'react'
 import { formatToDollar } from 'lib/calculator/utils'
 
 interface TableData {
@@ -16,7 +16,7 @@ interface TableData {
   baselineSpending: number
   forecastSpending: number
   gasReductions: number
-  change: string
+  change: string | ReactNode
 }
 
 const columns = [
@@ -132,7 +132,20 @@ const SingleUseDetails: React.FC<Props> = ({ data }) => {
       reductionStr: formatNumber(item.gasEmissions.reduction),
       reductionShareStr: formatNumber(item.gasEmissions.shareOfReduction * 100) + '%',
       forecastSpending: forecast,
-      change: baseline ? `${formatNumber(forecast - baseline)} (${forecast > baseline ? '-' : ''}${Math.round(((forecast - baseline) / baseline) * 100)}%)` : 'N/A',
+      change: baseline ? (
+        <ChangeColumn>
+          <span>
+            {forecast > baseline && '+'}
+            {formatNumber(forecast - baseline)}
+          </span>{' '}
+          <span>
+            {forecast > baseline && '+'}
+            {Math.round(((forecast - baseline) / baseline) * 100)}%
+          </span>
+        </ChangeColumn>
+      ) : (
+        'N/A'
+      ),
     }
   })
 
@@ -254,7 +267,10 @@ const SingleUseDetails: React.FC<Props> = ({ data }) => {
                   </>
                 )}
                 <Table.Summary.Cell index={3}>
-                  <Typography.Text strong>{formatNumber(forecastTotal - baselineTotal)}</Typography.Text>
+                  <Typography.Text strong>
+                    {forecastTotal > baselineTotal && '+'}
+                    {formatNumber(forecastTotal - baselineTotal)}
+                  </Typography.Text>
                   {/* <Tag>76%</Tag> */}
                 </Table.Summary.Cell>
               </Table.Summary.Row>
