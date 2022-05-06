@@ -143,7 +143,6 @@ const columns = [
 ]
 
 const defaultFormatter = (val: number) => {
-  console.log('val', val)
   return val ? val.toLocaleString() : <span style={{ color: 'grey', fontSize: '12px' }}>N/A</span>
 }
 

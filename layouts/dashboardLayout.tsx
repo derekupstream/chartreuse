@@ -1,5 +1,3 @@
-import { useRouter } from 'next/router'
-import { useAuth } from 'hooks/useAuth'
 import { DashboardUser } from 'components/dashboard'
 import * as S from 'components/dashboard/styles'
 import BaseLayout from './baseLayout'
@@ -7,7 +5,7 @@ import HaveQuestions from 'components/have-questions'
 
 type DashboardProps = {
   children: any
-  selectedMenuItem?: string
+  selectedMenuItem: string
   title: string
   user: DashboardUser
 }
