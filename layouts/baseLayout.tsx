@@ -4,6 +4,7 @@ import Image from 'next/image'
 import { Button, Dropdown, message, Typography, Divider, MenuProps } from 'antd'
 import { useAuth } from 'hooks/useAuth'
 import { Layout, Menu } from 'antd'
+import Link from 'next/link';
 import Logo from 'public/images/chartreuse-logo-icon.png'
 import { DownOutlined } from '@ant-design/icons'
 import { MenuClickEventHandler, MenuInfo, MenuItemType, SubMenuType } from 'rc-menu/lib/interface'
@@ -26,10 +27,10 @@ const GlobalStyles = createGlobalStyle`
 `
 
 const menuLinks: MenuProps['items'] = [
-  { key: 'projects', label: 'Projects' },
-  { key: 'annual-impact', label: 'Annual Impact' },
-  { key: 'accounts', label: 'Accounts' },
-  { key: 'members', label: 'Members' },
+  { key: 'projects', label: <Link href='/projects'>Projects</Link> },
+  { key: 'annual-impact', label: <Link href='/annual-impact'>Annual Impact</Link> },
+  { key: 'accounts', label: <Link href='/accounts'>Accounts</Link> },
+  { key: 'members', label: <Link href='/members'>Members</Link> },
 ]
 
 const DashboardTemplate: React.FC<DashboardProps> = ({ user, selectedMenuItem, title, children }) => {
@@ -79,8 +80,8 @@ const DashboardTemplate: React.FC<DashboardProps> = ({ user, selectedMenuItem, t
       key: 'upstream',
       label: 'Upstream',
       children: [
-        { key: 'upstream/orgs', label: 'Organizations' },
-        { key: 'upstream/total-annual-impact', label: 'Total Annual Impact' }
+        { key: 'upstream/orgs', label: <Link href='/upstream/orgs'>Organizations</Link> },
+        { key: 'upstream/total-annual-impact', label: <Link href='/upstream/total-annual-impact'>Total Annual Impact</Link> }
       ]
     }
   ]
