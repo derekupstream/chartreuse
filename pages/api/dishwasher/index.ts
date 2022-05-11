@@ -5,27 +5,22 @@ import { Dishwasher as PrismaDishwasher, Prisma } from '.prisma/client'
 import prisma from 'lib/prisma'
 import { validateProject } from 'lib/middleware/validateProject'
 import { DishWasherValidator } from 'lib/validators'
-import { dishwasherUtilityUsage, dishwasherAnnualCostBreakdown } from 'lib/calculator/outputs/financial-results'
-import { DishWasher } from 'lib/calculator/types/projects'
-import { getUtilityGasEmissions } from 'lib/calculator/outputs/environmental-results'
+import { DishwasherStats, getDishwasherStats } from 'lib/calculator/outputs/dishwasher'
 import { getUtilitiesByState, UtilityRates, USState } from 'lib/calculator/constants/utilities'
 
 const handler = nc<NextApiRequest, NextApiResponse>({ onError, onNoMatch })
 
 handler.use(getUser).use(validateProject).get(getDishwasher).post(createDishwasher).delete(deleteDishwasher)
 
-type DishwasherStats = {
-  electricUsage: number
-  electricCO2Weight: number
-  electricCost: number
-  gasUsage: number
-  gasCO2Weight: number
-  gasCost: number
-  waterUsage: number
-  waterCost: number
+export interface Response {
+  accountId: string
+  dishwasher: PrismaDishwasher
+  stats: DishwasherStats
+  state: string
+  rates: UtilityRates
 }
 
-async function getDishwasher(req: NextApiRequestWithUser, res: NextApiResponse<{ accountId?: string; dishwasher?: PrismaDishwasher; state?: string; rates?: UtilityRates; stats?: DishwasherStats }>) {
+async function getDishwasher(req: NextApiRequestWithUser, res: NextApiResponse<Response>) {
   const projectId = req.query.projectId as string
   const dishwasher = await prisma.dishwasher.findFirst({
     where: {
@@ -42,24 +37,12 @@ async function getDishwasher(req: NextApiRequestWithUser, res: NextApiResponse<{
 
   if (dishwasher) {
     const state = dishwasher.project.account.USState as USState
+    const stats = getDishwasherStats({ dishwasher, state })
     const rates = getUtilitiesByState(state)
-    const usage = dishwasherUtilityUsage(dishwasher as DishWasher)
-    const costs = dishwasherAnnualCostBreakdown(dishwasher as DishWasher, rates)
-    const emissions = getUtilityGasEmissions(dishwasher as DishWasher)
-    const stats: DishwasherStats = {
-      electricUsage: usage.electricUsage,
-      electricCO2Weight: emissions.electric,
-      electricCost: costs.electric,
-      gasUsage: usage.gasUsage,
-      gasCO2Weight: emissions.gas,
-      gasCost: costs.gas,
-      waterUsage: usage.waterUsage,
-      waterCost: costs.water,
-    }
     const accountId = dishwasher.project.account.id
     res.status(200).json({ accountId, dishwasher, state, stats, rates })
   } else {
-    res.status(200).json({})
+    res.status(200).end()
   }
 }
 

@@ -5,32 +5,12 @@ import { useRouter } from 'next/router'
 import React, { useState } from 'react'
 import DishwashingFormDrawer from './dishwashing-form-drawer'
 import { AddBlock, Container, contentWrapperStyle, Placeholder } from '../expense-block'
-import { Dishwasher } from '@prisma/client'
 import { SectionTitle } from '../styles'
 import { InfoCard, InfoRow } from 'components/calculator/styles'
 import styled from 'styled-components'
 import ContentLoader from 'components/content-loader'
 import * as http from 'lib/http'
-import type { UtilityRates } from 'lib/calculator/constants/utilities'
-
-interface Response {
-  accountId: string
-  dishwasher: Dishwasher
-  stats: Stats
-  state: string
-  rates: UtilityRates
-}
-
-interface Stats {
-  electricUsage: number
-  electricCO2Weight: number
-  electricCost: number
-  gasUsage: number
-  gasCO2Weight: number
-  gasCost: number
-  waterUsage: number
-  waterCost: number
-}
+import { Response } from 'pages/api/dishwasher/index'
 
 const DishWashingSection = () => {
   const route = useRouter()
@@ -125,8 +105,8 @@ const DishWashingSection = () => {
                 <thead>
                   <tr>
                     <td>Annual usage</td>
-                    <td>Lbs. CO2/yr.</td>
-                    <td>Annual total</td>
+                    <td>CO2 (lbs/yr)</td>
+                    <td>Annual cost</td>
                   </tr>
                 </thead>
                 <tbody>

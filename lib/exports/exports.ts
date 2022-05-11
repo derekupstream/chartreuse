@@ -4,10 +4,12 @@ import { getAllProjections, AllProjectsSummary as _AllProjectsSummary, Projectio
 import { poundsToTons } from 'lib/calculator/constants/conversions'
 import { getProducts } from 'lib/calculator/datasets/single-use-products'
 import { LABOR_CATEGORIES } from 'lib/calculator/constants/labor-categories'
+import { getDishwasherStats } from 'lib/calculator/outputs/dishwasher'
 import { Frequency, getannualOccurrence } from 'lib/calculator/constants/frequency'
 import { OTHER_EXPENSES } from 'lib/calculator/constants/other-expenses'
 import { SingleUseProduct } from 'lib/calculator/types/products'
 import { round } from 'lib/calculator/utils'
+import { USState } from 'lib/calculator/constants/utilities'
 
 // create our own version of ProjectData. Nicer would be to make teh types in lib/calculator generic
 interface ProjectData extends Project {
@@ -304,16 +306,48 @@ function addDishwasherSheet(workbook: ExcelJS.Workbook, data: AllProjectsSummary
 
   sheet.columns = [
     { header: '', key: 'type', width: 30 },
-    { header: 'Annual usage (kWh)', key: 'electric', width: 30 },
-    { header: 'Lbs.CO2 / yr.', key: 'gas', width: 20 },
-    { header: 'Annual total', key: 'cost', width: 20 },
+    { header: 'Annual usage', key: 'usage', width: 30 },
+    { header: 'CO2 (lbs/yr)', key: 'weight', width: 20 },
+    { header: 'Annual cost', key: 'cost', width: 20 },
+    { header: 'Project', key: 'project', width: 30 },
+    { header: 'Account', key: 'account', width: 30 },
+    { header: 'Organization', key: 'org', width: 30 },
   ]
   sheet.addRows(
-    data.projects.map(project => [
-      // {
-      //   type: 'Electric Usage',
-      //   electric: project.projections.environmentalResults.electricUsage, gas: data.dishwasher.gas, cost: data.dishwasher.cost
-      // },
-    ])
+    data.projects
+      .filter(project => project.dishwasher.length > 0)
+      .map(project => {
+        const stats = getDishwasherStats({ dishwasher: project.dishwasher[0], state: project.account.USState as USState })
+        return [
+          {
+            type: 'Electric Usage (kWh)',
+            usage: stats.electricUsage,
+            weight: stats.electricCO2Weight,
+            cost: stats.electricCost,
+            project: project.name,
+            account: project.account.name,
+            org: project.org.name,
+          },
+          {
+            type: 'Gas Usage (CF)',
+            usage: stats.gasUsage,
+            weight: stats.gasCO2Weight,
+            cost: stats.gasCost,
+            project: project.name,
+            account: project.account.name,
+            org: project.org.name,
+          },
+          {
+            type: 'Water Usage (gallons)',
+            usage: stats.waterUsage,
+            weight: stats.waterCO2Weight,
+            cost: stats.waterCost,
+            project: project.name,
+            account: project.account.name,
+            org: project.org.name,
+          },
+        ]
+      })
+      .flat()
   )
 }
