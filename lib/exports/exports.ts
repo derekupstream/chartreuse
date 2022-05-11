@@ -9,7 +9,7 @@ import { Frequency, getannualOccurrence } from 'lib/calculator/constants/frequen
 import { OTHER_EXPENSES } from 'lib/calculator/constants/other-expenses'
 import { SingleUseProduct } from 'lib/calculator/types/products'
 import { round } from 'lib/calculator/utils'
-import { USState } from 'lib/calculator/constants/utilities'
+import { getUtilitiesByState, USState } from 'lib/calculator/constants/utilities'
 
 // create our own version of ProjectData. Nicer would be to make teh types in lib/calculator generic
 interface ProjectData extends Project {
@@ -123,11 +123,6 @@ function addProjectsSheet(workbook: ExcelJS.Workbook, data: AllProjectsSummary) 
     { header: 'Project', key: 'title', width: 30 },
     { header: 'Account', key: 'account', width: 30 },
     { header: 'Organization', key: 'org', width: 30 },
-    { header: 'Project Type', key: 'projectType', width: 20 },
-    { header: 'Daily Customers', key: 'dailyCustomers', width: 20 },
-    { header: 'Dine-in vs Take-out', key: 'dineInVsTakeOut', width: 20 },
-    { header: 'Food Prep', key: 'whereIsFoodPrepared', width: 20 },
-    { header: 'Dishwashing Type', key: 'dishwashingType', width: 30 },
     ...['Savings', 'Single-Use', 'Waste', 'GHG']
       .map(title => [
         { header: `${title}: Baseline`, key: `${title}_baseline`, width: 20 },
@@ -135,23 +130,26 @@ function addProjectsSheet(workbook: ExcelJS.Workbook, data: AllProjectsSummary) 
         { header: `${title}: Change`, key: `${title}_change`, width: 20 },
       ])
       .flat(),
+    { header: 'Gas Utility ($/therm)', key: 'gasRate', width: 20 },
+    { header: 'Electric Utility ($/kWh)', key: 'electricRate', width: 20 },
+    { header: 'Water Utility', key: 'waterRate', width: 20 },
+    { header: 'US State', key: 'USState', width: 20 },
+    { header: 'Project Type', key: 'projectType', width: 20 },
+    { header: 'Daily Customers', key: 'dailyCustomers', width: 20 },
+    { header: 'Dine-in vs Take-out', key: 'dineInVsTakeOut', width: 20 },
+    { header: 'Food Prep', key: 'whereIsFoodPrepared', width: 20 },
+    { header: 'Dishwashing Type', key: 'dishwashingType', width: 30 },
   ]
 
   sheet.addRows(
     data.projects.map(project => {
       const metadata = project.metadata as any
+      const utilityRates = getUtilitiesByState(project.account.USState as USState)
       return {
         title: project.name,
-        account: project.account.name,
-        org: project.org.name,
-        projectType: metadata.type,
-        dailyCustomers: metadata.customers,
-        dineInVsTakeOut: metadata.hasOwnProperty('dineInVsTakeOut') ? metadata.dineInVsTakeOut + '%' : '',
-        whereIsFoodPrepared: metadata.whereIsFoodPrepared,
-        dishwashingType: metadata.dishwashingType,
-        Costs_baseline: project.projections.financialResults.annualCostChanges.baseline,
-        Costs_forecast: project.projections.financialResults.annualCostChanges.followup,
-        Costs_change: project.projections.financialResults.annualCostChanges.change,
+        Savings_baseline: project.projections.financialResults.annualCostChanges.baseline,
+        Savings_forecast: project.projections.financialResults.annualCostChanges.followup,
+        Savings_change: project.projections.financialResults.annualCostChanges.change,
         'Single-Use_baseline': project.projections.singleUseProductResults.summary.annualUnits.baseline,
         'Single-Use_forecast': project.projections.singleUseProductResults.summary.annualUnits.followup,
         'Single-Use_change': project.projections.singleUseProductResults.summary.annualUnits.change,
@@ -161,6 +159,17 @@ function addProjectsSheet(workbook: ExcelJS.Workbook, data: AllProjectsSummary) 
         GHG_baseline: '',
         GHG_forecast: '',
         GHG_change: project.projections.environmentalResults.annualGasEmissionChanges.total,
+        USState: project.account.USState,
+        electricRate: utilityRates.electric,
+        gasRate: utilityRates.gas,
+        waterRate: utilityRates.water,
+        projectType: metadata.type,
+        dailyCustomers: metadata.customers,
+        dineInVsTakeOut: metadata.hasOwnProperty('dineInVsTakeOut') ? metadata.dineInVsTakeOut + '%' : '',
+        whereIsFoodPrepared: metadata.whereIsFoodPrepared,
+        dishwashingType: metadata.dishwashingType,
+        account: project.account.name,
+        org: project.org.name,
       }
     })
   )
