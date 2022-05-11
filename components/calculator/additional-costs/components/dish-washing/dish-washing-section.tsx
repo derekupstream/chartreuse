@@ -124,24 +124,24 @@ const DishWashingSection = () => {
               <table>
                 <thead>
                   <tr>
-                    <td>Annual usage (kWh)</td>
+                    <td>Annual usage</td>
                     <td>Lbs. CO2/yr.</td>
                     <td>Annual total</td>
                   </tr>
                 </thead>
                 <tbody>
                   <tr>
-                    <td>{pretifyValues(data.stats.electricUsage)}</td>
+                    <td>{pretifyValues(data.stats.electricUsage)} kWh</td>
                     <td>{pretifyValues(data.stats.electricCO2Weight)}</td>
                     <td>$ {data.stats.electricCost.toLocaleString(undefined, { maximumFractionDigits: 2 })}</td>
                   </tr>
                   <tr>
-                    <td>{data.stats.gasUsage.toLocaleString(undefined, { maximumFractionDigits: 2 })}</td>
+                    <td>{data.stats.gasUsage.toLocaleString(undefined, { maximumFractionDigits: 2 })} CF</td>
                     <td>{pretifyValues(data.stats.gasCO2Weight)}</td>
                     <td>$ {data.stats.gasCost.toLocaleString(undefined, { maximumFractionDigits: 2 })}</td>
                   </tr>
                   <tr>
-                    <td>{data.stats.waterUsage.toLocaleString(undefined, { maximumFractionDigits: 2 })}</td>
+                    <td>{data.stats.waterUsage.toLocaleString(undefined, { maximumFractionDigits: 2 })} gal</td>
                     <td>-</td>
                     <td>$ {data.stats.waterCost.toLocaleString(undefined, { maximumFractionDigits: 2 })}</td>
                   </tr>
