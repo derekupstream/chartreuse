@@ -1,7 +1,4 @@
-import Template from './template'
 import { User } from '@prisma/client'
-
-export { Template }
 
 type AccountDataType = {
   id: string
