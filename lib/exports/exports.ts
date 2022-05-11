@@ -340,7 +340,7 @@ function addDishwasherSheet(workbook: ExcelJS.Workbook, data: AllProjectsSummary
           {
             type: 'Water Usage (gallons)',
             usage: stats.waterUsage,
-            weight: stats.waterCO2Weight,
+            weight: '', // water doesnt have an effect on C02
             cost: stats.waterCost,
             project: project.name,
             account: project.account.name,
