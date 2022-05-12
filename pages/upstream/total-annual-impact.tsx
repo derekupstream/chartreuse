@@ -1,5 +1,5 @@
 import { GetServerSideProps } from 'next'
-
+import prisma from 'lib/prisma'
 import Analytics, { PageProps } from 'components/dashboard/analytics'
 import Template from 'layouts/dashboardLayout'
 import { getUserFromContext } from 'lib/middleware'

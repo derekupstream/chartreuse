@@ -6,6 +6,7 @@ import { User } from '@prisma/client'
 import { OrgSummary } from 'pages/upstream/orgs'
 import chartreuseClient from 'lib/chartreuseClient'
 import { formatDateShort } from 'lib/dates'
+import { requestDownload } from 'lib/files'
 
 import * as S from '../styles'
 
@@ -29,32 +30,11 @@ export default function Organizations({ orgs }: PageProps) {
       })
   }
 
-  async function exportData(org: OrgSummary) {
-    try {
-      fetch(`/api/org/${org.id}/export`, {
-        method: 'GET',
-      })
-        .then(response => {
-          if (response.status !== 200) {
-            throw new Error('Sorry, I could not find that file.')
-          }
-          return response.blob()
-        })
-        .then(blob => {
-          console.log('blob', blob)
-          const url = window.URL.createObjectURL(blob)
-          const a = document.createElement('a')
-          a.style.display = 'none'
-          a.href = url
-          a.setAttribute('download', `${org.name} - ChartReuse Export - ${new Date().toLocaleDateString()}.xlsx`)
-          document.body.appendChild(a)
-          a.click()
-          window.URL.revokeObjectURL(url)
-          a.remove()
-        })
-    } catch (e) {
-      console.log('error downloading file', e)
-    }
+  function exportData(org: OrgSummary) {
+    return requestDownload({
+      api: `/api/org/${org.id}/export`,
+      fileName: `${org.name} - ChartReuse Export - ${new Date().toLocaleDateString().replace(/\//g, '-')}.xlsx`,
+    })
   }
 
   const columns: ColumnType<OrgSummary>[] = [
@@ -130,10 +110,20 @@ export default function Organizations({ orgs }: PageProps) {
     },
   ]
 
+  function exportUsers() {
+    requestDownload({
+      api: '/api/admin/export?type=users',
+      fileName: `ChartReuse Users Export - ${new Date().toLocaleDateString().replace(/\//g, '-')}.xlsx`,
+    })
+  }
+
   return (
     <Space direction="vertical" size="large" style={{ width: '100%' }}>
       <S.SpaceBetween>
         <Typography.Title>Organizations</Typography.Title>
+        <Button onClick={exportUsers}>
+          <DownloadOutlined /> Export Users
+        </Button>
       </S.SpaceBetween>
       {/* @ts-ignore */}
       <Table columns={columns} dataSource={orgs} pagination={false} />

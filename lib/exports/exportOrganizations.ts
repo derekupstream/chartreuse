@@ -1,4 +1,5 @@
 import ExcelJS from 'exceljs'
+import prisma from 'lib/prisma'
 import { Project, Org, Account, Dishwasher, OtherExpense, LaborCost, ReusableLineItem, SingleUseLineItem, WasteHaulingCost } from '@prisma/client'
 import { getAllProjections, AllProjectsSummary as _AllProjectsSummary, ProjectionsResponse } from 'lib/calculator'
 import { poundsToTons } from 'lib/calculator/constants/conversions'
