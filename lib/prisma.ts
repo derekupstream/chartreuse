@@ -7,7 +7,7 @@ declare global {
 let prisma: PrismaClient
 
 // create single instance of prisma for development: https://github.com/prisma/prisma/issues/1983
-if (process.env.NODE_ENV !== 'production') {
+if (process.env.NODE_ENV === 'production') {
   prisma = new PrismaClient()
 } else {
   // @ts-expect-error
