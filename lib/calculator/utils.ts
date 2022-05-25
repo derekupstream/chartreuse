@@ -22,13 +22,13 @@ export function getChangeSummaryRow(baseline: number, followup: number): ChangeS
   return { baseline, change, changePercent, followup }
 }
 
-export function getChangeSummaryRowRounded(baseline: number, followup: number): ChangeSummary {
+export function getChangeSummaryRowRounded(baseline: number, followup: number, decimals = 0): ChangeSummary {
   const { change, changePercent } = getChangeSummaryRow(baseline, followup)
   return {
-    baseline: round(baseline),
-    followup: round(followup),
-    change: round(change),
-    changePercent: round(changePercent),
+    baseline: round(baseline, decimals),
+    followup: round(followup, decimals),
+    change: round(change, decimals),
+    changePercent: round(changePercent, decimals),
   }
 }
 

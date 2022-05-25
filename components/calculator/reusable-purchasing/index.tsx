@@ -74,9 +74,7 @@ export default function ReusablePurchasing() {
   }
 
   function onSubmitForecast({ casesAnnually }: { casesAnnually: number }) {
-    console.log('form values', formValues, casesAnnually)
     const annualRepurchasePercentage = (casesAnnually / parseInt(formValues!.casesPurchased)).toString()
-    console.log(annualRepurchasePercentage)
     const newFormValues = { ...formValues!, annualRepurchasePercentage }
     setFormValues(newFormValues)
     saveData(newFormValues)

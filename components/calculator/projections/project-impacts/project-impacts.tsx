@@ -26,7 +26,10 @@ const ProjectImpacts: React.FC<Props> = ({ data }) => {
     { label: 'Forecast', value: data.wasteWeight.followup },
   ]
 
-  const ghgData = [{ label: 'Forecast', value: data.greenhouseGasEmissions.total * -1 }]
+  const ghgData = [
+    { label: 'Baseline', value: data.greenhouseGasEmissions.total.baseline },
+    { label: 'Forecast', value: data.greenhouseGasEmissions.total.followup },
+  ]
 
   return (
     <SectionContainer>
@@ -62,7 +65,7 @@ const ProjectImpacts: React.FC<Props> = ({ data }) => {
           </Card>
         </Col>
         <Col span={12}>
-          <Card title="Your GHG reductions" change={data.greenhouseGasEmissions.total * -1} changeStr={changeValue(data.greenhouseGasEmissions.total * -1) + ' MTC02e'}>
+          <Card title="Your GHG reductions" change={data.greenhouseGasEmissions.total.change * -1} changeStr={changeValue(data.greenhouseGasEmissions.total.change * -1) + ' MTC02e'}>
             <br />
             <BarChart data={ghgData} formatter={(data: any) => `${data.label}: ${data.value.toLocaleString()} MTC02e`} seriesField="label" />
           </Card>

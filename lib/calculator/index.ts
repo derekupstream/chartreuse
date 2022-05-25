@@ -47,15 +47,15 @@ export interface AllProjectsSummary {
     savings: SummaryValues
     singleUse: SummaryValues
     waste: SummaryValues
-    gas: { change: number }
+    gas: SummaryValues
   }
   projects: ProjectSummary[]
 }
 
+const defaultSummary = () => ({ baseline: 0, forecast: 0, forecasts: [] })
+
 export async function getAllProjections(_projects: ProjectData[]): Promise<AllProjectsSummary> {
   const projects: ProjectSummary[] = await Promise.all(_projects.map(p => getProjections(p.id).then(r => ({ ...p, projections: r }))))
-
-  const defaultSummary = () => ({ baseline: 0, forecast: 0, forecasts: [] })
 
   const summary = projects.reduce<AllProjectsSummary['summary']>(
     (acc, curr) => {
@@ -68,14 +68,16 @@ export async function getAllProjections(_projects: ProjectData[]): Promise<AllPr
       acc.singleUse.baseline = acc.singleUse.baseline + curr.projections.annualSummary.singleUseProductCount.baseline
       acc.singleUse.forecast = acc.singleUse.forecast + curr.projections.annualSummary.singleUseProductCount.followup
       acc.singleUse.forecasts.push(curr.projections.annualSummary.singleUseProductCount.followup)
-      acc.gas.change = acc.gas.change + curr.projections.annualSummary.greenhouseGasEmissions.total
+      acc.gas.baseline = acc.gas.baseline + curr.projections.annualSummary.greenhouseGasEmissions.total.baseline
+      acc.gas.forecast = acc.gas.forecast + curr.projections.annualSummary.greenhouseGasEmissions.total.followup
+      acc.gas.forecasts.push(curr.projections.annualSummary.greenhouseGasEmissions.total.followup)
       return acc
     },
     {
       savings: defaultSummary(),
       singleUse: defaultSummary(),
       waste: defaultSummary(),
-      gas: { change: 0 },
+      gas: defaultSummary(),
     }
   )
 

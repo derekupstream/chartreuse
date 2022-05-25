@@ -50,15 +50,29 @@ const EnvironmentalSummary: React.FC<Props> = ({ data }) => {
   const ghgData = [
     {
       label: 'Landfill waste (EPA WARM)',
-      value: data.annualGasEmissionChanges.landfillWaste,
+      value: data.annualGasEmissionChanges.landfillWaste.baseline,
+      wasteType: 'Baseline',
+    },
+    {
+      label: 'Landfill waste (EPA WARM)',
+      value: data.annualGasEmissionChanges.landfillWaste.followup,
+      wasteType: 'Forecast',
     },
   ]
 
-  if (data.annualGasEmissionChanges.dishwashing) {
-    ghgData.push({
-      label: 'Dishwashing',
-      value: data.annualGasEmissionChanges.dishwashing,
-    })
+  if (data.annualGasEmissionChanges.dishwashing.change) {
+    ghgData.push(
+      {
+        label: 'Dishwashing',
+        value: data.annualGasEmissionChanges.dishwashing.baseline,
+        wasteType: 'Baseline',
+      },
+      {
+        label: 'Dishwashing',
+        value: data.annualGasEmissionChanges.dishwashing.followup,
+        wasteType: 'Forecast',
+      }
+    )
   }
 
   return (
@@ -91,7 +105,7 @@ const EnvironmentalSummary: React.FC<Props> = ({ data }) => {
             <TitleWithTooltip title="Annual net GHG emissions changes" />
 
             <BigNumberWrapper>
-              <BigNumber value={`${changeValue(data.annualGasEmissionChanges.total)} MTCO2e`} />
+              <BigNumber value={`${changeValue(data.annualGasEmissionChanges.total.change)} MTCO2e`} />
             </BigNumberWrapper>
 
             <ChartTitle>Annual greenhouse gas changes</ChartTitle>

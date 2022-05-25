@@ -67,7 +67,7 @@ const columns = [
             {record.name}
           </Typography.Title>
           <Typography.Paragraph style={{ color: 'grey', marginTop: 0, marginBottom: '1em' }}>{record.account.name}</Typography.Paragraph>
-          <Typography.Text>
+          <Typography.Text style={{ fontWeight: 500, lineHeight: 2 }}>
             Estimated Savings
             <br />
             Waste Reduction <span style={{ color: 'grey' }}>(lb)</span>
@@ -88,14 +88,14 @@ const columns = [
         <>
           <Typography.Title level={4}>&nbsp;</Typography.Title>
           <Typography.Paragraph>&nbsp;</Typography.Paragraph>
-          <Typography.Text>
+          <Typography.Text style={{ lineHeight: 2 }}>
             {formatToDollar(record.projections.annualSummary.dollarCost.baseline)}
             <br />
             {record.projections.annualSummary.wasteWeight.baseline.toLocaleString()}
             <br />
             {record.projections.annualSummary.singleUseProductCount.baseline.toLocaleString()}
             <br />
-            &nbsp;
+            {record.projections.annualSummary.greenhouseGasEmissions.total.baseline.toLocaleString()}
           </Typography.Text>
         </>
       )
@@ -109,32 +109,33 @@ const columns = [
         <>
           <Typography.Title level={4}>&nbsp;</Typography.Title>
           <Typography.Paragraph>&nbsp;</Typography.Paragraph>
-          <Typography.Text>
+          <Typography.Text style={{ lineHeight: 2 }}>
             {formatToDollar(record.projections.annualSummary.dollarCost.followup)}
             <br />
             {record.projections.annualSummary.wasteWeight.followup.toLocaleString()}
             <br />
             {record.projections.annualSummary.singleUseProductCount.followup.toLocaleString()}
             <br />
-            &nbsp;
+            {record.projections.annualSummary.greenhouseGasEmissions.total.followup.toLocaleString()}
           </Typography.Text>
         </>
       )
     },
   },
   {
-    title: 'Change',
+    // think of these changes as 'reductions', hence we multiply them * -1
+    title: '',
     key: 'change',
     render: (record: ProjectSummary) => {
       return (
         <>
           <Typography.Title level={4}>&nbsp;</Typography.Title>
           <Typography.Paragraph>&nbsp;</Typography.Paragraph>
-          <Typography.Text>
-            <ColoredChange value={record.projections.annualSummary.dollarCost} formatter={formatToDollar} />
-            <ColoredChange value={record.projections.annualSummary.wasteWeight} />
-            <ColoredChange value={record.projections.annualSummary.singleUseProductCount} />
-            <ColoredChange value={{ change: record.projections.annualSummary.greenhouseGasEmissions.total }} />
+          <Typography.Text style={{ lineHeight: 2 }}>
+            <ReductionValue value={record.projections.annualSummary.dollarCost} formatter={formatToDollar} />
+            <ReductionValue value={record.projections.annualSummary.wasteWeight} />
+            <ReductionValue value={record.projections.annualSummary.singleUseProductCount} />
+            <ReductionValue value={record.projections.annualSummary.greenhouseGasEmissions.total} />
           </Typography.Text>
         </>
       )
@@ -146,12 +147,12 @@ const defaultFormatter = (val: number) => {
   return val ? val.toLocaleString() : <span style={{ color: 'grey', fontSize: '12px' }}>N/A</span>
 }
 
-const ColoredChange = ({ value, formatter = defaultFormatter }: { value: { change: number; changePercent?: number }; formatter?: (val: number) => string | ReactNode }) => {
+const ReductionValue = ({ value, formatter = defaultFormatter }: { value: { change: number; changePercent?: number }; formatter?: (val: number) => string | ReactNode }) => {
   const change = value.change * -1
   const changePercent = value.changePercent ? value.changePercent * -1 : 0
   return (
     <Row>
-      <Col span={12}>
+      <Col span={12} style={{ fontWeight: 500 }}>
         {change > 0 && '+'}
         {formatter(change)}
       </Col>
@@ -199,7 +200,7 @@ export default function AnalyticsPage({ user, data, isUpstreamView }: PageProps)
           <SummaryCardWithGraph label="Waste Reduction" units="lbs" value={data.summary.waste} />
         </Col>
         <Col xs={24} md={12}>
-          <SummaryCard label="GHG Reduction" units="MTC02e" value={data.summary.gas.change} />
+          <SummaryCardWithGraph label="GHG Reduction" units="MTC02e" value={data.summary.gas} />
         </Col>
       </Row>
 

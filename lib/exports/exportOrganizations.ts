@@ -109,9 +109,9 @@ function addSummarySheet(workbook: ExcelJS.Workbook, data: AllProjectsSummary) {
     },
     {
       title: 'GHG Reduction (MTC02e)',
-      baseline: '',
-      forecast: '',
-      change: data.summary.gas.change,
+      baseline: data.summary.gas.baseline,
+      forecast: data.summary.gas.forecast,
+      change: data.summary.gas.baseline - data.summary.gas.forecast,
     },
   ])
 }

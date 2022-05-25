@@ -83,7 +83,7 @@ type Props = {
 
 export default function EditAccount({ org }: Props) {
   const router = useRouter()
-  console.log(org)
+
   function updateAccount(data: any) {
     chartreuseClient
       .updateAccount({

@@ -125,15 +125,15 @@ interface SingleUseDetailedResult {
   annualBoxWeight: number
   annualWeight: number
   category: SingleUseProduct['category']
-  gasEmissionsReduction: number
+  gasEmissions: ChangeSummary
   type: SingleUseProduct['type']
   followupAnnualCost: number
   followupAnnualWeight: number
   followupAnnualBoxWeight: number
   primaryMaterial: SingleUseProduct['primaryMaterial']
-  primaryGasReduction: number
-  secondaryGasReduction: number
-  shippingBoxGasReduction: number
+  primaryGas: ChangeSummary
+  secondaryGas: ChangeSummary
+  shippingBoxGas: ChangeSummary
 }
 
 function getDetailedLineItemResults(singleUseItems: ProjectInput['singleUseItems']): SingleUseDetailedResult[] {
@@ -153,7 +153,7 @@ function getDetailedLineItemResults(singleUseItems: ProjectInput['singleUseItems
     const annualWeight = annualSingleUseWeight(lineItem.casesPurchased, annualOccurrence, product.unitsPerCase, product.primaryMaterialWeightPerUnit)
     const followupAnnualWeight = annualSingleUseWeight(lineItem.newCasesPurchased, annualOccurrence, product.unitsPerCase, product.primaryMaterialWeightPerUnit)
 
-    const { primaryGasReduction, secondaryGasReduction, shippingBoxGasReduction, totalGasReductions } = singleUseItemGasEmissions(lineItem)
+    const { primaryGas, secondaryGas, shippingBoxGas, total: gasEmissions } = singleUseItemGasEmissions(lineItem)
 
     const annualBoxWeight = lineItem.casesPurchased * lineItem.product.boxWeight * annualOccurrence
     const followupAnnualBoxWeight = lineItem.newCasesPurchased * lineItem.product.boxWeight * annualOccurrence
@@ -166,11 +166,11 @@ function getDetailedLineItemResults(singleUseItems: ProjectInput['singleUseItems
       followupAnnualCost,
       followupAnnualWeight,
       followupAnnualBoxWeight,
-      gasEmissionsReduction: totalGasReductions,
+      gasEmissions,
       primaryMaterial: product.primaryMaterial,
-      primaryGasReduction,
-      secondaryGasReduction,
-      shippingBoxGasReduction,
+      primaryGas,
+      secondaryGas: secondaryGas,
+      shippingBoxGas: shippingBoxGas,
       type: product.type,
     }
     return detailedResult
@@ -179,16 +179,9 @@ function getDetailedLineItemResults(singleUseItems: ProjectInput['singleUseItems
 
 // see HIDDEN: Output Calculations
 interface CombinedLineItemResults {
-  cost: ChangeSummary & {
-    shareOfReduction: number
-  }
-  gasEmissions: {
-    reduction: number
-    shareOfReduction: number
-  }
-  weight: ChangeSummary & {
-    shareOfReduction: number
-  }
+  cost: ChangeSummary
+  gasEmissions: ChangeSummary
+  weight: ChangeSummary
 }
 
 interface CombinedLineItemResultsWithTitle extends CombinedLineItemResults {
@@ -233,18 +226,18 @@ const emptyCombinedResults: CombinedLineItemResults = {
     followup: 0,
     change: 0,
     changePercent: 0,
-    shareOfReduction: 0,
   },
   gasEmissions: {
-    reduction: 0,
-    shareOfReduction: 0,
+    baseline: 0,
+    followup: 0,
+    change: 0,
+    changePercent: 0,
   },
   weight: {
     baseline: 0,
     followup: 0,
     change: 0,
     changePercent: 0,
-    shareOfReduction: 0,
   },
 }
 
@@ -257,32 +250,28 @@ function combineLineItemResults(title: string, items: SingleUseDetailedResult[])
       let cost = getChangeSummaryRow(baselineCost, followupCost)
       let annualWeight = item.annualWeight
       let followupAnnualWeight = item.followupAnnualWeight
-      let gasEmissionsReduction = item.primaryGasReduction
+      let itemGasEmissions = item.primaryGas
       // calculate box weight for cardboard
       if (title === CORRUGATED_CARDBOARD_NAME) {
         annualWeight = item.annualBoxWeight
         followupAnnualWeight = item.followupAnnualBoxWeight
-        cost = getChangeSummaryRow(0, 0)
-        gasEmissionsReduction = item.shippingBoxGasReduction
+        cost = result.cost // no cost for cardboard
+        itemGasEmissions = item.shippingBoxGas
       }
+
       const baselineWeight = result.weight.baseline + annualWeight
       const followupWeight = result.weight.followup + followupAnnualWeight
       const weight = getChangeSummaryRow(baselineWeight, followupWeight)
 
+      const baselineGas = result.gasEmissions.baseline + itemGasEmissions.baseline
+      const followupGas = result.gasEmissions.followup + itemGasEmissions.followup
+      const gasEmissions = getChangeSummaryRowRounded(baselineGas, followupGas, 2)
+
       return {
         title,
-        cost: {
-          ...cost,
-          shareOfReduction: 0,
-        },
-        gasEmissions: {
-          reduction: result.gasEmissions.reduction + gasEmissionsReduction,
-          shareOfReduction: 0,
-        },
-        weight: {
-          ...weight,
-          shareOfReduction: 0, // to be calculated later
-        },
+        cost,
+        gasEmissions,
+        weight,
       }
     },
     {
@@ -302,44 +291,20 @@ function combineResultsByCategory(items: { title: string; items: SingleUseDetail
     const baselineWeight = totals.weight.baseline + row.weight.baseline
     const followupWeight = totals.weight.followup + row.weight.followup
     const weight = getChangeSummaryRowRounded(baselineWeight, followupWeight)
+    const baselineGas = totals.gasEmissions.baseline + row.gasEmissions.baseline
+    const followupGas = totals.gasEmissions.followup + row.gasEmissions.followup
+    const gasEmissions = getChangeSummaryRowRounded(baselineGas, followupGas, 2)
 
     return {
-      cost: {
-        ...cost,
-        shareOfReduction: 100,
-      },
-      gasEmissions: {
-        reduction: totals.gasEmissions.reduction + row.gasEmissions.reduction,
-        shareOfReduction: 100,
-      },
-      weight: {
-        ...weight,
-        shareOfReduction: 100,
-      },
+      cost,
+      gasEmissions,
+      weight,
     }
   }, emptyCombinedResults)
 
-  // calculate shares of reduction, only count against other line items that had negative reduction
-  const totalCostReduction = rows.reduce((total, row) => (row.cost.change < 0 ? total + row.cost.change : total), 0)
-  const totalGasReduction = rows.reduce((total, row) => (row.gasEmissions.reduction < 0 ? total + row.gasEmissions.reduction : total), 0)
-  const totalWeightReduction = rows.reduce((total, row) => (row.weight.change < 0 ? total + row.weight.change : total), 0)
-
-  rows.forEach(row => {
-    if (row.cost.change < 0) {
-      row.cost.shareOfReduction = round(row.gasEmissions.reduction / totalCostReduction)
-    }
-    if (row.gasEmissions.reduction < 0) {
-      row.gasEmissions.shareOfReduction = round(row.gasEmissions.reduction / totalGasReduction, 2)
-      row.gasEmissions.reduction = round(row.gasEmissions.reduction, 2)
-    }
-    if (row.weight.change < 0) {
-      row.weight.shareOfReduction = round(row.gasEmissions.reduction / totalWeightReduction)
-    }
-  })
-
-  totals.gasEmissions.reduction = round(totals.gasEmissions.reduction, 2)
-
-  const nonEmptyRows = rows.filter(row => row.cost.baseline !== 0 || row.cost.followup !== 0 || row.weight.baseline !== 0 || row.weight.followup !== 0)
+  const nonEmptyRows = rows.filter(
+    row => row.cost.baseline !== 0 || row.cost.followup !== 0 || row.weight.baseline !== 0 || row.weight.followup !== 0 || row.gasEmissions.baseline !== 0 || row.gasEmissions.followup !== 0
+  )
 
   return {
     rows: nonEmptyRows,

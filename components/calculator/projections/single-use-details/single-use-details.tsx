@@ -1,11 +1,9 @@
-import { BarChartOutlined, TableOutlined } from '@ant-design/icons'
-import { Radio, Table, Typography, Menu, Dropdown } from 'antd'
+import { Radio, Table, Typography } from 'antd'
 import { ProjectionsResponse } from 'lib/calculator'
 import Spacer from 'components/spacer/spacer'
 import BarChart from '../components/chart-bar'
 import { CardTitle, ChangeColumn, Divider, SectionContainer, SectionHeader } from '../components/styles'
 import { KPIContent } from '../components/kpi-card'
-import Tag from '../components/percent-tag'
 import { changeValue } from 'lib/number'
 import { Card, Body, Section, Header, Value, Row, Label } from './styles'
 import { useState, ReactNode } from 'react'
@@ -15,7 +13,7 @@ interface TableData {
   product: string
   baselineSpending: number
   forecastSpending: number
-  gasReductions: number
+  // gasReductions: number
   change: string | ReactNode
 }
 
@@ -34,29 +32,6 @@ const columns = [
     title: 'Forecast',
     dataIndex: 'forecastStr',
     key: 'forecastSpending',
-  },
-  {
-    title: 'Change',
-    dataIndex: 'change',
-    key: 'change',
-  },
-]
-
-const gasColumns = [
-  {
-    title: 'Product',
-    dataIndex: 'product',
-    key: 'product',
-  },
-  {
-    title: 'Greenhouse Reduction (MTCO2e)',
-    dataIndex: 'reductionStr',
-    key: 'reductionStr',
-  },
-  {
-    title: 'Share of Reduction',
-    dataIndex: 'reductionShareStr',
-    key: 'reductionShareStr',
   },
   {
     title: 'Change',
@@ -120,18 +95,18 @@ const SingleUseDetails: React.FC<Props> = ({ data }) => {
         baseline = baseline / 2000
         forecast = forecast / 2000
       }
+    } else if (changeType === 'ghg') {
+      baseline = item.gasEmissions.baseline
+      forecast = item.gasEmissions.followup
     }
+    console.log(changeType, baseline, forecast)
     return {
       key: index, // for @antd/table
       product: item.title,
       baselineSpending: baseline,
+      forecastSpending: forecast,
       forecastStr: formatNumber(forecast),
       baselineStr: formatNumber(baseline),
-      // for gas\
-      gasReductions: item.gasEmissions.reduction,
-      reductionStr: formatNumber(item.gasEmissions.reduction),
-      reductionShareStr: formatNumber(item.gasEmissions.shareOfReduction * 100) + '%',
-      forecastSpending: forecast,
       change: baseline ? (
         <ChangeColumn>
           <span>
@@ -238,34 +213,20 @@ const SingleUseDetails: React.FC<Props> = ({ data }) => {
         <Spacer horizontal={16} />
         <Table<TableData>
           dataSource={dataSource}
-          columns={changeType === 'ghg' ? gasColumns : columns}
+          columns={columns}
           summary={pageData => {
             const baselineTotal = pageData.reduce((acc, curr) => acc + curr.baselineSpending, 0)
             const forecastTotal = pageData.reduce((acc, curr) => acc + curr.forecastSpending, 0)
-            const gasReductionsTotal = pageData.reduce((acc, curr) => acc + curr.gasReductions, 0)
 
             return (
               <Table.Summary.Row>
                 <Table.Summary.Cell index={0}>Total</Table.Summary.Cell>
-                {changeType === 'ghg' ? (
-                  <>
-                    <Table.Summary.Cell index={1}>
-                      <Typography.Text strong>{formatNumber(gasReductionsTotal)}</Typography.Text>
-                    </Table.Summary.Cell>
-                    <Table.Summary.Cell index={2}>
-                      <Typography.Text strong>100%</Typography.Text>
-                    </Table.Summary.Cell>
-                  </>
-                ) : (
-                  <>
-                    <Table.Summary.Cell index={1}>
-                      <Typography.Text strong>{formatNumber(baselineTotal)}</Typography.Text>
-                    </Table.Summary.Cell>
-                    <Table.Summary.Cell index={2}>
-                      <Typography.Text strong>{formatNumber(forecastTotal)}</Typography.Text>
-                    </Table.Summary.Cell>
-                  </>
-                )}
+                <Table.Summary.Cell index={1}>
+                  <Typography.Text strong>{formatNumber(baselineTotal)}</Typography.Text>
+                </Table.Summary.Cell>
+                <Table.Summary.Cell index={2}>
+                  <Typography.Text strong>{formatNumber(forecastTotal)}</Typography.Text>
+                </Table.Summary.Cell>
                 <Table.Summary.Cell index={3}>
                   <Typography.Text strong>
                     {forecastTotal > baselineTotal && '+'}

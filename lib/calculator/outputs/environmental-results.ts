@@ -3,7 +3,7 @@ import { POUND_TO_TONNE } from '../constants/conversions'
 import { CORRUGATED_CARDBOARD, MATERIALS } from '../constants/materials'
 import { Frequency, getannualOccurrence } from '../constants/frequency'
 import { DishWasher, ProjectInput, SingleUseLineItemPopulated } from '../types/projects'
-import { ChangeSummary, getChangeSummaryRowRounded, round } from '../utils'
+import { ChangeSummary, getChangeSummaryRow, getChangeSummaryRowRounded, round } from '../utils'
 import { dishwasherUtilityUsage } from './financial-results'
 import { annualSingleUseWeight } from './single-use-product-results'
 import { SingleUseProduct } from '../types/products'
@@ -25,9 +25,9 @@ export function getEnvironmentalResults(project: ProjectInput): EnvironmentalRes
 
 // all values in MTCO2e
 interface AnnualGasEmissionChanges {
-  landfillWaste: number
-  dishwashing: number
-  total: number
+  landfillWaste: ChangeSummary
+  dishwashing: ChangeSummary
+  total: ChangeSummary
 }
 
 export function getUtilityGasEmissions(dishwasher: DishWasher): { gas: number; electric: number } {
@@ -39,22 +39,22 @@ export function getUtilityGasEmissions(dishwasher: DishWasher): { gas: number; e
 
 function getAnnualGasEmissionChanges(project: ProjectInput): AnnualGasEmissionChanges {
   const lineItems = project.singleUseItems.map(singleUseItemGasEmissions)
-  const landfillWaste = round(
-    lineItems.reduce((sum, item) => sum + item.totalGasReductions, 0),
-    2
-  )
+  const landfillWaste = lineItems.reduce((sum, item) => {
+    return getChangeSummaryRow(sum.baseline + item.total.baseline, sum.followup + item.total.followup)
+  }, getChangeSummaryRow(0, 0))
 
   // calculate increased dishwasher emissions
-  let dishwashing = 0
+  let dishwashing = getChangeSummaryRowRounded(0, 0, 2)
   if (project.dishwasher) {
     const { electric, gas } = getUtilityGasEmissions(project.dishwasher)
-    dishwashing = round(POUND_TO_TONNE * (electric + gas), 2)
+    const gasEmissions = POUND_TO_TONNE * (electric + gas)
+    dishwashing = getChangeSummaryRowRounded(0, gasEmissions, 2)
   }
 
   return {
-    landfillWaste,
+    landfillWaste: getChangeSummaryRowRounded(landfillWaste.baseline, landfillWaste.followup, 2),
     dishwashing,
-    total: round(landfillWaste + dishwashing, 2),
+    total: getChangeSummaryRowRounded(landfillWaste.baseline + dishwashing.baseline, landfillWaste.followup + dishwashing.followup, 2),
   }
 }
 
@@ -72,13 +72,10 @@ export function singleUseItemGasEmissions(item: SingleUseLineItemPopulated) {
   const annualOccurrence = getannualOccurrence(frequency)
 
   // Column: AS
-  const primaryGasReduction = calculateMaterialGasReduction(casesPurchased, newCasesPurchased, annualOccurrence, unitsPerCase, product.primaryMaterial, product.primaryMaterialWeightPerUnit)
+  const primaryGas = calculateMaterialGas(casesPurchased, newCasesPurchased, annualOccurrence, unitsPerCase, product.primaryMaterial, product.primaryMaterialWeightPerUnit)
 
   // Column: AU: calculate secondary material emissions
-  const secondaryGasReduction = calculateMaterialGasReduction(casesPurchased, newCasesPurchased, annualOccurrence, unitsPerCase, product.secondaryMaterial, product.secondaryMaterialWeightPerUnit)
-
-  // Column AW: calculate shipping box emissions
-  let shippingBoxGasReduction = 0
+  const secondaryGas = calculateMaterialGas(casesPurchased, newCasesPurchased, annualOccurrence, unitsPerCase, product.secondaryMaterial, product.secondaryMaterialWeightPerUnit)
 
   // Columns: X, Y
   const boxWeight = product.boxWeight
@@ -86,21 +83,18 @@ export function singleUseItemGasEmissions(item: SingleUseLineItemPopulated) {
   // Columns: AM, AN
   const followupBoxWeight = product.boxWeight
   const followupAnnualBoxWeight = followupBoxWeight * newCasesPurchased * annualOccurrence
-  // Column: AV
-  const changeInShippingBoxWeight = followupAnnualBoxWeight - annualBoxWeight
 
-  if (changeInShippingBoxWeight !== 0) {
-    shippingBoxGasReduction = -1 * changeInShippingBoxWeight * CORRUGATED_CARDBOARD
-  }
+  // Column AW: shipping box emissions
+  const shippingBoxGas = getChangeSummaryRow(annualBoxWeight * CORRUGATED_CARDBOARD, followupAnnualBoxWeight * CORRUGATED_CARDBOARD)
 
   // Column: AX
-  const totalGasReductions = primaryGasReduction + secondaryGasReduction + shippingBoxGasReduction
+  const total = getChangeSummaryRow(primaryGas.baseline + secondaryGas.baseline + shippingBoxGas.baseline, primaryGas.followup + secondaryGas.followup + shippingBoxGas.followup)
 
   return {
-    primaryGasReduction,
-    secondaryGasReduction,
-    shippingBoxGasReduction,
-    totalGasReductions,
+    primaryGas,
+    secondaryGas,
+    shippingBoxGas,
+    total,
   }
 }
 
@@ -121,19 +115,19 @@ export function singleUseItemGasEmissions(item: SingleUseLineItemPopulated) {
     secondaryGHGReduction = -1 * changeInSecondaryWeight * epaWARMAssumption.mtco2ePerLb;
   }
 */
-function calculateMaterialGasReduction(casesPurchased: number, newCasesPurchased: number, annualOccurrence: number, unitsPerCase: number, material: number, weightPerUnit: number): number {
+function calculateMaterialGas(casesPurchased: number, newCasesPurchased: number, annualOccurrence: number, unitsPerCase: number, material: number, weightPerUnit: number): ChangeSummary {
   const epaWARMAssumption = MATERIALS.find(m => m.id === material)
   if (!epaWARMAssumption) {
     throw new Error('Could not find EPA Warm assumption for material: ' + material)
   }
   const annualWeight = annualSingleUseWeight(casesPurchased, annualOccurrence, unitsPerCase, weightPerUnit)
   const followupAnnualWeight = annualSingleUseWeight(newCasesPurchased, annualOccurrence, unitsPerCase, weightPerUnit)
-  const changeInWeight = followupAnnualWeight - annualWeight
-  let gasReduction = 0
-  if (changeInWeight !== 0) {
-    gasReduction = -1 * changeInWeight * epaWARMAssumption.mtco2ePerLb
-  }
-  return gasReduction
+  // const changeInWeight = followupAnnualWeight - annualWeight
+  // let gasReduction = 0
+  // if (changeInWeight !== 0) {
+  //   gasReduction = -1 * changeInWeight * epaWARMAssumption.mtco2ePerLb
+  // }
+  return getChangeSummaryRow(annualWeight * epaWARMAssumption.mtco2ePerLb, followupAnnualWeight * epaWARMAssumption.mtco2ePerLb)
 }
 
 // all values in pounds

@@ -17,7 +17,7 @@ export async function getUserFromContext<T = Partial<typeof UserDataToInclude>>(
       include: dataToInclude,
     })
   } catch (error) {
-    console.error('Error retrieving user from cookie', error)
+    console.error('Error retrieving user from cookie:', error)
     return null
   }
 }

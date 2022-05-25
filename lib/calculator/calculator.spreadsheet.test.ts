@@ -34,9 +34,24 @@ describe('Predictions Calculator: Spreadsheet results from Upstream', () => {
         wasteHauling: -480,
       },
       greenhouseGasEmissions: {
-        dishwashing: 4.9,
-        landfillWaste: -64.81,
-        total: -59.91,
+        dishwashing: {
+          baseline: 0,
+          change: 4.9,
+          changePercent: 0,
+          followup: 4.9,
+        },
+        landfillWaste: {
+          baseline: 80.81,
+          change: -64.81,
+          changePercent: -80,
+          followup: 16.01,
+        },
+        total: {
+          baseline: 80.81,
+          change: -59.91,
+          changePercent: -74,
+          followup: 20.91,
+        },
       },
       singleUseProductCount: {
         baseline: 1924000,
@@ -56,9 +71,24 @@ describe('Predictions Calculator: Spreadsheet results from Upstream', () => {
   it('calculates Environmental Results', () => {
     const results = getEnvironmentalResults(project)
     expect(results.annualGasEmissionChanges).toEqual({
-      dishwashing: 4.9,
-      landfillWaste: -64.81,
-      total: -59.91,
+      dishwashing: {
+        baseline: 0,
+        change: 4.9,
+        changePercent: 0,
+        followup: 4.9,
+      },
+      landfillWaste: {
+        baseline: 80.81,
+        change: -64.81,
+        changePercent: -80,
+        followup: 16.01,
+      },
+      total: {
+        baseline: 80.81,
+        change: -59.91,
+        changePercent: -74,
+        followup: 20.91,
+      },
     })
   })
 
@@ -108,18 +138,18 @@ describe('Predictions Calculator: Spreadsheet results from Upstream', () => {
         followup: 26000,
         change: -59800,
         changePercent: -70,
-        shareOfReduction: 100,
       },
       gasEmissions: {
-        reduction: -64.84,
-        shareOfReduction: 100,
+        baseline: 80.82,
+        followup: 15.97,
+        change: -64.85,
+        changePercent: -80,
       },
       weight: {
         baseline: 33644,
         followup: 11508,
         change: -22136,
         changePercent: -66,
-        shareOfReduction: 100,
       },
     })
   })
