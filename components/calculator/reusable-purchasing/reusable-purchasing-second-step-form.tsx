@@ -1,23 +1,32 @@
 import { Typography, Form, Button, Input } from 'antd'
-import React from 'react'
+import { FC, useEffect } from 'react'
 import * as S from '../styles'
 import { LeftOutlined } from '@ant-design/icons'
-
-type ReusableSecondPartForm = { casesAnnually: number }
+import type { ReusableFormValues } from './index'
 
 type Props = {
-  form: { productName: string }
+  input: ReusableFormValues
   onPressPrevious(): void
-  onPressSubmit(values: ReusableSecondPartForm): void
+  onPressSubmit(values: { casesAnnually: number }): void
 }
 
-const ReusablePurchasingSecondStepForm: React.FC<Props> = props => {
-  const { form, onPressPrevious, onPressSubmit } = props
+const ReusablePurchasingSecondStepForm: FC<Props> = props => {
+  const { input, onPressPrevious, onPressSubmit } = props
+
+  const [form] = Form.useForm<{ casesAnnually: number }>()
+
+  useEffect(() => {
+    if (input) {
+      const casesAnnually = parseInt(input.annualRepurchasePercentage) * parseInt(input.casesPurchased)
+      form.setFieldsValue({ ...input, casesAnnually })
+    }
+  }, [input])
+
   return (
     <div>
       <p>You will occasionally need to replenish reusable stock due to loss, damage, or breakage. Estimate the number of cases you will need to re-purchase.</p>
-      <Typography.Title level={3}>{form.productName}</Typography.Title>
-      <Form layout="vertical" onFinish={onPressSubmit}>
+      <Typography.Title level={3}>{input.productName}</Typography.Title>
+      <Form form={form} layout="vertical" onFinish={onPressSubmit}>
         <Form.Item label="Cases Repurchased Annually" name="casesAnnually" rules={[{ required: true, message: 'This field is required' }]}>
           <Input type="number" autoFocus />
         </Form.Item>
@@ -27,7 +36,7 @@ const ReusablePurchasingSecondStepForm: React.FC<Props> = props => {
             Previous
           </Button>
           <Button htmlType="submit" type="primary">
-            Add forecast
+            {input?.id ? 'Add forecast' : 'Save'}
           </Button>
         </S.BoxEnd>
       </Form>

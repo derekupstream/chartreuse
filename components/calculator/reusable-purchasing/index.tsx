@@ -6,7 +6,6 @@ import { ReusableLineItem } from 'lib/calculator/types/projects'
 import ReusablePurchasingFirstStepForm from './reusable-purchasing-first-step-form'
 import ReusablePurchasingSecondStepForm from './reusable-purchasing-second-step-form'
 import { useRouter } from 'next/router'
-import { GET, POST } from 'lib/http'
 import { PRODUCT_CATEGORIES } from 'lib/calculator/constants/product-categories'
 import ItemRow from './components/ItemRow'
 import ContentLoader from 'components/content-loader'
@@ -21,6 +20,7 @@ const SmallText = styled(Typography.Text)`
 `
 
 export interface ReusableFormValues {
+  id?: string | null
   annualRepurchasePercentage: string
   caseCost: string
   casesPurchased: string
@@ -68,8 +68,21 @@ export default function ReusablePurchasing() {
     setIsDrawerVisible(true)
   }
 
+  function editItem(item: ReusableLineItem) {
+    setFormValues({
+      id: item.id,
+      annualRepurchasePercentage: item.annualRepurchasePercentage.toString(),
+      caseCost: item.caseCost.toString(),
+      casesPurchased: item.casesPurchased.toString(),
+      categoryId: item.categoryId,
+      productName: item.productName,
+    })
+    setFormStep(1)
+    setIsDrawerVisible(true)
+  }
+
   function onPressNext(values: ReusableFormValues) {
-    setFormValues(values)
+    setFormValues({ ...formValues, ...values })
     setFormStep(2)
   }
 
@@ -141,7 +154,7 @@ export default function ReusablePurchasing() {
                   </S.TitleRow>
                   <Divider />
                   {lineItems.filter(getItemsWithSameId).map(item => (
-                    <ItemRow key={item.annualRepurchasePercentage} item={item} onDelete={getLineItems} />
+                    <ItemRow key={item.annualRepurchasePercentage} item={item} onEdit={editItem} onDelete={getLineItems} />
                   ))}
                 </div>
               )
@@ -155,8 +168,8 @@ export default function ReusablePurchasing() {
             visible={isDrawerVisible}
             contentWrapperStyle={{ width: '600px' }}
           >
-            {formStep === 1 && <ReusablePurchasingFirstStepForm onPressNext={onPressNext} />}
-            {formStep === 2 && <ReusablePurchasingSecondStepForm form={formValues!} onPressPrevious={onPressPrevious} onPressSubmit={onSubmitForecast} />}
+            {formStep === 1 && <ReusablePurchasingFirstStepForm input={formValues} onPressNext={onPressNext} />}
+            {formStep === 2 && <ReusablePurchasingSecondStepForm input={formValues!} onPressPrevious={onPressPrevious} onPressSubmit={onSubmitForecast} />}
           </Drawer>
         </>
       )}

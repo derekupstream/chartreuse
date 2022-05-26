@@ -9,13 +9,14 @@ import Forecast from './Forecast'
 interface Props {
   item: ReusableLineItem
   onDelete(): void
+  onEdit: (item: ReusableLineItem) => void
 }
 
 interface deleteResponse {
   lineItem: ReusableLineItem
 }
 
-const ItemRow: FC<Props> = ({ item, onDelete }) => {
+const ItemRow: FC<Props> = ({ item, onEdit, onDelete }) => {
   const onClickConfirm = async () => {
     const url = `/api/projects/${item.projectId}/reusable-items`
     try {
@@ -33,6 +34,10 @@ const ItemRow: FC<Props> = ({ item, onDelete }) => {
     <StyledInfoRow>
       <Col span={8}>
         <Typography.Title level={5}>{item.productName}</Typography.Title>
+        <a href="#" onClick={() => onEdit(item)}>
+          Edit
+        </a>
+        <Typography.Text style={{ opacity: '.25' }}> | </Typography.Text>
         <Popconfirm title="Are you sure to delete this item?" onConfirm={onClickConfirm} okText="Yes" cancelText="No">
           <a href="#">Delete</a>
         </Popconfirm>

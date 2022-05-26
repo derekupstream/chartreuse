@@ -1,6 +1,7 @@
 import { Button, Form, Input } from 'antd'
+import { useEffect } from 'react'
 import { PRODUCT_CATEGORIES } from 'lib/calculator/constants/product-categories'
-import { ReusableFormValues } from '.'
+import type { ReusableFormValues } from './index'
 import styled from 'styled-components'
 import * as S from '../styles'
 import { requiredRule } from 'utils/forms'
@@ -22,12 +23,23 @@ const categories = PRODUCT_CATEGORIES.map(product => ({
 }))
 
 type Props = {
+  input: ReusableFormValues | null
   onPressNext(values: ReusableFormValues): void
 }
 
-const ReusablePurchasingFirstStepForm: React.FC<Props> = ({ onPressNext }) => {
+const ReusablePurchasingFirstStepForm: React.FC<Props> = ({ input, onPressNext }) => {
+  const [form] = Form.useForm<ReusableFormValues>()
+
+  useEffect(() => {
+    if (input) {
+      form.setFieldsValue(input)
+    } else {
+      form.resetFields()
+    }
+  }, [input])
+
   return (
-    <Form layout="vertical" onFinish={onPressNext}>
+    <Form form={form} layout="vertical" onFinish={onPressNext}>
       <StyledFormItem label="Category">
         <Form.Item name="categoryId" rules={requiredRule}>
           <S.OptionSelection options={categories} optionType="button" />

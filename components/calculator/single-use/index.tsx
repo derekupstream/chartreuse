@@ -116,7 +116,7 @@ const InfoCard = ({ item }: { item: SingleUseItemRecord }) => {
   )
 }
 
-const ItemRow = ({ item, onDelete }: { item: SingleUseItemRecord; onDelete: () => void }) => {
+const ItemRow = ({ item, onEdit, onDelete }: { item: SingleUseItemRecord; onEdit: (item: SingleUseItemRecord) => void; onDelete: () => void }) => {
   function confirm() {
     chartreuseClient
       .deleteSingleUseItem(item.lineItem.projectId, item.lineItem.id)
@@ -135,7 +135,11 @@ const ItemRow = ({ item, onDelete }: { item: SingleUseItemRecord; onDelete: () =
     <S.InfoRow>
       <Col span={8}>
         <Typography.Title level={5}>{item.product.description}</Typography.Title>
-        <Popconfirm title="Are you sure to delete this item?" onConfirm={confirm} okText="Yes" cancelText="No">
+        <a href="#" onClick={() => onEdit(item)}>
+          Edit
+        </a>
+        <Typography.Text style={{ opacity: '.25' }}> | </Typography.Text>
+        <Popconfirm title="Are you sure you want to delete this item?" onConfirm={confirm} okText="Yes" cancelText="No">
           <a href="#">Delete</a>
         </Popconfirm>
       </Col>
@@ -266,6 +270,11 @@ export default function SingleUse({ project }: ServerSideProps) {
     setIsDrawerVisible(true)
   }
 
+  function editItem({ lineItem: _lineItem }: SingleUseItemRecord) {
+    setLineItem(_lineItem)
+    setIsDrawerVisible(true)
+  }
+
   function closeDrawer() {
     setIsDrawerVisible(false)
   }
@@ -313,7 +322,7 @@ export default function SingleUse({ project }: ServerSideProps) {
                   </S.TitleRow>
                   <Divider />
                   {items[category.id].map(item => (
-                    <ItemRow key={item.lineItem.id} item={item} onDelete={getLineItems} />
+                    <ItemRow key={item.lineItem.id} item={item} onEdit={editItem} onDelete={getLineItems} />
                   ))}
                 </div>
               )

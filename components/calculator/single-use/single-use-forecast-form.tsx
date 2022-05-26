@@ -15,7 +15,7 @@ export default function SelectQuantityForecastStep({
   input?: Partial<SingleUseLineItem>
   goBack: (form: Partial<Pick<SingleUseLineItem, 'newCaseCost' | 'newCasesPurchased'>>) => void
   productName?: string
-  frequency: string
+  frequency?: string
   onSubmit: (form: Pick<SingleUseLineItem, 'newCaseCost' | 'newCasesPurchased'>) => void
 }) {
   const [form] = Form.useForm<FormProps>()
@@ -63,7 +63,7 @@ export default function SelectQuantityForecastStep({
 
       <Typography.Title level={4}>{productName}</Typography.Title>
 
-      <Form.Item name="newCasesPurchased" label={`New cases purchased ${frequency.toLowerCase()}`} rules={[{ message: 'This field is required', required: true }]}>
+      <Form.Item name="newCasesPurchased" label={`New cases purchased ${frequency?.toLowerCase()}`} rules={[{ message: 'This field is required', required: true }]}>
         <Input placeholder={`Current amount: ${input?.casesPurchased?.toString()}`} type="number" autoFocus />
       </Form.Item>
 
@@ -74,7 +74,7 @@ export default function SelectQuantityForecastStep({
       <S.BoxEnd>
         <Button onClick={_goBack}>{'Go Back'}</Button>
         <Button disabled={disabledSave} size="large" type="primary" htmlType="submit">
-          Add forecast
+          {input?.id ? 'Save' : 'Add forecast'}
         </Button>
       </S.BoxEnd>
     </Form>

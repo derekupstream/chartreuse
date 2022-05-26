@@ -1,6 +1,15 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import prisma from 'lib/prisma'
+import nc from 'next-connect'
+import getUser, { NextApiRequestWithUser } from 'lib/middleware/getUser'
 import { Prisma, ReusableLineItem } from '@prisma/client'
+import onError from 'lib/middleware/onError'
+import onNoMatch from 'lib/middleware/onNoMatch'
+import { validateProject } from 'lib/middleware/validateProject'
+
+const handler = nc<NextApiRequest, NextApiResponse>({ onError, onNoMatch })
+
+handler.use(getUser).use(validateProject).get(getItems).post(addItem).delete(deleteItem)
 
 type Response = {
   lineItem?: ReusableLineItem
@@ -8,40 +17,42 @@ type Response = {
   error?: string
 }
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse<Response>) {
+async function getItems(req: NextApiRequestWithUser, res: NextApiResponse<{ lineItems?: ReusableLineItem[] }>) {
   const projectId = req.query.id as string
 
-  if (req.method === 'GET') {
-    const lineItems = await prisma.reusableLineItem.findMany<Prisma.ReusableLineItemFindManyArgs>({
+  const lineItems = await prisma.reusableLineItem.findMany({
+    where: {
+      projectId,
+    },
+  })
+
+  return res.status(200).json({ lineItems })
+}
+
+async function addItem(req: NextApiRequestWithUser, res: NextApiResponse) {
+  let lineItem: ReusableLineItem
+
+  if (req.body.id) {
+    lineItem = await prisma.reusableLineItem.update({
       where: {
-        projectId,
+        id: req.body.id,
       },
+      data: req.body,
     })
-
-    return res.status(200).json({ lineItems })
-  } else if (req.method === 'POST') {
-    try {
-      const lineItem = await prisma.reusableLineItem.create<Prisma.ReusableLineItemCreateArgs>({
-        data: req.body,
-      })
-
-      return res.status(200).json({ lineItem })
-    } catch (error: any) {
-      console.error('Error saving reusable item', error)
-      return res.status(500).json({ error: error.message })
-    }
-  } else if (req.method === 'DELETE') {
-    try {
-      const lineItem = await prisma.reusableLineItem.delete({
-        where: { id: req.body.id },
-      })
-      return res.status(200).json({ lineItem })
-    } catch (error: any) {
-      console.log(error)
-      return res.status(500).json({ error: error.message })
-    }
+  } else {
+    lineItem = await prisma.reusableLineItem.create({
+      data: req.body,
+    })
   }
 
-  // Handle any other HTTP method
-  return res.status(405).json({ error: 'Method not allowed' })
+  res.status(200).json({ lineItem })
 }
+
+async function deleteItem(req: NextApiRequestWithUser, res: NextApiResponse) {
+  const lineItem = await prisma.reusableLineItem.delete({
+    where: { id: req.body.id },
+  })
+  return res.status(200).json({ lineItem })
+}
+
+export default handler
