@@ -18,6 +18,7 @@ async function getProjectionsHandler(req: NextApiRequestWithUser, res: NextApiRe
       account: true,
     },
   })
+
   const result = await getAllProjections(projects)
 
   res.json(result)

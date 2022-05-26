@@ -36,7 +36,7 @@ const AnalyticsPage = ({ user, data }: PageProps) => {
 
 AnalyticsPage.getLayout = (page: React.ReactNode, pageProps: any) => {
   return (
-    <Template {...pageProps} selectedMenuItem="upstream/total-annual-impact" title="Annual Impact">
+    <Template {...pageProps} selectedMenuItem="upstream/total-annual-impact" title="Analytics">
       {page}
     </Template>
   )

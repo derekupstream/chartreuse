@@ -8,7 +8,6 @@ import chartreuseClient from 'lib/chartreuseClient'
 
 export const getServerSideProps: GetServerSideProps<PageProps> = async context => {
   const user = await getUserFromContext(context, { org: true })
-
   if (!user) {
     return {
       notFound: true,
@@ -23,13 +22,12 @@ export const getServerSideProps: GetServerSideProps<PageProps> = async context =
 
 const AnalyticsPage = ({ user }: PageProps) => {
   const { data } = useSWR('/projections', () => chartreuseClient.getProjectSummaries())
-
   return <Analytics data={data} user={user} />
 }
 
 AnalyticsPage.getLayout = (page: React.ReactNode, pageProps: any) => {
   return (
-    <Template {...pageProps} selectedMenuItem="annual-impact" title="Annual Impact">
+    <Template {...pageProps} selectedMenuItem="analytics" title="Analytics">
       {page}
     </Template>
   )

@@ -182,7 +182,7 @@ export default function AnalyticsPage({ user, data, isUpstreamView }: PageProps)
 
   return (
     <Space direction="vertical" size="large" style={{ width: '100%' }}>
-      <Typography.Title>{isUpstreamView ? 'Total Annual Impact' : `${user.org.name}'s Annual Impact`}</Typography.Title>
+      <Typography.Title>{isUpstreamView ? 'Upstream Analytics' : `${user.org.name}'s Analytics`}</Typography.Title>
 
       <Typography.Title level={3} style={{ margin: 0 }}>
         High-Level Overview

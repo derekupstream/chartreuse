@@ -28,15 +28,20 @@ const GlobalStyles = createGlobalStyle`
 
 const menuLinks: MenuProps['items'] = [
   { key: 'projects', label: <Link href='/projects'>Projects</Link> },
-  { key: 'annual-impact', label: <Link href='/annual-impact'>Annual Impact</Link> },
+  { key: 'analytics', label: <Link href='/org-analytics'>Analytics</Link> },
   { key: 'accounts', label: <Link href='/accounts'>Accounts</Link> },
   { key: 'members', label: <Link href='/members'>Members</Link> },
 ]
+
 
 const DashboardTemplate: React.FC<DashboardProps> = ({ user, selectedMenuItem, title, children }) => {
   const { signout } = useAuth()
   const router = useRouter()
   const [keys, setKeys] = useState<string[]>([])
+
+  if (!menuLinks.some(link => link?.key === selectedMenuItem)) {
+    throw new Error('Menu link key not found: ' + selectedMenuItem)
+  }
 
   const handleLogout = async (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
     e.preventDefault()
@@ -61,7 +66,7 @@ const DashboardTemplate: React.FC<DashboardProps> = ({ user, selectedMenuItem, t
   const accountLinks: MenuProps['items'] = [
     {
       key: 'accounts',
-      label: <a href='https://chartreuse.eco' target='_blank' rel="noreferrer">Help</a>
+      label: <a href='mailto:chartreuse@upstreamsolutions.org' target='_blank' rel="noreferrer">Help</a>
     },
     {
       key: 'logout',
@@ -81,7 +86,7 @@ const DashboardTemplate: React.FC<DashboardProps> = ({ user, selectedMenuItem, t
       label: 'Upstream',
       children: [
         { key: 'upstream/orgs', label: <Link href='/upstream/orgs'>Organizations</Link> },
-        { key: 'upstream/total-annual-impact', label: <Link href='/upstream/total-annual-impact'>Total Annual Impact</Link> }
+        { key: 'upstream/total-annual-impact', label: <Link href='/upstream/total-annual-impact'>Analytics</Link> }
       ]
     }
   ]

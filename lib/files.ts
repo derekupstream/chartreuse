@@ -21,6 +21,6 @@ export async function requestDownload({ api, fileName }: { api: string; fileName
         a.remove()
       })
   } catch (e) {
-    console.log('error downloading file', e)
+    console.error('error downloading file', e)
   }
 }
