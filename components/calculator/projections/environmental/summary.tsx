@@ -79,8 +79,8 @@ const EnvironmentalSummary: React.FC<Props> = ({ data }) => {
     <SectionContainer>
       <SectionHeader>Environmental summary</SectionHeader>
 
-      <Row gutter={30}>
-        <Col span={12} style={{ display: 'flex' }}>
+      <Row gutter={[30, 24]}>
+        <Col span={12}>
           <Card>
             <TitleWithTooltip title="Your total annual waste changes" />
 
@@ -100,8 +100,8 @@ const EnvironmentalSummary: React.FC<Props> = ({ data }) => {
           </Card>
         </Col>
 
-        <Col span={12} style={{ display: 'flex' }}>
-          <Card>
+        <Col span={12}>
+          <Card style={{ height: '100%' }}>
             <TitleWithTooltip title="Annual net GHG emissions changes" />
 
             <BigNumberWrapper>
