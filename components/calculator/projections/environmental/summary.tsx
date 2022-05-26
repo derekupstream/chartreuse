@@ -109,7 +109,7 @@ const EnvironmentalSummary: React.FC<Props> = ({ data }) => {
             </BigNumberWrapper>
 
             <ChartTitle>Annual greenhouse gas changes</ChartTitle>
-            <Chart data={ghgData} />
+            <Chart data={ghgData} seriesField="wasteType" />
           </Card>
         </Col>
       </Row>
