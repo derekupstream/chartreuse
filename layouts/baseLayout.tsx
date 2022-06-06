@@ -33,13 +33,18 @@ const menuLinks: MenuProps['items'] = [
   { key: 'members', label: <Link href='/members'>Members</Link> },
 ]
 
+const upstreamLinks: MenuProps['items'] = [
+  { key: 'upstream/orgs', label: <Link href='/upstream/orgs'>Organizations</Link> },
+  { key: 'upstream/total-annual-impact', label: <Link href='/upstream/total-annual-impact'>Analytics</Link> }
+]
+
 
 const DashboardTemplate: React.FC<DashboardProps> = ({ user, selectedMenuItem, title, children }) => {
   const { signout } = useAuth()
   const router = useRouter()
   const [keys, setKeys] = useState<string[]>([])
 
-  if (!menuLinks.some(link => link?.key === selectedMenuItem)) {
+  if (!menuLinks.some(link => link?.key === selectedMenuItem) && !upstreamLinks.some(link => link?.key === selectedMenuItem)) {
     throw new Error('Menu link key not found: ' + selectedMenuItem)
   }
 
@@ -74,7 +79,7 @@ const DashboardTemplate: React.FC<DashboardProps> = ({ user, selectedMenuItem, t
     },
   ]
 
-  const upstreamLinks: (SubMenuType | MenuItemType)[] = [
+  const extendedLinks: (SubMenuType | MenuItemType)[] = [
     {
       key: 'divider',
       disabled: true,
@@ -84,10 +89,7 @@ const DashboardTemplate: React.FC<DashboardProps> = ({ user, selectedMenuItem, t
     {
       key: 'upstream',
       label: 'Upstream',
-      children: [
-        { key: 'upstream/orgs', label: <Link href='/upstream/orgs'>Organizations</Link> },
-        { key: 'upstream/total-annual-impact', label: <Link href='/upstream/total-annual-impact'>Analytics</Link> }
-      ]
+      children: upstreamLinks
     }
   ]
 
@@ -106,7 +108,7 @@ const DashboardTemplate: React.FC<DashboardProps> = ({ user, selectedMenuItem, t
               selectedKeys={keys} onClick={handleMenuClick}
             />
             {user.org.isUpstream && (
-              <Menu items={upstreamLinks} mode='horizontal' disabledOverflow selectedKeys={keys} onClick={handleMenuClick} />
+              <Menu items={extendedLinks} mode='horizontal' disabledOverflow selectedKeys={keys} onClick={handleMenuClick} />
             )}
           </S.LogoAndMenuWrapper>
           <S.OrgAndUserWrapper>
