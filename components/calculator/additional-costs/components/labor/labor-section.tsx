@@ -2,7 +2,7 @@ import { Button, Col, Divider, Drawer, message, Popconfirm, Typography } from 'a
 import { useSimpleMutation, useSimpleQuery } from 'hooks/useSimpleQuery'
 import { useState } from 'react'
 import { AddBlock, Container, contentWrapperStyle, Placeholder, Subtitle } from '../expense-block'
-import { SectionContainer } from '../styles'
+import { SectionContainer, SectionTitle } from '../styles'
 import { InfoCard, InfoRow } from 'components/calculator/styles'
 import { useRouter } from 'next/router'
 import { LaborCost } from '@prisma/client'
@@ -60,7 +60,7 @@ const LaborSection = () => {
   return (
     <Container>
       <SectionContainer>
-        <Typography.Title level={3}>Labor</Typography.Title>
+        <SectionTitle>Labor</SectionTitle>
         {!!data?.laborCosts?.length && (
           <Button type="primary" onClick={onClickAddExpense} icon={<PlusOutlined />} style={{ paddingRight: '4em', paddingLeft: '4em' }}>
             Add labor
