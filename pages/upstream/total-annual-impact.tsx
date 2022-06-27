@@ -6,7 +6,7 @@ import { getUserFromContext } from 'lib/middleware'
 import { getAllProjections } from 'lib/calculator'
 
 export const getServerSideProps: GetServerSideProps<PageProps> = async context => {
-  const user = await getUserFromContext(context, { org: true })
+  const { user } = await getUserFromContext(context, { org: true })
 
   if (!user?.org.isUpstream) {
     return {

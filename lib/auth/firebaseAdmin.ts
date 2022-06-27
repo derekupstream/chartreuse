@@ -5,7 +5,7 @@ export const verifyIdToken = (token: string) => {
     admin.initializeApp({
       credential: admin.credential.cert({
         clientEmail: process.env.FIREBASE_ADMIN_EMAIL,
-        projectId: process.env.FIREBASE_ADMIN_PROJECT_ID,
+        projectId: process.env.NEXT_PUBLIC_FIREBASE_ADMIN_PROJECT_ID,
         privateKey: process.env.FIREBASE_ADMIN_PRIVATE_KEY?.replace(/\\n/g, '\n'),
       }),
     })

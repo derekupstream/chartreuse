@@ -7,7 +7,7 @@ import useSWR from 'swr'
 import chartreuseClient from 'lib/chartreuseClient'
 
 export const getServerSideProps: GetServerSideProps<PageProps> = async context => {
-  const user = await getUserFromContext(context, { org: true })
+  const { user } = await getUserFromContext(context, { org: true })
   if (!user) {
     return {
       notFound: true,

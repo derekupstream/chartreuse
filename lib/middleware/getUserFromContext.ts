@@ -10,14 +10,16 @@ export async function getUserFromContext<T = Partial<typeof UserDataToInclude>>(
     const cookies = nookies.get(context)
     const token = await verifyIdToken(cookies.token)
 
-    return prisma.user.findUnique({
+    const user = await prisma.user.findUnique({
       where: {
         id: token.uid,
       },
       include: dataToInclude,
     })
+
+    return { user, firebaseToken: token }
   } catch (error) {
     console.error('Error retrieving user from cookie:', error)
-    return null
+    return {}
   }
 }
