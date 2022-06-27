@@ -22,6 +22,7 @@ export default function EmailVerification() {
         router.push('/org-setup')
       } else {
         try {
+          console.log('Sending email verification email', { email: user?.email })
           await user?.sendEmailVerification({
             url: `${origin}/org-setup`,
           })
