@@ -101,6 +101,7 @@ export interface UtilitiesAndCosts {
 }
 
 export interface WasteHaulingService {
+  id: string
   monthlyCost: number // used for calculating financial results
   newMonthlyCost: number
   wasteStream: WasteStream

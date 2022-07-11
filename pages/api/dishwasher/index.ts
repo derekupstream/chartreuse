@@ -59,19 +59,21 @@ async function createDishwasher(req: NextApiRequestWithUser, res: NextApiRespons
   }
   DishWasherValidator.parse(data)
 
-  const existing = await prisma.dishwasher.findFirst({
-    where: {
-      projectId: data.projectId,
-    },
-  })
-  if (existing) {
-    res.status(400).send({ error: 'Dishwasher already exists' })
+  let dishwasher: PrismaDishwasher | undefined
+
+  if (req.body.id) {
+    dishwasher = await prisma.dishwasher.update({
+      where: {
+        id: req.body.id,
+      },
+      data: req.body,
+    })
   } else {
-    const dishwasher = await prisma.dishwasher.create({
+    dishwasher = await prisma.dishwasher.create({
       data,
     })
-    res.status(200).json({ dishwasher })
   }
+  res.status(200).json({ dishwasher })
 }
 
 async function deleteDishwasher(req: NextApiRequestWithUser, res: NextApiResponse) {

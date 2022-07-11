@@ -1,5 +1,6 @@
 import { OTHER_EXPENSES, OTHER_EXPENSES_CATEGORIES, OTHER_EXPENSES_FREQUENCIES } from 'lib/calculator/constants/other-expenses'
 import { OptionSelection } from '../../../styles'
+import { useEffect } from 'react'
 import { Button, Col, Form, Input, Popover, Row, Typography } from 'antd'
 import { requiredRule } from 'utils/forms'
 import { useSimpleMutation } from 'hooks/useSimpleQuery'
@@ -12,10 +13,11 @@ const categoryOptions = OTHER_EXPENSES_CATEGORIES.map(i => ({ value: i.id, label
 const frequencyOptions = OTHER_EXPENSES_FREQUENCIES.map(i => ({ value: i.name, label: i.name }))
 
 type Props = {
+  input: OtherExpense | null
   onClose(): void
 }
 
-const OtherExpensesFormDrawer: React.FC<Props> = ({ onClose }) => {
+const OtherExpensesFormDrawer: React.FC<Props> = ({ input, onClose }) => {
   const [form] = Form.useForm<OtherExpense>()
   const createOtherExpense = useSimpleMutation('/api/other-expenses', 'POST')
 
@@ -24,7 +26,6 @@ const OtherExpensesFormDrawer: React.FC<Props> = ({ onClose }) => {
 
   const handleSubmit = () => {
     const { frequency, cost, ...formFields } = form.getFieldsValue()
-
     const values = {
       ...formFields,
       cost: Number(cost),
@@ -37,6 +38,12 @@ const OtherExpensesFormDrawer: React.FC<Props> = ({ onClose }) => {
     })
   }
 
+  useEffect(() => {
+    if (input) {
+      form.setFieldsValue(input)
+    }
+  }, [input])
+
   return (
     <Form form={form} layout="vertical" onFinish={handleSubmit} style={{ paddingBottom: '24px' }}>
       <p>
@@ -46,6 +53,9 @@ const OtherExpensesFormDrawer: React.FC<Props> = ({ onClose }) => {
         </Popover>
         .
       </p>
+      <FormItem hidden name="id">
+        <Input type="hidden" value={input?.id} />
+      </FormItem>
       <FormItem label="Category" name="categoryId" rules={requiredRule}>
         <OptionSelection options={categoryOptions} optionType="button" />
       </FormItem>
@@ -59,7 +69,7 @@ const OtherExpensesFormDrawer: React.FC<Props> = ({ onClose }) => {
         <Input.TextArea rows={4} />
       </FormItem>
       <Button htmlType="submit" size="large" type="primary" style={{ float: 'right' }}>
-        Add expense
+        {input?.id ? 'Save' : 'Add'} expense
       </Button>
     </Form>
   )

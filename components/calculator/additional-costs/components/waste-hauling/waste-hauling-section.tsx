@@ -27,17 +27,23 @@ const WasteHaulingSection = () => {
   const { data, isLoading, refetch } = useSimpleQuery<Response>(url)
   const deleteWasteHauling = useSimpleMutation(url, 'DELETE')
   const createWasteHaulingCost = useSimpleMutation(url, 'POST')
-  const [formValues, setFormValues] = useState({})
+  const [formValues, setFormValues] = useState<WasteHaulingService | null>(null)
 
   const [isDrawerVisible, setIsDrawerVisible] = useState(false)
   const [isSecondDrawerVisible, setIsSecondDrawerVisible] = useState(false)
 
-  const onClickAddExpense = () => {
+  const onAddExpense = () => {
+    setIsDrawerVisible(true)
+    setFormValues(null)
+  }
+
+  function onEdit(formValues: WasteHaulingService) {
+    setFormValues(formValues)
     setIsDrawerVisible(true)
   }
 
-  const onCloseFirstForm = (formValues?: WasteHaulingService) => {
-    if (formValues) setFormValues(formValues)
+  const onCloseFirstForm = (_formValues?: WasteHaulingService) => {
+    if (_formValues) setFormValues(current => ({ ...current, ..._formValues }))
     setIsDrawerVisible(false)
     setIsSecondDrawerVisible(true)
   }
@@ -58,7 +64,11 @@ const WasteHaulingSection = () => {
   }
 
   const onSuccessSecondFormSubmit = () => {
-    message.success('Waste Hauling created')
+    if (formValues?.id) {
+      message.success('Waste Hauling updated')
+    } else {
+      message.success('Waste Hauling created')
+    }
     setIsSecondDrawerVisible(false)
     refetch()
   }
@@ -83,7 +93,7 @@ const WasteHaulingSection = () => {
       <SectionContainer>
         <SectionTitle>Waste Hauling</SectionTitle>
         {!!data?.wasteHaulingCosts?.length && (
-          <Button onClick={onClickAddExpense} icon={<PlusOutlined />} type="primary" style={{ paddingRight: '4em', paddingLeft: '4em' }}>
+          <Button onClick={onAddExpense} icon={<PlusOutlined />} type="primary" style={{ paddingRight: '4em', paddingLeft: '4em' }}>
             Add waste hauling cost
           </Button>
         )}
@@ -94,6 +104,16 @@ const WasteHaulingSection = () => {
           <InfoRow key={wasteHauling.id}>
             <Col span={8}>
               <Subtitle>{wasteHauling.serviceType}</Subtitle>
+              <a
+                href="#"
+                onClick={e => {
+                  onEdit(wasteHauling as WasteHaulingService)
+                  e.preventDefault()
+                }}
+              >
+                Edit
+              </a>
+              <Typography.Text style={{ opacity: '.25' }}> | </Typography.Text>
               <Popconfirm title="Are you sure to delete this item?" onConfirm={() => onConfirmDelete(wasteHauling.id)} okText="Yes" cancelText="No">
                 <a href="#">Delete</a>
               </Popconfirm>
@@ -144,17 +164,29 @@ const WasteHaulingSection = () => {
         ))
       ) : (
         <AddBlock>
-          <Button onClick={onClickAddExpense} icon={<PlusOutlined />} type="primary" style={{ paddingRight: '4em', paddingLeft: '4em' }}>
+          <Button onClick={onAddExpense} icon={<PlusOutlined />} type="primary" style={{ paddingRight: '4em', paddingLeft: '4em' }}>
             Add waste hauling cost
           </Button>
           <Placeholder>You have no waste hauling entries yet. Click &apos;+ Add waste hauling cost&apos; above to get started.</Placeholder>
         </AddBlock>
       )}
-      <Drawer title="Add current monthly waste hauling service fees" onClose={onCloseForms} visible={isDrawerVisible} contentWrapperStyle={contentWrapperStyle} destroyOnClose>
-        <WasteHaulingFormDrawer onClose={onCloseFirstForm} />
+      <Drawer
+        title={`${formValues?.id ? 'Update' : 'Add'} current monthly waste hauling service fees`}
+        onClose={onCloseForms}
+        visible={isDrawerVisible}
+        contentWrapperStyle={contentWrapperStyle}
+        destroyOnClose
+      >
+        <WasteHaulingFormDrawer input={formValues} onClose={onCloseFirstForm} />
       </Drawer>
-      <Drawer title="Add forecast for monthly waste hauling service fees" onClose={onCloseForms} visible={isSecondDrawerVisible} contentWrapperStyle={contentWrapperStyle} destroyOnClose>
-        <WasteHaulingSecondFormDrawer onClose={onCloseSecondForm} />
+      <Drawer
+        title={`${formValues?.id ? 'Update' : 'Add'} the forecast for monthly waste hauling service fees`}
+        onClose={onCloseForms}
+        visible={isSecondDrawerVisible}
+        contentWrapperStyle={contentWrapperStyle}
+        destroyOnClose
+      >
+        <WasteHaulingSecondFormDrawer input={formValues} onClose={onCloseSecondForm} />
       </Drawer>
     </Container>
   )

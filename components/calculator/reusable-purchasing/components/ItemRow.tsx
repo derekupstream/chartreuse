@@ -34,7 +34,13 @@ const ItemRow: FC<Props> = ({ item, onEdit, onDelete }) => {
     <StyledInfoRow>
       <Col span={8}>
         <Typography.Title level={5}>{item.productName}</Typography.Title>
-        <a href="#" onClick={() => onEdit(item)}>
+        <a
+          href="#"
+          onClick={e => {
+            onEdit(item)
+            e.preventDefault()
+          }}
+        >
           Edit
         </a>
         <Typography.Text style={{ opacity: '.25' }}> | </Typography.Text>

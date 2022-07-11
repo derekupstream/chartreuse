@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { OTHER_EXPENSES_FREQUENCIES } from 'lib/calculator/constants/other-expenses'
 import { OptionSelection } from '../../../styles'
 import { Button, Form, Input } from 'antd'
@@ -13,10 +14,11 @@ const categoryOptions = LABOR_CATEGORIES.map(i => ({ value: i.id, label: i.name 
 const frequencyOptions = OTHER_EXPENSES_FREQUENCIES.map(i => ({ value: i.name, label: i.name }))
 
 type Props = {
+  input: LaborCost | null
   onClose(): void
 }
 
-const LaborFormDrawer: React.FC<Props> = ({ onClose }) => {
+const LaborFormDrawer: React.FC<Props> = ({ input, onClose }) => {
   const [form] = Form.useForm<LaborCost>()
   const createLaborCost = useSimpleMutation('/api/labor-costs', 'POST')
 
@@ -38,8 +40,17 @@ const LaborFormDrawer: React.FC<Props> = ({ onClose }) => {
     })
   }
 
+  useEffect(() => {
+    if (input) {
+      form.setFieldsValue(input)
+    }
+  }, [input])
+
   return (
     <Form form={form} layout="vertical" onFinish={handleSubmit} style={{ paddingBottom: '24px' }}>
+      <FormItem hidden name="id">
+        <Input type="hidden" value={input?.id} />
+      </FormItem>
       <FormItem label="Category" name="categoryId" rules={requiredRule}>
         <OptionSelection options={categoryOptions} optionType="button" />
       </FormItem>
@@ -53,7 +64,7 @@ const LaborFormDrawer: React.FC<Props> = ({ onClose }) => {
         <Input.TextArea rows={4} />
       </FormItem>
       <Button htmlType="submit" size="large" type="primary" style={{ float: 'right' }}>
-        Add labor cost
+        {input?.id ? 'Save' : 'Add'} labor cost
       </Button>
     </Form>
   )

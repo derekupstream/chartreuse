@@ -24,18 +24,31 @@ const LaborSection = () => {
   const deleteLabor = useSimpleMutation(url, 'DELETE')
 
   const [isDrawerVisible, setIsDrawerVisible] = useState(false)
+  const [activeLabor, setActiveLabor] = useState<LaborCost | null>(null)
 
   const onClickAddExpense = () => {
     setIsDrawerVisible(true)
+    setActiveLabor(null)
   }
 
   const onCloseDrawer = () => {
     setIsDrawerVisible(false)
+    setActiveLabor(null)
+  }
+
+  function onEdit(item: LaborCost) {
+    setActiveLabor(item)
+    setIsDrawerVisible(true)
   }
 
   const onSubmit = () => {
+    if (activeLabor) {
+      message.success('Labor updated')
+    } else {
+      message.success('Labor created')
+    }
     setIsDrawerVisible(false)
-    message.success('Labor created')
+    setActiveLabor(null)
     refetch()
   }
 
@@ -77,6 +90,16 @@ const LaborSection = () => {
           <InfoRow key={labor.id}>
             <Col span={16}>
               <Subtitle>{labor.description}</Subtitle>
+              <a
+                href="#"
+                onClick={e => {
+                  onEdit(labor)
+                  e.preventDefault()
+                }}
+              >
+                Edit
+              </a>
+              <Typography.Text style={{ opacity: '.25' }}> | </Typography.Text>
               <Popconfirm title="Are you sure to delete this item?" onConfirm={() => onConfirmDelete(labor.id)} okText="Yes" cancelText="No">
                 <a href="#">Delete</a>
               </Popconfirm>
@@ -114,8 +137,8 @@ const LaborSection = () => {
           <Placeholder>You have no labor entries yet. Click &apos;+ Add labor&apos; above to get started.</Placeholder>
         </AddBlock>
       )}
-      <Drawer title="Add labor" onClose={onCloseDrawer} visible={isDrawerVisible} contentWrapperStyle={contentWrapperStyle} destroyOnClose>
-        <LaborFormDrawer onClose={onSubmit} />
+      <Drawer title={activeLabor ? 'Update labor' : 'Add labor'} onClose={onCloseDrawer} visible={isDrawerVisible} contentWrapperStyle={contentWrapperStyle} destroyOnClose>
+        <LaborFormDrawer input={activeLabor} onClose={onSubmit} />
       </Drawer>
     </Container>
   )

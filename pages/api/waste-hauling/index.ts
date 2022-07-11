@@ -32,9 +32,20 @@ async function createWasteHaulingCost(req: NextApiRequestWithUser, res: NextApiR
 
   CreateWasteHaulingCostValidator.parse(data)
 
-  const wasteHaulingCost = await prisma.wasteHaulingCost.create({
-    data,
-  })
+  let wasteHaulingCost: WasteHaulingCost
+
+  if (req.body.id) {
+    wasteHaulingCost = await prisma.wasteHaulingCost.update({
+      where: {
+        id: req.body.id,
+      },
+      data: req.body,
+    })
+  } else {
+    wasteHaulingCost = await prisma.wasteHaulingCost.create({
+      data,
+    })
+  }
 
   res.status(200).json({ wasteHaulingCost })
 }

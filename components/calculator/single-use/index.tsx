@@ -135,7 +135,13 @@ const ItemRow = ({ item, onEdit, onDelete }: { item: SingleUseItemRecord; onEdit
     <S.InfoRow>
       <Col span={8}>
         <Typography.Title level={5}>{item.product.description}</Typography.Title>
-        <a href="#" onClick={() => onEdit(item)}>
+        <a
+          href="#"
+          onClick={e => {
+            onEdit(item)
+            e.preventDefault()
+          }}
+        >
           Edit
         </a>
         <Typography.Text style={{ opacity: '.25' }}> | </Typography.Text>

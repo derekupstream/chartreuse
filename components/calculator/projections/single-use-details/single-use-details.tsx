@@ -99,7 +99,7 @@ const SingleUseDetails: React.FC<Props> = ({ data }) => {
       baseline = item.gasEmissions.baseline
       forecast = item.gasEmissions.followup
     }
-    console.log(changeType, baseline, forecast)
+
     return {
       key: index, // for @antd/table
       product: item.title,

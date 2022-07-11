@@ -1,4 +1,5 @@
 import { PlusOutlined } from '@ant-design/icons'
+import { Dishwasher } from '@prisma/client'
 import { Button, Col, Divider, Drawer, message, Popconfirm, Typography, Popover } from 'antd'
 import { useSimpleQuery } from 'hooks/useSimpleQuery'
 import { useRouter } from 'next/router'
@@ -17,18 +18,29 @@ const DishWashingSection = () => {
   const { data, isLoading, refetch } = useSimpleQuery<Response>(`/api/dishwasher?projectId=${route.query.id}`)
 
   const [isDrawerVisible, setIsDrawerVisible] = useState(false)
+  const [activeDishwasher, setActivDishwasher] = useState<Dishwasher | null>(null)
 
   const onClick = () => {
     setIsDrawerVisible(true)
   }
 
+  function onEdit(item: Dishwasher) {
+    setActivDishwasher(item)
+    setIsDrawerVisible(true)
+  }
+
   const onCloseDrawer = () => {
     setIsDrawerVisible(false)
+    setActivDishwasher(null)
   }
 
   const onSubmit = () => {
+    if (activeDishwasher) {
+      message.success('Dishwasher updated')
+    } else {
+      message.success('Dishwasher created')
+    }
     setIsDrawerVisible(false)
-    message.success('Dishwasher created')
     refetch()
   }
 
@@ -94,6 +106,17 @@ const DishWashingSection = () => {
               {data.dishwasher.energyStarCertified ? 'Energy star certified' : null} {data.dishwasher.boosterWaterHeaterFuelType} Fuel
             </Options>
             <br />
+            <br />
+            <a
+              href="#"
+              onClick={e => {
+                onEdit(data.dishwasher)
+                e.preventDefault()
+              }}
+            >
+              Edit
+            </a>
+            <Typography.Text style={{ opacity: '.25' }}> | </Typography.Text>
             <Popconfirm title="Are you sure to delete this item?" onConfirm={onConfirmDelete} okText="Yes" cancelText="No">
               <a href="#">Delete</a>
             </Popconfirm>
@@ -138,11 +161,17 @@ const DishWashingSection = () => {
             </Button>
             <Placeholder>You have no dishwashing entries yet. Click &apos;+ Add dishwashing&apos; above to get started.</Placeholder>
           </AddBlock>
-          <Drawer title="Add dishwashing expense" onClose={onCloseDrawer} visible={isDrawerVisible} contentWrapperStyle={contentWrapperStyle} destroyOnClose>
-            <DishwashingFormDrawer onClose={onSubmit} />
-          </Drawer>
         </>
       )}
+      <Drawer
+        title={activeDishwasher ? 'Update dishwashing expense' : 'Add dishwashing expense'}
+        onClose={onCloseDrawer}
+        visible={isDrawerVisible}
+        contentWrapperStyle={contentWrapperStyle}
+        destroyOnClose
+      >
+        <DishwashingFormDrawer input={activeDishwasher} onClose={onSubmit} />
+      </Drawer>
     </Container>
   )
 }

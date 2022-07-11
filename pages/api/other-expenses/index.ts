@@ -33,10 +33,20 @@ async function createAdditionalCost(req: NextApiRequestWithUser, res: NextApiRes
 
   CreateOtherExpenseValidator.parse(data)
 
-  // @todo validate that project ID exists and belongs to current user
-  const additionalCost = await prisma.otherExpense.create({
-    data,
-  })
+  let additionalCost: OtherExpense
+
+  if (req.body.id) {
+    additionalCost = await prisma.otherExpense.update({
+      where: {
+        id: req.body.id,
+      },
+      data: req.body,
+    })
+  } else {
+    additionalCost = await prisma.otherExpense.create({
+      data: req.body,
+    })
+  }
 
   res.status(200).json({ additionalCost })
 }

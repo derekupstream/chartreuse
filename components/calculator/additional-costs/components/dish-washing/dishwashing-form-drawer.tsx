@@ -1,4 +1,5 @@
 import styled from 'styled-components'
+import { useEffect } from 'react'
 import { OptionSelection } from '../../../styles'
 import { Button, Form, Input, RadioChangeEvent } from 'antd'
 import { requiredRule } from 'utils/forms'
@@ -16,12 +17,15 @@ const yesOrNoOptions = [
   { label: 'Yes', value: 1 },
 ]
 
+type DishwasherInput = Omit<Dishwasher, 'energyStarCertified'> & { energyStarCertified: 0 | 1 }
+
 type Props = {
+  input: Dishwasher | null
   onClose(): void
 }
 
-const DishwashingFormDrawer: React.FC<Props> = ({ onClose }) => {
-  const [form] = Form.useForm<Dishwasher>()
+const DishwashingFormDrawer: React.FC<Props> = ({ input, onClose }) => {
+  const [form] = Form.useForm<DishwasherInput>()
   const createDishwashingCost = useSimpleMutation('/api/dishwasher', 'POST')
   const [isWaterHeaterFuelVisible, setIsWaterHeaterFuelVisible] = useState(false)
 
@@ -52,8 +56,20 @@ const DishwashingFormDrawer: React.FC<Props> = ({ onClose }) => {
     }
   }
 
+  useEffect(() => {
+    if (input) {
+      form.setFieldsValue({
+        ...input,
+        energyStarCertified: input.energyStarCertified ? 1 : 0,
+      })
+    }
+  }, [input])
+
   return (
     <Form form={form} layout="vertical" onFinish={handleSubmit} style={{ paddingBottom: '24px' }}>
+      <FormItem hidden name="id">
+        <Input type="hidden" value={input?.id} />
+      </FormItem>
       <FormItem label="Dishwasher type" name="type" rules={requiredRule}>
         <OptionSelection options={typeOptions} optionType="button" />
       </FormItem>
@@ -78,7 +94,7 @@ const DishwashingFormDrawer: React.FC<Props> = ({ onClose }) => {
         <Input type="number" />
       </FormItem>
       <Button htmlType="submit" size="large" type="primary" style={{ float: 'right' }}>
-        Add expense
+        {input?.id ? 'Save' : 'Add'} expense
       </Button>
     </Form>
   )

@@ -1,4 +1,5 @@
 import styled from 'styled-components'
+import { useEffect } from 'react'
 import { OptionSelection } from '../../../styles'
 import { Button, Form, Input, RadioChangeEvent, Row } from 'antd'
 import { requiredRule } from 'utils/forms'
@@ -10,10 +11,11 @@ const wasteStreamOptions = WASTE_STREAMS.map(w => ({ value: w, label: w }))
 const serviceTypeOptions = SERVICE_TYPES.map(s => ({ value: s, label: s }))
 
 type Props = {
+  input: WasteHaulingService | null
   onClose(values: WasteHaulingService): void
 }
 
-const WasteHaulingFormDrawer: React.FC<Props> = ({ onClose }) => {
+const WasteHaulingFormDrawer: React.FC<Props> = ({ input, onClose }) => {
   const [form] = Form.useForm<WasteHaulingService>()
 
   const route = useRouter()
@@ -30,6 +32,12 @@ const WasteHaulingFormDrawer: React.FC<Props> = ({ onClose }) => {
     onClose(values)
   }
 
+  useEffect(() => {
+    if (input) {
+      form.setFieldsValue(input)
+    }
+  }, [input])
+
   return (
     <Form form={form} layout="vertical" onFinish={handleSubmit} style={{ paddingBottom: '24px' }}>
       <FormItem label="Waste Stream" name="wasteStream" rules={requiredRule}>
@@ -45,7 +53,7 @@ const WasteHaulingFormDrawer: React.FC<Props> = ({ onClose }) => {
         <Input type="number" prefix="$" />
       </FormItem>
       <Button htmlType="submit" size="large" type="primary" style={{ float: 'right' }}>
-        Add expense
+        {input?.id ? 'Update' : 'Add'} expense
       </Button>
     </Form>
   )

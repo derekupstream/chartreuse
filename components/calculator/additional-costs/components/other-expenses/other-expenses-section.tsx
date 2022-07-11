@@ -25,18 +25,31 @@ const OtherExpenseSection = () => {
   const deleteOtherExpenses = useSimpleMutation(url, 'DELETE')
 
   const [isDrawerVisible, setIsDrawerVisible] = useState(false)
+  const [activeOtherExpense, setActiveOtherExpense] = useState<OtherExpense | null>(null)
 
-  const onClickAddExpense = () => {
+  const onAddExpense = () => {
+    setIsDrawerVisible(true)
+    setActiveOtherExpense(null)
+  }
+
+  function onEdit(additionalCost: OtherExpense) {
+    setActiveOtherExpense(additionalCost)
     setIsDrawerVisible(true)
   }
 
   const onCloseDrawer = () => {
     setIsDrawerVisible(false)
+    setActiveOtherExpense(null)
   }
 
   const onSubmit = () => {
+    if (activeOtherExpense) {
+      message.success('Additional expense updated')
+    } else {
+      message.success('Additional expense created')
+    }
     setIsDrawerVisible(false)
-    message.success('Additional expense created')
+    setActiveOtherExpense(null)
     refetch()
   }
 
@@ -62,7 +75,7 @@ const OtherExpenseSection = () => {
       <SectionContainer>
         <SectionTitle>Other cost impacts</SectionTitle>
         {!!data?.otherExpenses?.length && (
-          <Button onClick={onClickAddExpense} icon={<PlusOutlined />} type="primary" style={{ paddingRight: '4em', paddingLeft: '4em' }}>
+          <Button onClick={onAddExpense} icon={<PlusOutlined />} type="primary" style={{ paddingRight: '4em', paddingLeft: '4em' }}>
             Add cost impact
           </Button>
         )}
@@ -73,6 +86,16 @@ const OtherExpenseSection = () => {
           <InfoRow key={additionalCost.id}>
             <Col span={16}>
               <Subtitle>{additionalCost.description}</Subtitle>
+              <a
+                href="#"
+                onClick={e => {
+                  onEdit(additionalCost)
+                  e.preventDefault()
+                }}
+              >
+                Edit
+              </a>
+              <Typography.Text style={{ opacity: '.25' }}> | </Typography.Text>
               <Popconfirm title="Are you sure to delete this item?" onConfirm={() => onConfirmDelete(additionalCost.id)} okText="Yes" cancelText="No">
                 <a href="#">Delete</a>
               </Popconfirm>
@@ -100,14 +123,14 @@ const OtherExpenseSection = () => {
         ))
       ) : (
         <AddBlock>
-          <Button onClick={onClickAddExpense} icon={<PlusOutlined />} type="primary" style={{ paddingRight: '4em', paddingLeft: '4em' }}>
+          <Button onClick={onAddExpense} icon={<PlusOutlined />} type="primary" style={{ paddingRight: '4em', paddingLeft: '4em' }}>
             Add cost impact
           </Button>
           <Placeholder>You have no additional expense entries yet. Click &apos;+ Add cost impact&apos; above to get started.</Placeholder>
         </AddBlock>
       )}
-      <Drawer title="Add cost impact" onClose={onCloseDrawer} visible={isDrawerVisible} contentWrapperStyle={contentWrapperStyle} destroyOnClose>
-        <OtherExpensesFormDrawer onClose={onSubmit} />
+      <Drawer title={activeOtherExpense ? 'Update cost impact' : 'Add cost impact'} onClose={onCloseDrawer} visible={isDrawerVisible} contentWrapperStyle={contentWrapperStyle} destroyOnClose>
+        <OtherExpensesFormDrawer input={activeOtherExpense} onClose={onSubmit} />
       </Drawer>
     </Container>
   )

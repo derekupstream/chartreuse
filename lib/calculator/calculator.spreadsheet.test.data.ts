@@ -83,6 +83,7 @@ const dishwasher: DishWasher = {
 
 const wasteHauling: WasteHaulingService[] = [
   {
+    id: '123',
     description: 'Waste Hauling',
     monthlyCost: 125,
     newMonthlyCost: 85,
@@ -91,6 +92,7 @@ const wasteHauling: WasteHaulingService[] = [
     serviceType: 'Bin',
   },
   {
+    id: '456',
     description: 'Waste Hauling',
     monthlyCost: 85,
     newMonthlyCost: 85,

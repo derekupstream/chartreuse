@@ -31,9 +31,20 @@ async function createLaborCost(req: NextApiRequestWithUser, res: NextApiResponse
 
   CreateLaborCostValidator.parse(data)
 
-  const laborCost = await prisma.laborCost.create({
-    data,
-  })
+  let laborCost: LaborCost
+
+  if (req.body.id) {
+    laborCost = await prisma.laborCost.update({
+      where: {
+        id: req.body.id,
+      },
+      data: req.body,
+    })
+  } else {
+    laborCost = await prisma.laborCost.create({
+      data,
+    })
+  }
 
   res.status(200).json({ laborCost })
 }

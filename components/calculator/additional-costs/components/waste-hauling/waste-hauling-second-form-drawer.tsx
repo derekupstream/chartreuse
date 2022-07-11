@@ -1,4 +1,5 @@
 import styled from 'styled-components'
+import { useEffect } from 'react'
 import { OptionSelection } from '../../../styles'
 import { Button, Form, Input, RadioChangeEvent, Row } from 'antd'
 import { requiredRule } from 'utils/forms'
@@ -10,13 +11,14 @@ const categoryOptions = ['Garbage', 'Recycling', 'Organics', 'Additional Changes
 const serviceTypeOptions = ['Cart', 'Bin', 'Rolloff bin', 'Additional charges'].map(c => ({ value: c, label: c }))
 
 type Props = {
+  input?: WasteHaulingCost | null
   onClose(monthlyCost: number): void
 }
 type FormValues = {
   monthlyCost: number
 }
 
-const WasteHaulingSecondFormDrawer: React.FC<Props> = ({ onClose }) => {
+const WasteHaulingSecondFormDrawer: React.FC<Props> = ({ input, onClose }) => {
   const [form] = Form.useForm<FormValues>()
 
   const handleSubmit = () => {
@@ -24,13 +26,19 @@ const WasteHaulingSecondFormDrawer: React.FC<Props> = ({ onClose }) => {
     onClose(Number(monthlyCost))
   }
 
+  useEffect(() => {
+    if (input) {
+      form.setFieldsValue({ monthlyCost: input.newMonthlyCost })
+    }
+  }, [input])
+
   return (
     <Form form={form} layout="vertical" onFinish={handleSubmit} style={{ paddingBottom: '24px' }}>
       <FormItem label="Forecasted Monthly cost" name="monthlyCost" rules={requiredRule}>
         <Input type="number" prefix="$" />
       </FormItem>
       <Button htmlType="submit" size="large" type="primary" style={{ float: 'right' }}>
-        Add expense
+        {input?.id ? 'Update' : 'Add'} forecast
       </Button>
     </Form>
   )
