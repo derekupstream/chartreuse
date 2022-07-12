@@ -74,7 +74,7 @@ async function createAccount(req: NextApiRequestWithUser, res: NextApiResponse<R
     })
   }
 
-  trackEvent({
+  await trackEvent({
     type: 'create_account',
     orgName: account.org.name,
     accountName: account.name,

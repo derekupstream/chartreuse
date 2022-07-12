@@ -33,7 +33,7 @@ async function createOrg(req: NextApiRequest, res: NextApiResponse<Response>) {
     },
   })
 
-  trackEvent({
+  await trackEvent({
     type: 'signup',
     orgName: name,
     userEmail: email,

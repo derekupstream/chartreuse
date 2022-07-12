@@ -68,10 +68,6 @@ const TEMPLATES: Record<EventType, Template> = {
   },
 }
 
-function getUrl(path: string) {
-  return `${WEB_HOST}${path}`
-}
-
 export async function trackEvent(event: UserEvent) {
   const template = TEMPLATES[event.type]
 
@@ -84,7 +80,7 @@ export async function trackEvent(event: UserEvent) {
         html: `${template.body(event)}<br /><p>Sent from <a href="${WEB_HOST}">app.chartreuse.eco</a></p>`,
       })
 
-      console.log('Sent user event email for event: ' + event.type)
+      console.log(`Sent user event email for event to ${process.env.NOTIFICATIONS_EMAIL}: ` + event.type)
     } catch (error) {
       console.error('Error sending user event:', error)
     }
