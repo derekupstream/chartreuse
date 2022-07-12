@@ -16,7 +16,7 @@ import { getUtilitiesByState, USState } from 'lib/calculator/constants/utilities
 interface ProjectData extends Project {
   org: Org
   account: Account
-  dishwasher: Dishwasher[]
+  dishwashers: Dishwasher[]
   otherExpenses: OtherExpense[]
   laborCosts: LaborCost[]
   reusableItems: ReusableLineItem[]
@@ -40,7 +40,7 @@ export async function getOrgExport(orgId: string) {
     include: {
       account: true,
       org: true,
-      dishwasher: true,
+      dishwashers: true,
       otherExpenses: true,
       laborCosts: true,
       reusableItems: true,
@@ -325,9 +325,9 @@ function addDishwasherSheet(workbook: ExcelJS.Workbook, data: AllProjectsSummary
   ]
   sheet.addRows(
     data.projects
-      .filter(project => project.dishwasher.length > 0)
+      .filter(project => project.dishwashers.length > 0)
       .map(project => {
-        const stats = getDishwasherStats({ dishwasher: project.dishwasher[0], state: project.account.USState as USState })
+        const stats = getDishwasherStats({ dishwasher: project.dishwashers[0], state: project.account.USState as USState })
         return [
           {
             type: 'Electric Usage (kWh)',

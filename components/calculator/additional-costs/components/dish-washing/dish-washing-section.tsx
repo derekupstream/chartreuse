@@ -145,7 +145,7 @@ const DishWashingSection = () => {
                   </tr>
                   <tr>
                     <td>{data.stats.waterUsage.toLocaleString(undefined, { maximumFractionDigits: 2 })} gal</td>
-                    <td>-</td>
+                    <td></td>
                     <td>$ {data.stats.waterCost.toLocaleString(undefined, { maximumFractionDigits: 2 })}</td>
                   </tr>
                 </tbody>

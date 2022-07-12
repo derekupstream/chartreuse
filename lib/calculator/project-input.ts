@@ -1,4 +1,4 @@
-import { ProjectInput, WasteHaulingService } from './types/projects'
+import { DishWasher, ProjectInput, WasteHaulingService } from './types/projects'
 import prisma from 'lib/prisma'
 import { getUtilitiesByState, USState } from './constants/utilities'
 import { OtherExpenseCategory } from './constants/other-expenses'
@@ -19,7 +19,7 @@ export async function getProjectData(projectId: string): Promise<ProjectInput> {
       laborCosts: true,
       singleUseItems: true,
       reusableItems: true,
-      dishwasher: true,
+      dishwashers: true,
       wasteHaulingCosts: true,
     },
   })
@@ -39,6 +39,7 @@ export async function getProjectData(projectId: string): Promise<ProjectInput> {
   const wasteHauling = project.wasteHaulingCosts.map(mapWasteHauling)
 
   return {
+    dishwasher: project.dishwashers[0] as DishWasher | undefined,
     laborCosts,
     otherExpenses,
     reusableItems: project.reusableItems,

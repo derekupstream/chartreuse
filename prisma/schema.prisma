@@ -83,7 +83,7 @@ model Project {
   otherExpenses     OtherExpense[]
   laborCosts        LaborCost[]
   wasteHaulingCosts WasteHaulingCost[]
-  dishwasher        Dishwasher[]
+  dishwashers       Dishwasher[]
 }
 
 model SingleUseLineItem {
