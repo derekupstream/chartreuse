@@ -83,10 +83,11 @@ export async function trackEvent(event: UserEvent) {
         subject: `New Event: ${template.subject}`,
         html: `${template.body(event)}<br /><p>Sent from <a href="${WEB_HOST}">app.chartreuse.eco</a></p>`,
       })
+
+      console.log('Sent user event email for event: ' + event.type)
     } catch (error) {
       console.error('Error sending user event:', error)
     }
-    console.log('Sent user event email for event: ' + event.type)
   } else {
     console.log('User event: ' + event.type)
   }
