@@ -38,7 +38,6 @@ const upstreamLinks: MenuProps['items'] = [
   { key: 'upstream/total-annual-impact', label: <Link href='/upstream/total-annual-impact'>Analytics</Link> }
 ]
 
-
 const DashboardTemplate: React.FC<DashboardProps> = ({ user, selectedMenuItem, title, children }) => {
   const { signout } = useAuth()
   const router = useRouter()
