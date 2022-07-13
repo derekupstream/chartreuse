@@ -49,7 +49,6 @@ async function getDishwasher(req: NextApiRequestWithUser, res: NextApiResponse<R
 
 async function createDishwasher(req: NextApiRequestWithUser, res: NextApiResponse<{ dishwasher?: PrismaDishwasher; error?: string }>) {
   const data: Prisma.DishwasherCreateArgs['data'] = {
-    additionalRacksPerDay: req.body.newRacksPerDay,
     racksPerDay: req.body.racksPerDay,
     boosterWaterHeaterFuelType: req.body.boosterWaterHeaterFuelType ?? '',
     buildingWaterHeaterFuelType: req.body.buildingWaterHeaterFuelType,
