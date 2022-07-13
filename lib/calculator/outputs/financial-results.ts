@@ -1,6 +1,6 @@
 import { Frequency, getannualOccurrence } from '../constants/frequency'
 import { ANNUAL_DISHWASHER_CONSUMPTION, BUILDING_WATER_HEATER, BOOSTER_WATER_HEATER } from '../constants/dishwashers'
-import { DishWasher, ProjectInput } from '../types/projects'
+import { DishWasherStatic, DishWasherOptions, ProjectInput } from '../types/projects'
 import { getSingleUseProductSummary } from './single-use-product-results'
 import { getChangeSummaryRowRounded, round } from '../utils'
 
@@ -69,15 +69,21 @@ function calculateAnnualCostChanges(project: ProjectInput): AnnualCostChanges {
 
   const singleUseProductChange = singleUseProductSummary.annualCost.change
 
-  const utilities = project.dishwasher ? dishwasherAnnualCost(project.dishwasher, project.utilityRates) : 0
+  let utilitiesBaseline = 0
+  let utilitiesFollowup = 0
+  if (project.dishwasher) {
+    const { dishwasher, utilityRates } = project
+    utilitiesBaseline = dishwasherAnnualCost(dishwasher, { operatingDays: dishwasher.operatingDays, racksPerDay: dishwasher.racksPerDay }, utilityRates)
+    utilitiesFollowup = dishwasherAnnualCost(dishwasher, { operatingDays: dishwasher.newOperatingDays, racksPerDay: dishwasher.newRacksPerDay }, utilityRates)
+  }
+  const utilitiesChange = utilitiesFollowup - utilitiesBaseline
 
   const wasteHaulingBaseline = getBaselineWasteHaulingAnnualCost(project)
   const wasteHaulingForecast = getForecastWasteHaulingAnnualCost(project)
   const wasteHaulingChange = wasteHaulingForecast - wasteHaulingBaseline
 
-  const baseline = singleUseProductSummary.annualCost.baseline + wasteHaulingBaseline
-  const followup = additionalCostsTotal + reusableProductCosts + singleUseProductSummary.annualCost.followup + utilities + wasteHaulingForecast
-  const total = additionalCostsTotal + reusableProductCosts + singleUseProductChange + utilities + wasteHaulingChange
+  const baseline = singleUseProductSummary.annualCost.baseline + utilitiesBaseline + wasteHaulingBaseline
+  const followup = additionalCostsTotal + reusableProductCosts + singleUseProductSummary.annualCost.followup + utilitiesFollowup + wasteHaulingForecast
 
   return {
     additionalCosts: additionalCostsTotal,
@@ -85,7 +91,7 @@ function calculateAnnualCostChanges(project: ProjectInput): AnnualCostChanges {
     laborCosts: laborCostsTotal,
     reusableProductCosts,
     singleUseProductChange,
-    utilities,
+    utilities: round(utilitiesChange, 2),
     wasteHauling: round(wasteHaulingChange, 2),
     ...getChangeSummaryRowRounded(baseline, followup),
   }
@@ -95,8 +101,8 @@ function getAdditionalCosts({ otherExpenses, laborCosts }: ProjectInput) {
   return otherExpenses.map(({ cost, frequency }) => ({ cost, frequency })).concat(laborCosts)
 }
 
-export function dishwasherAnnualCostBreakdown(dishwasher: DishWasher, rates: ProjectInput['utilityRates']) {
-  const { electricUsage, gasUsage, waterUsage } = dishwasherUtilityUsage(dishwasher)
+export function dishwasherAnnualCostBreakdown(dishwasher: DishWasherStatic, options: DishWasherOptions, rates: ProjectInput['utilityRates']) {
+  const { electricUsage, gasUsage, waterUsage } = dishwasherUtilityUsage(dishwasher, options)
 
   const electric = electricUsage * rates.electric
   const gas = gasUsage * rates.gas
@@ -105,13 +111,13 @@ export function dishwasherAnnualCostBreakdown(dishwasher: DishWasher, rates: Pro
   return { electric, gas, water }
 }
 
-function dishwasherAnnualCost(dishwasher: DishWasher, rates: ProjectInput['utilityRates']) {
-  const { electric, gas, water } = dishwasherAnnualCostBreakdown(dishwasher, rates)
+function dishwasherAnnualCost(dishwasher: DishWasherStatic, options: DishWasherOptions, rates: ProjectInput['utilityRates']) {
+  const { electric, gas, water } = dishwasherAnnualCostBreakdown(dishwasher, options, rates)
   return round(electric + gas + water, 2)
 }
 
 // Hidden: dishwasher calulcations: C85, C86
-export function dishwasherUtilityUsage(dishwasher: DishWasher) {
+export function dishwasherUtilityUsage(dishwasher: DishWasherStatic, options: DishWasherOptions) {
   const washerProfile = ANNUAL_DISHWASHER_CONSUMPTION.find(conf => {
     return dishwasher.temperature === conf.temperature && dishwasher.type === conf.type && dishwasher.energyStarCertified === conf.energyStar
   })
@@ -120,8 +126,8 @@ export function dishwasherUtilityUsage(dishwasher: DishWasher) {
     throw new Error('Unidentified dishwasher configuration')
   }
 
-  const operatingDaysPerYear = dishwasher.operatingDays * 52
-  const waterUsage = washerProfile.values.waterUsePerRack * dishwasher.additionalRacksPerDay * operatingDaysPerYear // gallons per year
+  const operatingDaysPerYear = options.operatingDays * 52
+  const waterUsage = washerProfile.values.waterUsePerRack * options.racksPerDay * operatingDaysPerYear // gallons per year
 
   // Hidden: dishwasher calulcations: C85, C86
   let electricUsage = 0

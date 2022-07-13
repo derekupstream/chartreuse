@@ -78,15 +78,25 @@ export interface LaborCost {
   frequency: Frequency | 'One Time'
 }
 
-export interface DishWasher {
-  additionalRacksPerDay: number // reusables need additional racks
-  boosterWaterHeaterFuelType: FuelType // a booster is included for high temp models
-  buildingWaterHeaterFuelType: FuelType
-  energyStarCertified: boolean
-  operatingDays: 1 | 2 | 3 | 4 | 5 | 6 | 7
-  projectId: string
+export interface DishWasherStatic {
   temperature: TemperatureType
   type: DishwasherType
+  energyStarCertified: boolean
+  boosterWaterHeaterFuelType: FuelType // a booster is included for high temp models
+  buildingWaterHeaterFuelType: FuelType
+}
+
+export interface DishWasherOptions {
+  racksPerDay: number
+  operatingDays: number
+}
+
+export interface DishWasher extends DishWasherStatic {
+  projectId: string
+  racksPerDay: number // reusables need additional racks
+  newRacksPerDay: number // reusables need additional racks
+  operatingDays: number
+  newOperatingDays: number
 }
 
 // monthly utilities and costs

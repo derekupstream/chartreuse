@@ -71,11 +71,13 @@ const otherExpenses: OtherExpense[] = [
 ]
 
 const dishwasher: DishWasher = {
-  additionalRacksPerDay: 80,
+  racksPerDay: 0,
+  newRacksPerDay: 80,
   boosterWaterHeaterFuelType: 'Electric',
   buildingWaterHeaterFuelType: 'Electric',
   energyStarCertified: true,
-  operatingDays: 7,
+  operatingDays: 0,
+  newOperatingDays: 7,
   projectId,
   temperature: 'High',
   type: 'Under Counter',

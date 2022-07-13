@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE "Dishwasher" ADD COLUMN     "newOperatingDays" INTEGER NOT NULL DEFAULT 0,
+ADD COLUMN     "newRacksPerDay" INTEGER NOT NULL DEFAULT 0,
+ADD COLUMN     "racksPerDay" INTEGER NOT NULL DEFAULT 0;

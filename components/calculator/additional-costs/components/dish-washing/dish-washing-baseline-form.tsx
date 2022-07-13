@@ -3,7 +3,6 @@ import { useEffect } from 'react'
 import { OptionSelection } from '../../../styles'
 import { Button, Form, Input, RadioChangeEvent } from 'antd'
 import { requiredRule } from 'utils/forms'
-import { useSimpleMutation } from 'hooks/useSimpleQuery'
 import { DISHWASHER_TYPES, FUEL_TYPES, TEMPERATURES } from 'lib/calculator/constants/dishwashers'
 import { useRouter } from 'next/router'
 import { Dishwasher } from '.prisma/client'
@@ -17,35 +16,33 @@ const yesOrNoOptions = [
   { label: 'Yes', value: 1 },
 ]
 
-type DishwasherInput = Omit<Dishwasher, 'energyStarCertified'> & { energyStarCertified: 0 | 1 }
+export type DishwasherData = Omit<Dishwasher, 'newOperatingDays' | 'newRacksPerDay'>
+
+type FormValues = Omit<DishwasherData, 'energyStarCertified'> & { energyStarCertified: 0 | 1 }
 
 type Props = {
-  input: Dishwasher | null
-  onClose(): void
+  input: DishwasherData | null
+  onSubmit(values: DishwasherData): void
 }
 
-const DishwashingFormDrawer: React.FC<Props> = ({ input, onClose }) => {
-  const [form] = Form.useForm<DishwasherInput>()
-  const createDishwashingCost = useSimpleMutation('/api/dishwasher', 'POST')
+const DishwashingFormDrawer: React.FC<Props> = ({ input, onSubmit }) => {
+  const [form] = Form.useForm<FormValues>()
   const [isWaterHeaterFuelVisible, setIsWaterHeaterFuelVisible] = useState(false)
 
   const route = useRouter()
   const projectId = route.query.id as string
 
   const handleSubmit = () => {
-    const { additionalRacksPerDay, energyStarCertified, operatingDays, ...formFields } = form.getFieldsValue()
+    const { racksPerDay, energyStarCertified, operatingDays, ...formFields } = form.getFieldsValue()
 
-    const values: Dishwasher = {
+    const values: DishwasherData = {
       ...formFields,
       projectId,
-      additionalRacksPerDay: Number(additionalRacksPerDay),
+      racksPerDay: Number(racksPerDay),
       energyStarCertified: Boolean(energyStarCertified),
       operatingDays: Number(operatingDays),
     }
-
-    createDishwashingCost.mutate(values, {
-      onSuccess: onClose,
-    })
+    onSubmit(values)
   }
 
   const onChangeTemperature = (event: RadioChangeEvent) => {
@@ -90,11 +87,11 @@ const DishwashingFormDrawer: React.FC<Props> = ({ input, onClose }) => {
       <FormItem label="Dish machine operating days per year" name="operatingDays">
         <Input type="number" />
       </FormItem>
-      <FormItem label="Average additional racks/day for reusables" name="additionalRacksPerDay">
+      <FormItem label="Average additional racks/day for reusables" name="racksPerDay">
         <Input type="number" />
       </FormItem>
       <Button htmlType="submit" size="large" type="primary" style={{ float: 'right' }}>
-        {input?.id ? 'Save' : 'Add'} expense
+        Next: Forecast
       </Button>
     </Form>
   )

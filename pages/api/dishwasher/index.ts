@@ -40,7 +40,8 @@ async function getDishwasher(req: NextApiRequestWithUser, res: NextApiResponse<R
     const stats = getDishwasherStats({ dishwasher, state })
     const rates = getUtilitiesByState(state)
     const accountId = dishwasher.project.account.id
-    res.status(200).json({ accountId, dishwasher, state, stats, rates })
+    const { project, ...dishwasherOnly } = dishwasher
+    res.status(200).json({ accountId, dishwasher: dishwasherOnly, state, stats, rates })
   } else {
     res.status(200).end()
   }
@@ -48,11 +49,14 @@ async function getDishwasher(req: NextApiRequestWithUser, res: NextApiResponse<R
 
 async function createDishwasher(req: NextApiRequestWithUser, res: NextApiResponse<{ dishwasher?: PrismaDishwasher; error?: string }>) {
   const data: Prisma.DishwasherCreateArgs['data'] = {
-    additionalRacksPerDay: req.body.additionalRacksPerDay,
+    additionalRacksPerDay: req.body.newRacksPerDay,
+    racksPerDay: req.body.racksPerDay,
     boosterWaterHeaterFuelType: req.body.boosterWaterHeaterFuelType ?? '',
     buildingWaterHeaterFuelType: req.body.buildingWaterHeaterFuelType,
     energyStarCertified: req.body.energyStarCertified,
     operatingDays: req.body.operatingDays,
+    newOperatingDays: req.body.newOperatingDays,
+    newRacksPerDay: req.body.newRacksPerDay,
     projectId: req.body.projectId,
     temperature: req.body.temperature,
     type: req.body.type,

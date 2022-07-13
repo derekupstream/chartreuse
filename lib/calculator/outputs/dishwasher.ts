@@ -3,32 +3,38 @@ import { dishwasherUtilityUsage, dishwasherAnnualCostBreakdown } from 'lib/calcu
 import { DishWasher } from 'lib/calculator/types/projects'
 import { getUtilityGasEmissions } from 'lib/calculator/outputs/environmental-results'
 import { getUtilitiesByState, USState } from 'lib/calculator/constants/utilities'
+import { ChangeSummary, getChangeSummaryRow, getChangeSummaryRowRounded, round } from '../utils'
 
 export type DishwasherStats = {
-  electricUsage: number
-  electricCO2Weight: number
-  electricCost: number
-  gasUsage: number
-  gasCO2Weight: number
-  gasCost: number
-  waterUsage: number
-  waterCost: number
+  electricUsage: ChangeSummary
+  electricCO2Weight: ChangeSummary
+  electricCost: ChangeSummary
+  gasUsage: ChangeSummary
+  gasCO2Weight: ChangeSummary
+  gasCost: ChangeSummary
+  waterUsage: ChangeSummary
+  waterCost: ChangeSummary
 }
 
 export function getDishwasherStats({ state, dishwasher }: { state: USState; dishwasher: PrismaDishwasher }): DishwasherStats {
   const rates = getUtilitiesByState(state)
-  const usage = dishwasherUtilityUsage(dishwasher as DishWasher)
-  const costs = dishwasherAnnualCostBreakdown(dishwasher as DishWasher, rates)
-  const emissions = getUtilityGasEmissions(dishwasher as DishWasher)
+  const baseline = { operatingDays: dishwasher.operatingDays, racksPerDay: dishwasher.racksPerDay }
+  const forecast = { operatingDays: dishwasher.newOperatingDays, racksPerDay: dishwasher.newRacksPerDay }
+  const baselineUsage = dishwasherUtilityUsage(dishwasher as DishWasher, baseline)
+  const baselineCosts = dishwasherAnnualCostBreakdown(dishwasher as DishWasher, baseline, rates)
+  const baselineEmissions = getUtilityGasEmissions(dishwasher as DishWasher, baseline)
+  const forecastUsage = dishwasherUtilityUsage(dishwasher as DishWasher, forecast)
+  const forecastCosts = dishwasherAnnualCostBreakdown(dishwasher as DishWasher, forecast, rates)
+  const forecastEmissions = getUtilityGasEmissions(dishwasher as DishWasher, forecast)
   const stats: DishwasherStats = {
-    electricUsage: usage.electricUsage,
-    electricCO2Weight: emissions.electric,
-    electricCost: costs.electric,
-    gasUsage: usage.gasUsage,
-    gasCO2Weight: emissions.gas,
-    gasCost: costs.gas,
-    waterUsage: usage.waterUsage,
-    waterCost: costs.water,
+    electricUsage: getChangeSummaryRow(baselineUsage.electricUsage, forecastUsage.electricUsage),
+    electricCO2Weight: getChangeSummaryRow(baselineEmissions.electric, forecastEmissions.electric),
+    electricCost: getChangeSummaryRow(baselineCosts.electric, forecastCosts.electric),
+    gasUsage: getChangeSummaryRow(baselineUsage.gasUsage, forecastUsage.gasUsage),
+    gasCO2Weight: getChangeSummaryRow(baselineEmissions.gas, forecastEmissions.gas),
+    gasCost: getChangeSummaryRow(baselineCosts.gas, forecastCosts.gas),
+    waterUsage: getChangeSummaryRow(baselineUsage.gasUsage, forecastUsage.waterUsage),
+    waterCost: getChangeSummaryRow(baselineCosts.water, forecastCosts.water),
   }
   return stats
 }

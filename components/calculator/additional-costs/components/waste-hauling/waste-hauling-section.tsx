@@ -8,8 +8,8 @@ import { SectionContainer, SectionData, SectionTitle } from '../styles'
 import { InfoCard, InfoRow } from 'components/calculator/styles'
 import styled from 'styled-components'
 import { formatToDollar } from 'lib/calculator/utils'
-import WasteHaulingFormDrawer from './waste-hauling-form-drawer'
-import WasteHaulingSecondFormDrawer from './waste-hauling-second-form-drawer'
+import WasteHaulingBaselineForm from './waste-hauling-baseline-form'
+import WasteHaulingForecastForm from './waste-hauling-forecast-form'
 import { useSimpleMutation, useSimpleQuery } from 'hooks/useSimpleQuery'
 import { WasteHaulingService } from 'lib/calculator/types/projects'
 import ContentLoader from 'components/content-loader'
@@ -177,7 +177,7 @@ const WasteHaulingSection = () => {
         contentWrapperStyle={contentWrapperStyle}
         destroyOnClose
       >
-        <WasteHaulingFormDrawer input={formValues} onClose={onCloseFirstForm} />
+        <WasteHaulingBaselineForm input={formValues} onClose={onCloseFirstForm} />
       </Drawer>
       <Drawer
         title={`${formValues?.id ? 'Update' : 'Add'} the forecast for monthly waste hauling service fees`}
@@ -186,7 +186,7 @@ const WasteHaulingSection = () => {
         contentWrapperStyle={contentWrapperStyle}
         destroyOnClose
       >
-        <WasteHaulingSecondFormDrawer input={formValues} onClose={onCloseSecondForm} />
+        <WasteHaulingForecastForm input={formValues} onClose={onCloseSecondForm} />
       </Drawer>
     </Container>
   )

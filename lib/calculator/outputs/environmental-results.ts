@@ -2,7 +2,7 @@ import { NATURAL_GAS_CO2_EMISSIONS_FACTOR, ELECTRIC_CO2_EMISSIONS_FACTOR } from 
 import { POUND_TO_TONNE } from '../constants/conversions'
 import { CORRUGATED_CARDBOARD, MATERIALS } from '../constants/materials'
 import { Frequency, getannualOccurrence } from '../constants/frequency'
-import { DishWasher, ProjectInput, SingleUseLineItemPopulated } from '../types/projects'
+import { DishWasherStatic, DishWasherOptions, ProjectInput, SingleUseLineItemPopulated } from '../types/projects'
 import { ChangeSummary, getChangeSummaryRow, getChangeSummaryRowRounded, round } from '../utils'
 import { dishwasherUtilityUsage } from './financial-results'
 import { annualSingleUseWeight } from './single-use-product-results'
@@ -30,8 +30,8 @@ interface AnnualGasEmissionChanges {
   total: ChangeSummary
 }
 
-export function getUtilityGasEmissions(dishwasher: DishWasher): { gas: number; electric: number } {
-  const { electricUsage, gasUsage } = dishwasherUtilityUsage(dishwasher)
+export function getUtilityGasEmissions(dishwasher: DishWasherStatic, options: DishWasherOptions): { gas: number; electric: number } {
+  const { electricUsage, gasUsage } = dishwasherUtilityUsage(dishwasher, options)
   const electric = electricUsage * ELECTRIC_CO2_EMISSIONS_FACTOR
   const gas = gasUsage * NATURAL_GAS_CO2_EMISSIONS_FACTOR
   return { gas, electric }
@@ -46,9 +46,12 @@ function getAnnualGasEmissionChanges(project: ProjectInput): AnnualGasEmissionCh
   // calculate increased dishwasher emissions
   let dishwashing = getChangeSummaryRowRounded(0, 0, 2)
   if (project.dishwasher) {
-    const { electric, gas } = getUtilityGasEmissions(project.dishwasher)
-    const gasEmissions = POUND_TO_TONNE * (electric + gas)
-    dishwashing = getChangeSummaryRowRounded(0, gasEmissions, 2)
+    const { dishwasher } = project
+    const baseline = getUtilityGasEmissions(project.dishwasher, { operatingDays: dishwasher.operatingDays, racksPerDay: dishwasher.racksPerDay })
+    const ghgBaseline = POUND_TO_TONNE * (baseline.electric + baseline.gas)
+    const followup = getUtilityGasEmissions(project.dishwasher, { operatingDays: dishwasher.newOperatingDays, racksPerDay: dishwasher.newRacksPerDay })
+    const ghgFollowup = POUND_TO_TONNE * (followup.electric + followup.gas)
+    dishwashing = getChangeSummaryRowRounded(ghgBaseline, ghgFollowup, 2)
   }
 
   return {
