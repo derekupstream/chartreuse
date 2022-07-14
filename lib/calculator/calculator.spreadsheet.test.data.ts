@@ -110,7 +110,7 @@ const project: ProjectInput = {
   singleUseItems: [],
   otherExpenses,
   reusableItems,
-  dishwasher,
+  dishwashers: [dishwasher],
   utilityRates: {
     gas: 0.922,
     electric: 0.1032,

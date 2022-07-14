@@ -44,15 +44,15 @@ function getAnnualGasEmissionChanges(project: ProjectInput): AnnualGasEmissionCh
   }, getChangeSummaryRow(0, 0))
 
   // calculate increased dishwasher emissions
-  let dishwashing = getChangeSummaryRowRounded(0, 0, 2)
-  if (project.dishwasher) {
-    const { dishwasher } = project
-    const baseline = getUtilityGasEmissions(project.dishwasher, { operatingDays: dishwasher.operatingDays, racksPerDay: dishwasher.racksPerDay })
-    const ghgBaseline = POUND_TO_TONNE * (baseline.electric + baseline.gas)
-    const followup = getUtilityGasEmissions(project.dishwasher, { operatingDays: dishwasher.newOperatingDays, racksPerDay: dishwasher.newRacksPerDay })
-    const ghgFollowup = POUND_TO_TONNE * (followup.electric + followup.gas)
-    dishwashing = getChangeSummaryRowRounded(ghgBaseline, ghgFollowup, 2)
+  let ghgBaseline = 0
+  let ghgFollowup = 0
+  for (const dishwasher of project.dishwashers) {
+    const baseline = getUtilityGasEmissions(dishwasher, { operatingDays: dishwasher.operatingDays, racksPerDay: dishwasher.racksPerDay })
+    ghgBaseline += POUND_TO_TONNE * (baseline.electric + baseline.gas)
+    const followup = getUtilityGasEmissions(dishwasher, { operatingDays: dishwasher.newOperatingDays, racksPerDay: dishwasher.newRacksPerDay })
+    ghgFollowup += POUND_TO_TONNE * (followup.electric + followup.gas)
   }
+  const dishwashing = getChangeSummaryRowRounded(ghgBaseline, ghgFollowup, 2)
 
   return {
     landfillWaste: getChangeSummaryRowRounded(landfillWaste.baseline, landfillWaste.followup, 2),

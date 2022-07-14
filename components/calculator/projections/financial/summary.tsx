@@ -24,7 +24,7 @@ const FinancialSummary: React.FC<Props> = ({ data: financialResults }) => {
           <Col span={8}>
             <Text strong>Savings</Text>
             <Title>Annual total</Title>
-            <Value color="green">{formatToDollar(financialResults.summary.annualCost * -1)}</Value>
+            <Value color={financialResults.summary.annualCost < 0 ? 'green' : 'black'}>{formatToDollar(financialResults.summary.annualCost * -1)}</Value>
 
             <Title>Annual program ROI</Title>
             <Value>{financialResults.summary.annualROIPercent}%</Value>
@@ -42,7 +42,7 @@ const FinancialSummary: React.FC<Props> = ({ data: financialResults }) => {
             <Value color="black">{formatToDollar(financialResults.oneTimeCosts.total)}</Value>
 
             <Title>Payback Period</Title>
-            <Value>{financialResults.summary.paybackPeriodsMonths} mos.</Value>
+            <Value>{financialResults.summary.paybackPeriodsMonths === 0 ? 'N/A' : financialResults.summary.paybackPeriodsMonths + '  mos.'}</Value>
 
             <hr />
 

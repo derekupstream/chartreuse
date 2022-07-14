@@ -71,10 +71,9 @@ function calculateAnnualCostChanges(project: ProjectInput): AnnualCostChanges {
 
   let utilitiesBaseline = 0
   let utilitiesFollowup = 0
-  if (project.dishwasher) {
-    const { dishwasher, utilityRates } = project
-    utilitiesBaseline = dishwasherAnnualCost(dishwasher, { operatingDays: dishwasher.operatingDays, racksPerDay: dishwasher.racksPerDay }, utilityRates)
-    utilitiesFollowup = dishwasherAnnualCost(dishwasher, { operatingDays: dishwasher.newOperatingDays, racksPerDay: dishwasher.newRacksPerDay }, utilityRates)
+  for (const dishwasher of project.dishwashers) {
+    utilitiesBaseline += dishwasherAnnualCost(dishwasher, { operatingDays: dishwasher.operatingDays, racksPerDay: dishwasher.racksPerDay }, project.utilityRates)
+    utilitiesFollowup += dishwasherAnnualCost(dishwasher, { operatingDays: dishwasher.newOperatingDays, racksPerDay: dishwasher.newRacksPerDay }, project.utilityRates)
   }
   const utilitiesChange = utilitiesFollowup - utilitiesBaseline
 
@@ -203,7 +202,7 @@ function calculateSummary(project: ProjectInput): FinancialSummary {
   const oneTimeCost = calculateOneTimeCosts(project).total
 
   // =IF(E31<0,ROUND((E38/-E46)*12,1),"--")
-  let paybackPeriodsMonths: number = -1 // Ask Sam: what should UI look like if payback period is -1?
+  let paybackPeriodsMonths: number = 0 // Ask Sam: what should UI look like if payback period is -1?
   if (annualCost < 0) {
     paybackPeriodsMonths = Math.ceil(-1 * (oneTimeCost / annualCost) * 12)
   }

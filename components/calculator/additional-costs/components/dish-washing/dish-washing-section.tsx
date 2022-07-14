@@ -8,17 +8,17 @@ import DishwashingBaselineForm, { DishwasherData as BaselineFormValues } from '.
 import DishwashingForecastForm, { DishwasherData as ForecastFormValues } from './dish-washing-forecast-form'
 import { AddBlock, Container, contentWrapperStyle, Placeholder, Subtitle } from '../expense-block'
 import { useSimpleMutation } from 'hooks/useSimpleQuery'
-import { SectionTitle } from '../styles'
+import { SectionTitle, SectionContainer } from '../styles'
 import { InfoCard, InfoRow } from 'components/calculator/styles'
 import styled from 'styled-components'
 import ContentLoader from 'components/content-loader'
 import * as http from 'lib/http'
-import { Response } from 'pages/api/dishwasher/index'
+import { Response } from 'pages/api/dishwashers/index'
 
 const DishWashingSection = () => {
   const route = useRouter()
-  const { data, isLoading, refetch } = useSimpleQuery<Response>(`/api/dishwasher?projectId=${route.query.id}`)
-  const createDishwashingCost = useSimpleMutation('/api/dishwasher', 'POST')
+  const { data, isLoading, refetch } = useSimpleQuery<Response>(`/api/dishwashers?projectId=${route.query.id}`)
+  const createDishwashingCost = useSimpleMutation('/api/dishwashers', 'POST')
 
   const [visibleForm, setVisibleForm] = useState<'baseline' | 'forecast' | null>(null)
   const [formState, setFormState] = useState<(BaselineFormValues & ForecastFormValues) | null>(null)
@@ -65,7 +65,7 @@ const DishWashingSection = () => {
   }
 
   const onConfirmDelete = () => {
-    http.DELETE(`/api/dishwasher`, { projectId: route.query.id }).then(() => {
+    http.DELETE(`/api/dishwashers`, { projectId: route.query.id }).then(() => {
       message.success('Dishwasher deleted')
       refetch()
     })
@@ -105,7 +105,14 @@ const DishWashingSection = () => {
 
   return (
     <Container>
-      <SectionTitle>Dishwasher</SectionTitle>
+      <SectionContainer>
+        <SectionTitle>Dishwashing</SectionTitle>
+        {!!data?.dishwashers?.length && (
+          <Button onClick={onClickCreate} icon={<PlusOutlined />} type="primary" style={{ paddingRight: '4em', paddingLeft: '4em' }}>
+            Add dishwasher
+          </Button>
+        )}
+      </SectionContainer>
       <Typography.Title level={5}>
         Use this section to help calculate dishwashing energy and water costs. Energy and water rates are based on your{' '}
         <Popover content={utilities.content} title={utilities.title} trigger="hover">
@@ -116,20 +123,20 @@ const DishWashingSection = () => {
         .
       </Typography.Title>
       <Divider />
-      {data?.dishwasher ? (
-        <InfoRow>
+      {(data?.dishwashers ?? []).map(({ stats, dishwasher }) => (
+        <InfoRow key={dishwasher.id}>
           <Col span={8} flex-direction="column">
-            <Subtitle style={{ margin: 0 }}>{data.dishwasher.type}</Subtitle>
+            <Subtitle style={{ margin: 0 }}>{dishwasher.type}</Subtitle>
             <Options>
-              {data.dishwasher.temperature ? data.dishwasher.temperature + ' Temperature, ' : ''}
-              {data.dishwasher.energyStarCertified ? 'Energy star certified' : null} {data.dishwasher.boosterWaterHeaterFuelType} Fuel
+              {dishwasher.temperature ? dishwasher.temperature + ' Temperature, ' : ''}
+              {dishwasher.energyStarCertified ? 'Energy star certified' : null} {dishwasher.boosterWaterHeaterFuelType} Fuel
             </Options>
             <br />
             <br />
             <a
               href="#"
               onClick={e => {
-                onClickEdit(data.dishwasher)
+                onClickEdit(dishwasher)
                 e.preventDefault()
               }}
             >
@@ -153,19 +160,19 @@ const DishWashingSection = () => {
                 </thead>
                 <tbody>
                   <tr>
-                    <td>{prettifyValues(data.stats.electricUsage.baseline)} kWh</td>
-                    <td>{prettifyValues(data.stats.electricCO2Weight.baseline)}</td>
-                    <td>$ {data.stats.electricCost.baseline.toLocaleString(undefined, { maximumFractionDigits: 2 })}</td>
+                    <td>{prettifyValues(stats.electricUsage.baseline)} kWh</td>
+                    <td>{prettifyValues(stats.electricCO2Weight.baseline)}</td>
+                    <td>$ {stats.electricCost.baseline.toLocaleString(undefined, { maximumFractionDigits: 2 })}</td>
                   </tr>
                   <tr>
-                    <td>{data.stats.gasUsage.baseline.toLocaleString(undefined, { maximumFractionDigits: 2 })} CF</td>
-                    <td>{prettifyValues(data.stats.gasCO2Weight.baseline)}</td>
-                    <td>$ {data.stats.gasCost.baseline.toLocaleString(undefined, { maximumFractionDigits: 2 })}</td>
+                    <td>{stats.gasUsage.baseline.toLocaleString(undefined, { maximumFractionDigits: 2 })} CF</td>
+                    <td>{prettifyValues(stats.gasCO2Weight.baseline)}</td>
+                    <td>$ {stats.gasCost.baseline.toLocaleString(undefined, { maximumFractionDigits: 2 })}</td>
                   </tr>
                   <tr>
-                    <td>{data.stats.waterUsage.baseline.toLocaleString(undefined, { maximumFractionDigits: 2 })} gal</td>
+                    <td>{stats.waterUsage.baseline.toLocaleString(undefined, { maximumFractionDigits: 2 })} gal</td>
                     <td></td>
-                    <td>$ {data.stats.waterCost.baseline.toLocaleString(undefined, { maximumFractionDigits: 2 })}</td>
+                    <td>$ {stats.waterCost.baseline.toLocaleString(undefined, { maximumFractionDigits: 2 })}</td>
                   </tr>
                 </tbody>
               </table>
@@ -184,30 +191,31 @@ const DishWashingSection = () => {
                 </thead>
                 <tbody>
                   <tr>
-                    <td>{prettifyValues(data.stats.electricUsage.followup)} kWh</td>
-                    <td>{prettifyValues(data.stats.electricCO2Weight.followup)}</td>
-                    <td>$ {data.stats.electricCost.followup.toLocaleString(undefined, { maximumFractionDigits: 2 })}</td>
+                    <td>{prettifyValues(stats.electricUsage.followup)} kWh</td>
+                    <td>{prettifyValues(stats.electricCO2Weight.followup)}</td>
+                    <td>$ {stats.electricCost.followup.toLocaleString(undefined, { maximumFractionDigits: 2 })}</td>
                   </tr>
                   <tr>
-                    <td>{data.stats.gasUsage.followup.toLocaleString(undefined, { maximumFractionDigits: 2 })} CF</td>
-                    <td>{prettifyValues(data.stats.gasCO2Weight.followup)}</td>
-                    <td>$ {data.stats.gasCost.followup.toLocaleString(undefined, { maximumFractionDigits: 2 })}</td>
+                    <td>{stats.gasUsage.followup.toLocaleString(undefined, { maximumFractionDigits: 2 })} CF</td>
+                    <td>{prettifyValues(stats.gasCO2Weight.followup)}</td>
+                    <td>$ {stats.gasCost.followup.toLocaleString(undefined, { maximumFractionDigits: 2 })}</td>
                   </tr>
                   <tr>
-                    <td>{data.stats.waterUsage.followup.toLocaleString(undefined, { maximumFractionDigits: 2 })} gal</td>
+                    <td>{stats.waterUsage.followup.toLocaleString(undefined, { maximumFractionDigits: 2 })} gal</td>
                     <td></td>
-                    <td>$ {data.stats.waterCost.followup.toLocaleString(undefined, { maximumFractionDigits: 2 })}</td>
+                    <td>$ {stats.waterCost.followup.toLocaleString(undefined, { maximumFractionDigits: 2 })}</td>
                   </tr>
                 </tbody>
               </table>
             </InfoCard>
           </Col>
         </InfoRow>
-      ) : (
+      ))}
+      {(!data || data?.dishwashers?.length === 0) && (
         <>
           <AddBlock>
             <Button onClick={onClickCreate} icon={<PlusOutlined />} type="primary" style={{ paddingRight: '4em', paddingLeft: '4em' }}>
-              Add dishwashing
+              Add dishwasher
             </Button>
             <Placeholder>You have no dishwashing entries yet. Click &apos;+ Add dishwashing&apos; above to get started.</Placeholder>
           </AddBlock>

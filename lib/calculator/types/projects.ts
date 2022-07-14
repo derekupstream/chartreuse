@@ -17,7 +17,7 @@ export interface ProjectInput {
   otherExpenses: OtherExpense[]
   reusableItems: ReusableLineItem[]
   singleUseItems: SingleUseLineItemPopulated[]
-  dishwasher?: DishWasher
+  dishwashers: DishWasher[]
   utilityRates: {
     gas: number
     electric: number

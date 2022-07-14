@@ -10,19 +10,18 @@ import { getUtilitiesByState, UtilityRates, USState } from 'lib/calculator/const
 
 const handler = nc<NextApiRequest, NextApiResponse>({ onError, onNoMatch })
 
-handler.use(getUser).use(validateProject).get(getDishwasher).post(createDishwasher).delete(deleteDishwasher)
+handler.use(getUser).use(validateProject).get(getDishwashers).post(createDishwasher).delete(deleteDishwasher)
 
 export interface Response {
   accountId: string
-  dishwasher: PrismaDishwasher
-  stats: DishwasherStats
+  dishwashers: { dishwasher: PrismaDishwasher; stats: DishwasherStats }[]
   state: string
   rates: UtilityRates
 }
 
-async function getDishwasher(req: NextApiRequestWithUser, res: NextApiResponse<Response>) {
+async function getDishwashers(req: NextApiRequestWithUser, res: NextApiResponse<Response>) {
   const projectId = req.query.projectId as string
-  const dishwasher = await prisma.dishwasher.findFirst({
+  const dishwashers = await prisma.dishwasher.findMany({
     where: {
       projectId,
     },
@@ -35,15 +34,19 @@ async function getDishwasher(req: NextApiRequestWithUser, res: NextApiResponse<R
     },
   })
 
-  if (dishwasher) {
-    const state = dishwasher.project.account.USState as USState
-    const stats = getDishwasherStats({ dishwasher, state })
-    const rates = getUtilitiesByState(state)
-    const accountId = dishwasher.project.account.id
-    const { project, ...dishwasherOnly } = dishwasher
-    res.status(200).json({ accountId, dishwasher: dishwasherOnly, state, stats, rates })
-  } else {
+  if (dishwashers.length === 0) {
     res.status(200).end()
+  } else {
+    const accountId = dishwashers[0].project.account.id
+    const state = dishwashers[0].project.account.USState as USState
+    const rates = getUtilitiesByState(state)
+
+    const dishwasherDTOs = dishwashers.map(({ project, ...dishwasherOnly }) => ({
+      dishwasher: dishwasherOnly,
+      stats: getDishwasherStats({ state, dishwasher: dishwasherOnly }),
+    }))
+
+    res.status(200).json({ accountId, dishwashers: dishwasherDTOs, state, rates })
   }
 }
 

@@ -39,7 +39,7 @@ export async function getProjectData(projectId: string): Promise<ProjectInput> {
   const wasteHauling = project.wasteHaulingCosts.map(mapWasteHauling)
 
   return {
-    dishwasher: project.dishwashers[0] as DishWasher | undefined,
+    dishwashers: project.dishwashers as DishWasher[],
     laborCosts,
     otherExpenses,
     reusableItems: project.reusableItems,
