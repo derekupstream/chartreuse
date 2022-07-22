@@ -3,7 +3,7 @@ import prisma from 'lib/prisma'
 import { getUtilitiesByState, USState } from './constants/utilities'
 import { OtherExpenseCategory } from './constants/other-expenses'
 import { Frequency } from './constants/frequency'
-import { getProducts } from './datasets/single-use-products'
+import getSingleUseItems from '../../inventory/getSingleUseItems'
 import { LaborCost, OtherExpense, SingleUseLineItem, WasteHaulingCost } from '@prisma/client'
 import { SingleUseProduct } from './types/products'
 import { LaborCostCategory } from './constants/labor-categories'
@@ -32,7 +32,7 @@ export async function getProjectData(projectId: string): Promise<ProjectInput> {
   const utilityRates = getUtilitiesByState(state)
 
   // map db model types to frontend types
-  const products = await getProducts()
+  const products = await getSingleUseItems({ orgId: project.orgId })
   const laborCosts = project.laborCosts.map(mapLaborCost)
   const otherExpenses = project.otherExpenses.map(mapAdditionalCost)
   const singleUseItems = project.singleUseItems.map(item => mapSingleUseItem(item, products))

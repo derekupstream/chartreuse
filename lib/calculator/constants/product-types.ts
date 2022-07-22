@@ -39,4 +39,7 @@ export const PRODUCT_TYPES = [
   { id: 37, name: 'Tooth Picks' },
   { id: 38, name: 'Wrap (Wax Lined Paper)' },
   { id: 39, name: 'Knife (Medium Weight)' },
+  { id: 40, name: 'Bag' }, // added for Taco Bell,
+  { id: 41, name: 'Drink Tray' }, // added for Taco Bell
+  { id: 42, name: 'Misc.' }, // added for Taco Bell
 ] as const

@@ -3,7 +3,7 @@ import prisma from 'lib/prisma'
 import { Project, Org, Account, Dishwasher, OtherExpense, LaborCost, ReusableLineItem, SingleUseLineItem, WasteHaulingCost } from '@prisma/client'
 import { getAllProjections, AllProjectsSummary as _AllProjectsSummary, ProjectionsResponse } from 'lib/calculator'
 import { poundsToTons } from 'lib/calculator/constants/conversions'
-import { getProducts } from 'lib/calculator/datasets/single-use-products'
+import getSingleUseItems from 'inventory/getSingleUseItems'
 import { LABOR_CATEGORIES } from 'lib/calculator/constants/labor-categories'
 import { getDishwasherStats } from 'lib/calculator/outputs/dishwasher'
 import { Frequency, getannualOccurrence } from 'lib/calculator/constants/frequency'
@@ -49,7 +49,7 @@ export async function getOrgExport(orgId: string) {
     },
   })
   const data = await getAllProjections(projects)
-  const products = await getProducts()
+  const products = await getSingleUseItems({ orgId })
 
   return getExportFile(data as AllProjectsSummary, products)
 }

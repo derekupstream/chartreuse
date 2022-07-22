@@ -1,4 +1,4 @@
-import { getProducts } from './datasets/single-use-products'
+import getSingleUseItems from '../../inventory/assets/upstream/getSingleUseItems'
 import { ProjectInput } from './types/projects'
 import { OtherExpense, DishWasher, ReusableLineItem, SingleUseLineItem, WasteHaulingService } from './types/projects'
 
@@ -77,7 +77,7 @@ const dishwasher: DishWasher = {
   buildingWaterHeaterFuelType: 'Electric',
   energyStarCertified: true,
   operatingDays: 0,
-  newOperatingDays: 7,
+  newOperatingDays: 364, // original math was 7 days * 52 weeks
   projectId,
   temperature: 'High',
   type: 'Under Counter',
@@ -120,7 +120,7 @@ const project: ProjectInput = {
 }
 
 export async function getProjectInput(): Promise<ProjectInput> {
-  const products = await getProducts()
+  const products = await getSingleUseItems()
   const singleUseItemsPopulated = singleUseItems.map(item => {
     const product = products.find(p => p.id === item.productId)
     if (!product) {

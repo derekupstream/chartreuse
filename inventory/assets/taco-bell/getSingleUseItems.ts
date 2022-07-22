@@ -1,30 +1,25 @@
 import neatCsv from 'neat-csv'
 import { readFile } from 'fs'
-import { SingleUseProduct } from '../types/products'
-import { MATERIALS } from '../constants/materials'
-import { PRODUCT_CATEGORIES } from '../constants/product-categories'
-import { PRODUCT_TYPES } from '../constants/product-types'
+import { SingleUseProduct } from '../../../lib/calculator/types/products'
+import { MATERIALS } from '../../../lib/calculator/constants/materials'
+import { PRODUCT_CATEGORIES } from '../../../lib/calculator/constants/product-categories'
+import { PRODUCT_TYPES } from '../../../lib/calculator/constants/product-types'
+import { csvToNumber } from '../../lib'
 
-// These items were provided by Upstream. They could also live in a database one day
-const csvFile = process.cwd() + '/lib/calculator/datasets/single-use-products-data.csv'
+const csvFile = process.cwd() + '/inventory/assets/taco-bell/single-use-items.6.21.22.csv'
 
 type CSVColumn =
   | 'Product ID'
-  | 'Product Category'
-  | 'Product Description'
-  | 'Product'
-  | 'Case Count (Units per Case)'
-  | 'Box Weight (lbs)'
-  | 'Box Weight as % of Gross Weight'
-  | 'Gross Case Weight (lbs)'
-  | 'Box Weight (lbs)'
-  | 'Item Weight (lbs)'
-  | 'Net Case Weight (lbs)' // to determine unit weight
+  | 'Description'
+  | 'Category'
+  | 'Product Type'
   | 'Primary Material'
-  | 'Primary Material Weight per Unit (lbs)'
   | 'Secondary Material (Lining/Wrapper)'
   | 'Size/Options'
-  | 'Second Material Weight per Unit (lbs)'
+  | 'Units per case'
+  | 'Net Case Weight (lbs)' // to determine unit weight
+  | 'Gross Case Weight (lbs)'
+  | 'Box Weight as % of Gross Weight'
 
 type CSVRow = {
   [field in CSVColumn]: string
@@ -41,22 +36,23 @@ const getProductsPromise = new Promise<SingleUseProduct[]>((resolve, reject) => 
   })
 })
 
-export async function getProducts(): Promise<SingleUseProduct[]> {
+export default async function getSingleUseItems(): Promise<SingleUseProduct[]> {
   return await getProductsPromise
 }
 
 // dont use the calculated value from spreadsheet since it is rounded to 4 decimals
 function csvRowToSingleUseProduct(csvProduct: CSVRow): SingleUseProduct {
   // @ts-ignore csvProduct['Product Category'] is a string and cant be compared to category.csvNames
-  const category = PRODUCT_CATEGORIES.find(category => category.csvNames.includes(csvProduct['Product Category']))
+  const category = PRODUCT_CATEGORIES.find(category => category.name === csvProduct['Category'])
   if (!category) {
-    throw new Error('Could not determine product category for CSV row: ' + csvProduct['Product Category'])
+    throw new Error('Could not determine product category for CSV row: ' + csvProduct['Category'])
   }
-  const type = PRODUCT_TYPES.find(category => category.name === csvProduct['Product'])
+  const type = PRODUCT_TYPES.find(category => category.name === csvProduct['Product Type'])
   if (!type) {
-    throw new Error('Could not determine product type for CSV row: ' + csvProduct['Product'])
+    throw new Error('Could not determine product type for CSV row: ' + csvProduct['Product Type'])
   }
-  const material1 = MATERIALS.find(material => material.name === csvProduct['Primary Material'])
+  // TODO: Fix once we have correct materials
+  const material1 = MATERIALS.find(material => material.name === 'Plastic (#5 PP)') // csvProduct['Primary Material'])
   if (!material1) {
     throw new Error('Could not determine 1st material for CSV row: ' + csvProduct['Primary Material'])
   }
@@ -65,20 +61,27 @@ function csvRowToSingleUseProduct(csvProduct: CSVRow): SingleUseProduct {
     throw new Error('Could not determine 2nd material for CSV row: ' + csvProduct['Secondary Material (Lining/Wrapper)'])
   }
   const productId = csvProduct['Product ID']
-  const unitsPerCase = csvToNumber(csvProduct['Case Count (Units per Case)'])
+  const unitsPerCase = csvToNumber(csvProduct['Units per case'])
   const grossCaseWeight = csvToNumber(csvProduct['Gross Case Weight (lbs)'])
   const boxPercentWeight = csvToNumber(csvProduct['Box Weight as % of Gross Weight']) / 100
   const boxWeight = grossCaseWeight * boxPercentWeight
-  const netCaseWeight = grossCaseWeight - boxWeight
+  let netCaseWeight = 0;
+  if (boxWeight) {
+    let netCaseWeight = grossCaseWeight - boxWeight
+  }
+  else {
+    // equation: gross case weight - (.125 * gross weight) = net case weight
+    netCaseWeight = grossCaseWeight - (.125 * grossCaseWeight)
+  }
   const itemWeight = netCaseWeight / unitsPerCase
-  const secondaryMaterialWeightPerUnit = csvToNumber(csvProduct['Second Material Weight per Unit (lbs)'])
+  const secondaryMaterialWeightPerUnit = 0 // Not provided by vendor
   const primaryMaterialWeightPerUnit = secondaryMaterialWeightPerUnit > 0 ? itemWeight - secondaryMaterialWeightPerUnit : itemWeight
 
   return {
     id: productId,
     boxWeight,
     category: category.id,
-    description: csvProduct['Product Description'],
+    description: csvProduct['Description'],
     type: type.id,
     itemWeight,
     unitsPerCase,
@@ -86,11 +89,6 @@ function csvRowToSingleUseProduct(csvProduct: CSVRow): SingleUseProduct {
     primaryMaterialWeightPerUnit,
     secondaryMaterial: material2?.id || 0,
     secondaryMaterialWeightPerUnit,
-    size: csvProduct['Size/Options'] || 'Standard', // product id 52 has no size set
+    size: csvProduct['Size/Options'],
   }
-}
-
-function csvToNumber(value: string = ''): number {
-  value = value.replace(/[^0-9.]/g, '').trim()
-  return value ? parseFloat(value) : 0
 }
