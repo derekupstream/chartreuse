@@ -67,7 +67,7 @@ function csvRowToSingleUseProduct(csvProduct: CSVRow): SingleUseProduct {
   const boxWeight = grossCaseWeight * boxPercentWeight
   let netCaseWeight = 0;
   if (boxWeight) {
-    let netCaseWeight = grossCaseWeight - boxWeight
+    netCaseWeight = grossCaseWeight - boxWeight
   }
   else {
     // equation: gross case weight - (.125 * gross weight) = net case weight

@@ -125,7 +125,7 @@ export function dishwasherUtilityUsage(dishwasher: DishWasherStatic, options: Di
     throw new Error('Unidentified dishwasher configuration')
   }
 
-  const operatingDaysPerYear = options.operatingDays;
+  const operatingDaysPerYear = options.operatingDays
   const waterUsage = washerProfile.values.waterUsePerRack * options.racksPerDay * operatingDaysPerYear // gallons per year
 
   // Hidden: dishwasher calulcations: C85, C86

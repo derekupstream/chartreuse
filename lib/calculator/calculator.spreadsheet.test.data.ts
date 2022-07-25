@@ -77,7 +77,7 @@ const dishwasher: DishWasher = {
   buildingWaterHeaterFuelType: 'Electric',
   energyStarCertified: true,
   operatingDays: 0,
-  newOperatingDays: 364, // original math was 7 days * 52 weeks
+  newOperatingDays: 364, // should be 365, but original test data was 7 days * 52 weeks
   projectId,
   temperature: 'High',
   type: 'Under Counter',
