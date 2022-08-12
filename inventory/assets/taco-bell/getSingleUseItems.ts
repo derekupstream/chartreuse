@@ -51,8 +51,9 @@ function csvRowToSingleUseProduct(csvProduct: CSVRow): SingleUseProduct {
   if (!type) {
     throw new Error('Could not determine product type for CSV row: ' + csvProduct['Product Type'])
   }
-  // TODO: Fix once we have correct materials
-  const material1 = MATERIALS.find(material => material.name === 'Plastic (#5 PP)') // csvProduct['Primary Material'])
+
+  const material1 = MATERIALS.find(material => material.name === csvProduct['Primary Material'])
+
   if (!material1) {
     throw new Error('Could not determine 1st material for CSV row: ' + csvProduct['Primary Material'])
   }
