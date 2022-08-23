@@ -90,6 +90,9 @@ export default function Members({ accounts, users, invites }: PageProps) {
       defaultSortOrder: 'ascend',
       sorter: (a, b) => (a.account?.toLowerCase() || '' < (b.account?.toLowerCase() || '') ? -1 : 1),
       showPending: true,
+      render: text => {
+        return text || <span style={{ color: '#999' }}>All accounts</span>
+      },
     },
     {
       title: 'Actions',

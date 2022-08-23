@@ -9,7 +9,7 @@ export async function getUserExport() {
     },
   })
 
-  return getExportFile(users)
+  return getUserExportFile(users)
 }
 
 function getUsers() {
@@ -26,7 +26,7 @@ function getUsers() {
 
 type User = Awaited<ReturnType<typeof getUsers>>[number]
 
-function getExportFile(users: User[]) {
+function getUserExportFile(users: User[]) {
   const workbook = new ExcelJS.Workbook()
 
   addUsersSheet(workbook, users)

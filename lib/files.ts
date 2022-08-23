@@ -1,8 +1,9 @@
-export async function requestDownload({ api, fileName }: { api: string; fileName: string }) {
+// request and download a file from the backend api
+export async function requestDownload({ api, title }: { api: string; title: string }) {
   try {
-    await fetch(api, {
-      method: 'GET',
-    })
+    const fileName = `${title} - ${new Date().toLocaleDateString().replace(/\//g, '-')}.xlsx`
+
+    await fetch(api, { method: 'GET' })
       .then(response => {
         if (response.status !== 200) {
           throw new Error('Sorry, I could not find that file.')

@@ -19,6 +19,7 @@ export const getServerSideProps: GetServerSideProps<MembersProps> = async contex
       where: {
         orgId: response.props.user.orgId,
         accountId: response.props.user.accountId || undefined,
+        accepted: false,
       },
     })
     return {

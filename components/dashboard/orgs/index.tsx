@@ -33,7 +33,7 @@ export default function Organizations({ orgs }: PageProps) {
   function exportData(org: OrgSummary) {
     return requestDownload({
       api: `/api/org/${org.id}/export`,
-      fileName: `${org.name} - ChartReuse Export - ${new Date().toLocaleDateString().replace(/\//g, '-')}.xlsx`,
+      title: `Chart Reuse Export: ${org.name}`,
     })
   }
 
@@ -86,7 +86,7 @@ export default function Organizations({ orgs }: PageProps) {
       render: (_, org: OrgSummary) => {
         return (
           <Space size="middle">
-            <Tooltip title="Download results">
+            <Tooltip title="Export projections">
               <Button onClick={() => exportData(org)} icon={<DownloadOutlined />} />
             </Tooltip>
             {!org.isUpstream && (
@@ -113,7 +113,7 @@ export default function Organizations({ orgs }: PageProps) {
   function exportUsers() {
     requestDownload({
       api: '/api/admin/export?type=users',
-      fileName: `ChartReuse Users Export - ${new Date().toLocaleDateString().replace(/\//g, '-')}.xlsx`,
+      title: `Chart Reuse Export: All Users`,
     })
   }
 
@@ -122,7 +122,7 @@ export default function Organizations({ orgs }: PageProps) {
       <S.SpaceBetween>
         <Typography.Title>Organizations</Typography.Title>
         <Button onClick={exportUsers}>
-          <DownloadOutlined /> Export Users
+          <DownloadOutlined /> Export all users
         </Button>
       </S.SpaceBetween>
       {/* @ts-ignore */}
