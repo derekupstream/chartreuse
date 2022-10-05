@@ -25,7 +25,7 @@ type FeatureOptions = Record<typeof PRODUCT_FEATURES[number]['title'], { name: s
 type SelectedFeatureOptions = Record<typeof PRODUCT_FEATURES[number]['title'] | 'productId', string | number | undefined | null>
 
 function getFormValues(features: SelectedFeatureOptions, products: SingleUseProduct[]) {
-  const categories = PRODUCT_CATEGORIES.slice()
+  const categories = PRODUCT_CATEGORIES.filter(category => products.some(p => p.category === category.id))
   let remainingProducts = features.Category ? products.filter(product => product.category === features.Category) : []
 
   const types = PRODUCT_TYPES.filter(type => remainingProducts.some(product => product.type === type.id))
