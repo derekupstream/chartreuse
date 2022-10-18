@@ -58,32 +58,34 @@ const Projects = () => {
           {data?.projects?.map((project: PopulatedProject) => {
             return (
               <Col xs={24} md={12} lg={8} key={project.id}>
-                <Card>
-                  <Typography.Title level={3} style={{ marginBottom: 0 }}>
-                    {project.name}
-                  </Typography.Title>
-                  <Typography.Title level={5} style={{ marginTop: 0 }}>
-                    {project.account.name}
-                  </Typography.Title>
-                  <S.ProjectInfo>
-                    <S.ProjectType>Location Type</S.ProjectType>
-                    <S.Actions>
-                      <Popconfirm
-                        title={
-                          <Space direction="vertical" size="small">
-                            <Typography.Text>
-                              Are you sure you want to delete the project &quot;
-                              {project.name}&quot;?
-                            </Typography.Text>
-                          </Space>
-                        }
-                        onConfirm={() => handleProjectDeletion(project.id)}
-                      >
-                        <Button icon={<DeleteOutlined />} type="text" loading={deleteProject.isLoading} />
-                      </Popconfirm>
-                    </S.Actions>
-                    <Typography.Text>{(project?.metadata as ProjectMetadata)?.type}</Typography.Text>
-                  </S.ProjectInfo>
+                <Card style={{ height: '100%' }} bodyStyle={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                  <div style={{ flexGrow: 1 }}>
+                    <Typography.Title level={3} style={{ marginBottom: 0, paddingRight: 20 }}>
+                      {project.name}
+                    </Typography.Title>
+                    <Typography.Title level={5} style={{ marginTop: 0 }}>
+                      {project.account.name}
+                    </Typography.Title>
+                    <S.ProjectInfo>
+                      <S.ProjectType>Location Type</S.ProjectType>
+                      <S.Actions>
+                        <Popconfirm
+                          title={
+                            <Space direction="vertical" size="small">
+                              <Typography.Text>
+                                Are you sure you want to delete the project &quot;
+                                {project.name}&quot;?
+                              </Typography.Text>
+                            </Space>
+                          }
+                          onConfirm={() => handleProjectDeletion(project.id)}
+                        >
+                          <Button icon={<DeleteOutlined />} type="text" loading={deleteProject.isLoading} />
+                        </Popconfirm>
+                      </S.Actions>
+                      <Typography.Text>{(project?.metadata as ProjectMetadata)?.type}</Typography.Text>
+                    </S.ProjectInfo>
+                  </div>
                   <Button type="ghost" block href={`/projects/${project.id}`}>
                     View project
                   </Button>
