@@ -2,10 +2,9 @@ import nookies from 'nookies'
 import prisma from 'lib/prisma'
 import { verifyIdToken } from 'lib/auth/firebaseAdmin'
 import { GetServerSidePropsContext } from 'next'
+import type { Prisma } from '@prisma/client'
 
-import { UserDataToInclude } from './getProjectContext'
-
-export async function getUserFromContext<T = Partial<typeof UserDataToInclude>>(context: GetServerSidePropsContext, dataToInclude: T = {} as T) {
+export async function getUserFromContext<T extends Partial<Prisma.UserInclude> = {}>(context: GetServerSidePropsContext, dataToInclude: T = {} as T) {
   try {
     const cookies = nookies.get(context)
     const token = await verifyIdToken(cookies.token)

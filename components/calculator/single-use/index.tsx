@@ -301,6 +301,8 @@ export default function SingleUse({ project }: ServerSideProps) {
       }
       items[product.category] = items[product.category] || []
       items[product.category].push(record)
+    } else {
+      console.error('Could not find product by product id:', item.productId)
     }
     return items
   }, {})

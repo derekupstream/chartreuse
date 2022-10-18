@@ -62,6 +62,7 @@ export interface ReusableLineItem {
   casesPurchased: number
   projectId: string
   productName: string
+  unitsPerCase: number
 }
 
 export interface OtherExpense {

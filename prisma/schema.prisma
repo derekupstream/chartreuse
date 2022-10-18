@@ -104,6 +104,7 @@ model ReusableLineItem {
   annualRepurchasePercentage Float
   caseCost                   Float
   casesPurchased             Int
+  unitsPerCase               Int     @default(0)
   categoryId                 String
   productName                String
   projectId                  String  @db.Uuid

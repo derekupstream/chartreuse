@@ -226,6 +226,7 @@ function addReusablesSheet(workbook: ExcelJS.Workbook, data: AllProjectsSummary)
     { header: 'Repurchase %', key: 'repurchase', width: 20 },
     { header: 'Case cost', key: 'caseCost', width: 20 },
     { header: 'Cases Purchased', key: 'casesPurchased', width: 20 },
+    { header: 'Units per case', key: 'unitsPerCase', width: 20 },
     { header: 'Project', key: 'project', width: 30 },
     { header: 'Account', key: 'account', width: 30 },
     { header: 'Organization', key: 'org', width: 30 },
@@ -242,6 +243,7 @@ function addReusablesSheet(workbook: ExcelJS.Workbook, data: AllProjectsSummary)
           repurchase: round(item.annualRepurchasePercentage, 2),
           caseCost: item.caseCost,
           casesPurchased: item.casesPurchased,
+          unitsPerCase: item.unitsPerCase,
         }))
       )
       .flat()

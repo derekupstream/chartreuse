@@ -6,6 +6,7 @@ import { ReusableLineItem } from 'lib/calculator/types/projects'
 import ReusablePurchasingFirstStepForm from './reusable-purchasing-first-step-form'
 import ReusablePurchasingSecondStepForm from './reusable-purchasing-second-step-form'
 import { useRouter } from 'next/router'
+import * as http from 'lib/http'
 import { PRODUCT_CATEGORIES } from 'lib/calculator/constants/product-categories'
 import ItemRow from './components/ItemRow'
 import ContentLoader from 'components/content-loader'
@@ -25,6 +26,7 @@ export interface ReusableFormValues {
   caseCost: string
   casesPurchased: string
   categoryId: string
+  unitsPerCase: string
   productName: string
 }
 
@@ -53,7 +55,7 @@ export default function ReusablePurchasing() {
 
     try {
       const url = `/api/projects/${projectId}/reusable-items`
-      const { lineItems } = await fetch(url).then(response => response.json())
+      const { lineItems } = await http.GET<{ lineItems: ReusableLineItem[] }>(url)
       setLineItems(lineItems)
     } catch (error) {
       setLineItems([])
@@ -76,12 +78,13 @@ export default function ReusablePurchasing() {
       casesPurchased: item.casesPurchased.toString(),
       categoryId: item.categoryId,
       productName: item.productName,
+      unitsPerCase: item.unitsPerCase?.toString() ?? '0',
     })
     setFormStep(1)
     setIsDrawerVisible(true)
   }
 
-  function onPressNext(values: ReusableFormValues) {
+  function onSubmitFirstStep(values: ReusableFormValues) {
     setFormValues({ ...formValues, ...values })
     setFormStep(2)
   }
@@ -99,6 +102,7 @@ export default function ReusablePurchasing() {
       casesPurchased: parseInt(values.casesPurchased),
       annualRepurchasePercentage: parseFloat(values.annualRepurchasePercentage),
       caseCost: parseInt(values.caseCost),
+      unitsPerCase: parseInt(values.unitsPerCase),
       projectId,
     }
 
@@ -168,7 +172,7 @@ export default function ReusablePurchasing() {
             visible={isDrawerVisible}
             contentWrapperStyle={{ width: '600px' }}
           >
-            {formStep === 1 && <ReusablePurchasingFirstStepForm input={formValues} onPressNext={onPressNext} />}
+            {formStep === 1 && <ReusablePurchasingFirstStepForm input={formValues} onPressNext={onSubmitFirstStep} />}
             {formStep === 2 && <ReusablePurchasingSecondStepForm input={formValues!} onPressPrevious={onPressPrevious} onPressSubmit={onSubmitForecast} />}
           </Drawer>
         </>
@@ -177,12 +181,22 @@ export default function ReusablePurchasing() {
   )
 }
 
+type SummaryCounts = { products: number; units: number; unitsForecast: number; cost: number; costForecast: number }
+
 const SummaryRow = ({ lineItems }: { lineItems: ReusableLineItem[] }) => {
-  const baselineProductCount = lineItems.filter(item => item.casesPurchased > 0).length
-  const baselineCost = lineItems.reduce((total, item) => {
-    const itemTotal = item.caseCost * item.casesPurchased
-    return total + itemTotal
-  }, 0)
+  const totals = lineItems.reduce<SummaryCounts>(
+    (_totals, item) => {
+      if (item.casesPurchased > 0) {
+        _totals.products += 1
+        _totals.cost += item.casesPurchased * item.caseCost
+        _totals.units += item.casesPurchased * item.unitsPerCase
+        _totals.costForecast += item.caseCost * item.annualRepurchasePercentage * item.casesPurchased
+        _totals.unitsForecast += item.unitsPerCase * item.annualRepurchasePercentage * item.casesPurchased
+      }
+      return _totals
+    },
+    { products: 0, units: 0, cost: 0, costForecast: 0, unitsForecast: 0 }
+  )
   const averageRepurchaseRate = Math.round(
     (lineItems.reduce((total, item) => {
       return total + item.annualRepurchasePercentage
@@ -190,10 +204,6 @@ const SummaryRow = ({ lineItems }: { lineItems: ReusableLineItem[] }) => {
       lineItems.length) *
       100
   )
-  const forecastCost = lineItems.reduce((total, item) => {
-    const itemTotal = item.caseCost * item.annualRepurchasePercentage * item.casesPurchased
-    return total + itemTotal
-  }, 0)
   return (
     <S.InfoCard style={{ boxShadow: 'none' }}>
       <Row>
@@ -212,14 +222,21 @@ const SummaryRow = ({ lineItems }: { lineItems: ReusableLineItem[] }) => {
               <SmallText>Number of products</SmallText>
             </Col>
             <Col span={8}>
-              <SmallText>{baselineProductCount}</SmallText>
+              <SmallText>{totals.products}</SmallText>
+            </Col>
+            {/* next row */}
+            <Col span={16}>
+              <SmallText>Number of units</SmallText>
+            </Col>
+            <Col span={8}>
+              <SmallText>{totals.units}</SmallText>
             </Col>
             {/* next row */}
             <Col span={16}>
               <SmallText>Total</SmallText>
             </Col>
             <Col span={8}>
-              <SmallText>{formatToDollar(baselineCost)}</SmallText>
+              <SmallText>{formatToDollar(totals.cost)}</SmallText>
             </Col>
           </Row>
         </Col>
@@ -239,10 +256,17 @@ const SummaryRow = ({ lineItems }: { lineItems: ReusableLineItem[] }) => {
             </Col>
             {/* next row */}
             <Col span={16}>
+              <SmallText>Number of units</SmallText>
+            </Col>
+            <Col span={8}>
+              <SmallText>{totals.unitsForecast}</SmallText>
+            </Col>
+            {/* next row */}
+            <Col span={16}>
               <SmallText>Annual repurchase cost</SmallText>
             </Col>
             <Col span={8}>
-              <SmallText>{formatToDollar(forecastCost)}</SmallText>
+              <SmallText>{formatToDollar(totals.costForecast)}</SmallText>
             </Col>
           </Row>
         </Col>
