@@ -8,7 +8,7 @@ import { LaborCost, OtherExpense, SingleUseLineItem, WasteHaulingCost } from '@p
 import { SingleUseProduct } from './types/products'
 import { LaborCostCategory } from './constants/labor-categories'
 
-export async function getProjectData(projectId: string): Promise<ProjectInput> {
+export async function getProjectInput(projectId: string): Promise<ProjectInput> {
   const project = await prisma.project.findFirst({
     where: {
       id: projectId,

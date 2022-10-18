@@ -28,7 +28,7 @@ function getFormValues(features: SelectedFeatureOptions, products: SingleUseProd
   const categories = PRODUCT_CATEGORIES.filter(category => products.some(p => p.category === category.id))
   let remainingProducts = features.Category ? products.filter(product => product.category === features.Category) : []
 
-  const types = PRODUCT_TYPES.filter(type => remainingProducts.some(product => product.type === type.id))
+  const types = PRODUCT_TYPES.filter(type => remainingProducts.some(product => product.type === type.id)).sort((a, b) => a.name.localeCompare(b.name))
   if (typeof features['Product type'] !== 'number' && types.length === 1) {
     features['Product type'] = types[0].id
   }
