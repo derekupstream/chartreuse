@@ -17,7 +17,7 @@ const ReusablePurchasingSecondStepForm: FC<Props> = props => {
 
   useEffect(() => {
     if (input) {
-      const casesAnnually = parseFloat(input.annualRepurchasePercentage) * parseInt(input.casesPurchased)
+      const casesAnnually = Math.ceil(parseFloat(input.annualRepurchasePercentage) * parseInt(input.casesPurchased))
       form.setFieldsValue({ ...input, casesAnnually })
     }
   }, [input])

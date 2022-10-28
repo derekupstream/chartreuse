@@ -33,7 +33,7 @@ export function getDishwasherStats({ state, dishwasher }: { state: USState; dish
     gasUsage: getChangeSummaryRow(baselineUsage.gasUsage, forecastUsage.gasUsage),
     gasCO2Weight: getChangeSummaryRow(baselineEmissions.gas, forecastEmissions.gas),
     gasCost: getChangeSummaryRow(baselineCosts.gas, forecastCosts.gas),
-    waterUsage: getChangeSummaryRow(baselineUsage.gasUsage, forecastUsage.waterUsage),
+    waterUsage: getChangeSummaryRow(baselineUsage.waterUsage, forecastUsage.waterUsage),
     waterCost: getChangeSummaryRow(baselineCosts.water, forecastCosts.water),
   }
   return stats
