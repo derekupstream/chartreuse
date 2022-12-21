@@ -51,13 +51,12 @@
     "jest": "^27.1.0",
     "less": "^4.1.1",
     "lint-staged": "^11.0.0",
-    "next-compose-plugins": "^2.2.1",
     "next-with-less": "^2.0.5",
     "prettier": "^2.3.2",
     "ts-jest": "^27.0.5",
     "typescript": "^4.4.2"
   },
   "resolutions": {
-    "@antv/g2": "4.1.x"
+    "d3-interpolate": "2.0.1"
   }
 }

@@ -1,4 +1,4 @@
-const withPlugins = require('next-compose-plugins')
+
 const withLess = require('next-with-less')
 
 /**
@@ -47,4 +47,4 @@ const config = {
   },
 }
 
-module.exports = withPlugins([withLess], config)
+module.exports = withLess(config)

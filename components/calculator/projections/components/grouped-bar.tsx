@@ -32,7 +32,6 @@ export default function GroupedBar({ data, formatter = (val: number) => val?.toL
     yField: 'label',
     seriesField: 'type',
     color: ['#E0FACA', '#95EE49'],
-    xAxis: false,
     // xAxis: {
     //   label: {
     //     formatter: (datum: string) => formatter(parseInt(datum)),

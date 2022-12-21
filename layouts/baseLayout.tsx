@@ -113,9 +113,7 @@ const DashboardTemplate: React.FC<DashboardProps> = ({ user, selectedMenuItem, t
           <S.OrgAndUserWrapper>
             <Typography.Text type='secondary'>{user.org.name}</Typography.Text>
             <Dropdown
-              overlay={
-                <Menu theme='light' items={accountLinks} />
-              }
+              menu={{ items: accountLinks }}
               placement='bottomRight'
             >
               <Button type='ghost'>
