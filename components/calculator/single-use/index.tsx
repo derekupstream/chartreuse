@@ -315,7 +315,7 @@ export default function SingleUse({ project }: ServerSideProps) {
           Add a single-use item
         </Button>
       </div>
-      <Typography.Title level={5}>Create an inventory of all single-use items you purchase regularly.</Typography.Title>
+      <Typography.Title level={5}>Create a baseline of single-use items you purchase regularly. Forecast what you could save by reducing or eliminating these items.</Typography.Title>
       {lineItems.isLoading ? (
         <ContentLoader />
       ) : (
