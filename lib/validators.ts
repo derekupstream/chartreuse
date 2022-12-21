@@ -4,6 +4,8 @@ import { LABOR_CATEGORIES } from 'lib/calculator/constants/labor-categories'
 import { SERVICE_TYPES, WASTE_STREAMS } from 'lib/calculator/constants/waste-hauling'
 import { z } from 'zod'
 
+const serviceTypeList = SERVICE_TYPES.map(f => f.type)
+
 export const CreateOtherExpenseValidator = z.object({
   projectId: z.string().nonempty(),
   categoryId: z.string().nonempty().refine(validateCategory(OTHER_EXPENSES), {
@@ -18,7 +20,7 @@ export const CreateOtherExpenseValidator = z.object({
 export const CreateWasteHaulingCostValidator = z.object({
   projectId: z.string().nonempty(),
   monthlyCost: z.number(),
-  serviceType: z.string().nonempty().refine(isOneOf(SERVICE_TYPES), {
+  serviceType: z.string().nonempty().refine(isOneOf(serviceTypeList), {
     message: 'invalid value for serviceType',
   }),
   wasteStream: z.string().nonempty().refine(isOneOf(WASTE_STREAMS), {

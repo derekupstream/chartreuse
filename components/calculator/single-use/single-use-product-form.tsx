@@ -164,7 +164,13 @@ export default function SelectProductStep({ input, onSubmit, products }: { input
 
   return (
     <Form layout="vertical">
-      <p>Select a product from our single-use product database. If a close match doesn&apos;t exist in the system, please contact Upstream.</p>
+      <p>
+        Select a product from our single-use product database. If a close match doesn&apos;t exist in the system, please contact Upstream at{' '}
+        <a style={{ textDecoration: 'underline' }} href="mailto:chartreuse@upstreamsolutions.org">
+          chartreuse@upstreamsolutions.org
+        </a>
+        .
+      </p>
       {PRODUCT_FEATURES.map(option => (
         <FeatureSelect value={selected[option.title]} key={option.title} items={options[option.title]} feature={option.title} onSelect={onSelect} />
       ))}

@@ -1,14 +1,14 @@
 import styled from 'styled-components'
 import { useEffect } from 'react'
 import { OptionSelection } from '../../../styles'
-import { Button, Form, Input, RadioChangeEvent, Row } from 'antd'
+import { Button, Form, Input, RadioChangeEvent, Row, Tooltip } from 'antd'
 import { requiredRule } from 'utils/forms'
 import { useRouter } from 'next/router'
 import { WasteHaulingService } from 'lib/calculator/types/projects'
 import { SERVICE_TYPES, WASTE_STREAMS } from 'lib/calculator/constants/waste-hauling'
 
 const wasteStreamOptions = WASTE_STREAMS.map(w => ({ value: w, label: w }))
-const serviceTypeOptions = SERVICE_TYPES.map(s => ({ value: s, label: s }))
+const serviceTypeOptions = SERVICE_TYPES.map(s => ({ value: s.type, label: <Tooltip title={s.description}>{s.type}</Tooltip> }))
 
 type Props = {
   input: WasteHaulingService | null

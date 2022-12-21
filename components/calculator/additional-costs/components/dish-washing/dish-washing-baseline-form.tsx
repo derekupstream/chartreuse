@@ -87,7 +87,7 @@ const DishwashingFormDrawer: React.FC<Props> = ({ input, onSubmit }) => {
       <FormItem label="Dish machine operating days per year" name="operatingDays">
         <Input type="number" />
       </FormItem>
-      <FormItem label="Average additional racks/day for reusables" name="racksPerDay">
+      <FormItem label="Current racks/per day for reusables" name="racksPerDay">
         <Input type="number" />
       </FormItem>
       <Button htmlType="submit" size="large" type="primary" style={{ float: 'right' }}>
