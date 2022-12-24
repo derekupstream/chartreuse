@@ -32,6 +32,8 @@ interface AllProjectsSummary extends Omit<_AllProjectsSummary, 'projects'> {
   projects: ProjectSummary[]
 }
 
+type SheetRow = Record<string, string | number>
+
 export async function getOrgExport(orgId: string) {
   const projects = await prisma.project.findMany({
     where: {
@@ -82,7 +84,7 @@ function addSummarySheet(workbook: ExcelJS.Workbook, data: AllProjectsSummary) {
     { header: 'Change', key: 'change', width: 20 },
   ]
 
-  sheet.addRows([
+  const rows: SheetRow[] = [
     {
       title: 'Estimated Savings ($)',
       baseline: data.summary.savings.baseline,
@@ -113,7 +115,9 @@ function addSummarySheet(workbook: ExcelJS.Workbook, data: AllProjectsSummary) {
       forecast: data.summary.gas.forecast,
       change: data.summary.gas.baseline - data.summary.gas.forecast,
     },
-  ])
+  ]
+
+  sheet.addRows(rows)
 }
 
 // Define Projects Worksheet
@@ -142,38 +146,38 @@ function addProjectsSheet(workbook: ExcelJS.Workbook, data: AllProjectsSummary) 
     { header: 'Dishwashing Type', key: 'dishwashingType', width: 30 },
   ]
 
-  sheet.addRows(
-    data.projects.map(project => {
-      const metadata = project.metadata as any
-      const utilityRates = getUtilitiesByState(project.account.USState as USState)
-      return {
-        title: project.name,
-        Savings_baseline: project.projections.financialResults.annualCostChanges.baseline,
-        Savings_forecast: project.projections.financialResults.annualCostChanges.followup,
-        Savings_change: project.projections.financialResults.annualCostChanges.change,
-        'Single-Use_baseline': project.projections.singleUseProductResults.summary.annualUnits.baseline,
-        'Single-Use_forecast': project.projections.singleUseProductResults.summary.annualUnits.followup,
-        'Single-Use_change': project.projections.singleUseProductResults.summary.annualUnits.change,
-        Waste_baseline: project.projections.environmentalResults.annualWasteChanges.total.baseline,
-        Waste_forecast: project.projections.environmentalResults.annualWasteChanges.total.followup,
-        Waste_change: project.projections.environmentalResults.annualWasteChanges.total.change,
-        GHG_baseline: project.projections.environmentalResults.annualGasEmissionChanges.total.baseline,
-        GHG_forecast: project.projections.environmentalResults.annualGasEmissionChanges.total.followup,
-        GHG_change: project.projections.environmentalResults.annualGasEmissionChanges.total.change,
-        USState: project.account.USState,
-        electricRate: utilityRates.electric,
-        gasRate: utilityRates.gas,
-        waterRate: utilityRates.water,
-        projectType: metadata.type,
-        dailyCustomers: metadata.customers,
-        dineInVsTakeOut: metadata.hasOwnProperty('dineInVsTakeOut') ? metadata.dineInVsTakeOut + '%' : '',
-        whereIsFoodPrepared: metadata.whereIsFoodPrepared,
-        dishwashingType: metadata.dishwashingType,
-        account: project.account.name,
-        org: project.org.name,
-      }
-    })
-  )
+  const rows = data.projects.map(project => {
+    const metadata = project.metadata as any
+    const utilityRates = getUtilitiesByState(project.account.USState as USState)
+    return {
+      title: project.name,
+      Savings_baseline: project.projections.financialResults.annualCostChanges.baseline,
+      Savings_forecast: project.projections.financialResults.annualCostChanges.followup,
+      Savings_change: project.projections.financialResults.annualCostChanges.change,
+      'Single-Use_baseline': project.projections.singleUseProductResults.summary.annualUnits.baseline,
+      'Single-Use_forecast': project.projections.singleUseProductResults.summary.annualUnits.followup,
+      'Single-Use_change': project.projections.singleUseProductResults.summary.annualUnits.change,
+      Waste_baseline: project.projections.environmentalResults.annualWasteChanges.total.baseline,
+      Waste_forecast: project.projections.environmentalResults.annualWasteChanges.total.followup,
+      Waste_change: project.projections.environmentalResults.annualWasteChanges.total.change,
+      GHG_baseline: project.projections.environmentalResults.annualGasEmissionChanges.total.baseline,
+      GHG_forecast: project.projections.environmentalResults.annualGasEmissionChanges.total.followup,
+      GHG_change: project.projections.environmentalResults.annualGasEmissionChanges.total.change,
+      USState: project.account.USState,
+      electricRate: utilityRates.electric,
+      gasRate: utilityRates.gas,
+      waterRate: utilityRates.water,
+      projectType: metadata.type,
+      dailyCustomers: metadata.customers,
+      dineInVsTakeOut: metadata.hasOwnProperty('dineInVsTakeOut') ? metadata.dineInVsTakeOut + '%' : '',
+      whereIsFoodPrepared: metadata.whereIsFoodPrepared,
+      dishwashingType: metadata.dishwashingType,
+      account: project.account.name,
+      org: project.org.name,
+    }
+  })
+
+  sheet.addRows(rows)
 }
 
 // Define Single-Use Worksheet
@@ -197,24 +201,24 @@ function addSingleUseSheet(workbook: ExcelJS.Workbook, data: AllProjectsSummary,
     { header: 'Organization', key: 'org', width: 30 },
   ]
 
-  sheet.addRows(
-    data.projects
-      .map(project =>
-        project.singleUseItems.map(item => ({
-          title: getProduct(item).description || '',
-          project: project.name,
-          account: project.account.name,
-          org: project.org.name,
-          caseCost: item.caseCost,
-          casesPurchased: item.casesPurchased,
-          frequency: item.frequency,
-          newCaseCost: item.newCaseCost,
-          newCasesPurchased: item.newCasesPurchased,
-          unitsPerCase: item.unitsPerCase,
-        }))
-      )
-      .flat()
-  )
+  const rows: SheetRow[] = data.projects
+    .map(project =>
+      project.singleUseItems.map(item => ({
+        title: getProduct(item).description || '',
+        project: project.name,
+        account: project.account.name,
+        org: project.org.name,
+        caseCost: item.caseCost,
+        casesPurchased: item.casesPurchased,
+        frequency: item.frequency,
+        newCaseCost: item.newCaseCost,
+        newCasesPurchased: item.newCasesPurchased,
+        unitsPerCase: item.unitsPerCase,
+      }))
+    )
+    .flat()
+
+  sheet.addRows(rows)
 }
 
 // Define Reusables Worksheet
@@ -232,22 +236,22 @@ function addReusablesSheet(workbook: ExcelJS.Workbook, data: AllProjectsSummary)
     { header: 'Organization', key: 'org', width: 30 },
   ]
 
-  sheet.addRows(
-    data.projects
-      .map(project =>
-        project.reusableItems.map(item => ({
-          title: item.productName,
-          project: project.name,
-          account: project.account.name,
-          org: project.org.name,
-          repurchase: round(item.annualRepurchasePercentage, 2),
-          caseCost: item.caseCost,
-          casesPurchased: item.casesPurchased,
-          unitsPerCase: item.unitsPerCase,
-        }))
-      )
-      .flat()
-  )
+  const rows: SheetRow[] = data.projects
+    .map(project =>
+      project.reusableItems.map(item => ({
+        title: item.productName,
+        project: project.name,
+        account: project.account.name,
+        org: project.org.name,
+        repurchase: round(item.annualRepurchasePercentage, 2),
+        caseCost: item.caseCost,
+        casesPurchased: item.casesPurchased,
+        unitsPerCase: item.unitsPerCase,
+      }))
+    )
+    .flat()
+
+  sheet.addRows(rows)
 }
 
 // Define Additional Costs Worksheet
@@ -258,9 +262,9 @@ function addAdditionalCostsSheet(workbook: ExcelJS.Workbook, data: AllProjectsSu
     { header: 'Description', key: 'title', width: 30 },
     { header: 'Category', key: 'category', width: 20 },
     { header: 'Frequency', key: 'frequency', width: 20 },
-    { header: 'Baseline Cost', key: 'baselineCost', width: 20 },
-    { header: 'Forecast Cost', key: 'forecastCost', width: 20 },
-    { header: 'Annual Forecast Cost', key: 'forecastAnnualCost', width: 20 },
+    { header: 'Cost: Baseline', key: 'baselineCost', width: 20 },
+    { header: 'Cost: Forecast', key: 'forecastCost', width: 20 },
+    { header: 'Annual Cost', key: 'forecastAnnualCost', width: 20 },
     { header: 'Project', key: 'project', width: 30 },
     { header: 'Account', key: 'account', width: 30 },
     { header: 'Organization', key: 'org', width: 30 },
@@ -318,9 +322,13 @@ function addDishwasherSheet(workbook: ExcelJS.Workbook, data: AllProjectsSummary
 
   sheet.columns = [
     { header: '', key: 'type', width: 30 },
-    { header: 'Annual usage', key: 'usage', width: 30 },
-    { header: 'CO2 (lbs/yr)', key: 'weight', width: 20 },
-    { header: 'Annual cost', key: 'cost', width: 20 },
+    { header: 'Annual usage: Baseline', key: 'usage', width: 30 },
+    { header: 'CO2 (lbs/yr): Baseline', key: 'weight', width: 20 },
+    { header: 'Annual cost: Baseline', key: 'cost', width: 20 },
+    { header: 'Annual usage: Forecast', key: 'usageForecast', width: 30 },
+    { header: 'CO2 (lbs/yr): Forecast', key: 'weightForecast', width: 20 },
+    { header: 'Annual cost: Forecast', key: 'cost', width: 20 },
+    { header: 'Annual cost: Forecast', key: 'cost', width: 20 },
     { header: 'Project', key: 'project', width: 30 },
     { header: 'Account', key: 'account', width: 30 },
     { header: 'Organization', key: 'org', width: 30 },
@@ -330,35 +338,45 @@ function addDishwasherSheet(workbook: ExcelJS.Workbook, data: AllProjectsSummary
       .filter(project => project.dishwashers.length > 0)
       .map(project => {
         const stats = getDishwasherStats({ dishwasher: project.dishwashers[0], state: project.account.USState as USState })
-        return [
+        const rows: SheetRow[] = [
           {
             type: 'Electric Usage (kWh)',
-            usage: stats.electricUsage,
-            weight: stats.electricCO2Weight,
-            cost: stats.electricCost,
+            usage: stats.electricUsage.baseline,
+            usageForecast: stats.electricUsage.followup,
+            weight: stats.electricCO2Weight.baseline,
+            weightForecast: stats.electricCO2Weight.followup,
+            cost: stats.electricCost.baseline,
+            costForecast: stats.electricCost.followup,
             project: project.name,
             account: project.account.name,
             org: project.org.name,
           },
           {
             type: 'Gas Usage (CF)',
-            usage: stats.gasUsage,
-            weight: stats.gasCO2Weight,
-            cost: stats.gasCost,
+            usage: stats.gasUsage.baseline,
+            usageForecast: stats.gasUsage.followup,
+            weight: stats.gasCO2Weight.baseline,
+            weightForecast: stats.gasCO2Weight.followup,
+            cost: stats.gasCost.baseline,
+            costForecast: stats.gasCost.followup,
             project: project.name,
             account: project.account.name,
             org: project.org.name,
           },
           {
             type: 'Water Usage (gallons)',
-            usage: stats.waterUsage,
+            usage: stats.waterUsage.baseline,
+            usageForecast: stats.waterUsage.followup,
             weight: '', // water doesnt have an effect on C02
-            cost: stats.waterCost,
+            weightForecast: '', // water doesnt have an effect on C02
+            cost: stats.waterCost.baseline,
+            costForecast: stats.waterCost.followup,
             project: project.name,
             account: project.account.name,
             org: project.org.name,
           },
         ]
+        return rows
       })
       .flat()
   )
