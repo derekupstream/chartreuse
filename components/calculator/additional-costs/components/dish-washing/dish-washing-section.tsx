@@ -116,7 +116,7 @@ const DishWashingSection = () => {
       <Typography.Title level={5}>
         Use this section to help calculate dishwashing energy and water costs. Energy and water rates are based on your{' '}
         <Popover content={utilities.content} title={utilities.title} trigger="hover">
-          <Typography.Link underline href={`/edit-account/${data?.accountId}`}>
+          <Typography.Link underline href={`/edit-account/${data?.accountId}?redirect=${route.asPath}`}>
             state average
           </Typography.Link>
         </Popover>

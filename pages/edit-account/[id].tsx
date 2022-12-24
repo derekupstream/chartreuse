@@ -84,6 +84,8 @@ type Props = {
 export default function EditAccount({ org }: Props) {
   const router = useRouter()
 
+  const redirect = typeof router.query.redirect === 'string' ? router.query.redirect : '/accounts'
+
   function updateAccount(data: any) {
     chartreuseClient
       .updateAccount({
@@ -92,7 +94,7 @@ export default function EditAccount({ org }: Props) {
       })
       .then(() => {
         message.success('Account edited with success.')
-        router.push('/accounts')
+        router.push(redirect)
       })
       .catch(err => {
         message.error((err as Error)?.message)
