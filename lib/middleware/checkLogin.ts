@@ -35,6 +35,7 @@ export const checkLogin = async (context: GetServerSidePropsContext): Promise<{ 
 
     // only provide access to accounts this user has access to
     if (typeof user.accountId === 'string') {
+      // @ts-ignore
       user.org.accounts = user.org.accounts.filter(account => account.id === user.accountId)
     }
 
