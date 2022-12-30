@@ -32,4 +32,5 @@ export function getChangeSummaryRowRounded(baseline: number, followup: number, d
   }
 }
 
-export const formatToDollar = (value: number) => value.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 })
+// minimumFractionDigits needs to be set or we get "RangeError: maximumFractionDigits value is out of range"
+export const formatToDollar = (value: number) => value.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0, minimumFractionDigits: 0 })

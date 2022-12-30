@@ -173,6 +173,8 @@ export default function AnalyticsPage({ user, data, allProjects, isUpstreamView 
     return <ContentLoader />
   }
 
+  const selectedProjects = typeof router.query.projects === 'string' ? router.query.projects.split(',') : []
+
   const options: SelectProps['options'] = allProjects?.map(project => ({
     label: project.name,
     value: project.id,
@@ -203,7 +205,7 @@ export default function AnalyticsPage({ user, data, allProjects, isUpstreamView 
           <>
             <Form layout="horizontal" style={{ minWidth: 350, width: '49%' }}>
               <Form.Item label="Filter projects">
-                <Select allowClear mode="multiple" defaultValue={rows.map(row => row.id)} placeholder="Select Projects" onChange={handleChange} options={options} />
+                <Select allowClear mode="multiple" defaultValue={selectedProjects} placeholder="Select Projects" onChange={handleChange} options={options} />
               </Form.Item>
             </Form>
           </>
