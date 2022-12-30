@@ -7243,15 +7243,14 @@ lru-memoizer@^2.1.4:
     lodash.clonedeep "^4.5.0"
     lru-cache "~4.0.0"
 
-mailgun.js@^7.0.4:
-  version "7.0.4"
-  resolved "https://registry.yarnpkg.com/mailgun.js/-/mailgun.js-7.0.4.tgz#cfa5d7eea65bc54d11ab57c6b1ead742cb7f27d1"
-  integrity sha512-D2KTfcgqB+tNtMzDjTotgrfMOGeOSi++/jPnlPxUXmPcQB1GJ21+uQvOZQtmIFbEIzzSSULfbwoMKROz92jFyA==
+mailgun.js@^8.0.6:
+  version "8.0.6"
+  resolved "https://registry.yarnpkg.com/mailgun.js/-/mailgun.js-8.0.6.tgz#56a4e208bab5cfe0476f413cdf271c905ff34d8c"
+  integrity sha512-b+c7QO1T4oFsudEcRB2H7oZKth8ZDeYRW4xjW12QQVNYDSJCVxqSQfps6ofcH8fqcCMJdzc76HVNGdnUZgBPCw==
   dependencies:
     axios "^0.27.2"
     base-64 "^1.0.0"
     url-join "^4.0.1"
-    webpack-merge "^5.4.0"
 
 make-dir@^2.1.0:
   version "2.1.0"
@@ -9872,14 +9871,6 @@ webidl-conversions@^3.0.0:
   resolved "https://registry.yarnpkg.com/webidl-conversions/-/webidl-conversions-3.0.1.tgz#24534275e2a7bc6be7bc86611cc16ae0a5654871"
   integrity sha512-2JAn3z8AR6rjK8Sm8orRC0h/bcl/DqL7tRPdGZ4I1CjdF+EaMLmYxBHyXuKL849eucPFhvBoxMsflfOb8kxaeQ==
 
-webpack-merge@^5.4.0:
-  version "5.8.0"
-  resolved "https://registry.yarnpkg.com/webpack-merge/-/webpack-merge-5.8.0.tgz#2b39dbf22af87776ad744c390223731d30a68f61"
-  integrity sha512-/SaI7xY0831XwP6kzuwhKWVKDP9t1QY1h65lAFLbZqMPIuYcD9QAW4u9STIbU9kaJbPBB/geU/gLr1wDjOhQ+Q==
-  dependencies:
-    clone-deep "^4.0.1"
-    wildcard "^2.0.0"
-
 websocket-driver@>=0.5.1:
   version "0.7.4"
   resolved "https://registry.yarnpkg.com/websocket-driver/-/websocket-driver-0.7.4.tgz#89ad5295bbf64b480abcba31e4953aca706f5760"
@@ -9926,11 +9917,6 @@ which@^2.0.1:
   integrity sha512-BLI3Tl1TW3Pvl70l3yq3Y64i+awpwXqsGBYWkkqMtnbXgrMD+yj7rhW0kuEDxzJaYXGjEW5ogapKNMEKNMjibA==
   dependencies:
     isexe "^2.0.0"
-
-wildcard@^2.0.0:
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/wildcard/-/wildcard-2.0.0.tgz#a77d20e5200c6faaac979e4b3aadc7b3dd7f8fec"
-  integrity sha512-JcKqAHLPxcdb9KM49dufGXn2x3ssnfjbcaQdLlfZsL9rH9wgDQjUtDxbo8NE0F6SFvydeu1VhZe7hZuHsB2/pw==
 
 window-size@0.1.0:
   version "0.1.0"
