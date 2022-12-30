@@ -8,6 +8,8 @@ import { getAllProjections } from 'lib/calculator'
 export const getServerSideProps: GetServerSideProps<PageProps> = async context => {
   const { user } = await getUserFromContext(context, { org: true })
 
+  const projectIds = (context.query.projects as string | undefined)?.split(',')
+
   if (!user?.org.isUpstream) {
     return {
       notFound: true,
@@ -17,21 +19,25 @@ export const getServerSideProps: GetServerSideProps<PageProps> = async context =
   const projects = await prisma.project.findMany({
     include: {
       account: true,
+      org: true,
     },
   })
 
-  const data = await getAllProjections(projects)
+  const filteredProjects = projectIds ? projects.filter(p => projectIds.includes(p.id)) : projects
+
+  const data = await getAllProjections(filteredProjects)
 
   return {
     props: {
       data,
+      allProjects: projects.map(p => ({ id: p.id, name: `${p.org.name} - ${p.account.name}: ${p.name}` })),
       user,
     },
   }
 }
 
-const AnalyticsPage = ({ user, data }: PageProps) => {
-  return <Analytics data={data} user={user} isUpstreamView={true} />
+const AnalyticsPage = ({ user, data, allProjects }: PageProps) => {
+  return <Analytics allProjects={allProjects} data={data} user={user} isUpstreamView={true} />
 }
 
 AnalyticsPage.getLayout = (page: React.ReactNode, pageProps: any) => {

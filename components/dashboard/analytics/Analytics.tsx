@@ -1,4 +1,4 @@
-import { Col, Row, Space, Table, Typography, Divider } from 'antd'
+import { Col, Form, Row, Select, SelectProps, Space, Table, Typography, Divider } from 'antd'
 import { ReactNode } from 'react'
 
 import { Org, User } from '@prisma/client'
@@ -8,12 +8,14 @@ import * as S from '../../calculator/projections/components/styles'
 import Spacer from 'components/spacer/spacer'
 import type { SummaryValues, AllProjectsSummary, ProjectSummary } from 'lib/calculator'
 import ContentLoader from 'components/content-loader'
+import { useRouter } from 'next/router'
 import { formatToDollar } from 'lib/calculator/utils'
 
 export interface PageProps {
   isUpstreamView?: boolean
   user: User & { org: Org }
   data?: AllProjectsSummary
+  allProjects?: { id: string; name: string }[]
 }
 
 const SummaryCardWithGraph = ({ label, units, value, formatter = defaultFormatter }: { label: string; units?: string; value: SummaryValues; formatter?: (val: number) => string | ReactNode }) => {
@@ -164,9 +166,21 @@ const ReductionValue = ({ value, formatter = defaultFormatter }: { value: { chan
   )
 }
 
-export default function AnalyticsPage({ user, data, isUpstreamView }: PageProps) {
+export default function AnalyticsPage({ user, data, allProjects, isUpstreamView }: PageProps) {
+  const router = useRouter()
+
   if (!data) {
     return <ContentLoader />
+  }
+
+  const options: SelectProps['options'] = allProjects?.map(project => ({
+    label: project.name,
+    value: project.id,
+  }))
+
+  function handleChange(value: string[]) {
+    const updatedPath = router.asPath.split('?')[0] + (value.length ? `?projects=${value.join(',')}` : '')
+    router.replace(updatedPath)
   }
 
   const rows = data.projects
@@ -182,8 +196,19 @@ export default function AnalyticsPage({ user, data, isUpstreamView }: PageProps)
 
   return (
     <Space direction="vertical" size="large" style={{ width: '100%' }}>
-      <Typography.Title>{isUpstreamView ? 'Upstream Analytics' : `${user.org.name}'s Analytics`}</Typography.Title>
+      <span>
+        <Typography.Title>{isUpstreamView ? 'Upstream Analytics' : `${user.org.name}'s Analytics`}</Typography.Title>
 
+        {isUpstreamView && (
+          <>
+            <Form layout="horizontal" style={{ minWidth: 350, width: '49%' }}>
+              <Form.Item label="Filter projects">
+                <Select allowClear mode="multiple" defaultValue={rows.map(row => row.id)} placeholder="Select Projects" onChange={handleChange} options={options} />
+              </Form.Item>
+            </Form>
+          </>
+        )}
+      </span>
       <Typography.Title level={3} style={{ margin: 0 }}>
         High-Level Overview
       </Typography.Title>
