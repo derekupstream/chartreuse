@@ -6,6 +6,7 @@ import { useRouter } from 'next/router'
 import { destroyCookie, setCookie } from 'nookies'
 import { useEffect } from 'react'
 import MessagePage from 'components/message-page'
+import { sendEmailVerification } from 'firebase/auth'
 
 export default function EmailVerification() {
   const { user } = useAuth()
@@ -23,9 +24,11 @@ export default function EmailVerification() {
       } else {
         try {
           console.log('Sending email verification email', { email: user?.email })
-          await user?.sendEmailVerification({
-            url: `${origin}/org-setup`,
-          })
+          if (user) {
+            await sendEmailVerification(user, {
+              url: `${origin}/org-setup`,
+            })
+          }
           setCookie(null, 'emailVerified', 'true')
         } catch (error: any) {
           message.error(error.message)

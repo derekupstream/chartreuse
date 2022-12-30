@@ -1,6 +1,6 @@
 import { createContext, useEffect, useState, useCallback } from 'react'
-import { FirebaseAuthProvider, firebase, User } from './firebaseClient'
-import firebaseLib from 'firebase'
+import { auth, FirebaseAuthProvider, User } from './firebaseClient'
+import { UserCredential, onIdTokenChanged, signOut, signInWithEmailAndPassword, signInWithPopup, createUserWithEmailAndPassword } from 'firebase/auth'
 import { setCookie, destroyCookie } from 'nookies'
 
 export type { User }
@@ -12,9 +12,9 @@ export type Credentials = {
 
 type AuthContextType = {
   user: User | null
-  login: (credentials: Credentials) => Promise<firebaseLib.auth.UserCredential | null>
-  loginWithProvider: (provider: FirebaseAuthProvider) => Promise<firebaseLib.auth.UserCredential | null>
-  signup: (credentials: Credentials) => Promise<firebaseLib.auth.UserCredential | null>
+  login: (credentials: Credentials) => Promise<UserCredential | null>
+  loginWithProvider: (provider: FirebaseAuthProvider) => Promise<UserCredential | null>
+  signup: (credentials: Credentials) => Promise<UserCredential | null>
   signout: () => Promise<void>
 }
 
@@ -30,7 +30,7 @@ export const AuthProvider: React.FC<{ children: any }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null)
 
   useEffect(() => {
-    const unsubscribe = firebase.auth().onIdTokenChanged(async (user: User | null) => {
+    const unsubscribe = onIdTokenChanged(auth, async (user: User | null) => {
       if (!user) {
         setUser(null)
         destroyCookie(null, 'token')
@@ -50,7 +50,7 @@ export const AuthProvider: React.FC<{ children: any }> = ({ children }) => {
   // force refresh the token every 10 minutes
   useEffect(() => {
     const handle = setInterval(async () => {
-      const user = firebase.auth().currentUser
+      const user = auth.currentUser
       if (user) await user.getIdToken(true)
     }, 10 * 60 * 1000)
 
@@ -59,25 +59,22 @@ export const AuthProvider: React.FC<{ children: any }> = ({ children }) => {
   }, [])
 
   const login = useCallback(({ email, password }: Credentials) => {
-    return firebase.auth().signInWithEmailAndPassword(email, password)
+    return signInWithEmailAndPassword(auth, email, password)
   }, [])
 
   const loginWithProvider = useCallback((provider: FirebaseAuthProvider) => {
-    return firebase.auth().signInWithPopup(provider)
+    return signInWithPopup(auth, provider)
   }, [])
 
   const signup = useCallback(({ email, password }: Credentials) => {
-    return firebase.auth().createUserWithEmailAndPassword(email, password)
+    return createUserWithEmailAndPassword(auth, email, password)
   }, [])
 
   const signout = useCallback(() => {
-    return firebase
-      .auth()
-      .signOut()
-      .then(() => {
-        setUser(null)
-        destroyCookie(null, 'token')
-      })
+    return signOut(auth).then(() => {
+      setUser(null)
+      destroyCookie(null, 'token')
+    })
   }, [])
 
   return <AuthContext.Provider value={{ user, login, loginWithProvider, signup, signout }}>{children}</AuthContext.Provider>
