@@ -7,7 +7,7 @@ export const Row = styled.div`
   align-items: end;
 `
 
-export const LinkBox = styled.a`
+export const LinkBox = styled(Link)`
   cursor: pointer;
   display: flex;
   flex-direction: column;

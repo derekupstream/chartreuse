@@ -125,9 +125,7 @@ export default function InviteMember({ org, user }: Props) {
           navBackLink={
             fromDashboard ? (
               <Link href="/">
-                <a>
-                  <ArrowLeftOutlined /> back to dashboard
-                </a>
+                <ArrowLeftOutlined /> back to dashboard
               </Link>
             ) : undefined
           }

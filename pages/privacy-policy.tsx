@@ -6,7 +6,7 @@ import Container from 'components/container'
 import Header from 'components/header'
 import styled from 'styled-components'
 
-const LogoWrapper = styled.a`
+const LogoWrapper = styled(Link)`
   display: block;
   text-align: center;
   width: 100%;
@@ -21,13 +21,9 @@ export default function PrivacyPolicy() {
     <>
       <Header title="Privacy Policy" />
       <StyledContainer>
-        <Link href="/" passHref>
-          <LogoWrapper>
-            <a>
-              <Image src={Logo} width={384} height={99} alt="Chart Reuse" />
-            </a>
-          </LogoWrapper>
-        </Link>
+        <LogoWrapper href="/">
+          <Image src={Logo} width={384} height={99} alt="Chart Reuse" />
+        </LogoWrapper>
         <h1>Privacy Policy</h1>
         <p>Last updated: January 12, 2022</p>
         <p>

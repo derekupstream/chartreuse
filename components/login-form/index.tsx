@@ -51,7 +51,7 @@ export default function LoginForm({ onSubmit, onSubmitWithProvider }: Props) {
         <Typography.Text>
           <Space>
             Don&apos;t have an account yet?
-            <Link href="/signup" passHref>
+            <Link href="/signup" legacyBehavior>
               <Typography.Link underline>Sign up</Typography.Link>
             </Link>
           </Space>

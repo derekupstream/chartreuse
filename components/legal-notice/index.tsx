@@ -7,7 +7,7 @@ const LegalNotice = () => {
     <S.Wrapper>
       <Typography.Text type="secondary">
         View our{' '}
-        <Link href="/privacy-policy" passHref>
+        <Link href="/privacy-policy" legacyBehavior>
           <Typography.Link style={{ color: 'inherit' }} target="_blank" underline>
             Privacy Policy
           </Typography.Link>

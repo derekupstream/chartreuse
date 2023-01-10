@@ -63,7 +63,7 @@ export default function SignupForm({ onSubmit, onSubmitWithProvider, ...rest }: 
         <Typography.Text>
           <Space>
             Already have an account?
-            <Link href="/login" passHref>
+            <Link href="/login" legacyBehavior>
               <Typography.Link underline>Sign in</Typography.Link>
             </Link>
           </Space>

@@ -1,6 +1,5 @@
 import { ArrowLeftOutlined, ArrowRightOutlined } from '@ant-design/icons'
 import { useRouter } from 'next/router'
-import Link from 'next/link'
 import { createContext, useContext, useState } from 'react'
 import { Container, LinkBox, Row } from './styles'
 import { CALCULATOR_STEPS, ProjectPath } from '../steps'
@@ -37,12 +36,10 @@ export default function Footer() {
       {previousStep ? (
         <Row>
           <ArrowLeftOutlined style={{ marginBottom: '9px' }} />
-          <Link href={getLink(projectId, previousStep.path)} passHref>
-            <LinkBox>
-              <span>Previous Step</span>
-              <span className="page-title">{previousStep.title}</span>
-            </LinkBox>
-          </Link>
+          <LinkBox href={getLink(projectId, previousStep.path)}>
+            <span>Previous Step</span>
+            <span className="page-title">{previousStep.title}</span>
+          </LinkBox>
         </Row>
       ) : (
         <div />
@@ -50,12 +47,10 @@ export default function Footer() {
 
       {nextStep ? (
         <Row>
-          <Link href={getLink(projectId, nextStep.path)} passHref>
-            <LinkBox>
-              <span>Next Step</span>
-              <span className="page-title">{nextStep.title}</span>
-            </LinkBox>
-          </Link>
+          <LinkBox href={getLink(projectId, nextStep.path)}>
+            <span>Next Step</span>
+            <span className="page-title">{nextStep.title}</span>
+          </LinkBox>
           <ArrowRightOutlined style={{ marginBottom: '8px' }} />
         </Row>
       ) : (
