@@ -1,5 +1,5 @@
 import Container from 'components/container'
-import Image from 'next/image'
+import Image from 'next/legacy/image'
 import Logo from 'public/images/chart-reuse-logo-black.png'
 import { Space, Typography } from 'antd'
 import LegalNotice from 'components/legal-notice'

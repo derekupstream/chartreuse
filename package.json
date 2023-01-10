@@ -16,8 +16,8 @@
     "prepare": "husky install"
   },
   "dependencies": {
-    "@ant-design/colors": "^6.0.0",
-    "@ant-design/icons": "^4.7.0",
+    "@ant-design/colors": "^7.0.0",
+    "@ant-design/icons": "^5.0.0",
     "@ant-design/plots": "^1.0.9",
     "@prisma/client": "^4.8.0",
     "@svgr/webpack": "^6.5.1",

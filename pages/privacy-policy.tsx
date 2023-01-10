@@ -1,6 +1,6 @@
 /* eslint-disable react/no-unescaped-entities */
 import Link from 'next/link'
-import Image from 'next/image'
+import Image from 'next/legacy/image'
 import Logo from 'public/images/chart-reuse-logo-black.png'
 import Container from 'components/container'
 import Header from 'components/header'

@@ -1,6 +1,6 @@
 import { useRouter } from 'next/router'
 import { useState, useEffect } from 'react'
-import Image from 'next/image'
+import Image from 'next/legacy/image'
 import { Button, Dropdown, message, Typography, Divider, MenuProps } from 'antd'
 import { useAuth } from 'hooks/useAuth'
 import { Layout, Menu } from 'antd'
