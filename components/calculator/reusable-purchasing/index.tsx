@@ -1,4 +1,4 @@
-import { Button, Divider, Row, Col, Drawer, message, Typography } from 'antd'
+import { Button, Divider, Row, Col, Drawer, List, message, Typography } from 'antd'
 import { useState, useEffect } from 'react'
 import { PlusOutlined } from '@ant-design/icons'
 import * as S from '../styles'
@@ -140,6 +140,16 @@ export default function ReusablePurchasing() {
       <Typography.Title level={5}>
         Enter reusable items to replace single-use items as appropriate. It is possible to eliminate a single-use item without a purchase of a reusable ware. For example, if you have three sizes of
         single-use plastic forks, you may only move to one size/type of durable fork.
+        <br />
+        <br />
+        If you are replacing single-use condiments, there are two things to consider:
+        <br />
+        <br />
+        <ol>
+          <li>The replacement will likely be purchased in bulk, which will be a new recurring purchase.</li>
+          <li>Any new dispensing equipment will be included in Step 4, “Other Costs.”</li>
+        </ol>
+        <br />
       </Typography.Title>
       {isLoading ? (
         <ContentLoader />
