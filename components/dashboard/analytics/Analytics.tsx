@@ -1,8 +1,9 @@
-import { Col, Form, Row, Select, SelectProps, Space, Table, Typography, Divider } from 'antd'
+import { Button, Col, Form, Row, Select, SelectProps, Space, Table, Typography, Divider } from 'antd'
 import { ReactNode } from 'react'
 
 import { Org, User } from '@prisma/client'
 import Card from '../../calculator/projections/components/card'
+import { DownloadOutlined } from '@ant-design/icons'
 import GroupedBar from '../../calculator/projections/components/grouped-bar'
 import * as S from '../../calculator/projections/components/styles'
 import Spacer from 'components/spacer/spacer'
@@ -10,6 +11,8 @@ import type { SummaryValues, AllProjectsSummary, ProjectSummary } from 'lib/calc
 import ContentLoader from 'components/content-loader'
 import { useRouter } from 'next/router'
 import { formatToDollar } from 'lib/calculator/utils'
+import { requestDownload } from 'lib/files'
+import * as S2 from '../styles'
 
 export interface PageProps {
   isUpstreamView?: boolean
@@ -185,6 +188,14 @@ export default function AnalyticsPage({ user, data, allProjects, isUpstreamView 
     router.replace(updatedPath)
   }
 
+  function exportData() {
+    const orgId = data?.projects?.[0]?.orgId
+    return requestDownload({
+      api: `/api/org/${orgId}/export`,
+      title: `Chart Reuse Export`,
+    })
+  }
+
   const rows = data.projects
     .map(project => {
       const score =
@@ -198,19 +209,24 @@ export default function AnalyticsPage({ user, data, allProjects, isUpstreamView 
 
   return (
     <Space direction="vertical" size="large" style={{ width: '100%' }}>
-      <span>
+      <S2.SpaceBetween>
         <Typography.Title>{isUpstreamView ? 'Upstream Analytics' : `${user.org.name}'s Analytics`}</Typography.Title>
 
-        {isUpstreamView && (
-          <>
-            <Form layout="horizontal" style={{ minWidth: 350, width: '49%' }}>
-              <Form.Item label="Filter projects">
-                <Select allowClear mode="multiple" defaultValue={selectedProjects} placeholder="Select Projects" onChange={handleChange} options={options} />
-              </Form.Item>
-            </Form>
-          </>
-        )}
-      </span>
+        <span>
+          {isUpstreamView && (
+            <>
+              <Form layout="horizontal" style={{ minWidth: 350, width: '49%' }}>
+                <Form.Item label="Filter projects">
+                  <Select allowClear mode="multiple" defaultValue={selectedProjects} placeholder="Select Projects" onChange={handleChange} options={options} />
+                </Form.Item>
+              </Form>
+            </>
+          )}
+          <Button onClick={() => exportData()}>
+            <DownloadOutlined /> Export Data
+          </Button>
+        </span>
+      </S2.SpaceBetween>
       <Typography.Title level={3} style={{ margin: 0 }}>
         High-Level Overview
       </Typography.Title>

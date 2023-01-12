@@ -86,7 +86,7 @@ export default function Organizations({ orgs }: PageProps) {
       render: (_, org: OrgSummary) => {
         return (
           <Space size="middle">
-            <Tooltip title="Export projections">
+            <Tooltip title="Export data">
               <Button onClick={() => exportData(org)} icon={<DownloadOutlined />} />
             </Tooltip>
             {!org.isUpstream && (
