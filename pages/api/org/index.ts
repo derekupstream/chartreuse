@@ -35,8 +35,7 @@ async function createOrg(req: NextApiRequest, res: NextApiResponse<Response>) {
 
   await trackEvent({
     type: 'signup',
-    orgName: name,
-    userEmail: email,
+    userId: id,
   })
 
   return res.status(200).json({ user })

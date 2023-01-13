@@ -66,8 +66,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         })
         await trackEvent({
           type: 'join_org',
-          userEmail: user.email,
-          orgName: user.org.name,
+          userId: user.id,
         })
       }
 

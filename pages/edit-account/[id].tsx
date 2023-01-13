@@ -115,9 +115,7 @@ export default function EditAccount({ org }: Props) {
           title="Edit account"
           navBackLink={
             <Link href="/">
-              <a>
-                <ArrowLeftOutlined /> back to dashboard
-              </a>
+              <ArrowLeftOutlined /> back to dashboard
             </Link>
           }
         >

@@ -76,9 +76,10 @@ async function createAccount(req: NextApiRequestWithUser, res: NextApiResponse<R
 
   await trackEvent({
     type: 'create_account',
-    orgName: account.org.name,
-    accountName: account.name,
-    userEmail: req.user.email,
+    userId: req.user.id,
+    props: {
+      accountName: account.name,
+    },
   })
 
   return res.status(200).json({ invitedUser })

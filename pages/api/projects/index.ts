@@ -37,9 +37,10 @@ async function createProject(req: NextApiRequestWithUser, res: NextApiResponse<{
 
   await trackEvent({
     type: 'create_project',
-    orgName: project.org.name,
-    projectName: project.name,
-    userEmail: req.user.email,
+    userId: req.user.id,
+    props: {
+      projectName: project.name,
+    },
   })
 
   return res.status(200).json({ project })

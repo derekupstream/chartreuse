@@ -13,6 +13,8 @@ import { DashboardUser } from 'components/dashboard'
 import * as S from 'components/dashboard/styles'
 import Header from 'components/header'
 
+import { analytics } from 'lib/analytics/mixpanel.browser'
+
 type DashboardProps = {
   children: any
   selectedMenuItem: string
@@ -42,6 +44,13 @@ const DashboardTemplate: React.FC<DashboardProps> = ({ user, selectedMenuItem, t
   const { signout } = useAuth()
   const router = useRouter()
   const [keys, setKeys] = useState<string[]>([])
+
+  useEffect(() => {
+    analytics.identify(user.id, {
+      $name: user.name,
+      Organization: user.org.name,
+    })
+  }, [user.id])
 
   if (!menuLinks.some(link => link?.key === selectedMenuItem) && !upstreamLinks.some(link => link?.key === selectedMenuItem)) {
     throw new Error('Menu link key not found: ' + selectedMenuItem)

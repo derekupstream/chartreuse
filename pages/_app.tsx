@@ -5,7 +5,15 @@ import { QueryClient, QueryClientProvider } from 'react-query'
 import { createGlobalStyle } from 'styled-components'
 import 'styles/antd.less'
 import '@antv/xflow/dist/index.css'
+import { useRouter } from 'next/router'
 import { NextPage } from 'next'
+import { useEffect } from 'react'
+import { analytics } from 'lib/analytics/mixpanel.browser'
+
+// Track initial pageview
+if (typeof window !== 'undefined') {
+  analytics.page()
+}
 
 const GlobalStyles = createGlobalStyle`
   body {
@@ -27,6 +35,17 @@ type Page<P = {}> = NextPage<P> & {
 
 function MyApp({ Component, pageProps }: Props) {
   const getLayout = Component.getLayout ?? ((page: React.ReactNode) => page)
+  const router = useRouter()
+
+  useEffect(() => {
+    const handleRouteChange = () => {
+      analytics.page()
+    }
+    router.events.on('routeChangeComplete', handleRouteChange)
+    return () => {
+      router.events.off('routeChangeComplete', handleRouteChange)
+    }
+  }, [router.events])
 
   return (
     <>

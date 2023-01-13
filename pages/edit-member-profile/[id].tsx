@@ -137,9 +137,7 @@ export default function EditMemberProfile({ org, user }: Props) {
           title="Edit account member"
           navBackLink={
             <Link href="/">
-              <a>
-                <ArrowLeftOutlined /> back to dashboard
-              </a>
+              <ArrowLeftOutlined /> back to dashboard
             </Link>
           }
         >
