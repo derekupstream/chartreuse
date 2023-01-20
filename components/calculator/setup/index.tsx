@@ -18,7 +18,17 @@ const Wrapper = styled(S.Wrapper)`
   justify-content: center;
 `
 
-const ProjectTypes = ['Cafe/Cafeteria', 'Kitchenette/Employee Breakroom', 'Event Catering', 'Special Event (Venue)', 'Coffee Shop', 'Fast Casual Restaurant', 'Food Hall Stand', 'Other'] as const
+const ProjectTypes = [
+  'Cafe/Cafeteria',
+  'Kitchenette/Employee Breakroom',
+  'Event Catering',
+  'Special Event (Venue)',
+  'Coffee Shop',
+  'Fast Casual Restaurant',
+  'Food Hall Stand',
+  'Live Events',
+  'Other',
+] as const
 
 const WhereFoodIsPrepared = ['On-Site', 'Off-Site', 'Both'] as const
 const dishwashingTypes = ['Mechanized Dishwasher (owned)', 'Mechanized Dishwasher (leased)', 'Wash by hand (3 sink system)', 'Combination']
@@ -138,7 +148,7 @@ export default function SetupPage({ user, project }: { user: DashboardUser; proj
             }}
             min={50}
             max={1000}
-            step={null}
+            step={50}
           />
         </Form.Item>
 
