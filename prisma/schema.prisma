@@ -26,6 +26,17 @@ model User {
   invitesSent Invite[]
 }
 
+enum UserEventType {
+  completed_first_project
+}
+
+model UserEvent {
+  id        String        @id @default(uuid()) @db.Uuid
+  createdAt DateTime      @default(now())
+  type      UserEventType
+  userId    String
+}
+
 model Org {
   id         String    @id @default(uuid()) @db.Uuid
   name       String

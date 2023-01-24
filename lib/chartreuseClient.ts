@@ -3,6 +3,7 @@ import { Project } from '@prisma/client'
 
 import { ReusableLineItem, SingleUseLineItem } from 'lib/calculator/types/projects'
 import { AllProjectsSummary } from 'lib/calculator'
+import { MailChimpEvent } from 'lib/mailchimp/sendEvent'
 
 export type AccountSetupFields = {
   name: string
@@ -87,6 +88,10 @@ class Client {
 
   getProjectSummaries() {
     return http.GET<AllProjectsSummary>('/api/projections')
+  }
+
+  sendMailchimpEvent(name: MailChimpEvent) {
+    return http.POST('/api/events', { name })
   }
 }
 
