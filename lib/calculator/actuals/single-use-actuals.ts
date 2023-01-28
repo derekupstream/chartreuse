@@ -122,21 +122,23 @@ function getBiggestChange(singleUseItems: ProjectInventory['singleUseItems'], va
     }
   })
 
+  const categoriesWithChange = Object.keys(deltas)
+
   // if there are no deltas, return null
-  if (Object.keys(deltas).length === 0) {
+  if (categoriesWithChange.length === 0) {
     return null
   }
 
   const results: { [key: string]: { change: number; changePercent: number; id: string } } = {}
 
-  const category = Object.keys(deltas).reduce((a, b) => {
+  const category = categoriesWithChange.reduce((a, b) => {
     results[b] = {
       change: deltas[b].end - deltas[b].start,
       changePercent: (deltas[b].end - deltas[b].start) / deltas[b].start,
       id: b,
     }
     return Math.abs(results[a]?.change) > Math.abs(results[b].change) ? a : b
-  })
+  }, categoriesWithChange[0])
 
   return results[category]
 }
