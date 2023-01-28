@@ -3,7 +3,7 @@ import prisma from 'lib/prisma'
 import Analytics, { PageProps } from 'components/dashboard/analytics'
 import Template from 'layouts/dashboardLayout'
 import { getUserFromContext } from 'lib/middleware'
-import { getAllProjections } from 'lib/calculator'
+import { getAllProjections } from 'lib/calculator/getProjections'
 
 export const getServerSideProps: GetServerSideProps<PageProps> = async context => {
   const { user } = await getUserFromContext(context, { org: true })

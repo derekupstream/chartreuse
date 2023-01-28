@@ -4,7 +4,7 @@ import { OptionSelection } from '../../../styles'
 import { Button, Form, Input, RadioChangeEvent, Row, Tooltip } from 'antd'
 import { requiredRule } from 'utils/forms'
 import { useRouter } from 'next/router'
-import { WasteHaulingService } from 'lib/calculator/types/projects'
+import { WasteHaulingService } from 'lib/inventory/types/projects'
 import { SERVICE_TYPES, WASTE_STREAMS } from 'lib/calculator/constants/waste-hauling'
 
 const wasteStreamOptions = WASTE_STREAMS.map(w => ({ value: w, label: w }))

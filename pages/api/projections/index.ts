@@ -2,7 +2,7 @@ import nc from 'next-connect'
 import prisma from 'lib/prisma'
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { onError, onNoMatch, getUser, NextApiRequestWithUser } from 'lib/middleware'
-import { AllProjectsSummary, getAllProjections } from 'lib/calculator'
+import { AllProjectsSummary, getAllProjections } from 'lib/calculator/getProjections'
 
 const handler = nc<NextApiRequest, NextApiResponse>({ onError, onNoMatch })
 

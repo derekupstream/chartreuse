@@ -1,7 +1,7 @@
 import { Col, Row, Typography } from 'antd'
 import { InfoCard, SmallText, SmallerText } from '../../styles'
 import { FC } from 'react'
-import { ReusableLineItem } from 'lib/calculator/types/projects'
+import { ReusableLineItem } from 'lib/inventory/types/projects'
 import { formatToDollar, round } from 'lib/calculator/utils'
 
 interface Props {

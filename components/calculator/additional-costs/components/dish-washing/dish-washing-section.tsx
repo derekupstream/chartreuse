@@ -191,19 +191,19 @@ const DishWashingSection = () => {
                 </thead>
                 <tbody>
                   <tr>
-                    <td>{prettifyValues(stats.electricUsage.followup)} kWh</td>
-                    <td>{prettifyValues(stats.electricCO2Weight.followup)}</td>
-                    <td>$ {stats.electricCost.followup.toLocaleString(undefined, { maximumFractionDigits: 2 })}</td>
+                    <td>{prettifyValues(stats.electricUsage.forecast)} kWh</td>
+                    <td>{prettifyValues(stats.electricCO2Weight.forecast)}</td>
+                    <td>$ {stats.electricCost.forecast.toLocaleString(undefined, { maximumFractionDigits: 2 })}</td>
                   </tr>
                   <tr>
-                    <td>{stats.gasUsage.followup.toLocaleString(undefined, { maximumFractionDigits: 2 })} CF</td>
-                    <td>{prettifyValues(stats.gasCO2Weight.followup)}</td>
-                    <td>$ {stats.gasCost.followup.toLocaleString(undefined, { maximumFractionDigits: 2 })}</td>
+                    <td>{stats.gasUsage.forecast.toLocaleString(undefined, { maximumFractionDigits: 2 })} CF</td>
+                    <td>{prettifyValues(stats.gasCO2Weight.forecast)}</td>
+                    <td>$ {stats.gasCost.forecast.toLocaleString(undefined, { maximumFractionDigits: 2 })}</td>
                   </tr>
                   <tr>
-                    <td>{stats.waterUsage.followup.toLocaleString(undefined, { maximumFractionDigits: 2 })} gal</td>
+                    <td>{stats.waterUsage.forecast.toLocaleString(undefined, { maximumFractionDigits: 2 })} gal</td>
                     <td></td>
-                    <td>$ {stats.waterCost.followup.toLocaleString(undefined, { maximumFractionDigits: 2 })}</td>
+                    <td>$ {stats.waterCost.forecast.toLocaleString(undefined, { maximumFractionDigits: 2 })}</td>
                   </tr>
                 </tbody>
               </table>

@@ -1,5 +1,5 @@
 import { Radio, RadioChangeEvent, Typography, Row, Col } from 'antd'
-import { ProjectionsResponse } from 'lib/calculator'
+import { ProjectionsResponse } from 'lib/calculator/getProjections'
 import { changeValue } from 'lib/number'
 import { useState } from 'react'
 import BigNumber from '../components/big-number'
@@ -9,7 +9,14 @@ import TitleWithTooltip from '../components/title-with-tooltip'
 import Chart from '../components/chart-column'
 import { poundsToTons } from 'lib/calculator/constants/conversions'
 import { ViewResultsWrapper, BigNumberWrapper, ChartTitle } from './components/styles'
+import styled from 'styled-components'
 
+const StyledCol = styled(Col)`
+  @media print {
+    flex: 0 0 50% !important;
+    max-width: 50% !important;
+  }
+`
 type Props = {
   data: ProjectionsResponse['environmentalResults']
 }
@@ -32,7 +39,7 @@ const EnvironmentalSummary: React.FC<Props> = ({ data }) => {
     },
     {
       label: 'Single-Use Product Weight',
-      value: formatWeight(data.annualWasteChanges.disposableProductWeight.followup),
+      value: formatWeight(data.annualWasteChanges.disposableProductWeight.forecast),
       wasteType: 'Forecast',
     },
     {
@@ -42,7 +49,7 @@ const EnvironmentalSummary: React.FC<Props> = ({ data }) => {
     },
     {
       label: 'Disposable Shipping Box Weight',
-      value: formatWeight(data.annualWasteChanges.disposableShippingBoxWeight.followup),
+      value: formatWeight(data.annualWasteChanges.disposableShippingBoxWeight.forecast),
       wasteType: 'Forecast',
     },
   ]
@@ -55,7 +62,7 @@ const EnvironmentalSummary: React.FC<Props> = ({ data }) => {
     },
     {
       label: 'Landfill waste (EPA WARM)',
-      value: data.annualGasEmissionChanges.landfillWaste.followup,
+      value: data.annualGasEmissionChanges.landfillWaste.forecast,
       wasteType: 'Forecast',
     },
   ]
@@ -69,7 +76,7 @@ const EnvironmentalSummary: React.FC<Props> = ({ data }) => {
       },
       {
         label: 'Dishwashing',
-        value: data.annualGasEmissionChanges.dishwashing.followup,
+        value: data.annualGasEmissionChanges.dishwashing.forecast,
         wasteType: 'Forecast',
       }
     )
@@ -80,7 +87,7 @@ const EnvironmentalSummary: React.FC<Props> = ({ data }) => {
       <SectionHeader>Environmental summary</SectionHeader>
 
       <Row gutter={[30, 24]}>
-        <Col span={12}>
+        <StyledCol xs={24} lg={12}>
           <Card>
             <TitleWithTooltip title="Your total annual waste changes" />
 
@@ -98,9 +105,9 @@ const EnvironmentalSummary: React.FC<Props> = ({ data }) => {
               </Radio.Group>
             </ViewResultsWrapper>
           </Card>
-        </Col>
+        </StyledCol>
 
-        <Col span={12}>
+        <StyledCol xs={24} lg={12}>
           <Card style={{ height: '100%' }}>
             <TitleWithTooltip title="Annual net GHG emissions changes" />
 
@@ -111,7 +118,7 @@ const EnvironmentalSummary: React.FC<Props> = ({ data }) => {
             <ChartTitle>Annual greenhouse gas changes</ChartTitle>
             <Chart data={ghgData} seriesField="wasteType" />
           </Card>
-        </Col>
+        </StyledCol>
       </Row>
     </SectionContainer>
   )

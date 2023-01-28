@@ -15,6 +15,7 @@ export const Section = styled.div`
 export const Body = styled.div`
   display: flex;
   margin-top: 12px;
+  gap: 20px;
 `
 
 export const Value = styled(Typography.Text)`
@@ -33,11 +34,12 @@ export const Header = styled.div`
 type RowProps = {
   spaceBetween?: boolean
   marginBottom?: number
+  flexStart?: boolean
 }
 
 export const Row = styled.div<RowProps>`
   display: flex;
-  align-items: center;
+  align-items: ${p => (p.flexStart ? 'flex-start' : 'center')};
   ${p =>
     p.spaceBetween &&
     css`

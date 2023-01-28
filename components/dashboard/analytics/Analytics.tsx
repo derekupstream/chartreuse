@@ -7,7 +7,7 @@ import { DownloadOutlined } from '@ant-design/icons'
 import GroupedBar from '../../calculator/projections/components/grouped-bar'
 import * as S from '../../calculator/projections/components/styles'
 import Spacer from 'components/spacer/spacer'
-import type { SummaryValues, AllProjectsSummary, ProjectSummary } from 'lib/calculator'
+import type { SummaryValues, AllProjectsSummary, ProjectSummary } from 'lib/calculator/getProjections'
 import ContentLoader from 'components/content-loader'
 import { useRouter } from 'next/router'
 import { formatToDollar } from 'lib/calculator/utils'
@@ -115,13 +115,13 @@ const columns = [
           <Typography.Title level={4}>&nbsp;</Typography.Title>
           <Typography.Paragraph>&nbsp;</Typography.Paragraph>
           <Typography.Text style={{ lineHeight: 2 }}>
-            {formatToDollar(record.projections.annualSummary.dollarCost.followup)}
+            {formatToDollar(record.projections.annualSummary.dollarCost.forecast)}
             <br />
-            {record.projections.annualSummary.wasteWeight.followup.toLocaleString()}
+            {record.projections.annualSummary.wasteWeight.forecast.toLocaleString()}
             <br />
-            {record.projections.annualSummary.singleUseProductCount.followup.toLocaleString()}
+            {record.projections.annualSummary.singleUseProductCount.forecast.toLocaleString()}
             <br />
-            {record.projections.annualSummary.greenhouseGasEmissions.total.followup.toLocaleString()}
+            {record.projections.annualSummary.greenhouseGasEmissions.total.forecast.toLocaleString()}
           </Typography.Text>
         </>
       )

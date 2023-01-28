@@ -6,6 +6,10 @@ export const Wrapper = styled.div`
   margin: 0 auto;
   width: 100%;
   margin-top: 50px;
+
+  @print media {
+    margin-top: 0;
+  }
 `
 
 export const SetupForm = styled(Form)`

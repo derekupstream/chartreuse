@@ -4,7 +4,7 @@ import { Text, Title, Value } from './components/styles'
 import Card from '../components/card'
 import { FooterData } from './components/footer'
 import TitleWithTooltip from '../components/title-with-tooltip'
-import { ProjectionsResponse } from 'lib/calculator'
+import { ProjectionsResponse } from 'lib/calculator/getProjections'
 import { formatToDollar } from 'lib/calculator/utils'
 import { SectionContainer, SectionHeader } from '../components/styles'
 
@@ -47,7 +47,7 @@ const FinancialSummary: React.FC<Props> = ({ data: financialResults }) => {
             <hr />
 
             <FooterData title="Reusable purchasing" value={formatToDollar(financialResults.oneTimeCosts.reusableProductCosts)} />
-            <FooterData title="Additional one-time expenses" value={formatToDollar(financialResults.oneTimeCosts.additionalCosts)} />
+            <FooterData title="Additional expenses" value={formatToDollar(financialResults.oneTimeCosts.additionalCosts)} />
           </Col>
 
           <Col span={8}>
@@ -55,13 +55,15 @@ const FinancialSummary: React.FC<Props> = ({ data: financialResults }) => {
             <Title>Annual total</Title>
             <Value color="black">{formatToDollar(financialResults.annualCostChanges.change - financialResults.annualCostChanges.singleUseProductChange)}</Value>
 
+            <Title>&nbsp;</Title>
+            <Value>&nbsp;</Value>
             <hr />
 
             <FooterData title="Reusables restocking" value={formatToDollar(financialResults.annualCostChanges.reusableProductCosts)} />
             <FooterData title="Labor" value={formatToDollar(financialResults.annualCostChanges.laborCosts)} />
             <FooterData title="Dishwashing" value={formatToDollar(financialResults.annualCostChanges.utilities)} />
             <FooterData title="Waste hauling" value={formatToDollar(financialResults.annualCostChanges.wasteHauling)} />
-            <FooterData title="Recurring additional expenses" value={formatToDollar(financialResults.annualCostChanges.otherExpenses)} />
+            <FooterData title="Additional expenses" value={formatToDollar(financialResults.annualCostChanges.otherExpenses)} />
           </Col>
         </Row>
       </Card>

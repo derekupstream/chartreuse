@@ -5,7 +5,7 @@ import { Dishwasher as PrismaDishwasher, Prisma } from '.prisma/client'
 import prisma from 'lib/prisma'
 import { validateProject } from 'lib/middleware/validateProject'
 import { DishWasherValidator } from 'lib/validators'
-import { DishwasherStats, getDishwasherStats } from 'lib/calculator/outputs/dishwasher'
+import { DishwasherStats, getDishwasherStats } from 'lib/calculator/calculations/dishwasher'
 import { getUtilitiesByState, UtilityRates, USState } from 'lib/calculator/constants/utilities'
 
 const handler = nc<NextApiRequest, NextApiResponse>({ onError, onNoMatch })

@@ -1,8 +1,10 @@
 import * as http from './http'
 import { Project } from '@prisma/client'
 
-import { ReusableLineItem, SingleUseLineItem } from 'lib/calculator/types/projects'
-import { AllProjectsSummary } from 'lib/calculator'
+import { ProjectInventory } from 'lib/inventory/types/projects'
+import { ReusableLineItem, SingleUseLineItem } from 'lib/inventory/types/projects'
+import { AllProjectsSummary } from 'lib/calculator/getProjections'
+import { InventoryInput } from 'lib/inventory/saveInventoryRecords'
 import { MailChimpEvent } from 'lib/mailchimp/sendEvent'
 
 export type AccountSetupFields = {
@@ -90,6 +92,17 @@ class Client {
     return http.GET<AllProjectsSummary>('/api/projections')
   }
 
+  getProjectInventory(projectId: string) {
+    return http.GET<ProjectInventory>(`/api/projects/${projectId}/inventory`)
+  }
+
+  deleteProjectInventory(projectId: string) {
+    return http.DELETE(`/api/projects/${projectId}/inventory/delete`)
+  }
+
+  updateProjectInventory(projectId: string, inventory: InventoryInput) {
+    return http.POST(`/api/projects/${projectId}/inventory/upload`, inventory)
+  }
   sendMailchimpEvent(name: MailChimpEvent) {
     return http.POST('/api/events', { name })
   }

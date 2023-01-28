@@ -1,14 +1,14 @@
 import ExcelJS from 'exceljs'
 import prisma from 'lib/prisma'
 import { Project, Org, Account, Dishwasher, OtherExpense, LaborCost, ReusableLineItem, SingleUseLineItem, WasteHaulingCost } from '@prisma/client'
-import { getAllProjections, AllProjectsSummary as _AllProjectsSummary, ProjectionsResponse } from 'lib/calculator'
+import { getAllProjections, AllProjectsSummary as _AllProjectsSummary, ProjectionsResponse } from 'lib/calculator/getProjections'
 import { poundsToTons } from 'lib/calculator/constants/conversions'
-import getSingleUseItems from 'inventory/getSingleUseItems'
+import { getSingleUseProducts } from 'lib/inventory/getSingleUseProducts'
 import { LABOR_CATEGORIES } from 'lib/calculator/constants/labor-categories'
-import { getDishwasherStats } from 'lib/calculator/outputs/dishwasher'
+import { getDishwasherStats } from 'lib/calculator/calculations/dishwasher'
 import { Frequency, getannualOccurrence } from 'lib/calculator/constants/frequency'
 import { OTHER_EXPENSES } from 'lib/calculator/constants/other-expenses'
-import { SingleUseProduct } from 'lib/calculator/types/products'
+import { SingleUseProduct } from 'lib/inventory/types/products'
 import { round } from 'lib/calculator/utils'
 import { getUtilitiesByState, USState } from 'lib/calculator/constants/utilities'
 
@@ -51,7 +51,7 @@ export async function getOrgExport(orgId: string) {
     },
   })
   const data = await getAllProjections(projects)
-  const products = await getSingleUseItems({ orgId })
+  const products = await getSingleUseProducts({ orgId })
 
   return getExportFile(data as AllProjectsSummary, products)
 }
@@ -152,16 +152,16 @@ function addProjectsSheet(workbook: ExcelJS.Workbook, data: AllProjectsSummary) 
     return {
       title: project.name,
       Savings_baseline: project.projections.financialResults.annualCostChanges.baseline,
-      Savings_forecast: project.projections.financialResults.annualCostChanges.followup,
+      Savings_forecast: project.projections.financialResults.annualCostChanges.forecast,
       Savings_change: project.projections.financialResults.annualCostChanges.change,
-      'Single-Use_baseline': project.projections.singleUseProductResults.summary.annualUnits.baseline,
-      'Single-Use_forecast': project.projections.singleUseProductResults.summary.annualUnits.followup,
-      'Single-Use_change': project.projections.singleUseProductResults.summary.annualUnits.change,
+      'Single-Use_baseline': project.projections.singleUseProductForecast.summary.annualUnits.baseline,
+      'Single-Use_forecast': project.projections.singleUseProductForecast.summary.annualUnits.forecast,
+      'Single-Use_change': project.projections.singleUseProductForecast.summary.annualUnits.change,
       Waste_baseline: project.projections.environmentalResults.annualWasteChanges.total.baseline,
-      Waste_forecast: project.projections.environmentalResults.annualWasteChanges.total.followup,
+      Waste_forecast: project.projections.environmentalResults.annualWasteChanges.total.forecast,
       Waste_change: project.projections.environmentalResults.annualWasteChanges.total.change,
       GHG_baseline: project.projections.environmentalResults.annualGasEmissionChanges.total.baseline,
-      GHG_forecast: project.projections.environmentalResults.annualGasEmissionChanges.total.followup,
+      GHG_forecast: project.projections.environmentalResults.annualGasEmissionChanges.total.forecast,
       GHG_change: project.projections.environmentalResults.annualGasEmissionChanges.total.change,
       USState: project.account.USState,
       electricRate: utilityRates.electric,
@@ -342,11 +342,11 @@ function addDishwasherSheet(workbook: ExcelJS.Workbook, data: AllProjectsSummary
           {
             type: 'Electric Usage (kWh)',
             usage: stats.electricUsage.baseline,
-            usageForecast: stats.electricUsage.followup,
+            usageForecast: stats.electricUsage.forecast,
             weight: stats.electricCO2Weight.baseline,
-            weightForecast: stats.electricCO2Weight.followup,
+            weightForecast: stats.electricCO2Weight.forecast,
             cost: stats.electricCost.baseline,
-            costForecast: stats.electricCost.followup,
+            costForecast: stats.electricCost.forecast,
             project: project.name,
             account: project.account.name,
             org: project.org.name,
@@ -354,11 +354,11 @@ function addDishwasherSheet(workbook: ExcelJS.Workbook, data: AllProjectsSummary
           {
             type: 'Gas Usage (CF)',
             usage: stats.gasUsage.baseline,
-            usageForecast: stats.gasUsage.followup,
+            usageForecast: stats.gasUsage.forecast,
             weight: stats.gasCO2Weight.baseline,
-            weightForecast: stats.gasCO2Weight.followup,
+            weightForecast: stats.gasCO2Weight.forecast,
             cost: stats.gasCost.baseline,
-            costForecast: stats.gasCost.followup,
+            costForecast: stats.gasCost.forecast,
             project: project.name,
             account: project.account.name,
             org: project.org.name,
@@ -366,11 +366,11 @@ function addDishwasherSheet(workbook: ExcelJS.Workbook, data: AllProjectsSummary
           {
             type: 'Water Usage (gallons)',
             usage: stats.waterUsage.baseline,
-            usageForecast: stats.waterUsage.followup,
+            usageForecast: stats.waterUsage.forecast,
             weight: '', // water doesnt have an effect on C02
             weightForecast: '', // water doesnt have an effect on C02
             cost: stats.waterCost.baseline,
-            costForecast: stats.waterCost.followup,
+            costForecast: stats.waterCost.forecast,
             project: project.name,
             account: project.account.name,
             org: project.org.name,

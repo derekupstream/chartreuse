@@ -1,0 +1,47 @@
+@media all {
+  .page-break {
+    display: none;
+  }
+
+  .print-only {
+    display: none !important;
+  }
+
+  .print-only-flex {
+    display: none !important;
+  }
+}
+
+@page {
+  margin: 0 10mm;
+  size: letter;
+}
+
+@media print {
+
+  html,
+  body {
+    height: initial !important;
+    overflow: initial !important;
+    //print-color-adjust: exact;
+  }
+
+  .dont-print-me {
+    display: none !important;
+  }
+
+  // read about page breaks: https://github.com/gregnb/react-to-print#page-breaks
+  .page-break {
+    padding-top: 10mm;
+    display: block !important;
+    break-before: page;
+  }
+
+  .print-only {
+    display: initial !important;
+  }
+
+  .print-only-flex {
+    display: flex !important;
+  }
+}

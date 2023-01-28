@@ -1,4 +1,4 @@
-import getSingleUseItems from 'inventory/getSingleUseItems'
+import { getSingleUseProducts } from 'lib/inventory/getSingleUseProducts'
 import { NextApiRequest, NextApiResponse } from 'next'
 import nc from 'next-connect'
 import { onError, onNoMatch, getUser, NextApiRequestWithUser } from 'lib/middleware'
@@ -9,7 +9,7 @@ handler.use(getUser).get(getSingleUseItemsMiddlware)
 
 async function getSingleUseItemsMiddlware(req: NextApiRequestWithUser, res: NextApiResponse) {
   const orgId = req.user.orgId
-  const products = await getSingleUseItems({ orgId })
+  const products = await getSingleUseProducts({ orgId })
   res.json(products)
 }
 

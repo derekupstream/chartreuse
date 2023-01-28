@@ -4,7 +4,7 @@ import Card from './card'
 import { CardTitle } from './styles'
 import PercentTag from './percent-tag'
 
-const Value = styled(Typography.Text)`
+export const Value = styled(Typography.Text)`
   font-weight: bold;
   font-size: 32px;
   line-height: 40px;
@@ -22,21 +22,29 @@ export const Header = styled.div`
     display: flex;
     align-items: center;
   }
+  @media print {
+    ${CardTitle} {
+      font-size: 14px !important;
+    }
+    ${Value} {
+      font-size: 24px !important;
+    }
+  }
 `
 
 type Props = {
   children?: any
   baseline?: number
-  followup?: number
-  change: number
+  forecast?: number
   changeStr: string
   changePercent?: number
   title?: string
+  style?: any
 }
 
-const CardComponent: React.FC<Props> = ({ children, ...props }) => {
+const CardComponent: React.FC<Props> = ({ children, style, ...props }) => {
   return (
-    <Card>
+    <Card style={style}>
       <KPIContent {...props} />
       {children}
     </Card>

@@ -26,14 +26,10 @@ model User {
   invitesSent Invite[]
 }
 
-enum UserEventType {
-  completed_first_project
-}
-
 model UserEvent {
-  id        String        @id @default(uuid()) @db.Uuid
-  createdAt DateTime      @default(now())
-  type      UserEventType
+  id        String   @id @default(uuid()) @db.Uuid
+  createdAt DateTime @default(now())
+  type      String
   userId    String
 }
 
@@ -98,7 +94,9 @@ model Project {
 }
 
 model SingleUseLineItem {
-  id                String  @id @default(uuid()) @db.Uuid
+  createdAt         DateTime                  @default(now())
+  updatedAt         DateTime                  @default(now()) @updatedAt
+  id                String                    @id @default(uuid()) @db.Uuid
   caseCost          Float
   casesPurchased    Int
   frequency         String
@@ -106,55 +104,81 @@ model SingleUseLineItem {
   newCaseCost       Float
   newCasesPurchased Int
   unitsPerCase      Int
-  project           Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  projectId         String  @db.Uuid
+  project           Project                   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId         String                    @db.Uuid
+  records           SingleUseLineItemRecord[]
+}
+
+model SingleUseLineItemRecord {
+  id        String   @id @default(uuid()) @db.Uuid
+  createdAt DateTime @default(now())
+  entryDate DateTime
+
+  caseCost       Float
+  casesPurchased Int
+  unitsPerCase   Int
+
+  singleUseLineItem   SingleUseLineItem @relation(fields: [singleUseLineItemId], references: [id], onDelete: Cascade)
+  singleUseLineItemId String            @db.Uuid
+
+  @@unique([singleUseLineItemId, entryDate])
 }
 
 model ReusableLineItem {
-  id                         String  @id @default(uuid()) @db.Uuid
+  id                         String   @id @default(uuid()) @db.Uuid
+  createdAt                  DateTime @default(now())
+  updatedAt                  DateTime @default(now()) @updatedAt
   annualRepurchasePercentage Float
   caseCost                   Float
   casesPurchased             Int
-  unitsPerCase               Int     @default(0)
+  unitsPerCase               Int      @default(0)
   categoryId                 String
   productName                String
-  projectId                  String  @db.Uuid
-  project                    Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId                  String   @db.Uuid
+  project                    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
 }
 
 model OtherExpense {
-  id          String  @id @default(uuid()) @db.Uuid
+  id          String   @id @default(uuid()) @db.Uuid
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now()) @updatedAt
   categoryId  String
   cost        Float
   description String
   frequency   String
-  projectId   String  @db.Uuid
-  project     Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId   String   @db.Uuid
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
 }
 
 model LaborCost {
-  id          String  @id @default(uuid()) @db.Uuid
+  id          String   @id @default(uuid()) @db.Uuid
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now()) @updatedAt
   categoryId  String
   cost        Float
   description String
   frequency   String
-  projectId   String  @db.Uuid
-  project     Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId   String   @db.Uuid
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
 }
 
 model WasteHaulingCost {
-  id             String  @id @default(uuid()) @db.Uuid
+  id             String   @id @default(uuid()) @db.Uuid
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @default(now()) @updatedAt
   monthlyCost    Float
   newMonthlyCost Float
   wasteStream    String
   serviceType    String
   description    String
-  projectId      String  @db.Uuid
-  project        Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId      String   @db.Uuid
+  project        Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
 }
 
 model Dishwasher {
-  id String @id @default(uuid()) @db.Uuid
+  id        String   @id @default(uuid()) @db.Uuid
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 
   racksPerDay                 Int
   newRacksPerDay              Int

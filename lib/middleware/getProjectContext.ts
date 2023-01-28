@@ -7,7 +7,7 @@ import type { DashboardUser } from 'components/dashboard'
 
 export type ProjectContext = {
   user: DashboardUser
-  project: Project
+  project: Project & { org: { name: string }; account: { name: string } }
 }
 
 export const UserDataToInclude = {
@@ -55,6 +55,18 @@ export const getProjectContext: GetServerSideProps = async context => {
     const { id } = context.query
     const project = await prisma.project.findUnique({
       where: { id: id as string },
+      include: {
+        account: {
+          select: {
+            name: true,
+          },
+        },
+        org: {
+          select: {
+            name: true,
+          },
+        },
+      },
     })
 
     if (!project) {

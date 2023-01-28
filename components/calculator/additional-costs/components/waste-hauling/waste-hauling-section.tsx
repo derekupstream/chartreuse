@@ -11,7 +11,7 @@ import { formatToDollar } from 'lib/calculator/utils'
 import WasteHaulingBaselineForm from './waste-hauling-baseline-form'
 import WasteHaulingForecastForm from './waste-hauling-forecast-form'
 import { useSimpleMutation, useSimpleQuery } from 'hooks/useSimpleQuery'
-import { WasteHaulingService } from 'lib/calculator/types/projects'
+import { WasteHaulingService } from 'lib/inventory/types/projects'
 import ContentLoader from 'components/content-loader'
 
 const annual = 12

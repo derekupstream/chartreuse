@@ -7,3 +7,11 @@ export function formatDate(date: Date) {
 export function formatDateShort(date: Date) {
   return new Date(date).toLocaleDateString()
 }
+
+export function isValidDate(date: Date) {
+  return date instanceof Date && !isNaN(date.getTime())
+}
+
+export function isValidDateString(date: string) {
+  return isValidDate(new Date(date))
+}

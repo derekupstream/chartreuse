@@ -1,5 +1,5 @@
 import { Col, message, Popconfirm, Row, Typography } from 'antd'
-import { ReusableLineItem } from 'lib/calculator/types/projects'
+import { ReusableLineItem } from 'lib/inventory/types/projects'
 import { FC } from 'react'
 import { DELETE } from 'lib/http'
 import { InfoRow as StyledInfoRow } from '../../styles'

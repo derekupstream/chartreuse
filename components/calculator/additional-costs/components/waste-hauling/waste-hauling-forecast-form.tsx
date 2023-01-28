@@ -1,17 +1,14 @@
 import styled from 'styled-components'
 import { useEffect } from 'react'
-import { OptionSelection } from '../../../styles'
 import { Button, Form, Input, RadioChangeEvent, Row } from 'antd'
 import { requiredRule } from 'utils/forms'
-import { useSimpleMutation } from 'hooks/useSimpleQuery'
-import { useRouter } from 'next/router'
-import { WasteHaulingCost } from '@prisma/client'
+import { WasteHaulingService } from 'lib/inventory/types/projects'
 
 const categoryOptions = ['Garbage', 'Recycling', 'Organics', 'Additional Changes'].map((c, i) => ({ value: i.toString(), label: c }))
 const serviceTypeOptions = ['Cart', 'Bin', 'Rolloff bin', 'Additional charges'].map(c => ({ value: c, label: c }))
 
 type Props = {
-  input?: WasteHaulingCost | null
+  input?: WasteHaulingService | null
   onClose(monthlyCost: number): void
 }
 type FormValues = {

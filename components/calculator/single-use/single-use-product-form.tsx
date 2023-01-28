@@ -4,9 +4,9 @@ import * as S from '../styles'
 import { PRODUCT_CATEGORIES } from 'lib/calculator/constants/product-categories'
 import { MATERIALS } from 'lib/calculator/constants/materials'
 import { PRODUCT_TYPES } from 'lib/calculator/constants/product-types'
-import { SingleUseProduct } from 'lib/calculator/types/products'
+import { SingleUseProduct } from 'lib/inventory/types/products'
 import styled from 'styled-components'
-import { SingleUseLineItem } from 'lib/calculator/types/projects'
+import { SingleUseLineItem } from 'lib/inventory/types/projects'
 
 const StyledFormItem = styled(Form.Item)`
   .ant-form-item-label label {

@@ -3,7 +3,7 @@ import { mailchimp } from './client'
 import prisma from 'lib/prisma'
 import { listId } from './client'
 
-const MAILCHIMP_EVENTS = ['completed_first_project'] as const
+export const MAILCHIMP_EVENTS = ['completed_single_use_step'] as const
 
 export type MailChimpEvent = typeof MAILCHIMP_EVENTS[number]
 

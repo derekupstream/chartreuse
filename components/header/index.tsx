@@ -5,10 +5,12 @@ type Props = {
   title: string
 }
 
+const siteName = 'Chart Reuse by Upstream'
+
 const Header: React.FC<Props> = ({ title, children }) => {
   return (
     <Head>
-      <title>{title} | Chart Reuse by Upstream</title>
+      <title>{title ? `${title} | ${siteName}` : siteName}</title>
       {children}
     </Head>
   )

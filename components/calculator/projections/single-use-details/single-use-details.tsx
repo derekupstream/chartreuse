@@ -1,5 +1,5 @@
 import { Radio, Table, Typography } from 'antd'
-import { ProjectionsResponse } from 'lib/calculator'
+import { ProjectionsResponse } from 'lib/calculator/getProjections'
 import Spacer from 'components/spacer/spacer'
 import BarChart from '../components/chart-bar'
 import { CardTitle, ChangeColumn, Divider, SectionContainer, SectionHeader } from '../components/styles'
@@ -54,12 +54,12 @@ const SingleUseDetails: React.FC<Props> = ({ data }) => {
 
   const savingsData = [
     { label: 'Baseline', value: data.annualSummary.dollarCost.baseline },
-    { label: 'Forecast', value: data.annualSummary.dollarCost.followup },
+    { label: 'Forecast', value: data.annualSummary.dollarCost.forecast },
   ]
 
   const singleUseData = [
     { label: 'Baseline', value: data.annualSummary.singleUseProductCount.baseline },
-    { label: 'Forecast', value: data.annualSummary.singleUseProductCount.followup },
+    { label: 'Forecast', value: data.annualSummary.singleUseProductCount.forecast },
   ]
 
   function changeRowType(e: any) {
@@ -74,30 +74,23 @@ const SingleUseDetails: React.FC<Props> = ({ data }) => {
     setUseTons(e.target.value === 'tons')
   }
 
-  function formatNumber(value: number) {
-    if (changeType === 'cost') {
-      return formatToDollar(value)
-    }
-    return value.toLocaleString()
-  }
-
-  const items = data.singleUseProductResults.resultsByType[rowType]
+  const items = data.singleUseProductForecast.resultsByType[rowType]
   const dataSource: TableData[] = items.rows.map((item, index) => {
     let baseline = 0
     let forecast = 0
     if (changeType === 'cost') {
       baseline = item.cost.baseline
-      forecast = item.cost.followup
+      forecast = item.cost.forecast
     } else if (changeType === 'waste') {
       baseline = item.weight.baseline
-      forecast = item.weight.followup
+      forecast = item.weight.forecast
       if (useTons) {
         baseline = baseline / 2000
         forecast = forecast / 2000
       }
     } else if (changeType === 'ghg') {
       baseline = item.gasEmissions.baseline
-      forecast = item.gasEmissions.followup
+      forecast = item.gasEmissions.forecast
     }
 
     return {
@@ -105,13 +98,13 @@ const SingleUseDetails: React.FC<Props> = ({ data }) => {
       product: item.title,
       baselineSpending: baseline,
       forecastSpending: forecast,
-      forecastStr: formatNumber(forecast),
-      baselineStr: formatNumber(baseline),
+      forecastStr: formatNumber(forecast, changeType),
+      baselineStr: formatNumber(baseline, changeType),
       change: baseline ? (
         <ChangeColumn>
           <span>
             {forecast > baseline && '+'}
-            {formatNumber(forecast - baseline)}
+            {formatNumber(forecast - baseline, changeType)}
           </span>{' '}
           <span>
             {forecast > baseline && '+'}
@@ -126,27 +119,19 @@ const SingleUseDetails: React.FC<Props> = ({ data }) => {
 
   return (
     <SectionContainer>
-      <SectionHeader>Single-use details report</SectionHeader>
+      <SectionHeader style={{ margin: 0 }}>Single-use details report</SectionHeader>
       <Divider />
-      <Card>
+      <Card style={{ marginRight: 0 }}>
         <CardTitle>Your estimated annual savings</CardTitle>
         <Body>
           <Section>
-            <KPIContent
-              change={data.annualSummary.dollarCost.change * -1}
-              changePercent={data.annualSummary.dollarCost.changePercent * -1}
-              changeStr={`${changeValue(data.annualSummary.dollarCost.change * -1, { preUnit: '$' }).toLocaleString()}`}
-            />
+            <KPIContent changePercent={data.annualSummary.dollarCost.changePercent * -1} changeStr={`${changeValue(data.annualSummary.dollarCost.change * -1, { preUnit: '$' }).toLocaleString()}`} />
             {/* <ChartTitle>Annual Spending changes</ChartTitle> */}
             <BarChart data={savingsData} formatter={(data: any) => `${data.label}: $${data.value.toLocaleString()}`} seriesField="label" />
           </Section>
 
           <Section>
-            <KPIContent
-              change={data.annualSummary.singleUseProductCount.change * -1}
-              changePercent={data.annualSummary.singleUseProductCount.changePercent * -1}
-              changeStr={changeValue(data.annualSummary.singleUseProductCount.change * -1) + ' units'}
-            />
+            <KPIContent changePercent={data.annualSummary.singleUseProductCount.changePercent * -1} changeStr={changeValue(data.annualSummary.singleUseProductCount.change * -1) + ' units'} />
             {/* <ChartTitle>Annual single-use total changes</ChartTitle> */}
             <BarChart data={singleUseData} formatter={(data: any) => `${data.label}: ${data.value.toLocaleString()} pieces`} seriesField="label" />
           </Section>
@@ -155,7 +140,7 @@ const SingleUseDetails: React.FC<Props> = ({ data }) => {
 
       <SectionHeader>Single-use purchasing</SectionHeader>
       <Divider />
-      <Card>
+      <Card style={{ marginRight: 0 }}>
         <Row spaceBetween>
           <CardTitle>Cost</CardTitle>
           <Row marginBottom={15}>
@@ -211,35 +196,51 @@ const SingleUseDetails: React.FC<Props> = ({ data }) => {
           </div> */}
         </Row>
         <Spacer horizontal={16} />
-        <Table<TableData>
-          dataSource={dataSource}
-          columns={columns}
-          summary={pageData => {
-            const baselineTotal = pageData.reduce((acc, curr) => acc + curr.baselineSpending, 0)
-            const forecastTotal = pageData.reduce((acc, curr) => acc + curr.forecastSpending, 0)
-
-            return (
-              <Table.Summary.Row>
-                <Table.Summary.Cell index={0}>Total</Table.Summary.Cell>
-                <Table.Summary.Cell index={1}>
-                  <Typography.Text strong>{formatNumber(baselineTotal)}</Typography.Text>
-                </Table.Summary.Cell>
-                <Table.Summary.Cell index={2}>
-                  <Typography.Text strong>{formatNumber(forecastTotal)}</Typography.Text>
-                </Table.Summary.Cell>
-                <Table.Summary.Cell index={3}>
-                  <Typography.Text strong>
-                    {forecastTotal > baselineTotal && '+'}
-                    {formatNumber(forecastTotal - baselineTotal)}
-                  </Typography.Text>
-                  {/* <Tag>76%</Tag> */}
-                </Table.Summary.Cell>
-              </Table.Summary.Row>
-            )
-          }}
-        />
+        <SingleUseItemsTable className="dont-print-me" dataSource={dataSource} changeType={changeType} />
+        <SingleUseItemsTable className="print-only" disablePagination dataSource={dataSource} changeType={changeType} />
       </Card>
     </SectionContainer>
+  )
+}
+
+function formatNumber(value: number, changeType: ChangeType) {
+  if (changeType === 'cost') {
+    return formatToDollar(value)
+  }
+  return value.toLocaleString()
+}
+
+function SingleUseItemsTable({ className, changeType, dataSource, disablePagination }: { className: string; changeType: ChangeType; dataSource: TableData[]; disablePagination?: boolean }) {
+  return (
+    <Table<TableData>
+      className={className}
+      dataSource={dataSource}
+      pagination={{ hideOnSinglePage: true, pageSize: disablePagination ? dataSource.length : 10 }}
+      columns={columns}
+      summary={pageData => {
+        const baselineTotal = pageData.reduce((acc, curr) => acc + curr.baselineSpending, 0)
+        const forecastTotal = pageData.reduce((acc, curr) => acc + curr.forecastSpending, 0)
+
+        return (
+          <Table.Summary.Row>
+            <Table.Summary.Cell index={0}>Total</Table.Summary.Cell>
+            <Table.Summary.Cell index={1}>
+              <Typography.Text strong>{formatNumber(baselineTotal, changeType)}</Typography.Text>
+            </Table.Summary.Cell>
+            <Table.Summary.Cell index={2}>
+              <Typography.Text strong>{formatNumber(forecastTotal, changeType)}</Typography.Text>
+            </Table.Summary.Cell>
+            <Table.Summary.Cell index={3}>
+              <Typography.Text strong>
+                {forecastTotal > baselineTotal && '+'}
+                {formatNumber(forecastTotal - baselineTotal, changeType)}
+              </Typography.Text>
+              {/* <Tag>76%</Tag> */}
+            </Table.Summary.Cell>
+          </Table.Summary.Row>
+        )
+      }}
+    />
   )
 }
 

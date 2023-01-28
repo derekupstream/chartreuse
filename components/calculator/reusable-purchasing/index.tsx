@@ -2,7 +2,7 @@ import { Button, Divider, Row, Col, Drawer, List, message, Typography } from 'an
 import { useState, useEffect } from 'react'
 import { PlusOutlined } from '@ant-design/icons'
 import * as S from '../styles'
-import { ReusableLineItem } from 'lib/calculator/types/projects'
+import { ReusableLineItem } from 'lib/inventory/types/projects'
 import ReusablePurchasingFirstStepForm from './reusable-purchasing-first-step-form'
 import ReusablePurchasingSecondStepForm from './reusable-purchasing-second-step-form'
 import { useRouter } from 'next/router'

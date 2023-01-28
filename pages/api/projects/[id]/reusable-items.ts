@@ -1,21 +1,11 @@
-import type { NextApiRequest, NextApiResponse } from 'next'
+import type { NextApiResponse } from 'next'
 import prisma from 'lib/prisma'
-import nc from 'next-connect'
-import getUser, { NextApiRequestWithUser } from 'lib/middleware/getUser'
-import { Prisma, ReusableLineItem } from '@prisma/client'
-import onError from 'lib/middleware/onError'
-import onNoMatch from 'lib/middleware/onNoMatch'
-import { validateProject } from 'lib/middleware/validateProject'
+import { projectHandler, NextApiRequestWithUser } from 'lib/middleware'
+import { ReusableLineItem } from '@prisma/client'
 
-const handler = nc<NextApiRequest, NextApiResponse>({ onError, onNoMatch })
+const handler = projectHandler()
 
-handler.use(getUser).use(validateProject).get(getItems).post(addItem).delete(deleteItem)
-
-type Response = {
-  lineItem?: ReusableLineItem
-  lineItems?: ReusableLineItem[]
-  error?: string
-}
+handler.get(getItems).post(addItem).delete(deleteItem)
 
 async function getItems(req: NextApiRequestWithUser, res: NextApiResponse<{ lineItems?: ReusableLineItem[] }>) {
   const projectId = req.query.id as string

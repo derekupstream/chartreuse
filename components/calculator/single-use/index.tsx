@@ -4,8 +4,8 @@ import { PlusOutlined } from '@ant-design/icons'
 import SingleUseForm from './single-use-form'
 import * as S from '../styles'
 import { useEffect } from 'react'
-import { SingleUseProduct } from 'lib/calculator/types/products'
-import { SingleUseLineItem } from 'lib/calculator/types/projects'
+import { SingleUseProduct } from 'lib/inventory/types/products'
+import { SingleUseLineItem } from 'lib/inventory/types/projects'
 import { DELETE, GET } from 'lib/http'
 import { Project } from '.prisma/client'
 import { DashboardUser } from 'components/dashboard'
@@ -335,7 +335,7 @@ export default function SingleUse({ project }: ServerSideProps) {
                 </div>
               )
           )}
-          {lineItems.data.length > 0 && <SummaryRow lineItems={lineItems.data} />}
+          {lineItems.data?.length > 0 && <SummaryRow lineItems={lineItems.data} />}
         </>
       )}
       <Drawer
