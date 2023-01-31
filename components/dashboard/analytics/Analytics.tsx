@@ -3,9 +3,13 @@ import type { Org, User } from '@prisma/client';
 import type { SelectProps } from 'antd';
 import { Button, Col, Form, Row, Select, Space, Table, Typography, Divider } from 'antd';
 import { useRouter } from 'next/router';
+import { useRef } from 'react';
 import type { ReactNode } from 'react';
+import styled from 'styled-components';
 
 import ContentLoader from 'components/common/content-loader';
+import { PrintButton } from 'components/print/print-button';
+import { PrintHeader } from 'components/print/print-header';
 import Card from 'components/projects/[id]/projections/components/card';
 import GroupedBar from 'components/projects/[id]/projections/components/grouped-bar';
 import * as S from 'components/projects/[id]/projections/components/styles';
@@ -15,6 +19,21 @@ import { formatToDollar } from 'lib/calculator/utils';
 import { requestDownload } from 'lib/files';
 
 import * as S2 from '../styles';
+
+const StyledCol = styled(Col)`
+  @media print {
+    flex: 0 0 50% !important;
+    max-width: 50% !important;
+  }
+`;
+
+const KPIValue = styled(Typography.Title)`
+  margin: 0 !important;
+  font-size: 30px !important;
+  @media print {
+    font-size: 24px !important;
+  }
+`;
 
 export interface PageProps {
   isUpstreamView?: boolean;
@@ -38,27 +57,14 @@ const SummaryCardWithGraph = ({ label, units, value, formatter = defaultFormatte
           <Typography.Paragraph>
             <strong>{label}</strong>
           </Typography.Paragraph>
-          <Typography.Title style={{ margin: 0 }}>
+          <KPIValue>
             {formatter(change)} <span style={{ fontSize: '.6em' }}>{units}</span>
-          </Typography.Title>
+          </KPIValue>
         </Col>
         <Col xs={24} sm={11}>
           <GroupedBar data={graphData} formatter={val => (val ? formatter(val) : val)} />
         </Col>
       </Row>
-    </Card>
-  );
-};
-
-const SummaryCard = ({ label, units, value, formatter = defaultFormatter }: { label: string; units?: string; value: number; formatter?: (val: number) => string | ReactNode }) => {
-  return (
-    <Card bordered={false} style={{ height: '100%' }}>
-      <Typography.Paragraph>
-        <strong>{label}</strong>
-      </Typography.Paragraph>
-      <Typography.Title style={{ margin: 0 }}>
-        {formatter(value)} <span style={{ fontSize: '.6em' }}>{units}</span>
-      </Typography.Title>
     </Card>
   );
 };
@@ -174,6 +180,9 @@ const ReductionValue = ({ value, formatter = defaultFormatter }: { value: { chan
 export default function AnalyticsPage({ user, data, allProjects, isUpstreamView }: PageProps) {
   const router = useRouter();
 
+  // for printing
+  const printRef = useRef(null);
+
   if (!data) {
     return <ContentLoader />;
   }
@@ -211,10 +220,13 @@ export default function AnalyticsPage({ user, data, allProjects, isUpstreamView 
     })
     .sort((a, b) => a.score - b.score);
 
+  const spacing = 24;
+
   return (
-    <Space direction='vertical' size='large' style={{ width: '100%' }}>
+    <div ref={printRef}>
+      <PrintHeader orgName={user.org.name} />
       <S2.SpaceBetween>
-        <Typography.Title>{isUpstreamView ? 'Upstream Analytics' : `${user.org.name}'s Analytics`}</Typography.Title>
+        <Typography.Title className='dont-print-me'>{isUpstreamView ? 'Upstream Analytics' : `${user.org.name}'s Analytics`}</Typography.Title>
 
         <span>
           {isUpstreamView && (
@@ -226,32 +238,45 @@ export default function AnalyticsPage({ user, data, allProjects, isUpstreamView 
               </Form>
             </>
           )}
-          <Button onClick={() => exportData()}>
-            <DownloadOutlined /> Export Data
-          </Button>
+          <div style={{ display: 'flex', gap: '1em' }} className='dont-print-me'>
+            <PrintButton printRef={printRef} pdfTitle={`Account Analytics - Chart Reuse`} />
+            <Button onClick={() => exportData()}>
+              <DownloadOutlined /> Export Data
+            </Button>
+          </div>
         </span>
       </S2.SpaceBetween>
+
+      <Spacer vertical={spacing} />
+
       <Typography.Title level={3} style={{ margin: 0 }}>
         High-Level Overview
       </Typography.Title>
+
+      <Spacer vertical={spacing} />
+
       <Divider style={{ margin: 0 }} />
 
+      <Spacer vertical={spacing} />
+
       <Row gutter={[24, 24]}>
-        <Col xs={24} md={12}>
+        <StyledCol xs={24} md={12}>
           <SummaryCardWithGraph label='Estimated Savings' formatter={formatToDollar} value={data.summary.savings} />
-        </Col>
-        <Col xs={24} md={12}>
+        </StyledCol>
+        <StyledCol xs={24} md={12}>
           <SummaryCardWithGraph label='Single-Use Reduction' units='units' value={data.summary.singleUse} />
-        </Col>
-        <Col xs={24} md={12}>
+        </StyledCol>
+        <StyledCol xs={24} md={12}>
           <SummaryCardWithGraph label='Waste Reduction' units='lbs' value={data.summary.waste} />
-        </Col>
-        <Col xs={24} md={12}>
+        </StyledCol>
+        <StyledCol xs={24} md={12}>
           <SummaryCardWithGraph label='GHG Reduction' units='MTC02e' value={data.summary.gas} />
-        </Col>
+        </StyledCol>
       </Row>
 
-      <Spacer vertical={0} />
+      <div className='page-break' />
+
+      <Spacer vertical={spacing} />
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
         <Typography.Title level={3} style={{ marginBottom: 0 }}>
@@ -261,11 +286,14 @@ export default function AnalyticsPage({ user, data, allProjects, isUpstreamView 
           <span>{`${data.projects.length} Projects`}</span>
         </S.SectionHeader>
       </div>
+      <Spacer vertical={spacing} />
       <Divider style={{ margin: 0 }} />
+      <Spacer vertical={spacing} />
 
       <Card>
-        <Table<ProjectSummary> dataSource={rows} columns={columns} rowKey='id' />
+        <Table<ProjectSummary> className='dont-print-me' dataSource={rows} columns={columns} rowKey='id' pagination={{ hideOnSinglePage: true }} />
+        <Table<ProjectSummary> className='print-only' dataSource={rows} columns={columns} rowKey='id' pagination={{ hideOnSinglePage: true, pageSize: rows.length }} />
       </Card>
-    </Space>
+    </div>
   );
 }

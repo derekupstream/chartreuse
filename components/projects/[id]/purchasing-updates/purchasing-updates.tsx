@@ -2,11 +2,11 @@ import { PrinterOutlined } from '@ant-design/icons';
 import { Button, Typography } from 'antd';
 import { Tabs } from 'antd';
 import { useEffect, useRef, useState } from 'react';
-import { useReactToPrint } from 'react-to-print';
 import useSWR from 'swr';
 
 import ContentLoader from 'components/common/content-loader';
 import { ProjectInfo } from 'components/dashboard/styles';
+import { PrintButton } from 'components/print/print-button';
 import { PrintHeader } from 'components/print/print-header';
 import { ActualsResponse } from 'lib/calculator/getActuals';
 import chartreuseClient from 'lib/chartreuseClient';
@@ -37,23 +37,7 @@ export function PurchasingUpdates({ project }: { project: ProjectContext['projec
   const [clickedDownload, setClickedDownload] = useState(false);
 
   // for printing
-  const componentRef = useRef(null);
-  const handlePrint = useReactToPrint({
-    content: () => componentRef.current,
-    documentTitle: `${project.name} Purchasing Updates - Chart Reuse`
-    // onBeforeGetContent: () => {
-    //   // remove the print button
-    //   const printButton = content.querySelector('.print-button')
-    //   printButton?.remove()
-    // }
-
-    // onAfterPrint: () => setPrinting(false),
-    // make sure this returns a promise for the library
-    // onBeforeGetContent: async () => {
-    //   // Modify the page here, for example, by setting state:
-    //   setPrinting(true);
-    // }
-  });
+  const printRef = useRef(null);
 
   useEffect(() => {
     setFooterState({ path: '/purchasing-updates', stepCompleted: true });
@@ -76,16 +60,12 @@ export function PurchasingUpdates({ project }: { project: ProjectContext['projec
   const dateRange = convertPeriodToDates(selectedPeriod?.value);
 
   return (
-    <Wrapper ref={componentRef}>
+    <Wrapper ref={printRef}>
       <PrintHeader accountName={project.account.name} orgName={project.org.name} projectName={project.name} />
       <div style={{ display: 'flex', justifyContent: 'space-between' }}>
         <Typography.Title level={1}>Purchasing updates</Typography.Title>
         <div style={{ display: 'flex', gap: '1em' }} className='dont-print-me'>
-          {!isLoading && !showEmptyState && (
-            <Button onClick={handlePrint}>
-              <PrinterOutlined /> Print
-            </Button>
-          )}
+          {!isLoading && !showEmptyState && <PrintButton printRef={printRef} pdfTitle={`${project.name} Purchasing Updates - Chart Reuse`} />}
           {!isLoading && !showEmptyState && <UploadButton projectId={project.id} onUpload={onUpload} />}
         </div>
       </div>
