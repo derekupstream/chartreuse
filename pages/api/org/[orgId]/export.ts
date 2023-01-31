@@ -3,13 +3,27 @@ import type { NextApiResponse } from 'next';
 import { getOrgExport } from 'lib/exports';
 import type { NextApiRequestWithUser } from 'lib/middleware';
 import { handlerWithUser, requireUpstream } from 'lib/middleware';
+import prisma from 'lib/prisma';
 
 const handler = handlerWithUser();
 
-handler.use(requireUpstream).get(getOrgExportMiddleware);
+handler.get(getOrgExportMiddleware);
 
 async function getOrgExportMiddleware(req: NextApiRequestWithUser, res: NextApiResponse) {
   const orgId = req.query.orgId as string;
+
+  const user = await prisma.user.findUniqueOrThrow({
+    where: {
+      id: req.user.id
+    },
+    include: {
+      org: true
+    }
+  });
+
+  if (user.org.id !== orgId && !user.org.isUpstream) {
+    throw new Error('User does not have access to this org');
+  }
 
   const file = await getOrgExport(orgId);
   const buffer = await file.xlsx.writeBuffer();
