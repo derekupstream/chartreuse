@@ -1,5 +1,4 @@
-
-const withLess = require('next-with-less')
+const withLess = require('next-with-less');
 
 /**
  * Remove undefined values so Next.js doesn't complain during serialization
@@ -11,13 +10,13 @@ const removeUndefined = obj => {
     else if (obj[key] !== undefined) newObj[key] = obj[key];
   });
   return newObj;
-}
-const next = require('next/dist/lib/is-serializable-props')
+};
+const next = require('next/dist/lib/is-serializable-props');
 // eslint-disable-next-line prefer-destructuring
-const isSerializableProps = next.isSerializableProps
+const isSerializableProps = next.isSerializableProps;
 next.isSerializableProps = function _isSerializableProps(page, method, input) {
   return isSerializableProps(page, method, removeUndefined(input));
-}
+};
 
 const config = {
   compiler: {
@@ -36,15 +35,15 @@ const config = {
       {
         source: '/',
         destination: '/projects',
-        permanent: false,
+        permanent: false
       },
       {
         source: '/projects/:projectId',
         destination: '/projects/:projectId/setup',
-        permanent: true,
-      },
-    ]
-  },
-}
+        permanent: true
+      }
+    ];
+  }
+};
 
-module.exports = withLess(config)
+module.exports = withLess(config);

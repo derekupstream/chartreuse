@@ -1,22 +1,26 @@
-import { Button, Input, Typography, Slider, message } from 'antd'
-import { Form, Select } from 'antd'
-import { Store } from 'antd/lib/form/interface'
-import { Prisma, Project } from '@prisma/client'
-import * as S from 'components/calculator/styles'
-import { POST, PUT } from 'lib/http'
-import { useRouter } from 'next/router'
-import { DashboardUser } from 'components/dashboard'
-import { useFooterState } from '../footer'
-import { useEffect } from 'react'
-import styled from 'styled-components'
-import chartreuseClient, { ProjectInput } from 'lib/chartreuseClient'
+import type { Project } from '@prisma/client';
+import { Prisma } from '@prisma/client';
+import { Button, Input, Typography, Slider, message } from 'antd';
+import { Form, Select } from 'antd';
+import type { Store } from 'antd/lib/form/interface';
+import { useRouter } from 'next/router';
+import { useEffect } from 'react';
+import styled from 'styled-components';
+
+import * as S from 'components/calculator/styles';
+import type { DashboardUser } from 'components/dashboard';
+import type { ProjectInput } from 'lib/chartreuseClient';
+import chartreuseClient from 'lib/chartreuseClient';
+import { POST, PUT } from 'lib/http';
+
+import { useFooterState } from '../footer';
 
 const Wrapper = styled(S.Wrapper)`
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-`
+`;
 
 const ProjectTypes = [
   'Cafe/Cafeteria',
@@ -27,21 +31,21 @@ const ProjectTypes = [
   'Fast Casual Restaurant',
   'Food Hall Stand',
   'Live Events',
-  'Other',
-] as const
+  'Other'
+] as const;
 
-const WhereFoodIsPrepared = ['On-Site', 'Off-Site', 'Both'] as const
-const dishwashingTypes = ['Mechanized Dishwasher (owned)', 'Mechanized Dishwasher (leased)', 'Wash by hand (3 sink system)', 'Combination']
+const WhereFoodIsPrepared = ['On-Site', 'Off-Site', 'Both'] as const;
+const dishwashingTypes = ['Mechanized Dishwasher (owned)', 'Mechanized Dishwasher (leased)', 'Wash by hand (3 sink system)', 'Combination'];
 
 export type ProjectMetadata = {
-  type: typeof ProjectTypes[number]
-  customers: string
-  dineInVsTakeOut: number
-  whereIsFoodPrepared: typeof WhereFoodIsPrepared[number]
-}
+  type: (typeof ProjectTypes)[number];
+  customers: string;
+  dineInVsTakeOut: number;
+  whereIsFoodPrepared: (typeof WhereFoodIsPrepared)[number];
+};
 
 export default function SetupPage({ user, project }: { user: DashboardUser; project?: Project }) {
-  const router = useRouter()
+  const router = useRouter();
 
   async function saveProject({ name, accountId, ...metadata }: Store) {
     const params: ProjectInput = {
@@ -50,101 +54,101 @@ export default function SetupPage({ user, project }: { user: DashboardUser; proj
       metadata,
       accountId,
       // @ts-ignore
-      orgId: user.org.id,
-    }
+      orgId: user.org.id
+    };
 
-    const req = project ? chartreuseClient.updateProject(params) : chartreuseClient.createProject(params)
+    const req = project ? chartreuseClient.updateProject(params) : chartreuseClient.createProject(params);
 
     req
       .then(res => {
-        router.push(`/projects/${res.project.id}/single-use-items`)
+        router.push(`/projects/${res.project.id}/single-use-items`);
       })
       .catch(err => {
-        message.error((err as Error)?.message)
-      })
+        message.error((err as Error)?.message);
+      });
   }
 
-  const { setFooterState } = useFooterState()
+  const { setFooterState } = useFooterState();
   useEffect(() => {
-    setFooterState({ path: '/setup', stepCompleted: true })
-  }, [setFooterState])
+    setFooterState({ path: '/setup', stepCompleted: true });
+  }, [setFooterState]);
 
   return (
     <Wrapper>
       <Typography.Title level={1}>Setup your project</Typography.Title>
       <S.SetupForm
-        layout="vertical"
+        layout='vertical'
         initialValues={{
           accountId: user.org.accounts[0].id,
           customers: 0,
           dineInVsTakeOut: 0,
           ...(project || {}),
-          ...((project?.metadata as {}) || {}),
+          ...((project?.metadata as any) || {})
         }}
         onFinish={saveProject as any}
       >
         <Form.Item
-          label="Project Name"
-          name="name"
+          label='Project Name'
+          name='name'
           rules={[
             {
               required: true,
-              message: 'Name is required!',
-            },
+              message: 'Name is required!'
+            }
           ]}
         >
-          <Input placeholder="Project Name" />
+          <Input placeholder='Project Name' />
         </Form.Item>
 
         <Form.Item
-          label="Project Type"
-          name="type"
+          label='Project Type'
+          name='type'
           rules={[
             {
               required: true,
-              message: 'Type is required!',
-            },
+              message: 'Type is required!'
+            }
           ]}
         >
-          <Select placeholder="Project Type">
+          <Select placeholder='Project Type'>
             {ProjectTypes.map(type => {
               return (
                 <Select.Option key={type} value={type}>
                   {type}
                 </Select.Option>
-              )
+              );
             })}
           </Select>
         </Form.Item>
 
         <Form.Item
-          label="Account"
-          name="accountId"
+          label='Account'
+          name='accountId'
           rules={[
             {
               required: true,
-              message: 'Account is required!',
-            },
+              message: 'Account is required!'
+            }
           ]}
         >
-          <Select placeholder="Account to create project on">
+          <Select placeholder='Account to create project on'>
             {user.org.accounts.map(account => {
               return (
                 <Select.Option key={account.id} value={account.id}>
                   {account.name}
                 </Select.Option>
-              )
+              );
             })}
           </Select>
         </Form.Item>
 
-        <Form.Item label="On average, how many customers do you serve daily?" name="customers">
+        <Form.Item label='On average, how many customers do you serve daily?' name='customers'>
           <Slider
             marks={{
               50: 50,
               250: 250,
               500: 500,
-              1000: '1000+',
+              1000: '1000+'
             }}
             min={50}
             max={1000}
@@ -152,44 +156,44 @@ export default function SetupPage({ user, project }: { user: DashboardUser; proj
           />
         </Form.Item>
 
-        <Form.Item label="What percent of your daily volume is dine-in vs. take-out?" name="dineInVsTakeOut">
+        <Form.Item label='What percent of your daily volume is dine-in vs. take-out?' name='dineInVsTakeOut'>
           <Slider
             marks={{
               0: 'Dine-in',
-              100: { style: { width: '100px' }, label: 'Take-out' },
+              100: { style: { width: '100px' }, label: 'Take-out' }
             }}
           />
         </Form.Item>
 
-        <Form.Item label="Where is the food primarily prepared?" name="whereIsFoodPrepared">
+        <Form.Item label='Where is the food primarily prepared?' name='whereIsFoodPrepared'>
           <S.RadioGroup
             style={{ width: '100%' }}
             options={WhereFoodIsPrepared.map(wfp => ({
               label: wfp,
-              value: wfp,
+              value: wfp
             }))}
-            optionType="button"
+            optionType='button'
           />
         </Form.Item>
 
-        <Form.Item label="What type of dishwashing capacity best describes your operation?" name="dishwashingType">
-          <Select placeholder="Select dishwashing type">
+        <Form.Item label='What type of dishwashing capacity best describes your operation?' name='dishwashingType'>
+          <Select placeholder='Select dishwashing type'>
             {dishwashingTypes.map(type => {
               return (
                 <Select.Option key={type} value={type}>
                   {type}
                 </Select.Option>
-              )
+              );
             })}
           </Select>
         </Form.Item>
 
         <Form.Item>
-          <Button type="primary" htmlType="submit" block>
+          <Button type='primary' htmlType='submit' block>
             {project ? 'Update Project' : 'Add project'}
           </Button>
         </Form.Item>
       </S.SetupForm>
     </Wrapper>
-  )
+  );
 }

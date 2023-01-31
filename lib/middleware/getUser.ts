@@ -1,29 +1,30 @@
-import { Prisma, User } from '@prisma/client'
-import prisma from 'lib/prisma'
-import type { NextApiRequest, NextApiResponse } from 'next'
-import { verifyIdToken } from 'lib/auth/firebaseAdmin'
+import type { Prisma, User } from '@prisma/client';
+import type { NextApiRequest, NextApiResponse } from 'next';
+
+import { verifyIdToken } from 'lib/auth/firebaseAdmin';
+import prisma from 'lib/prisma';
 
 export type NextApiRequestWithUser = NextApiRequest & {
-  user: User
-}
+  user: User;
+};
 
-export async function getUser(req: NextApiRequestWithUser, res: NextApiResponse, next: Function) {
-  const cookies = req.cookies
+export async function getUser(req: NextApiRequestWithUser, res: NextApiResponse, next: () => void) {
+  const cookies = req.cookies;
   if (!cookies.token) {
-    throw new Error('Request requires authentication')
+    throw new Error('Request requires authentication');
   }
-  const token = await verifyIdToken(cookies.token as string)
+  const token = await verifyIdToken(cookies.token as string);
   const user = await prisma.user.findUnique<Prisma.UserFindUniqueArgs>({
     where: {
-      id: token.uid,
-    },
-  })
+      id: token.uid
+    }
+  });
   if (!user) {
-    res.status(401).send('User not found')
+    res.status(401).send('User not found');
   } else {
-    req.user = user
-    next()
+    req.user = user;
+    next();
   }
 }
 
-export default getUser
+export default getUser;

@@ -1,6 +1,7 @@
-import { Col, Row as AntdRow, Form, Select } from 'antd'
-import { CardTitle } from '../../projections/components/styles'
-import { Card, Row } from '../../projections/single-use-details/styles'
+import { Col, Row as AntdRow, Form, Select } from 'antd';
+
+import { CardTitle } from '../../projections/components/styles';
+import { Card, Row } from '../../projections/single-use-details/styles';
 
 export function EnvironmentalSummary() {
   return (
@@ -22,5 +23,5 @@ export function EnvironmentalSummary() {
         </Col>
       </AntdRow>
     </>
-  )
+  );
 }

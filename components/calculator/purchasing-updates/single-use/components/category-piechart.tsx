@@ -1,12 +1,13 @@
-import React, { memo, useState, useEffect } from 'react'
-import { Pie, PieConfig, measureTextWidth } from '@ant-design/plots'
-import styled from 'styled-components'
+import type { PieConfig } from '@ant-design/plots';
+import { Pie, measureTextWidth } from '@ant-design/plots';
+import React, { memo, useState, useEffect } from 'react';
+import styled from 'styled-components';
 
-const StyledPie = styled(Pie)``
+const StyledPie = styled(Pie)``;
 
 type Props = {
-  data: { label: string; value: number }[]
-}
+  data: { label: string; value: number }[];
+};
 
 const PieChart = ({ data }: Props) => {
   const config: PieConfig = {
@@ -19,14 +20,14 @@ const PieChart = ({ data }: Props) => {
     innerRadius: 0.7,
     meta: {
       value: {
-        formatter: v => v.toLocaleString() + ' units',
-      },
+        formatter: v => v.toLocaleString() + ' units'
+      }
     },
     label: false,
     statistic: {
       title: false,
-      content: false,
-    },
+      content: false
+    }
     // statistic: {
     //   title: {
     //     offsetY: -4,
@@ -54,8 +55,8 @@ const PieChart = ({ data }: Props) => {
     //     type: 'element-active',
     //   },
     // ],
-  }
-  return <StyledPie {...config} />
-}
+  };
+  return <StyledPie {...config} />;
+};
 
-export default memo(PieChart)
+export default memo(PieChart);

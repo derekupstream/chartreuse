@@ -1,23 +1,25 @@
-import type { NextApiRequest, NextApiResponse } from 'next'
-import nc from 'next-connect'
-import prisma from 'lib/prisma'
-import { sendEmail } from 'lib/mailgun'
-import { Invite } from '@prisma/client'
-import { onError, onNoMatch, getUser, NextApiRequestWithUser } from 'lib/middleware'
-import { trackEvent } from 'lib/tracking'
+import type { Invite } from '@prisma/client';
+import type { NextApiRequest, NextApiResponse } from 'next';
+import nc from 'next-connect';
 
-const handler = nc<NextApiRequest, NextApiResponse>({ onError, onNoMatch })
+import { sendEmail } from 'lib/mailgun';
+import type { NextApiRequestWithUser } from 'lib/middleware';
+import { onError, onNoMatch, getUser } from 'lib/middleware';
+import prisma from 'lib/prisma';
+import { trackEvent } from 'lib/tracking';
 
-handler.use(getUser).post(createAccount)
+const handler = nc<NextApiRequest, NextApiResponse>({ onError, onNoMatch });
+
+handler.use(getUser).post(createAccount);
 
 type Response = {
-  invitedUser: boolean
-}
+  invitedUser: boolean;
+};
 
 async function createAccount(req: NextApiRequestWithUser, res: NextApiResponse<Response>) {
-  const { name, email, USState } = req.body
+  const { name, email, USState } = req.body;
 
-  const invitedUser = email !== req.user.email
+  const invitedUser = email !== req.user.email;
 
   const account = await prisma.account.create({
     data: {
@@ -26,8 +28,8 @@ async function createAccount(req: NextApiRequestWithUser, res: NextApiResponse<R
       USState,
       org: {
         connect: {
-          id: req.user.orgId,
-        },
+          id: req.user.orgId
+        }
       },
       ...(invitedUser
         ? {
@@ -36,32 +38,32 @@ async function createAccount(req: NextApiRequestWithUser, res: NextApiResponse<R
                 {
                   email,
                   orgId: req.user.orgId,
-                  sentByUserId: req.user.id,
-                },
-              ],
-            },
+                  sentByUserId: req.user.id
+                }
+              ]
+            }
           }
-        : {}),
+        : {})
     },
     include: {
       org: true,
       invites: {
         where: {
-          email,
+          email
         },
         include: {
           sentBy: {
             include: {
-              org: true,
-            },
-          },
-        },
-      },
-    },
-  })
+              org: true
+            }
+          }
+        }
+      }
+    }
+  });
 
   if (invitedUser) {
-    const invite = ((account as any).invites || []).find((i: Invite) => i.email === email)
+    const invite = ((account as any).invites || []).find((i: Invite) => i.email === email);
     await sendEmail({
       from: 'Chart Reuse <hello@chartreuse.eco>',
       to: email,
@@ -70,19 +72,19 @@ async function createAccount(req: NextApiRequestWithUser, res: NextApiResponse<R
       'v:inviterName': invite.sentBy.name,
       'v:inviterJobTitle': invite.sentBy.title,
       'v:inviterOrg': invite.sentBy.org.name,
-      'v:inviteUrl': `${req.headers.origin}/accept?inviteId=${invite.id}`,
-    })
+      'v:inviteUrl': `${req.headers.origin}/accept?inviteId=${invite.id}`
+    });
   }
 
   await trackEvent({
     type: 'create_account',
     userId: req.user.id,
     props: {
-      accountName: account.name,
-    },
-  })
+      accountName: account.name
+    }
+  });
 
-  return res.status(200).json({ invitedUser })
+  return res.status(200).json({ invitedUser });
 }
 
-export default handler
+export default handler;

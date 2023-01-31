@@ -24,4 +24,3 @@ yarn test
 ## Migrations
 
 Migrations are managed by Prisma - refer to Prisma's migration documentation to run them.
-

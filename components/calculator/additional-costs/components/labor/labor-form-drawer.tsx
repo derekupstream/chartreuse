@@ -1,73 +1,75 @@
-import { useEffect } from 'react'
-import { OTHER_EXPENSES_FREQUENCIES } from 'lib/calculator/constants/other-expenses'
-import { OptionSelection } from '../../../styles'
-import { Button, Form, Input } from 'antd'
-import { requiredRule } from 'utils/forms'
-import { useSimpleMutation } from 'hooks/useSimpleQuery'
-import { LaborCost } from '@prisma/client'
-import { useRouter } from 'next/router'
-import React from 'react'
-import { FormItem } from '../styles'
-import { LABOR_CATEGORIES } from 'lib/calculator/constants/labor-categories'
+import type { LaborCost } from '@prisma/client';
+import { Button, Form, Input } from 'antd';
+import { useRouter } from 'next/router';
+import { useEffect } from 'react';
+import React from 'react';
 
-const categoryOptions = LABOR_CATEGORIES.map(i => ({ value: i.id, label: i.name }))
-const frequencyOptions = OTHER_EXPENSES_FREQUENCIES.map(i => ({ value: i.name, label: i.name }))
+import { useSimpleMutation } from 'hooks/useSimpleQuery';
+import { LABOR_CATEGORIES } from 'lib/calculator/constants/labor-categories';
+import { OTHER_EXPENSES_FREQUENCIES } from 'lib/calculator/constants/other-expenses';
+import { requiredRule } from 'utils/forms';
+
+import { OptionSelection } from '../../../styles';
+import { FormItem } from '../styles';
+
+const categoryOptions = LABOR_CATEGORIES.map(i => ({ value: i.id, label: i.name }));
+const frequencyOptions = OTHER_EXPENSES_FREQUENCIES.map(i => ({ value: i.name, label: i.name }));
 
 type Props = {
-  input: LaborCost | null
-  onClose(): void
-}
+  input: LaborCost | null;
+  onClose(): void;
+};
 
 const LaborFormDrawer: React.FC<Props> = ({ input, onClose }) => {
-  const [form] = Form.useForm<LaborCost>()
-  const createLaborCost = useSimpleMutation('/api/labor-costs', 'POST')
+  const [form] = Form.useForm<LaborCost>();
+  const createLaborCost = useSimpleMutation('/api/labor-costs', 'POST');
 
-  const route = useRouter()
-  const projectId = route.query.id as string
+  const route = useRouter();
+  const projectId = route.query.id as string;
 
   const handleSubmit = () => {
-    const { frequency, cost, ...formFields } = form.getFieldsValue()
+    const { frequency, cost, ...formFields } = form.getFieldsValue();
 
     const values = {
       ...formFields,
       cost: Number(cost),
       frequency: String(frequency),
-      projectId,
-    }
+      projectId
+    };
 
     createLaborCost.mutate(values, {
-      onSuccess: onClose,
-    })
-  }
+      onSuccess: onClose
+    });
+  };
 
   useEffect(() => {
     if (input) {
-      form.setFieldsValue(input)
+      form.setFieldsValue(input);
     }
-  }, [input])
+  }, [input]);
 
   return (
-    <Form form={form} layout="vertical" onFinish={handleSubmit} style={{ paddingBottom: '24px' }}>
-      <FormItem hidden name="id">
-        <Input type="hidden" value={input?.id} />
+    <Form form={form} layout='vertical' onFinish={handleSubmit} style={{ paddingBottom: '24px' }}>
+      <FormItem hidden name='id'>
+        <Input type='hidden' value={input?.id} />
       </FormItem>
-      <FormItem label="Category" name="categoryId" rules={requiredRule}>
-        <OptionSelection options={categoryOptions} optionType="button" />
+      <FormItem label='Category' name='categoryId' rules={requiredRule}>
+        <OptionSelection options={categoryOptions} optionType='button' />
       </FormItem>
-      <FormItem label="Frequency" name="frequency" rules={requiredRule}>
-        <OptionSelection name="frequecy" options={frequencyOptions} optionType="button" />
+      <FormItem label='Frequency' name='frequency' rules={requiredRule}>
+        <OptionSelection name='frequecy' options={frequencyOptions} optionType='button' />
       </FormItem>
-      <FormItem label="Labor cost or savings" name="cost" extra="To enter a labor savings, format your number as a negative value. Ex. “-500”">
-        <Input type="number" prefix="$ " name="cost" />
+      <FormItem label='Labor cost or savings' name='cost' extra='To enter a labor savings, format your number as a negative value. Ex. “-500”'>
+        <Input type='number' prefix='$ ' name='cost' />
       </FormItem>
-      <FormItem label="Description" name="description" rules={requiredRule}>
+      <FormItem label='Description' name='description' rules={requiredRule}>
         <Input.TextArea rows={4} />
       </FormItem>
-      <Button htmlType="submit" size="large" type="primary" style={{ float: 'right' }}>
+      <Button htmlType='submit' size='large' type='primary' style={{ float: 'right' }}>
         {input?.id ? 'Save' : 'Add'} labor cost
       </Button>
     </Form>
-  )
-}
+  );
+};
 
-export default LaborFormDrawer
+export default LaborFormDrawer;

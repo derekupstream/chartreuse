@@ -1,20 +1,20 @@
-import styled from 'styled-components'
+import styled from 'styled-components';
 
 type Props = {
-  title: String
-  value: string | number
-}
+  title: string;
+  value: string | number;
+};
 
 export const FooterData: React.FC<Props> = props => {
-  const { title, value } = props
+  const { title, value } = props;
 
   return (
     <FooterBox>
       <span>{title}</span>
       <span>{value}</span>
     </FooterBox>
-  )
-}
+  );
+};
 
 const FooterBox = styled.div`
   display: flex;
@@ -22,4 +22,4 @@ const FooterBox = styled.div`
   align-items: center;
   height: 56px;
   border-bottom: 1px solid #c4c4c4;
-`
+`;

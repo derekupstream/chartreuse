@@ -1,14 +1,15 @@
-import { Typography } from 'antd'
-import * as S from './styles'
-import Link from 'next/link'
+import { Typography } from 'antd';
+import Link from 'next/link';
+
+import * as S from './styles';
 
 const LegalNotice = () => {
   return (
     <S.Wrapper>
-      <Typography.Text type="secondary">
+      <Typography.Text type='secondary'>
         View our{' '}
-        <Link href="/privacy-policy" legacyBehavior>
-          <Typography.Link style={{ color: 'inherit' }} target="_blank" underline>
+        <Link href='/privacy-policy' legacyBehavior>
+          <Typography.Link style={{ color: 'inherit' }} target='_blank' underline>
             Privacy Policy
           </Typography.Link>
         </Link>
@@ -17,7 +18,7 @@ const LegalNotice = () => {
       <br />
       <br />
     </S.Wrapper>
-  )
-}
+  );
+};
 
-export default LegalNotice
+export default LegalNotice;

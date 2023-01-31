@@ -1,73 +1,76 @@
-import { Button, Divider, Row, Col, Drawer, List, message, Typography } from 'antd'
-import { useState, useEffect } from 'react'
-import { PlusOutlined } from '@ant-design/icons'
-import * as S from '../styles'
-import { ReusableLineItem } from 'lib/inventory/types/projects'
-import ReusablePurchasingFirstStepForm from './reusable-purchasing-first-step-form'
-import ReusablePurchasingSecondStepForm from './reusable-purchasing-second-step-form'
-import { useRouter } from 'next/router'
-import * as http from 'lib/http'
-import { PRODUCT_CATEGORIES } from 'lib/calculator/constants/product-categories'
-import ItemRow from './components/ItemRow'
-import ContentLoader from 'components/content-loader'
-import { useFooterState } from '../footer'
-import { formatToDollar } from 'lib/calculator/utils'
-import styled from 'styled-components'
-import chartreuseClient from 'lib/chartreuseClient'
-import { CATEGORY_ICONS } from '../single-use/category-icons'
+import { PlusOutlined } from '@ant-design/icons';
+import { Button, Divider, Row, Col, Drawer, List, message, Typography } from 'antd';
+import { useRouter } from 'next/router';
+import { useState, useEffect } from 'react';
+import styled from 'styled-components';
+
+import ContentLoader from 'components/content-loader';
+import { PRODUCT_CATEGORIES } from 'lib/calculator/constants/product-categories';
+import { formatToDollar } from 'lib/calculator/utils';
+import chartreuseClient from 'lib/chartreuseClient';
+import * as http from 'lib/http';
+import type { ReusableLineItem } from 'lib/inventory/types/projects';
+
+import { useFooterState } from '../footer';
+import { CATEGORY_ICONS } from '../single-use/category-icons';
+import * as S from '../styles';
+
+import ItemRow from './components/ItemRow';
+import ReusablePurchasingFirstStepForm from './reusable-purchasing-first-step-form';
+import ReusablePurchasingSecondStepForm from './reusable-purchasing-second-step-form';
 
 const SmallText = styled(Typography.Text)`
   font-size: 0.9rem;
-`
+`;
 
 export interface ReusableFormValues {
-  id?: string | null
-  annualRepurchasePercentage: string
-  caseCost: string
-  casesPurchased: string
-  categoryId: string
-  unitsPerCase: string
-  productName: string
+  id?: string | null;
+  annualRepurchasePercentage: string;
+  caseCost: string;
+  casesPurchased: string;
+  categoryId: string;
+  unitsPerCase: string;
+  productName: string;
 }
 
 export default function ReusablePurchasing() {
-  const [isDrawerVisible, setIsDrawerVisible] = useState<boolean>(false)
-  const [formStep, setFormStep] = useState<number>(1)
-  const [formValues, setFormValues] = useState<ReusableFormValues | null>(null)
-  const [lineItems, setLineItems] = useState<ReusableLineItem[]>([])
-  const [isLoading, setIsLoading] = useState(false)
+  const [isDrawerVisible, setIsDrawerVisible] = useState<boolean>(false);
+  const [formStep, setFormStep] = useState<number>(1);
+  const [formValues, setFormValues] = useState<ReusableFormValues | null>(null);
+  const [lineItems, setLineItems] = useState<ReusableLineItem[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const route = useRouter()
-  const projectId = route.query.id as string
+  const route = useRouter();
+  const projectId = route.query.id as string;
 
   useEffect(() => {
-    getLineItems()
+    getLineItems();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, []);
 
-  const { setFooterState } = useFooterState()
+  const { setFooterState } = useFooterState();
   useEffect(() => {
-    setFooterState({ path: '/reusable-items', stepCompleted: true })
-  }, [setFooterState])
+    setFooterState({ path: '/reusable-items', stepCompleted: true });
+  }, [setFooterState]);
 
   async function getLineItems() {
-    if (!projectId) return
+    if (!projectId) return;
 
     try {
-      const url = `/api/projects/${projectId}/reusable-items`
-      const { lineItems } = await http.GET<{ lineItems: ReusableLineItem[] }>(url)
-      setLineItems(lineItems)
+      const url = `/api/projects/${projectId}/reusable-items`;
+      const { lineItems } = await http.GET<{ lineItems: ReusableLineItem[] }>(url);
+      setLineItems(lineItems);
     } catch (error) {
-      setLineItems([])
+      setLineItems([]);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
   }
 
   function addItem() {
-    setFormValues(null)
-    setFormStep(1)
-    setIsDrawerVisible(true)
+    setFormValues(null);
+    setFormStep(1);
+    setIsDrawerVisible(true);
   }
 
   function editItem(item: ReusableLineItem) {
@@ -78,22 +81,22 @@ export default function ReusablePurchasing() {
       casesPurchased: item.casesPurchased.toString(),
       categoryId: item.categoryId,
       productName: item.productName,
-      unitsPerCase: item.unitsPerCase?.toString() ?? '0',
-    })
-    setFormStep(1)
-    setIsDrawerVisible(true)
+      unitsPerCase: item.unitsPerCase?.toString() ?? '0'
+    });
+    setFormStep(1);
+    setIsDrawerVisible(true);
   }
 
   function onSubmitFirstStep(values: ReusableFormValues) {
-    setFormValues({ ...formValues, ...values })
-    setFormStep(2)
+    setFormValues({ ...formValues, ...values });
+    setFormStep(2);
   }
 
   function onSubmitForecast({ casesAnnually }: { casesAnnually: number }) {
-    const annualRepurchasePercentage = (casesAnnually / parseInt(formValues!.casesPurchased)).toString()
-    const newFormValues = { ...formValues!, annualRepurchasePercentage }
-    setFormValues(newFormValues)
-    saveData(newFormValues)
+    const annualRepurchasePercentage = (casesAnnually / parseInt(formValues!.casesPurchased)).toString();
+    const newFormValues = { ...formValues!, annualRepurchasePercentage };
+    setFormValues(newFormValues);
+    saveData(newFormValues);
   }
 
   async function saveData(values: ReusableFormValues) {
@@ -103,37 +106,37 @@ export default function ReusablePurchasing() {
       annualRepurchasePercentage: parseFloat(values.annualRepurchasePercentage),
       caseCost: parseInt(values.caseCost),
       unitsPerCase: parseInt(values.unitsPerCase),
-      projectId,
-    }
+      projectId
+    };
 
     try {
-      await chartreuseClient.addReusableLineItem(projectId, body)
-      message.success('Reusable-use item saved successfully')
-      closeDrawer()
+      await chartreuseClient.addReusableLineItem(projectId, body);
+      message.success('Reusable-use item saved successfully');
+      closeDrawer();
     } catch (err) {
-      message.error((err as Error)?.message)
+      message.error((err as Error)?.message);
     }
 
-    refreshList()
+    refreshList();
   }
 
   function refreshList() {
-    getLineItems()
+    getLineItems();
   }
 
   function onPressPrevious() {
-    setFormStep(1)
+    setFormStep(1);
   }
 
   function closeDrawer() {
-    setIsDrawerVisible(false)
+    setIsDrawerVisible(false);
   }
 
   return (
     <S.Wrapper>
       <div style={{ display: 'flex', justifyContent: 'space-between' }}>
         <Typography.Title level={1}>Reusables purchasing</Typography.Title>
-        <Button type="primary" onClick={addItem} icon={<PlusOutlined />} style={{ paddingRight: '4em', paddingLeft: '4em' }}>
+        <Button type='primary' onClick={addItem} icon={<PlusOutlined />} style={{ paddingRight: '4em', paddingLeft: '4em' }}>
           Add reusable item
         </Button>
       </div>
@@ -156,8 +159,8 @@ export default function ReusablePurchasing() {
       ) : (
         <>
           {PRODUCT_CATEGORIES.map((category, index) => {
-            const getItemsWithSameId = (item: ReusableLineItem) => item.categoryId === category.id.toString()
-            const item = lineItems.find(getItemsWithSameId)
+            const getItemsWithSameId = (item: ReusableLineItem) => item.categoryId === category.id.toString();
+            const item = lineItems.find(getItemsWithSameId);
 
             return (
               item && (
@@ -172,12 +175,12 @@ export default function ReusablePurchasing() {
                   ))}
                 </div>
               )
-            )
+            );
           })}
           {lineItems.length > 0 && <SummaryRow lineItems={lineItems} />}
           <Drawer
             title={formStep === 1 ? 'Add a reusable replacement item' : 'Estimate annual reusable re-purchasing needed'}
-            placement="right"
+            placement='right'
             onClose={closeDrawer}
             visible={isDrawerVisible}
             contentWrapperStyle={{ width: '600px' }}
@@ -188,32 +191,32 @@ export default function ReusablePurchasing() {
         </>
       )}
     </S.Wrapper>
-  )
+  );
 }
 
-type SummaryCounts = { products: number; units: number; unitsForecast: number; cost: number; costForecast: number }
+type SummaryCounts = { products: number; units: number; unitsForecast: number; cost: number; costForecast: number };
 
 const SummaryRow = ({ lineItems }: { lineItems: ReusableLineItem[] }) => {
   const totals = lineItems.reduce<SummaryCounts>(
     (_totals, item) => {
       if (item.casesPurchased > 0) {
-        _totals.products += 1
-        _totals.cost += item.casesPurchased * item.caseCost
-        _totals.units += item.casesPurchased * item.unitsPerCase
-        _totals.costForecast += item.caseCost * item.annualRepurchasePercentage * item.casesPurchased
-        _totals.unitsForecast += item.unitsPerCase * item.annualRepurchasePercentage * item.casesPurchased
+        _totals.products += 1;
+        _totals.cost += item.casesPurchased * item.caseCost;
+        _totals.units += item.casesPurchased * item.unitsPerCase;
+        _totals.costForecast += item.caseCost * item.annualRepurchasePercentage * item.casesPurchased;
+        _totals.unitsForecast += item.unitsPerCase * item.annualRepurchasePercentage * item.casesPurchased;
       }
-      return _totals
+      return _totals;
     },
     { products: 0, units: 0, cost: 0, costForecast: 0, unitsForecast: 0 }
-  )
+  );
   const averageRepurchaseRate = Math.round(
     (lineItems.reduce((total, item) => {
-      return total + item.annualRepurchasePercentage
+      return total + item.annualRepurchasePercentage;
     }, 0) /
       lineItems.length) *
       100
-  )
+  );
   return (
     <S.InfoCard style={{ boxShadow: 'none' }}>
       <Row>
@@ -282,5 +285,5 @@ const SummaryRow = ({ lineItems }: { lineItems: ReusableLineItem[] }) => {
         </Col>
       </Row>
     </S.InfoCard>
-  )
-}
+  );
+};

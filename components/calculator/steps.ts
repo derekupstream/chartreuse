@@ -4,7 +4,7 @@ export const CALCULATOR_STEPS = [
   { path: '/reusable-items', title: 'Reusables purchasing' },
   { path: '/additional-costs', title: 'Additional costs' },
   { path: '/projections', title: 'Savings projections' },
-  { path: '/purchasing-updates', title: 'Purchasing updates' },
-]
+  { path: '/purchasing-updates', title: 'Purchasing updates' }
+];
 
-export type ProjectPath = typeof CALCULATOR_STEPS[number]['path']
+export type ProjectPath = (typeof CALCULATOR_STEPS)[number]['path'];

@@ -1,5 +1,5 @@
-import { Typography } from 'antd'
-import styled from 'styled-components'
+import { Typography } from 'antd';
+import styled from 'styled-components';
 
 const Container = styled(Typography.Text)`
   display: flex;
@@ -13,25 +13,25 @@ const Container = styled(Typography.Text)`
   a {
     color: inherit;
   }
-`
+`;
 
 const HaveQuestions = () => {
   return (
-    <Container type="secondary">
+    <Container type='secondary'>
       <span>
-        <a href="https://chartreuse.eco" target="_blank" rel="noreferrer">
+        <a href='https://chartreuse.eco' target='_blank' rel='noreferrer'>
           Chart Reuse
         </a>
       </span>
       <span style={{ opacity: '30%' }}>|</span>
       <span>
         Have questions? Email{' '}
-        <a style={{ textDecoration: 'underline' }} href="mailto:chartreuse@upstreamsolutions.org">
+        <a style={{ textDecoration: 'underline' }} href='mailto:chartreuse@upstreamsolutions.org'>
           chartreuse@upstreamsolutions.org
         </a>
       </span>
     </Container>
-  )
-}
+  );
+};
 
-export default HaveQuestions
+export default HaveQuestions;

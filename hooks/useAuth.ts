@@ -1,6 +1,8 @@
-import { useContext } from 'react'
-import { AuthContext, Credentials } from 'lib/auth/auth.browser'
+import { useContext } from 'react';
 
-export type { Credentials }
+import type { Credentials } from 'lib/auth/auth.browser';
+import { AuthContext } from 'lib/auth/auth.browser';
 
-export const useAuth = () => useContext(AuthContext)
+export type { Credentials };
+
+export const useAuth = () => useContext(AuthContext);

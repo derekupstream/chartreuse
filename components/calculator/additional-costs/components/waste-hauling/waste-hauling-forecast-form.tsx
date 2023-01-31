@@ -1,45 +1,46 @@
-import styled from 'styled-components'
-import { useEffect } from 'react'
-import { Button, Form, Input, RadioChangeEvent, Row } from 'antd'
-import { requiredRule } from 'utils/forms'
-import { WasteHaulingService } from 'lib/inventory/types/projects'
+import { Button, Form, Input, RadioChangeEvent, Row } from 'antd';
+import { useEffect } from 'react';
+import styled from 'styled-components';
 
-const categoryOptions = ['Garbage', 'Recycling', 'Organics', 'Additional Changes'].map((c, i) => ({ value: i.toString(), label: c }))
-const serviceTypeOptions = ['Cart', 'Bin', 'Rolloff bin', 'Additional charges'].map(c => ({ value: c, label: c }))
+import type { WasteHaulingService } from 'lib/inventory/types/projects';
+import { requiredRule } from 'utils/forms';
+
+const categoryOptions = ['Garbage', 'Recycling', 'Organics', 'Additional Changes'].map((c, i) => ({ value: i.toString(), label: c }));
+const serviceTypeOptions = ['Cart', 'Bin', 'Rolloff bin', 'Additional charges'].map(c => ({ value: c, label: c }));
 
 type Props = {
-  input?: WasteHaulingService | null
-  onClose(monthlyCost: number): void
-}
+  input?: WasteHaulingService | null;
+  onClose(monthlyCost: number): void;
+};
 type FormValues = {
-  monthlyCost: number
-}
+  monthlyCost: number;
+};
 
 const WasteHaulingSecondFormDrawer: React.FC<Props> = ({ input, onClose }) => {
-  const [form] = Form.useForm<FormValues>()
+  const [form] = Form.useForm<FormValues>();
 
   const handleSubmit = () => {
-    const { monthlyCost } = form.getFieldsValue()
-    onClose(Number(monthlyCost))
-  }
+    const { monthlyCost } = form.getFieldsValue();
+    onClose(Number(monthlyCost));
+  };
 
   useEffect(() => {
     if (input) {
-      form.setFieldsValue({ monthlyCost: input.newMonthlyCost })
+      form.setFieldsValue({ monthlyCost: input.newMonthlyCost });
     }
-  }, [input])
+  }, [input]);
 
   return (
-    <Form form={form} layout="vertical" onFinish={handleSubmit} style={{ paddingBottom: '24px' }}>
-      <FormItem label="Forecasted Monthly cost" name="monthlyCost" rules={requiredRule}>
-        <Input type="number" prefix="$" />
+    <Form form={form} layout='vertical' onFinish={handleSubmit} style={{ paddingBottom: '24px' }}>
+      <FormItem label='Forecasted Monthly cost' name='monthlyCost' rules={requiredRule}>
+        <Input type='number' prefix='$' />
       </FormItem>
-      <Button htmlType="submit" size="large" type="primary" style={{ float: 'right' }}>
+      <Button htmlType='submit' size='large' type='primary' style={{ float: 'right' }}>
         {input?.id ? 'Update' : 'Add'} forecast
       </Button>
     </Form>
-  )
-}
+  );
+};
 
 const FormItem = styled(Form.Item)`
   .ant-form-item-label label {
@@ -50,6 +51,6 @@ const FormItem = styled(Form.Item)`
       content: '';
     }
   }
-`
+`;
 
-export default WasteHaulingSecondFormDrawer
+export default WasteHaulingSecondFormDrawer;

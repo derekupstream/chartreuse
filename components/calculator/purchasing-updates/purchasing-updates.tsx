@@ -1,42 +1,46 @@
-import { Wrapper } from '../styles'
-import { Button, Typography } from 'antd'
-import useSWR from 'swr'
-import ContentLoader from 'components/content-loader'
-import { useFooterState } from '../footer'
-import { AddBlock, Placeholder } from '../additional-costs/components/expense-block'
-import { PeriodSelect, PeriodOption, convertPeriodToDates } from './components/period-select'
-import { useEffect, useRef, useState } from 'react'
-import { Tabs } from 'antd'
-import chartreuseClient from 'lib/chartreuseClient'
-import { UploadButton } from './components/upload-button'
-import { EmptyState } from './components/empty-state'
-import type { ProjectContext } from 'lib/middleware/getProjectContext'
-import { ActualsResponse } from 'lib/calculator/getActuals'
-import { PrinterOutlined } from '@ant-design/icons'
-import { CardTitle, Divider, SectionContainer, SectionHeader } from '../projections/components/styles'
-import { SingleUseActuals } from './single-use/single-use-actuals'
-import { ProjectImpact } from './project-impact/project-impact-actuals'
-import { EnvironmentalSummary } from './project-impact/environmental-summary-actuals'
-import { useReactToPrint } from 'react-to-print'
-import { PrintHeader } from 'components/print/print-header'
-import { ProjectInfo } from 'components/dashboard/styles'
+import { PrinterOutlined } from '@ant-design/icons';
+import { Button, Typography } from 'antd';
+import { Tabs } from 'antd';
+import { useEffect, useRef, useState } from 'react';
+import { useReactToPrint } from 'react-to-print';
+import useSWR from 'swr';
+
+import ContentLoader from 'components/content-loader';
+import { ProjectInfo } from 'components/dashboard/styles';
+import { PrintHeader } from 'components/print/print-header';
+import { ActualsResponse } from 'lib/calculator/getActuals';
+import chartreuseClient from 'lib/chartreuseClient';
+import type { ProjectContext } from 'lib/middleware/getProjectContext';
+
+import { AddBlock, Placeholder } from '../additional-costs/components/expense-block';
+import { useFooterState } from '../footer';
+import { CardTitle, Divider, SectionContainer, SectionHeader } from '../projections/components/styles';
+import { Wrapper } from '../styles';
+
+import { EmptyState } from './components/empty-state';
+import type { PeriodOption } from './components/period-select';
+import { PeriodSelect, convertPeriodToDates } from './components/period-select';
+import { UploadButton } from './components/upload-button';
+import { EnvironmentalSummary } from './project-impact/environmental-summary-actuals';
+import { ProjectImpact } from './project-impact/project-impact-actuals';
+import { SingleUseActuals } from './single-use/single-use-actuals';
 
 export function PurchasingUpdates({ project }: { project: ProjectContext['project'] }) {
-  const { setFooterState } = useFooterState()
-  const [selectedPeriod, setSelectedPeriod] = useState<PeriodOption | null>(null)
+  const { setFooterState } = useFooterState();
+  const [selectedPeriod, setSelectedPeriod] = useState<PeriodOption | null>(null);
 
   const {
     data: inventory,
     mutate: refreshInventory,
-    isValidating: isLoading,
-  } = useSWR(`/api/projects/${project.id}/inventory`, () => chartreuseClient.getProjectInventory(project.id), { revalidateOnFocus: false })
-  const [clickedDownload, setClickedDownload] = useState(false)
+    isValidating: isLoading
+  } = useSWR(`/api/projects/${project.id}/inventory`, () => chartreuseClient.getProjectInventory(project.id), { revalidateOnFocus: false });
+  const [clickedDownload, setClickedDownload] = useState(false);
 
   // for printing
-  const componentRef = useRef(null)
+  const componentRef = useRef(null);
   const handlePrint = useReactToPrint({
     content: () => componentRef.current,
-    documentTitle: `${project.name} Purchasing Updates - Chart Reuse`,
+    documentTitle: `${project.name} Purchasing Updates - Chart Reuse`
     // onBeforeGetContent: () => {
     //   // remove the print button
     //   const printButton = content.querySelector('.print-button')
@@ -49,34 +53,34 @@ export function PurchasingUpdates({ project }: { project: ProjectContext['projec
     //   // Modify the page here, for example, by setting state:
     //   setPrinting(true);
     // }
-  })
+  });
 
   useEffect(() => {
-    setFooterState({ path: '/purchasing-updates', stepCompleted: true })
-  }, [setFooterState])
+    setFooterState({ path: '/purchasing-updates', stepCompleted: true });
+  }, [setFooterState]);
 
   function onUpload() {
-    refreshInventory()
+    refreshInventory();
   }
 
   function clickDownload() {
-    setClickedDownload(true)
+    setClickedDownload(true);
   }
 
-  const singleUseItemsWithRecords = inventory?.singleUseItems.filter(item => item.records.length)
-  const hasInventory = Boolean(inventory?.singleUseItems?.length)
-  const hasRecordsToShow = Boolean(singleUseItemsWithRecords?.length)
+  const singleUseItemsWithRecords = inventory?.singleUseItems.filter(item => item.records.length);
+  const hasInventory = Boolean(inventory?.singleUseItems?.length);
+  const hasRecordsToShow = Boolean(singleUseItemsWithRecords?.length);
 
-  const showEmptyState = !hasRecordsToShow && !clickedDownload
+  const showEmptyState = !hasRecordsToShow && !clickedDownload;
 
-  const dateRange = convertPeriodToDates(selectedPeriod?.value)
+  const dateRange = convertPeriodToDates(selectedPeriod?.value);
 
   return (
     <Wrapper ref={componentRef}>
       <PrintHeader accountName={project.account.name} orgName={project.org.name} projectName={project.name} />
       <div style={{ display: 'flex', justifyContent: 'space-between' }}>
         <Typography.Title level={1}>Purchasing updates</Typography.Title>
-        <div style={{ display: 'flex', gap: '1em' }} className="dont-print-me">
+        <div style={{ display: 'flex', gap: '1em' }} className='dont-print-me'>
           {!isLoading && !showEmptyState && (
             <Button onClick={handlePrint}>
               <PrinterOutlined /> Print
@@ -85,7 +89,7 @@ export function PurchasingUpdates({ project }: { project: ProjectContext['projec
           {!isLoading && !showEmptyState && <UploadButton projectId={project.id} onUpload={onUpload} />}
         </div>
       </div>
-      <Typography.Title level={5} className="dont-print-me">
+      <Typography.Title level={5} className='dont-print-me'>
         Next: Track your purchasing history of single-use items. You can go back as far in your purchasing history as you’d like. You can use this section to compare your purchasing trends over time,
         and see if you’re on track with your forecasted goals.
       </Typography.Title>
@@ -120,7 +124,7 @@ export function PurchasingUpdates({ project }: { project: ProjectContext['projec
         </AddBlock>
       )}
     </Wrapper>
-  )
+  );
 }
 
 function LoadingState() {
@@ -128,7 +132,7 @@ function LoadingState() {
     <Wrapper>
       <ContentLoader />
     </Wrapper>
-  )
+  );
 }
 
 // Tabs code, in case we need it:

@@ -1,73 +1,75 @@
-import { Button, Col, Divider, Drawer, message, Popconfirm, Typography } from 'antd'
-import { useSimpleMutation, useSimpleQuery } from 'hooks/useSimpleQuery'
-import { useState } from 'react'
-import { AddBlock, Container, contentWrapperStyle, Placeholder, Subtitle } from '../expense-block'
-import { SectionContainer, SectionData, SectionTitle } from '../styles'
-import { InfoCard, InfoRow } from 'components/calculator/styles'
+import { PlusOutlined } from '@ant-design/icons';
+import type { OtherExpense } from '@prisma/client';
+import { Button, Col, Divider, Drawer, message, Popconfirm, Typography } from 'antd';
+import { useRouter } from 'next/router';
+import { useState } from 'react';
 
-import { useRouter } from 'next/router'
-import { OtherExpense } from '@prisma/client'
-import { PlusOutlined } from '@ant-design/icons'
-import { formatToDollar } from 'lib/calculator/utils'
-import { OTHER_EXPENSES_FREQUENCIES } from 'lib/calculator/constants/other-expenses'
-import OtherExpensesFormDrawer from './other-expenses-form-drawer'
-import ContentLoader from 'components/content-loader'
+import { InfoCard, InfoRow } from 'components/calculator/styles';
+import ContentLoader from 'components/content-loader';
+import { useSimpleMutation, useSimpleQuery } from 'hooks/useSimpleQuery';
+import { OTHER_EXPENSES_FREQUENCIES } from 'lib/calculator/constants/other-expenses';
+import { formatToDollar } from 'lib/calculator/utils';
+
+import { AddBlock, Container, contentWrapperStyle, Placeholder, Subtitle } from '../expense-block';
+import { SectionContainer, SectionData, SectionTitle } from '../styles';
+
+import OtherExpensesFormDrawer from './other-expenses-form-drawer';
 
 type Response = {
-  otherExpenses: OtherExpense[]
-}
+  otherExpenses: OtherExpense[];
+};
 
 const OtherExpenseSection = () => {
-  const route = useRouter()
-  const projectId = route.query.id
-  const url = `/api/other-expenses/?projectId=${projectId}`
-  const { data, isLoading, refetch } = useSimpleQuery<Response>(url)
-  const deleteOtherExpenses = useSimpleMutation(url, 'DELETE')
+  const route = useRouter();
+  const projectId = route.query.id;
+  const url = `/api/other-expenses/?projectId=${projectId}`;
+  const { data, isLoading, refetch } = useSimpleQuery<Response>(url);
+  const deleteOtherExpenses = useSimpleMutation(url, 'DELETE');
 
-  const [isDrawerVisible, setIsDrawerVisible] = useState(false)
-  const [activeOtherExpense, setActiveOtherExpense] = useState<OtherExpense | null>(null)
+  const [isDrawerVisible, setIsDrawerVisible] = useState(false);
+  const [activeOtherExpense, setActiveOtherExpense] = useState<OtherExpense | null>(null);
 
   const onAddExpense = () => {
-    setIsDrawerVisible(true)
-    setActiveOtherExpense(null)
-  }
+    setIsDrawerVisible(true);
+    setActiveOtherExpense(null);
+  };
 
   function onEdit(additionalCost: OtherExpense) {
-    setActiveOtherExpense(additionalCost)
-    setIsDrawerVisible(true)
+    setActiveOtherExpense(additionalCost);
+    setIsDrawerVisible(true);
   }
 
   const onCloseDrawer = () => {
-    setIsDrawerVisible(false)
-    setActiveOtherExpense(null)
-  }
+    setIsDrawerVisible(false);
+    setActiveOtherExpense(null);
+  };
 
   const onSubmit = () => {
     if (activeOtherExpense) {
-      message.success('Additional expense updated')
+      message.success('Additional expense updated');
     } else {
-      message.success('Additional expense created')
+      message.success('Additional expense created');
     }
-    setIsDrawerVisible(false)
-    setActiveOtherExpense(null)
-    refetch()
-  }
+    setIsDrawerVisible(false);
+    setActiveOtherExpense(null);
+    refetch();
+  };
 
   const onConfirmDelete = (id: string) => {
-    const reqBody = { projectId, id }
+    const reqBody = { projectId, id };
 
     deleteOtherExpenses.mutate(reqBody, {
-      onSuccess: onSuccessDelete,
-    })
-  }
+      onSuccess: onSuccessDelete
+    });
+  };
 
   const onSuccessDelete = () => {
-    message.success('Additional expense deleted')
-    refetch()
-  }
+    message.success('Additional expense deleted');
+    refetch();
+  };
 
   if (isLoading) {
-    return <ContentLoader />
+    return <ContentLoader />;
   }
 
   return (
@@ -75,7 +77,7 @@ const OtherExpenseSection = () => {
       <SectionContainer>
         <SectionTitle>Other cost impacts</SectionTitle>
         {!!data?.otherExpenses?.length && (
-          <Button onClick={onAddExpense} icon={<PlusOutlined />} type="primary" style={{ paddingRight: '4em', paddingLeft: '4em' }}>
+          <Button onClick={onAddExpense} icon={<PlusOutlined />} type='primary' style={{ paddingRight: '4em', paddingLeft: '4em' }}>
             Add cost impact
           </Button>
         )}
@@ -87,21 +89,21 @@ const OtherExpenseSection = () => {
             <Col span={16}>
               <Subtitle>{additionalCost.description}</Subtitle>
               <a
-                href="#"
+                href='#'
                 onClick={e => {
-                  onEdit(additionalCost)
-                  e.preventDefault()
+                  onEdit(additionalCost);
+                  e.preventDefault();
                 }}
               >
                 Edit
               </a>
               <Typography.Text style={{ opacity: '.25' }}> | </Typography.Text>
-              <Popconfirm title="Are you sure to delete this item?" onConfirm={() => onConfirmDelete(additionalCost.id)} okText="Yes" cancelText="No">
-                <a href="#">Delete</a>
+              <Popconfirm title='Are you sure to delete this item?' onConfirm={() => onConfirmDelete(additionalCost.id)} okText='Yes' cancelText='No'>
+                <a href='#'>Delete</a>
               </Popconfirm>
             </Col>
             <Col span={8}>
-              <InfoCard theme="forecast">
+              <InfoCard theme='forecast'>
                 <Typography.Title level={5}>Forecast</Typography.Title>
                 <table style={{ width: '100%' }}>
                   <thead>
@@ -123,7 +125,7 @@ const OtherExpenseSection = () => {
         ))
       ) : (
         <AddBlock>
-          <Button onClick={onAddExpense} icon={<PlusOutlined />} type="primary" style={{ paddingRight: '4em', paddingLeft: '4em' }}>
+          <Button onClick={onAddExpense} icon={<PlusOutlined />} type='primary' style={{ paddingRight: '4em', paddingLeft: '4em' }}>
             Add cost impact
           </Button>
           <Placeholder>You have no additional expense entries yet. Click &apos;+ Add cost impact&apos; above to get started.</Placeholder>
@@ -133,11 +135,11 @@ const OtherExpenseSection = () => {
         <OtherExpensesFormDrawer input={activeOtherExpense} onClose={onSubmit} />
       </Drawer>
     </Container>
-  )
-}
+  );
+};
 
 const getFrequencyInNumber = (name: string) => {
-  return OTHER_EXPENSES_FREQUENCIES.find(freq => freq.name.toString() === name)?.annualOccurrence! || 1
-}
+  return OTHER_EXPENSES_FREQUENCIES.find(freq => freq.name.toString() === name)?.annualOccurrence || 1;
+};
 
-export default OtherExpenseSection
+export default OtherExpenseSection;

@@ -1,5 +1,5 @@
-import styled from 'styled-components'
-import { Card, Form, Radio, Row, Typography } from 'antd'
+import { Card, Form, Radio, Row, Typography } from 'antd';
+import styled from 'styled-components';
 
 export const Wrapper = styled.div`
   max-width: 1100px;
@@ -10,11 +10,11 @@ export const Wrapper = styled.div`
   @print media {
     margin-top: 0;
   }
-`
+`;
 
 export const SetupForm = styled(Form)`
   width: 460px;
-`
+`;
 
 export const BoxEnd = styled.div`
   border-top: 1px solid #e8e8e8;
@@ -22,7 +22,7 @@ export const BoxEnd = styled.div`
   justify-content: space-between;
   margin: 4em -24px 0;
   padding: 8px 24px 0;
-`
+`;
 
 export const RadioGroup = styled(Radio.Group)`
   display: flex;
@@ -31,7 +31,7 @@ export const RadioGroup = styled(Radio.Group)`
   > label {
     flex: 1;
   }
-`
+`;
 
 export const OptionSelection = styled(Radio.Group)`
   & {
@@ -41,15 +41,15 @@ export const OptionSelection = styled(Radio.Group)`
   .ant-radio-button-wrapper {
     margin: 10px;
   }
-`
+`;
 
 type Props = {
-  theme: 'baseline' | 'forecast'
-}
+  theme: 'baseline' | 'forecast';
+};
 const COLORS: { [type in Props['theme']]: string } = {
   baseline: '#767382',
-  forecast: '#5D798E',
-}
+  forecast: '#5D798E'
+};
 
 // const InfoCard = styled.div<Props>`
 //   border-top: 8px solid ${props => COLORS[props.theme as Props['theme']]};
@@ -74,7 +74,7 @@ const COLORS: { [type in Props['theme']]: string } = {
 
 export const InfoRow = styled(props => <Row gutter={[30, 30]} {...props} />)`
   margin-bottom: 30px;
-`
+`;
 
 export const InfoCard = styled(Card)<{ theme?: Props['theme'] }>`
   border-top: 8px solid ${props => COLORS[props.theme as Props['theme']] || 'white'};
@@ -95,21 +95,21 @@ export const InfoCard = styled(Card)<{ theme?: Props['theme'] }>`
     line-height: 16px;
     padding-right: 20px;
   }
-`
+`;
 
 export const CardTitle = styled(Typography.Text)`
   font-size: 16px;
   line-height: 32px;
   font-weight: bold;
   color: #262626;
-`
+`;
 
 export const SmallText = styled(Typography.Text)`
   font-size: 0.8rem;
-`
+`;
 export const SmallerText = styled(Typography.Text)`
   font-size: 0.7rem;
-`
+`;
 
 export const CategoryIcon = styled.div`
   background-color: #e3e2e0;
@@ -123,7 +123,7 @@ export const CategoryIcon = styled.div`
     height: 48px;
     width: 48px;
   }
-`
+`;
 
 export const TitleRow = styled.div`
   display: flex;
@@ -134,4 +134,4 @@ export const TitleRow = styled.div`
   h3 {
     margin-bottom: 0;
   }
-`
+`;

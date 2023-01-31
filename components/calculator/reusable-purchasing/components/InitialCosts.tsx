@@ -1,19 +1,21 @@
-import { Col, Row, Typography } from 'antd'
-import { InfoCard, SmallText, SmallerText } from '../../styles'
-import { FC } from 'react'
-import { ReusableLineItem } from 'lib/inventory/types/projects'
-import { formatToDollar } from 'lib/calculator/utils'
-import styled from 'styled-components'
+import { Col, Row, Typography } from 'antd';
+import type { FC } from 'react';
+import styled from 'styled-components';
+
+import { formatToDollar } from 'lib/calculator/utils';
+import type { ReusableLineItem } from 'lib/inventory/types/projects';
+
+import { InfoCard, SmallText, SmallerText } from '../../styles';
 
 interface Props {
-  item: ReusableLineItem
+  item: ReusableLineItem;
 }
 
 const InitialCosts: FC<Props> = ({ item }) => {
-  const annualCost = item.caseCost * item.casesPurchased
+  const annualCost = item.caseCost * item.casesPurchased;
 
   return (
-    <InfoCard theme="baseline">
+    <InfoCard theme='baseline'>
       <Row>
         <Col span={16}>
           <Typography.Title level={5}>Initial Costs</Typography.Title>
@@ -37,7 +39,7 @@ const InitialCosts: FC<Props> = ({ item }) => {
         </Col>
       </Row>
     </InfoCard>
-  )
-}
+  );
+};
 
-export default InitialCosts
+export default InitialCosts;

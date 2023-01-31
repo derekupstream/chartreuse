@@ -1,4 +1,4 @@
-export function csvToNumber(value: string = ''): number {
-  value = value.replace(/[^0-9.]/g, '').trim()
-  return value ? parseFloat(value) : 0
+export function csvToNumber(value = ''): number {
+  value = value.replace(/[^0-9.]/g, '').trim();
+  return value ? parseFloat(value) : 0;
 }

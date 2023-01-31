@@ -1,27 +1,31 @@
-
 # Overview
 
 This calculator enables food suppliers and their accounts to determine the cost and savings of replacing single-use supplies with recyclable alternatives.
 
 ## Models
+
 All data schemas are defined in prisma/schema.prisma.
 
 ### Organization
+
 An organization is the highest level of user membership. At the moment, user must be part of an organization, and the system only supports one organization.
 Note: the Upstream admin is accessible to organizations with `isUpstream` column set to true.
 
 ### Account
+
 A collection of projects. Admins can assign each user in their organization to a specific account.
 
 ### Project
+
 A kitchen, hotel, or other location that has its own inventory and calculator results.
 
 ### Product
+
 Single-use products are currently committed as code in CSV format. They include materials and other data that enable the calculator to make projections on environmental impact.
 
 ### User
-Users and their sessions are managed by Firebase. There are no permissions, per se, other than that all users only have access to a single organization. They can also be assigned to a specific account.
 
+Users and their sessions are managed by Firebase. There are no permissions, per se, other than that all users only have access to a single organization. They can also be assigned to a specific account.
 
 ## Terminology
 

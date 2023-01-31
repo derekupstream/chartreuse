@@ -1,35 +1,38 @@
-import { ArrowLeftOutlined, ArrowRightOutlined } from '@ant-design/icons'
-import { useRouter } from 'next/router'
-import { createContext, useContext, useState } from 'react'
-import { Container, LinkBox, Row } from './styles'
-import { CALCULATOR_STEPS, ProjectPath } from '../steps'
+import { ArrowLeftOutlined, ArrowRightOutlined } from '@ant-design/icons';
+import { useRouter } from 'next/router';
+import { createContext, useContext, useState } from 'react';
 
-type FooterState = { path: ProjectPath; stepCompleted: boolean }
+import type { ProjectPath } from '../steps';
+import { CALCULATOR_STEPS } from '../steps';
+
+import { Container, LinkBox, Row } from './styles';
+
+type FooterState = { path: ProjectPath; stepCompleted: boolean };
 
 const FooterContext = createContext<{ state: FooterState | null; setFooterState: (state: FooterState) => void }>({
   setFooterState: () => {},
-  state: null,
-})
-export const useFooterState = () => useContext(FooterContext)
+  state: null
+});
+export const useFooterState = () => useContext(FooterContext);
 
 export function FooterProvider({ children }: { children: React.ReactNode }) {
-  const [state, setFooterState] = useState<FooterState>({ path: '/setup', stepCompleted: false })
+  const [state, setFooterState] = useState<FooterState>({ path: '/setup', stepCompleted: false });
 
-  return <FooterContext.Provider value={{ state, setFooterState }}>{children}</FooterContext.Provider>
+  return <FooterContext.Provider value={{ state, setFooterState }}>{children}</FooterContext.Provider>;
 }
 
 export default function Footer() {
-  const { state } = useFooterState()
+  const { state } = useFooterState();
 
-  const { query } = useRouter()
-  const projectId = query.id as string
+  const { query } = useRouter();
+  const projectId = query.id as string;
 
-  const stepIndex = CALCULATOR_STEPS.findIndex(step => step.path === state?.path)
+  const stepIndex = CALCULATOR_STEPS.findIndex(step => step.path === state?.path);
   if (stepIndex === -1) {
-    return null
+    return null;
   }
-  const previousStep = stepIndex > 0 ? CALCULATOR_STEPS[stepIndex - 1] : undefined
-  const nextStep = stepIndex < CALCULATOR_STEPS.length - 1 ? CALCULATOR_STEPS[stepIndex + 1] : undefined
+  const previousStep = stepIndex > 0 ? CALCULATOR_STEPS[stepIndex - 1] : undefined;
+  const nextStep = stepIndex < CALCULATOR_STEPS.length - 1 ? CALCULATOR_STEPS[stepIndex + 1] : undefined;
 
   return (
     <Container>
@@ -38,7 +41,7 @@ export default function Footer() {
           <ArrowLeftOutlined style={{ marginBottom: '9px' }} />
           <LinkBox href={getLink(projectId, previousStep.path)}>
             <span>Previous Step</span>
-            <span className="page-title">{previousStep.title}</span>
+            <span className='page-title'>{previousStep.title}</span>
           </LinkBox>
         </Row>
       ) : (
@@ -49,7 +52,7 @@ export default function Footer() {
         <Row>
           <LinkBox href={getLink(projectId, nextStep.path)}>
             <span>Next Step</span>
-            <span className="page-title">{nextStep.title}</span>
+            <span className='page-title'>{nextStep.title}</span>
           </LinkBox>
           <ArrowRightOutlined style={{ marginBottom: '8px' }} />
         </Row>
@@ -57,9 +60,9 @@ export default function Footer() {
         <div />
       )}
     </Container>
-  )
+  );
 }
 
 function getLink(projectId: string, path: string) {
-  return `/projects/${projectId}${path}`
+  return `/projects/${projectId}${path}`;
 }

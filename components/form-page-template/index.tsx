@@ -1,32 +1,33 @@
-import Container from 'components/container'
-import Image from 'next/legacy/image'
-import Logo from 'public/images/chart-reuse-logo-black.png'
-import { Space, Typography } from 'antd'
-import LegalNotice from 'components/legal-notice'
+import { Space, Typography } from 'antd';
+import Image from 'next/legacy/image';
 
-import * as S from './styles'
+import Container from 'components/container';
+import LegalNotice from 'components/legal-notice';
+import Logo from 'public/images/chart-reuse-logo-black.png';
+
+import * as S from './styles';
 
 type Props = {
-  children: any
-  title: string
-  subtitle?: string
-  navBackLink?: React.ReactElement
-}
+  children: any;
+  title: string;
+  subtitle?: string;
+  navBackLink?: React.ReactElement;
+};
 
 const FormPageTemplate: React.FC<Props> = ({ children, title, subtitle, navBackLink }) => {
   return (
     <Container>
       <S.Wrapper>
-        <Space direction="vertical" size={54} style={{ width: '100%' }}>
-          {!navBackLink && <Image src={Logo} width={384} height={99} alt="Chart Reuse" />}
+        <Space direction='vertical' size={54} style={{ width: '100%' }}>
+          {!navBackLink && <Image src={Logo} width={384} height={99} alt='Chart Reuse' />}
           {navBackLink && (
             <S.LogoWithNavBackLink>
               {navBackLink}
-              <Image src={Logo} alt="Chart Reuse" />
+              <Image src={Logo} alt='Chart Reuse' />
               <div style={{ visibility: 'hidden' }}>{navBackLink}</div>
             </S.LogoWithNavBackLink>
           )}
-          <Space direction="vertical">
+          <Space direction='vertical'>
             <Typography.Title>{title}</Typography.Title>
             <Typography.Text strong>{subtitle}</Typography.Text>
           </Space>
@@ -35,7 +36,7 @@ const FormPageTemplate: React.FC<Props> = ({ children, title, subtitle, navBackL
         </Space>
       </S.Wrapper>
     </Container>
-  )
-}
+  );
+};
 
-export default FormPageTemplate
+export default FormPageTemplate;

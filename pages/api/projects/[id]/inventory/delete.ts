@@ -1,23 +1,25 @@
-import type { NextApiResponse } from 'next'
-import { projectHandler, NextApiRequestWithUser } from 'lib/middleware'
-import prisma from 'lib/prisma'
+import type { NextApiResponse } from 'next';
 
-const handler = projectHandler()
+import type { NextApiRequestWithUser } from 'lib/middleware';
+import { projectHandler } from 'lib/middleware';
+import prisma from 'lib/prisma';
 
-handler.delete(deleteEndpoint)
+const handler = projectHandler();
+
+handler.delete(deleteEndpoint);
 
 async function deleteEndpoint(req: NextApiRequestWithUser, res: NextApiResponse) {
-  const projectId = req.query.id as string
+  const projectId = req.query.id as string;
 
   await prisma.singleUseLineItemRecord.deleteMany({
     where: {
       singleUseLineItem: {
-        projectId,
-      },
-    },
-  })
+        projectId
+      }
+    }
+  });
 
-  res.status(200).end()
+  res.status(200).end();
 }
 
-export default handler
+export default handler;

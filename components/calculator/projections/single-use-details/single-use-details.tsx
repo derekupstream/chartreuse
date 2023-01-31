@@ -1,96 +1,100 @@
-import { Radio, Table, Typography } from 'antd'
-import { ProjectionsResponse } from 'lib/calculator/getProjections'
-import Spacer from 'components/spacer/spacer'
-import BarChart from '../components/chart-bar'
-import { CardTitle, ChangeColumn, Divider, SectionContainer, SectionHeader } from '../components/styles'
-import { KPIContent } from '../components/kpi-card'
-import { changeValue } from 'lib/number'
-import { Card, Body, Section, Header, Value, Row, Label } from './styles'
-import { useState, ReactNode } from 'react'
-import { formatToDollar } from 'lib/calculator/utils'
+import { Radio, Table, Typography } from 'antd';
+import type { ReactNode } from 'react';
+import { useState } from 'react';
+
+import Spacer from 'components/spacer/spacer';
+import type { ProjectionsResponse } from 'lib/calculator/getProjections';
+import { formatToDollar } from 'lib/calculator/utils';
+import { changeValue } from 'lib/number';
+
+import BarChart from '../components/chart-bar';
+import { KPIContent } from '../components/kpi-card';
+import { CardTitle, ChangeColumn, Divider, SectionContainer, SectionHeader } from '../components/styles';
+
+import { Card, Body, Section, Header, Value, Row, Label } from './styles';
 
 interface TableData {
-  product: string
-  baselineSpending: number
-  forecastSpending: number
+  product: string;
+  baselineSpending: number;
+  forecastSpending: number;
   // gasReductions: number
-  change: string | ReactNode
+  change: string | ReactNode;
 }
 
 const columns = [
   {
     title: 'Product',
     dataIndex: 'product',
-    key: 'product',
+    key: 'product'
   },
   {
     title: 'Baseline',
     dataIndex: 'baselineStr',
-    key: 'baselineSpending',
+    key: 'baselineSpending'
   },
   {
     title: 'Forecast',
     dataIndex: 'forecastStr',
-    key: 'forecastSpending',
+    key: 'forecastSpending'
   },
   {
     title: 'Change',
     dataIndex: 'change',
-    key: 'change',
-  },
-]
+    key: 'change'
+  }
+];
 
 type Props = {
-  data: ProjectionsResponse
-}
+  data: ProjectionsResponse;
+};
 
-type RowType = 'productCategory' | 'productType' | 'material'
-type ChangeType = 'cost' | 'waste' | 'ghg'
+type RowType = 'productCategory' | 'productType' | 'material';
+type ChangeType = 'cost' | 'waste' | 'ghg';
 
 const SingleUseDetails: React.FC<Props> = ({ data }) => {
-  const [rowType, setRowType] = useState<RowType>('productType')
-  const [changeType, setChangeType] = useState<ChangeType>('cost')
-  const [useTons, setUseTons] = useState(false)
+  const [rowType, setRowType] = useState<RowType>('productType');
+  const [changeType, setChangeType] = useState<ChangeType>('cost');
+  const [useTons, setUseTons] = useState(false);
 
   const savingsData = [
     { label: 'Baseline', value: data.annualSummary.dollarCost.baseline },
-    { label: 'Forecast', value: data.annualSummary.dollarCost.forecast },
-  ]
+    { label: 'Forecast', value: data.annualSummary.dollarCost.forecast }
+  ];
 
   const singleUseData = [
     { label: 'Baseline', value: data.annualSummary.singleUseProductCount.baseline },
-    { label: 'Forecast', value: data.annualSummary.singleUseProductCount.forecast },
-  ]
+    { label: 'Forecast', value: data.annualSummary.singleUseProductCount.forecast }
+  ];
 
   function changeRowType(e: any) {
-    setRowType(e.target.value)
+    setRowType(e.target.value);
   }
 
   function changeChangeType(e: any) {
-    setChangeType(e.target.value)
+    setChangeType(e.target.value);
   }
 
   function changeWeightType(e: any) {
-    setUseTons(e.target.value === 'tons')
+    setUseTons(e.target.value === 'tons');
   }
 
-  const items = data.singleUseProductForecast.resultsByType[rowType]
+  const items = data.singleUseProductForecast.resultsByType[rowType];
   const dataSource: TableData[] = items.rows.map((item, index) => {
-    let baseline = 0
-    let forecast = 0
+    let baseline = 0;
+    let forecast = 0;
     if (changeType === 'cost') {
-      baseline = item.cost.baseline
-      forecast = item.cost.forecast
+      baseline = item.cost.baseline;
+      forecast = item.cost.forecast;
     } else if (changeType === 'waste') {
-      baseline = item.weight.baseline
-      forecast = item.weight.forecast
+      baseline = item.weight.baseline;
+      forecast = item.weight.forecast;
       if (useTons) {
-        baseline = baseline / 2000
-        forecast = forecast / 2000
+        baseline = baseline / 2000;
+        forecast = forecast / 2000;
       }
     } else if (changeType === 'ghg') {
-      baseline = item.gasEmissions.baseline
-      forecast = item.gasEmissions.forecast
+      baseline = item.gasEmissions.baseline;
+      forecast = item.gasEmissions.forecast;
     }
 
     return {
@@ -113,9 +117,9 @@ const SingleUseDetails: React.FC<Props> = ({ data }) => {
         </ChangeColumn>
       ) : (
         'N/A'
-      ),
-    }
-  })
+      )
+    };
+  });
 
   return (
     <SectionContainer>
@@ -127,13 +131,13 @@ const SingleUseDetails: React.FC<Props> = ({ data }) => {
           <Section>
             <KPIContent changePercent={data.annualSummary.dollarCost.changePercent * -1} changeStr={`${changeValue(data.annualSummary.dollarCost.change * -1, { preUnit: '$' }).toLocaleString()}`} />
             {/* <ChartTitle>Annual Spending changes</ChartTitle> */}
-            <BarChart data={savingsData} formatter={(data: any) => `${data.label}: $${data.value.toLocaleString()}`} seriesField="label" />
+            <BarChart data={savingsData} formatter={(data: any) => `${data.label}: $${data.value.toLocaleString()}`} seriesField='label' />
           </Section>
 
           <Section>
             <KPIContent changePercent={data.annualSummary.singleUseProductCount.changePercent * -1} changeStr={changeValue(data.annualSummary.singleUseProductCount.change * -1) + ' units'} />
             {/* <ChartTitle>Annual single-use total changes</ChartTitle> */}
-            <BarChart data={singleUseData} formatter={(data: any) => `${data.label}: ${data.value.toLocaleString()} pieces`} seriesField="label" />
+            <BarChart data={singleUseData} formatter={(data: any) => `${data.label}: ${data.value.toLocaleString()} pieces`} seriesField='label' />
           </Section>
         </Body>
       </Card>
@@ -145,10 +149,10 @@ const SingleUseDetails: React.FC<Props> = ({ data }) => {
           <CardTitle>Cost</CardTitle>
           <Row marginBottom={15}>
             <Label>View change in</Label>
-            <Radio.Group defaultValue="cost" buttonStyle="solid" onChange={changeChangeType}>
-              <Radio.Button value="cost">Cost</Radio.Button>
-              <Radio.Button value="waste">Waste</Radio.Button>
-              <Radio.Button value="ghg">GHG</Radio.Button>
+            <Radio.Group defaultValue='cost' buttonStyle='solid' onChange={changeChangeType}>
+              <Radio.Button value='cost'>Cost</Radio.Button>
+              <Radio.Button value='waste'>Waste</Radio.Button>
+              <Radio.Button value='ghg'>GHG</Radio.Button>
             </Radio.Group>
             <Spacer horizontal={16} />
             {/* <Radio.Group defaultValue="waste" buttonStyle="solid" onChange={console.log}>
@@ -165,16 +169,16 @@ const SingleUseDetails: React.FC<Props> = ({ data }) => {
         <Row marginBottom={16} spaceBetween>
           <Row>
             <Label>View results by</Label>
-            <Radio.Group defaultValue="productType" buttonStyle="solid" onChange={changeRowType}>
-              <Radio.Button value="productType">Product</Radio.Button>
-              <Radio.Button value="productCategory">Category</Radio.Button>
-              <Radio.Button value="material">Material</Radio.Button>
+            <Radio.Group defaultValue='productType' buttonStyle='solid' onChange={changeRowType}>
+              <Radio.Button value='productType'>Product</Radio.Button>
+              <Radio.Button value='productCategory'>Category</Radio.Button>
+              <Radio.Button value='material'>Material</Radio.Button>
             </Radio.Group>
             <Spacer horizontal={16} />
             {changeType === 'waste' && (
-              <Radio.Group defaultValue={useTons ? 'tons' : 'pounds'} buttonStyle="solid" onChange={changeWeightType}>
-                <Radio.Button value="pounds">Pounds</Radio.Button>
-                <Radio.Button value="tons">Tons</Radio.Button>
+              <Radio.Group defaultValue={useTons ? 'tons' : 'pounds'} buttonStyle='solid' onChange={changeWeightType}>
+                <Radio.Button value='pounds'>Pounds</Radio.Button>
+                <Radio.Button value='tons'>Tons</Radio.Button>
               </Radio.Group>
             )}
           </Row>
@@ -196,18 +200,18 @@ const SingleUseDetails: React.FC<Props> = ({ data }) => {
           </div> */}
         </Row>
         <Spacer horizontal={16} />
-        <SingleUseItemsTable className="dont-print-me" dataSource={dataSource} changeType={changeType} />
-        <SingleUseItemsTable className="print-only" disablePagination dataSource={dataSource} changeType={changeType} />
+        <SingleUseItemsTable className='dont-print-me' dataSource={dataSource} changeType={changeType} />
+        <SingleUseItemsTable className='print-only' disablePagination dataSource={dataSource} changeType={changeType} />
       </Card>
     </SectionContainer>
-  )
-}
+  );
+};
 
 function formatNumber(value: number, changeType: ChangeType) {
   if (changeType === 'cost') {
-    return formatToDollar(value)
+    return formatToDollar(value);
   }
-  return value.toLocaleString()
+  return value.toLocaleString();
 }
 
 function SingleUseItemsTable({ className, changeType, dataSource, disablePagination }: { className: string; changeType: ChangeType; dataSource: TableData[]; disablePagination?: boolean }) {
@@ -218,8 +222,8 @@ function SingleUseItemsTable({ className, changeType, dataSource, disablePaginat
       pagination={{ hideOnSinglePage: true, pageSize: disablePagination ? dataSource.length : 10 }}
       columns={columns}
       summary={pageData => {
-        const baselineTotal = pageData.reduce((acc, curr) => acc + curr.baselineSpending, 0)
-        const forecastTotal = pageData.reduce((acc, curr) => acc + curr.forecastSpending, 0)
+        const baselineTotal = pageData.reduce((acc, curr) => acc + curr.baselineSpending, 0);
+        const forecastTotal = pageData.reduce((acc, curr) => acc + curr.forecastSpending, 0);
 
         return (
           <Table.Summary.Row>
@@ -238,10 +242,10 @@ function SingleUseItemsTable({ className, changeType, dataSource, disablePaginat
               {/* <Tag>76%</Tag> */}
             </Table.Summary.Cell>
           </Table.Summary.Row>
-        )
+        );
       }}
     />
-  )
+  );
 }
 
-export default SingleUseDetails
+export default SingleUseDetails;

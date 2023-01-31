@@ -1,56 +1,56 @@
-import { useRouter } from 'next/router'
-import { Button, Space, Table, Tag, Typography, Popconfirm, message } from 'antd'
-import { DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons'
-import { ColumnType } from 'antd/lib/table/interface'
-import { useMutation } from 'react-query'
-import { useCallback } from 'react'
-import { Account, User, Invite } from '@prisma/client'
+import { DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
+import type { Account, User, Invite } from '@prisma/client';
+import { Button, Space, Table, Tag, Typography, Popconfirm, message } from 'antd';
+import type { ColumnType } from 'antd/lib/table/interface';
+import { useRouter } from 'next/router';
+import { useCallback } from 'react';
+import { useMutation } from 'react-query';
 
-import * as S from '../styles'
+import * as S from '../styles';
 
 interface Member {
-  key: string
-  name: string
-  email: string
-  jobTitle: string
-  account?: string
-  accountId?: string
-  isInvite: boolean
+  key: string;
+  name: string;
+  email: string;
+  jobTitle: string;
+  account?: string;
+  accountId?: string;
+  isInvite: boolean;
 }
 
 export interface PageProps {
-  accounts: Account[]
-  users: User[]
-  invites: Invite[]
+  accounts: Account[];
+  users: User[];
+  invites: Invite[];
 }
 
 export default function Members({ accounts, users, invites }: PageProps) {
-  const router = useRouter()
+  const router = useRouter();
 
   const deleteAccount = useMutation((member: Member) => {
-    const resource = member.isInvite ? 'invite' : 'profile'
+    const resource = member.isInvite ? 'invite' : 'profile';
     return fetch(`/api/${resource}/${member.key}`, {
       method: 'DELETE',
       headers: {
-        'content-type': 'application/json',
-      },
-    })
-  })
+        'content-type': 'application/json'
+      }
+    });
+  });
 
   const handleAccountDeletion = useCallback(
     (member: Member) => {
       deleteAccount.mutate(member, {
         onSuccess: () => {
-          message.success(member.isInvite ? 'Invitation cancelled' : 'Account deleted')
-          router.replace(router.asPath)
+          message.success(member.isInvite ? 'Invitation cancelled' : 'Account deleted');
+          router.replace(router.asPath);
         },
         onError: err => {
-          message.error((err as Error)?.message)
-        },
-      })
+          message.error((err as Error)?.message);
+        }
+      });
     },
     [deleteAccount, router]
-  )
+  );
 
   const columns: (ColumnType<Member> & { showPending?: boolean })[] = [
     {
@@ -59,15 +59,15 @@ export default function Members({ accounts, users, invites }: PageProps) {
       key: 'name',
       // eslint-disable-next-line react/display-name
       render: (text: string) => {
-        return text || '-'
-      },
+        return text || '-';
+      }
     },
     {
       title: 'Email',
       dataIndex: 'email',
       key: 'email',
       sorter: (a, b) => (a.email.toLowerCase() < b.email.toLowerCase() ? -1 : 1),
-      showPending: true,
+      showPending: true
     },
     {
       title: 'Job title',
@@ -75,8 +75,8 @@ export default function Members({ accounts, users, invites }: PageProps) {
       key: 'jobTitle',
       // eslint-disable-next-line react/display-name
       render: text => {
-        return text || '-'
-      },
+        return text || '-';
+      }
     },
     {
       title: 'Account',
@@ -84,15 +84,15 @@ export default function Members({ accounts, users, invites }: PageProps) {
       key: 'account',
       filters: accounts.map(account => ({
         text: account.name,
-        value: account.id,
+        value: account.id
       })),
       onFilter: (value, member) => member.accountId === value,
       defaultSortOrder: 'ascend',
       sorter: (a, b) => (a.account?.toLowerCase() || '' < (b.account?.toLowerCase() || '') ? -1 : 1),
       showPending: true,
       render: text => {
-        return text || <span style={{ color: '#999' }}>All accounts</span>
-      },
+        return text || <span style={{ color: '#999' }}>All accounts</span>;
+      }
     },
     {
       title: 'Actions',
@@ -100,11 +100,11 @@ export default function Members({ accounts, users, invites }: PageProps) {
       // eslint-disable-next-line react/display-name
       render: (_, member) => {
         return (
-          <Space size="middle">
+          <Space size='middle'>
             {!member.isInvite && <Button onClick={() => router.push(`/edit-member-profile/${member.key}`)} icon={<EditOutlined />} />}
             <Popconfirm
               title={
-                <Space direction="vertical" size="small">
+                <Space direction='vertical' size='small'>
                   <Typography.Title level={4}>
                     Are you sure you want to delete the {member.isInvite ? 'invitation to' : 'member'} &quot;{member.email}&quot;?
                   </Typography.Title>
@@ -116,16 +116,16 @@ export default function Members({ accounts, users, invites }: PageProps) {
               <Button icon={<DeleteOutlined />} loading={deleteAccount.isLoading && deleteAccount.variables?.key === member.key} />
             </Popconfirm>
           </Space>
-        )
+        );
       },
-      showPending: true,
-    },
-  ]
+      showPending: true
+    }
+  ];
 
-  const pendingColumns = columns.filter(col => col.showPending)
+  const pendingColumns = columns.filter(col => col.showPending);
 
   const activeUsers: Member[] = users.map((user): Member => {
-    const account = accounts.find(account => account.id === user.accountId)
+    const account = accounts.find(account => account.id === user.accountId);
     return {
       key: user.id,
       name: user.name || '',
@@ -133,12 +133,12 @@ export default function Members({ accounts, users, invites }: PageProps) {
       jobTitle: user.title || '',
       account: account?.name,
       accountId: account?.id,
-      isInvite: false,
-    }
-  })
+      isInvite: false
+    };
+  });
 
   const pendingUsers = invites.map((invite): Member => {
-    const account = accounts.find(account => account.id === invite.accountId)
+    const account = accounts.find(account => account.id === invite.accountId);
     return {
       key: invite.id,
       name: '',
@@ -146,19 +146,19 @@ export default function Members({ accounts, users, invites }: PageProps) {
       jobTitle: '',
       account: account?.name,
       accountId: account?.id,
-      isInvite: true,
-    }
-  })
+      isInvite: true
+    };
+  });
 
   const handleAddAccountUser = () => {
-    router.push('/invite-member?dashboard=1')
-  }
+    router.push('/invite-member?dashboard=1');
+  };
 
   return (
-    <Space direction="vertical" size="large" style={{ width: '100%' }}>
+    <Space direction='vertical' size='large' style={{ width: '100%' }}>
       <S.SpaceBetween>
         <Typography.Title>Members</Typography.Title>
-        <Button type="primary" onClick={handleAddAccountUser} icon={<PlusOutlined />}>
+        <Button type='primary' onClick={handleAddAccountUser} icon={<PlusOutlined />}>
           Invite new member
         </Button>
       </S.SpaceBetween>
@@ -177,5 +177,5 @@ export default function Members({ accounts, users, invites }: PageProps) {
         </>
       )}
     </Space>
-  )
+  );
 }

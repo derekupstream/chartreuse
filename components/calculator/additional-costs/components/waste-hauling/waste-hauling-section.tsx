@@ -1,91 +1,94 @@
-import { PlusOutlined } from '@ant-design/icons'
-import { Button, Col, Divider, Drawer, message, Popconfirm, Row, Typography } from 'antd'
-import { useRouter } from 'next/router'
-import React, { useState } from 'react'
-import { AddBlock, Container, contentWrapperStyle, Placeholder, Subtitle } from '../expense-block'
-import { WasteHaulingCost } from '@prisma/client'
-import { SectionContainer, SectionData, SectionTitle } from '../styles'
-import { InfoCard, InfoRow } from 'components/calculator/styles'
-import styled from 'styled-components'
-import { formatToDollar } from 'lib/calculator/utils'
-import WasteHaulingBaselineForm from './waste-hauling-baseline-form'
-import WasteHaulingForecastForm from './waste-hauling-forecast-form'
-import { useSimpleMutation, useSimpleQuery } from 'hooks/useSimpleQuery'
-import { WasteHaulingService } from 'lib/inventory/types/projects'
-import ContentLoader from 'components/content-loader'
+import { PlusOutlined } from '@ant-design/icons';
+import type { WasteHaulingCost } from '@prisma/client';
+import { Button, Col, Divider, Drawer, message, Popconfirm, Row, Typography } from 'antd';
+import { useRouter } from 'next/router';
+import React, { useState } from 'react';
+import styled from 'styled-components';
 
-const annual = 12
+import { InfoCard, InfoRow } from 'components/calculator/styles';
+import ContentLoader from 'components/content-loader';
+import { useSimpleMutation, useSimpleQuery } from 'hooks/useSimpleQuery';
+import { formatToDollar } from 'lib/calculator/utils';
+import type { WasteHaulingService } from 'lib/inventory/types/projects';
+
+import { AddBlock, Container, contentWrapperStyle, Placeholder, Subtitle } from '../expense-block';
+import { SectionContainer, SectionData, SectionTitle } from '../styles';
+
+import WasteHaulingBaselineForm from './waste-hauling-baseline-form';
+import WasteHaulingForecastForm from './waste-hauling-forecast-form';
+
+const annual = 12;
 
 interface Response {
-  wasteHaulingCosts: WasteHaulingCost[]
+  wasteHaulingCosts: WasteHaulingCost[];
 }
 
 const WasteHaulingSection = () => {
-  const route = useRouter()
-  const projectId = route.query.id
-  const url = `/api/waste-hauling/?projectId=${projectId}`
-  const { data, isLoading, refetch } = useSimpleQuery<Response>(url)
-  const deleteWasteHauling = useSimpleMutation(url, 'DELETE')
-  const createWasteHaulingCost = useSimpleMutation(url, 'POST')
-  const [formValues, setFormValues] = useState<WasteHaulingService | null>(null)
+  const route = useRouter();
+  const projectId = route.query.id;
+  const url = `/api/waste-hauling/?projectId=${projectId}`;
+  const { data, isLoading, refetch } = useSimpleQuery<Response>(url);
+  const deleteWasteHauling = useSimpleMutation(url, 'DELETE');
+  const createWasteHaulingCost = useSimpleMutation(url, 'POST');
+  const [formValues, setFormValues] = useState<WasteHaulingService | null>(null);
 
-  const [isDrawerVisible, setIsDrawerVisible] = useState(false)
-  const [isSecondDrawerVisible, setIsSecondDrawerVisible] = useState(false)
+  const [isDrawerVisible, setIsDrawerVisible] = useState(false);
+  const [isSecondDrawerVisible, setIsSecondDrawerVisible] = useState(false);
 
   const onAddExpense = () => {
-    setIsDrawerVisible(true)
-    setFormValues(null)
-  }
+    setIsDrawerVisible(true);
+    setFormValues(null);
+  };
 
   function onEdit(formValues: WasteHaulingService) {
-    setFormValues(formValues)
-    setIsDrawerVisible(true)
+    setFormValues(formValues);
+    setIsDrawerVisible(true);
   }
 
   const onCloseFirstForm = (_formValues?: WasteHaulingService) => {
-    if (_formValues) setFormValues(current => ({ ...current, ..._formValues }))
-    setIsDrawerVisible(false)
-    setIsSecondDrawerVisible(true)
-  }
+    if (_formValues) setFormValues(current => ({ ...current, ..._formValues }));
+    setIsDrawerVisible(false);
+    setIsSecondDrawerVisible(true);
+  };
 
   const onCloseSecondForm = (newMonthlyCost: number) => {
     const values = {
       ...formValues,
-      newMonthlyCost,
-    }
+      newMonthlyCost
+    };
     createWasteHaulingCost.mutate(values, {
-      onSuccess: onSuccessSecondFormSubmit,
-    })
-  }
+      onSuccess: onSuccessSecondFormSubmit
+    });
+  };
 
   const onCloseForms = () => {
-    setIsDrawerVisible(false)
-    setIsSecondDrawerVisible(false)
-  }
+    setIsDrawerVisible(false);
+    setIsSecondDrawerVisible(false);
+  };
 
   const onSuccessSecondFormSubmit = () => {
     if (formValues?.id) {
-      message.success('Waste Hauling updated')
+      message.success('Waste Hauling updated');
     } else {
-      message.success('Waste Hauling created')
+      message.success('Waste Hauling created');
     }
-    setIsSecondDrawerVisible(false)
-    refetch()
-  }
+    setIsSecondDrawerVisible(false);
+    refetch();
+  };
 
   const onConfirmDelete = (id: string) => {
-    const reqBody = { projectId, id }
+    const reqBody = { projectId, id };
 
     deleteWasteHauling.mutate(reqBody, {
       onSuccess: () => {
-        message.success('Waste Hauling deleted')
-        refetch()
-      },
-    })
-  }
+        message.success('Waste Hauling deleted');
+        refetch();
+      }
+    });
+  };
 
   if (isLoading) {
-    return <ContentLoader />
+    return <ContentLoader />;
   }
 
   return (
@@ -93,7 +96,7 @@ const WasteHaulingSection = () => {
       <SectionContainer>
         <SectionTitle>Waste Hauling</SectionTitle>
         {!!data?.wasteHaulingCosts?.length && (
-          <Button onClick={onAddExpense} icon={<PlusOutlined />} type="primary" style={{ paddingRight: '4em', paddingLeft: '4em' }}>
+          <Button onClick={onAddExpense} icon={<PlusOutlined />} type='primary' style={{ paddingRight: '4em', paddingLeft: '4em' }}>
             Add waste hauling cost
           </Button>
         )}
@@ -105,21 +108,21 @@ const WasteHaulingSection = () => {
             <Col span={8}>
               <Subtitle>{wasteHauling.serviceType}</Subtitle>
               <a
-                href="#"
+                href='#'
                 onClick={e => {
-                  onEdit(wasteHauling as WasteHaulingService)
-                  e.preventDefault()
+                  onEdit(wasteHauling as WasteHaulingService);
+                  e.preventDefault();
                 }}
               >
                 Edit
               </a>
               <Typography.Text style={{ opacity: '.25' }}> | </Typography.Text>
-              <Popconfirm title="Are you sure to delete this item?" onConfirm={() => onConfirmDelete(wasteHauling.id)} okText="Yes" cancelText="No">
-                <a href="#">Delete</a>
+              <Popconfirm title='Are you sure to delete this item?' onConfirm={() => onConfirmDelete(wasteHauling.id)} okText='Yes' cancelText='No'>
+                <a href='#'>Delete</a>
               </Popconfirm>
             </Col>
             <Col span={8}>
-              <InfoCard theme="baseline">
+              <InfoCard theme='baseline'>
                 <Typography.Title level={5}>Baseline</Typography.Title>
                 <table>
                   <thead>
@@ -140,7 +143,7 @@ const WasteHaulingSection = () => {
               </InfoCard>
             </Col>
             <Col span={8}>
-              <InfoCard theme="forecast">
+              <InfoCard theme='forecast'>
                 <Typography.Title level={5}>Forecast</Typography.Title>
                 <table>
                   <thead>
@@ -164,7 +167,7 @@ const WasteHaulingSection = () => {
         ))
       ) : (
         <AddBlock>
-          <Button onClick={onAddExpense} icon={<PlusOutlined />} type="primary" style={{ paddingRight: '4em', paddingLeft: '4em' }}>
+          <Button onClick={onAddExpense} icon={<PlusOutlined />} type='primary' style={{ paddingRight: '4em', paddingLeft: '4em' }}>
             Add waste hauling cost
           </Button>
           <Placeholder>You have no waste hauling entries yet. Click &apos;+ Add waste hauling cost&apos; above to get started.</Placeholder>
@@ -189,14 +192,14 @@ const WasteHaulingSection = () => {
         <WasteHaulingForecastForm input={formValues} onClose={onCloseSecondForm} />
       </Drawer>
     </Container>
-  )
-}
+  );
+};
 
 const Options = styled.span`
   font-size: 14px;
   line-height: 24px;
   font-weight: 700;
   margin: 8px 0;
-`
+`;
 
-export default WasteHaulingSection
+export default WasteHaulingSection;

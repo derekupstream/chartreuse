@@ -1,17 +1,17 @@
-import { FallOutlined } from '@ant-design/icons'
-import { Tag } from 'antd'
-import styled from 'styled-components'
+import { FallOutlined } from '@ant-design/icons';
+import { Tag } from 'antd';
+import styled from 'styled-components';
 
-type Color = 'success' | 'default'
+type Color = 'success' | 'default';
 
 type Props = {
-  value: string | number
-  percentage?: string
-  color?: Color
-}
+  value: string | number;
+  percentage?: string;
+  color?: Color;
+};
 
 const BigNumber: React.FC<Props> = props => {
-  const { value, percentage, color } = props
+  const { value, percentage, color } = props;
   return (
     <BigNumberContainer>
       <Value color={color}>{value}</Value>
@@ -21,17 +21,17 @@ const BigNumber: React.FC<Props> = props => {
         </Tag>
       )}
     </BigNumberContainer>
-  )
-}
+  );
+};
 
 const BigNumberContainer = styled.div`
   display: flex;
   align-items: center;
-`
+`;
 
 type ValueProps = {
-  color?: Color
-}
+  color?: Color;
+};
 
 const Value = styled.span<ValueProps>`
   font-weight: 700;
@@ -40,6 +40,6 @@ const Value = styled.span<ValueProps>`
   letter-spacing: -2px;
   margin-right: 16px;
   color: ${p => (p.color === 'success' ? '#10B981' : '#000')};
-`
+`;
 
-export default BigNumber
+export default BigNumber;

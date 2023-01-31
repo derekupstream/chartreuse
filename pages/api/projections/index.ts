@@ -1,27 +1,30 @@
-import nc from 'next-connect'
-import prisma from 'lib/prisma'
-import type { NextApiRequest, NextApiResponse } from 'next'
-import { onError, onNoMatch, getUser, NextApiRequestWithUser } from 'lib/middleware'
-import { AllProjectsSummary, getAllProjections } from 'lib/calculator/getProjections'
+import type { NextApiRequest, NextApiResponse } from 'next';
+import nc from 'next-connect';
 
-const handler = nc<NextApiRequest, NextApiResponse>({ onError, onNoMatch })
+import type { AllProjectsSummary } from 'lib/calculator/getProjections';
+import { getAllProjections } from 'lib/calculator/getProjections';
+import type { NextApiRequestWithUser } from 'lib/middleware';
+import { onError, onNoMatch, getUser } from 'lib/middleware';
+import prisma from 'lib/prisma';
 
-handler.use(getUser).get(getProjectionsHandler)
+const handler = nc<NextApiRequest, NextApiResponse>({ onError, onNoMatch });
+
+handler.use(getUser).get(getProjectionsHandler);
 
 async function getProjectionsHandler(req: NextApiRequestWithUser, res: NextApiResponse<AllProjectsSummary>) {
   const projects = await prisma.project.findMany({
     where: {
       accountId: req.user.accountId || undefined,
-      orgId: req.user.orgId,
+      orgId: req.user.orgId
     },
     include: {
-      account: true,
-    },
-  })
+      account: true
+    }
+  });
 
-  const result = await getAllProjections(projects)
+  const result = await getAllProjections(projects);
 
-  res.json(result)
+  res.json(result);
 }
 
-export default handler
+export default handler;

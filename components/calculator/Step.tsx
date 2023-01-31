@@ -1,7 +1,9 @@
-import Setup from './setup'
-import SingleUsePurchasing from './single-use'
-import { DashboardUser } from 'components/dashboard'
-import { Project } from '@prisma/client'
+import type { Project } from '@prisma/client';
+
+import type { DashboardUser } from 'components/dashboard';
+
+import Setup from './setup';
+import SingleUsePurchasing from './single-use';
 
 /* eslint-disable react/display-name */
 export const stepsMap = {
@@ -9,31 +11,31 @@ export const stepsMap = {
   SINGLE_USE: SingleUsePurchasing,
   RESUSABLE: () => <div>Reusables purchasing</div>,
   ADDITIONAL_COSTS: () => <div>Additional costs</div>,
-  SAVING_PROJECTIONS: () => <div>Savings projections</div>,
-}
+  SAVING_PROJECTIONS: () => <div>Savings projections</div>
+};
 
-const STEPS = Object.keys(stepsMap) as (keyof typeof stepsMap)[]
+const STEPS = Object.keys(stepsMap) as (keyof typeof stepsMap)[];
 
 export const getStepByIndex = (index: number) => {
-  return STEPS[index]
-}
+  return STEPS[index];
+};
 
 export const getStepIndex = (step: string) => {
-  return STEPS.findIndex(s => s === step)
-}
+  return STEPS.findIndex(s => s === step);
+};
 
 export type StepProps = {
-  step: keyof typeof stepsMap
-  user: DashboardUser
-  project?: Project
-  onComplete: (id?: string) => void
-}
+  step: keyof typeof stepsMap;
+  user: DashboardUser;
+  project?: Project;
+  onComplete: (id?: string) => void;
+};
 
 const Step = ({ step, user, ...props }: StepProps) => {
-  const StepComponent = stepsMap[step as keyof typeof stepsMap]
+  const StepComponent = stepsMap[step as keyof typeof stepsMap];
 
   // @ts-ignore - this is a hack because project is sometimes required, sometimes not
-  return StepComponent ? <StepComponent {...props} user={user} /> : null
-}
+  return StepComponent ? <StepComponent {...props} user={user} /> : null;
+};
 
-export default Step
+export default Step;

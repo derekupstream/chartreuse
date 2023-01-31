@@ -1,57 +1,59 @@
-import { Alert, Button, Form, Input, Radio, Typography } from 'antd'
-import { useEffect, useState } from 'react'
-import * as S from '../styles'
-import { SingleUseLineItem } from 'lib/inventory/types/projects'
+import { Alert, Button, Form, Input, Radio, Typography } from 'antd';
+import { useEffect, useState } from 'react';
 
-type FormProps = Record<keyof SingleUseLineItem, string | number | undefined>
+import type { SingleUseLineItem } from 'lib/inventory/types/projects';
+
+import * as S from '../styles';
+
+type FormProps = Record<keyof SingleUseLineItem, string | number | undefined>;
 
 export default function SelectQuantityForecastStep({
   input,
   goBack,
   productName,
   frequency,
-  onSubmit,
+  onSubmit
 }: {
-  input?: Partial<SingleUseLineItem>
-  goBack: (form: Partial<Pick<SingleUseLineItem, 'newCaseCost' | 'newCasesPurchased'>>) => void
-  productName?: string
-  frequency?: string
-  onSubmit: (form: Pick<SingleUseLineItem, 'newCaseCost' | 'newCasesPurchased'>) => void
+  input?: Partial<SingleUseLineItem>;
+  goBack: (form: Partial<Pick<SingleUseLineItem, 'newCaseCost' | 'newCasesPurchased'>>) => void;
+  productName?: string;
+  frequency?: string;
+  onSubmit: (form: Pick<SingleUseLineItem, 'newCaseCost' | 'newCasesPurchased'>) => void;
 }) {
-  const [form] = Form.useForm<FormProps>()
-  const [disabledSave, setDisabledSave] = useState(true)
+  const [form] = Form.useForm<FormProps>();
+  const [disabledSave, setDisabledSave] = useState(true);
 
   const handleFormChange = () => {
-    const hasErrors = !form.isFieldsTouched(true) || form.getFieldsError().some(({ errors }) => errors.length)
-    setDisabledSave(hasErrors)
-  }
+    const hasErrors = !form.isFieldsTouched(true) || form.getFieldsError().some(({ errors }) => errors.length);
+    setDisabledSave(hasErrors);
+  };
 
   function _goBack() {
     goBack({
       newCasesPurchased: parseInt(form.getFieldValue('newCasesPurchased') || '0'),
-      newCaseCost: parseInt((form.getFieldValue('newCaseCost') as string) || '0'),
-    })
+      newCaseCost: parseInt((form.getFieldValue('newCaseCost') as string) || '0')
+    });
   }
 
   function _onSubmit(values: FormProps) {
     onSubmit({
       newCasesPurchased: parseInt((values.newCasesPurchased as string) || '0'),
-      newCaseCost: parseInt((values.newCaseCost as string) || '0'),
-    })
+      newCaseCost: parseInt((values.newCaseCost as string) || '0')
+    });
   }
 
   useEffect(() => {
     if (input) {
-      form.setFieldsValue(input)
-      handleFormChange()
+      form.setFieldsValue(input);
+      handleFormChange();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [input])
+  }, [input]);
 
   return (
-    <Form form={form} layout="vertical" onFieldsChange={handleFormChange} onFinish={_onSubmit}>
+    <Form form={form} layout='vertical' onFieldsChange={handleFormChange} onFinish={_onSubmit}>
       <Alert
-        type="info"
+        type='info'
         message={
           <>
             <Typography.Paragraph>Set your project goals by forecasting estimated savings realized by reducing, or eliminating purchase of single-use item(s).</Typography.Paragraph>
@@ -63,20 +65,20 @@ export default function SelectQuantityForecastStep({
 
       <Typography.Title level={4}>{productName}</Typography.Title>
 
-      <Form.Item name="newCasesPurchased" label={`New cases purchased ${frequency?.toLowerCase()}`} rules={[{ message: 'This field is required', required: true }]}>
-        <Input placeholder={`Current amount: ${input?.casesPurchased?.toString()}`} type="number" autoFocus />
+      <Form.Item name='newCasesPurchased' label={`New cases purchased ${frequency?.toLowerCase()}`} rules={[{ message: 'This field is required', required: true }]}>
+        <Input placeholder={`Current amount: ${input?.casesPurchased?.toString()}`} type='number' autoFocus />
       </Form.Item>
 
-      <Form.Item name="newCaseCost" label="Cost per case" rules={[{ message: 'This field is required', required: true }]}>
-        <Input type="number" prefix="$" />
+      <Form.Item name='newCaseCost' label='Cost per case' rules={[{ message: 'This field is required', required: true }]}>
+        <Input type='number' prefix='$' />
       </Form.Item>
 
       <S.BoxEnd>
         <Button onClick={_goBack}>{'Go Back'}</Button>
-        <Button disabled={disabledSave} size="large" type="primary" htmlType="submit">
+        <Button disabled={disabledSave} size='large' type='primary' htmlType='submit'>
           {input?.id ? 'Save' : 'Add forecast'}
         </Button>
       </S.BoxEnd>
     </Form>
-  )
+  );
 }

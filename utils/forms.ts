@@ -1,1 +1,1 @@
-export const requiredRule = [{ required: true, message: 'This field is required' }]
+export const requiredRule = [{ required: true, message: 'This field is required' }];

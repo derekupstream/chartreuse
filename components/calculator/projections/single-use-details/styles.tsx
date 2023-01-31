@@ -1,22 +1,23 @@
-import { Typography } from 'antd'
-import styled, { css } from 'styled-components'
-import _Card from '../components/card'
+import { Typography } from 'antd';
+import styled, { css } from 'styled-components';
+
+import _Card from '../components/card';
 
 export const Card = styled(_Card)`
   margin: 0 29px 29px 0;
   display: flex;
   flex-direction: column;
-`
+`;
 
 export const Section = styled.div`
   width: 50%;
-`
+`;
 
 export const Body = styled.div`
   display: flex;
   margin-top: 12px;
   gap: 20px;
-`
+`;
 
 export const Value = styled(Typography.Text)`
   font-weight: bold;
@@ -24,18 +25,18 @@ export const Value = styled(Typography.Text)`
   line-height: 40px;
   margin-right: 10px;
   color: #141414;
-`
+`;
 
 export const Header = styled.div`
   display: flex;
   align-items: center;
-`
+`;
 
 type RowProps = {
-  spaceBetween?: boolean
-  marginBottom?: number
-  flexStart?: boolean
-}
+  spaceBetween?: boolean;
+  marginBottom?: number;
+  flexStart?: boolean;
+};
 
 export const Row = styled.div<RowProps>`
   display: flex;
@@ -50,8 +51,8 @@ export const Row = styled.div<RowProps>`
     css`
       margin-bottom: ${p.marginBottom}px;
     `}
-`
+`;
 
 export const Label = styled.span`
   margin-right: 8px;
-`
+`;

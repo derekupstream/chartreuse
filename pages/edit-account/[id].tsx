@@ -1,120 +1,121 @@
-import Header from 'components/header'
-import { message } from 'antd'
-import FormPageTemplate from 'components/form-page-template'
-import * as http from 'lib/http'
-import { GetServerSideProps } from 'next'
-import nookies from 'nookies'
-import { verifyIdToken } from 'lib/auth/firebaseAdmin'
-import PageLoader from 'components/page-loader'
-import prisma from 'lib/prisma'
-import { Account } from '@prisma/client'
-import { useRouter } from 'next/router'
-import Link from 'next/link'
-import { ArrowLeftOutlined } from '@ant-design/icons'
-import AccountEditForm from 'components/account-edit-form'
-import chartreuseClient from 'lib/chartreuseClient'
+import { ArrowLeftOutlined } from '@ant-design/icons';
+import type { Account } from '@prisma/client';
+import { message } from 'antd';
+import type { GetServerSideProps } from 'next';
+import Link from 'next/link';
+import { useRouter } from 'next/router';
+import nookies from 'nookies';
+
+import AccountEditForm from 'components/account-edit-form';
+import FormPageTemplate from 'components/form-page-template';
+import Header from 'components/header';
+import PageLoader from 'components/page-loader';
+import { verifyIdToken } from 'lib/auth/firebaseAdmin';
+import chartreuseClient from 'lib/chartreuseClient';
+import * as http from 'lib/http';
+import prisma from 'lib/prisma';
 
 export const getServerSideProps: GetServerSideProps = async context => {
   try {
-    const cookies = nookies.get(context)
-    const token = await verifyIdToken(cookies.token)
+    const cookies = nookies.get(context);
+    const token = await verifyIdToken(cookies.token);
 
-    const { id } = context.query
+    const { id } = context.query;
 
     if (!id) {
       return {
         redirect: {
           permanent: false,
-          destination: '/',
-        },
-      }
+          destination: '/'
+        }
+      };
     }
 
     const user = await prisma.user.findUnique({
       where: {
-        id: token.uid,
+        id: token.uid
       },
       include: {
         org: {
           include: {
             accounts: {
               where: {
-                id: id as string,
+                id: id as string
               },
               include: {
-                users: true,
-              },
-            },
-          },
-        },
-      },
-    })
+                users: true
+              }
+            }
+          }
+        }
+      }
+    });
 
     if (!user) {
       return {
         redirect: {
           permanent: false,
-          destination: '/',
-        },
-      }
+          destination: '/'
+        }
+      };
     }
 
     return {
       props: {
-        org: user.org,
-      },
-    }
+        org: user.org
+      }
+    };
   } catch (error: any) {
     return {
       redirect: {
         permanent: false,
-        destination: '/',
-      },
-    }
+        destination: '/'
+      }
+    };
   }
-}
+};
 
 type Props = {
   org: {
-    id: string
-    accounts: Account[]
-  }
-}
+    id: string;
+    accounts: Account[];
+  };
+};
 
 export default function EditAccount({ org }: Props) {
-  const router = useRouter()
+  const router = useRouter();
 
-  const redirect = typeof router.query.redirect === 'string' ? router.query.redirect : '/accounts'
+  const redirect = typeof router.query.redirect === 'string' ? router.query.redirect : '/accounts';
 
   function updateAccount(data: any) {
     chartreuseClient
       .updateAccount({
         id: router.query.id,
-        ...data,
+        ...data
       })
       .then(() => {
-        message.success('Account edited with success.')
-        router.push(redirect)
+        message.success('Account edited with success.');
+        router.push(redirect);
       })
       .catch(err => {
-        message.error((err as Error)?.message)
-      })
+        message.error((err as Error)?.message);
+      });
   }
 
-  if (!org) return <PageLoader />
+  if (!org) return <PageLoader />;
 
-  const accountName = org.accounts.find(account => account.id === router.query.id)?.name
-  const USState = org.accounts.find(account => account.id === router.query.id)?.USState
+  const accountName = org.accounts.find(account => account.id === router.query.id)?.name;
+  const USState = org.accounts.find(account => account.id === router.query.id)?.USState;
 
   return (
     <>
-      <Header title="Edit Account" />
+      <Header title='Edit Account' />
 
       <main>
         <FormPageTemplate
-          title="Edit account"
+          title='Edit account'
           navBackLink={
-            <Link href="/">
+            <Link href='/'>
               <ArrowLeftOutlined /> back to dashboard
             </Link>
           }
@@ -123,5 +124,5 @@ export default function EditAccount({ org }: Props) {
         </FormPageTemplate>
       </main>
     </>
-  )
+  );
 }

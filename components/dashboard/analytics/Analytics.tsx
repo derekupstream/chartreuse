@@ -1,33 +1,35 @@
-import { Button, Col, Form, Row, Select, SelectProps, Space, Table, Typography, Divider } from 'antd'
-import { ReactNode } from 'react'
+import { DownloadOutlined } from '@ant-design/icons';
+import type { Org, User } from '@prisma/client';
+import type { SelectProps } from 'antd';
+import { Button, Col, Form, Row, Select, Space, Table, Typography, Divider } from 'antd';
+import { useRouter } from 'next/router';
+import type { ReactNode } from 'react';
 
-import { Org, User } from '@prisma/client'
-import Card from '../../calculator/projections/components/card'
-import { DownloadOutlined } from '@ant-design/icons'
-import GroupedBar from '../../calculator/projections/components/grouped-bar'
-import * as S from '../../calculator/projections/components/styles'
-import Spacer from 'components/spacer/spacer'
-import type { SummaryValues, AllProjectsSummary, ProjectSummary } from 'lib/calculator/getProjections'
-import ContentLoader from 'components/content-loader'
-import { useRouter } from 'next/router'
-import { formatToDollar } from 'lib/calculator/utils'
-import { requestDownload } from 'lib/files'
-import * as S2 from '../styles'
+import ContentLoader from 'components/content-loader';
+import Spacer from 'components/spacer/spacer';
+import type { SummaryValues, AllProjectsSummary, ProjectSummary } from 'lib/calculator/getProjections';
+import { formatToDollar } from 'lib/calculator/utils';
+import { requestDownload } from 'lib/files';
+
+import Card from '../../calculator/projections/components/card';
+import GroupedBar from '../../calculator/projections/components/grouped-bar';
+import * as S from '../../calculator/projections/components/styles';
+import * as S2 from '../styles';
 
 export interface PageProps {
-  isUpstreamView?: boolean
-  user: User & { org: Org }
-  data?: AllProjectsSummary
-  allProjects?: { id: string; name: string }[]
+  isUpstreamView?: boolean;
+  user: User & { org: Org };
+  data?: AllProjectsSummary;
+  allProjects?: { id: string; name: string }[];
 }
 
 const SummaryCardWithGraph = ({ label, units, value, formatter = defaultFormatter }: { label: string; units?: string; value: SummaryValues; formatter?: (val: number) => string | ReactNode }) => {
   const graphData = {
     baseline: value.baseline,
-    forecast: value.forecast,
-  }
+    forecast: value.forecast
+  };
 
-  const change = (value.forecast - value.baseline) * -1
+  const change = (value.forecast - value.baseline) * -1;
 
   return (
     <Card bordered={false} style={{ height: '100%' }}>
@@ -45,8 +47,8 @@ const SummaryCardWithGraph = ({ label, units, value, formatter = defaultFormatte
         </Col>
       </Row>
     </Card>
-  )
-}
+  );
+};
 
 const SummaryCard = ({ label, units, value, formatter = defaultFormatter }: { label: string; units?: string; value: number; formatter?: (val: number) => string | ReactNode }) => {
   return (
@@ -58,8 +60,8 @@ const SummaryCard = ({ label, units, value, formatter = defaultFormatter }: { la
         {formatter(value)} <span style={{ fontSize: '.6em' }}>{units}</span>
       </Typography.Title>
     </Card>
-  )
-}
+  );
+};
 
 const columns = [
   {
@@ -82,8 +84,8 @@ const columns = [
             GHG Reduction <span style={{ color: 'grey' }}>(MTC02e)</span>
           </Typography.Text>
         </>
-      )
-    },
+      );
+    }
   },
   {
     title: 'Baseline',
@@ -103,8 +105,8 @@ const columns = [
             {record.projections.annualSummary.greenhouseGasEmissions.total.baseline.toLocaleString()}
           </Typography.Text>
         </>
-      )
-    },
+      );
+    }
   },
   {
     title: 'Forecast',
@@ -124,8 +126,8 @@ const columns = [
             {record.projections.annualSummary.greenhouseGasEmissions.total.forecast.toLocaleString()}
           </Typography.Text>
         </>
-      )
-    },
+      );
+    }
   },
   {
     // think of these changes as 'reductions', hence we multiply them * -1
@@ -143,18 +145,18 @@ const columns = [
             <ReductionValue value={record.projections.annualSummary.greenhouseGasEmissions.total} />
           </Typography.Text>
         </>
-      )
-    },
-  },
-]
+      );
+    }
+  }
+];
 
 const defaultFormatter = (val: number) => {
-  return val ? val.toLocaleString() : <span style={{ color: 'grey', fontSize: '12px' }}>N/A</span>
-}
+  return val ? val.toLocaleString() : <span style={{ color: 'grey', fontSize: '12px' }}>N/A</span>;
+};
 
 const ReductionValue = ({ value, formatter = defaultFormatter }: { value: { change: number; changePercent?: number }; formatter?: (val: number) => string | ReactNode }) => {
-  const change = value.change * -1
-  const changePercent = value.changePercent ? value.changePercent * -1 : 0
+  const change = value.change * -1;
+  const changePercent = value.changePercent ? value.changePercent * -1 : 0;
   return (
     <Row>
       <Col span={12} style={{ fontWeight: 500 }}>
@@ -166,58 +168,60 @@ const ReductionValue = ({ value, formatter = defaultFormatter }: { value: { chan
         {changePercent ? `${changePercent}%` : null}
       </Col>
     </Row>
-  )
-}
+  );
+};
 
 export default function AnalyticsPage({ user, data, allProjects, isUpstreamView }: PageProps) {
-  const router = useRouter()
+  const router = useRouter();
 
   if (!data) {
-    return <ContentLoader />
+    return <ContentLoader />;
   }
 
-  const selectedProjects = typeof router.query.projects === 'string' ? router.query.projects.split(',') : []
+  const selectedProjects = typeof router.query.projects === 'string' ? router.query.projects.split(',') : [];
 
   const options: SelectProps['options'] = allProjects?.map(project => ({
     label: project.name,
-    value: project.id,
-  }))
+    value: project.id
+  }));
 
   function handleChange(value: string[]) {
-    const updatedPath = router.asPath.split('?')[0] + (value.length ? `?projects=${value.join(',')}` : '')
-    router.replace(updatedPath)
+    const updatedPath = router.asPath.split('?')[0] + (value.length ? `?projects=${value.join(',')}` : '');
+    router.replace(updatedPath);
   }
 
   function exportData() {
-    const orgId = data?.projects?.[0]?.orgId
+    const orgId = data?.projects?.[0]?.orgId;
     return requestDownload({
       api: `/api/org/${orgId}/export`,
-      title: `Chart Reuse Export`,
-    })
+      title: `Chart Reuse Export`
+    });
   }
 
   const rows = data.projects
     .map(project => {
       const score =
-        project.projections.annualSummary.dollarCost.changePercent + project.projections.annualSummary.wasteWeight.changePercent + project.projections.annualSummary.singleUseProductCount.changePercent
+        project.projections.annualSummary.dollarCost.changePercent +
+        project.projections.annualSummary.wasteWeight.changePercent +
+        project.projections.annualSummary.singleUseProductCount.changePercent;
       return {
         ...project,
-        score,
-      }
+        score
+      };
     })
-    .sort((a, b) => a.score - b.score)
+    .sort((a, b) => a.score - b.score);
 
   return (
-    <Space direction="vertical" size="large" style={{ width: '100%' }}>
+    <Space direction='vertical' size='large' style={{ width: '100%' }}>
       <S2.SpaceBetween>
         <Typography.Title>{isUpstreamView ? 'Upstream Analytics' : `${user.org.name}'s Analytics`}</Typography.Title>
 
         <span>
           {isUpstreamView && (
             <>
-              <Form layout="horizontal" style={{ minWidth: 350, width: '49%' }}>
-                <Form.Item label="Filter projects">
-                  <Select allowClear mode="multiple" defaultValue={selectedProjects} placeholder="Select Projects" onChange={handleChange} options={options} />
+              <Form layout='horizontal' style={{ minWidth: 350, width: '49%' }}>
+                <Form.Item label='Filter projects'>
+                  <Select allowClear mode='multiple' defaultValue={selectedProjects} placeholder='Select Projects' onChange={handleChange} options={options} />
                 </Form.Item>
               </Form>
             </>
@@ -234,16 +238,16 @@ export default function AnalyticsPage({ user, data, allProjects, isUpstreamView 
 
       <Row gutter={[24, 24]}>
         <Col xs={24} md={12}>
-          <SummaryCardWithGraph label="Estimated Savings" formatter={formatToDollar} value={data.summary.savings} />
+          <SummaryCardWithGraph label='Estimated Savings' formatter={formatToDollar} value={data.summary.savings} />
         </Col>
         <Col xs={24} md={12}>
-          <SummaryCardWithGraph label="Single-Use Reduction" units="units" value={data.summary.singleUse} />
+          <SummaryCardWithGraph label='Single-Use Reduction' units='units' value={data.summary.singleUse} />
         </Col>
         <Col xs={24} md={12}>
-          <SummaryCardWithGraph label="Waste Reduction" units="lbs" value={data.summary.waste} />
+          <SummaryCardWithGraph label='Waste Reduction' units='lbs' value={data.summary.waste} />
         </Col>
         <Col xs={24} md={12}>
-          <SummaryCardWithGraph label="GHG Reduction" units="MTC02e" value={data.summary.gas} />
+          <SummaryCardWithGraph label='GHG Reduction' units='MTC02e' value={data.summary.gas} />
         </Col>
       </Row>
 
@@ -260,8 +264,8 @@ export default function AnalyticsPage({ user, data, allProjects, isUpstreamView 
       <Divider style={{ margin: 0 }} />
 
       <Card>
-        <Table<ProjectSummary> dataSource={rows} columns={columns} rowKey="id" />
+        <Table<ProjectSummary> dataSource={rows} columns={columns} rowKey='id' />
       </Card>
     </Space>
-  )
+  );
 }

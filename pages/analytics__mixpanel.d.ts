@@ -1,6 +1,7 @@
 // https://github.com/DavidWells/analytics/blob/master/packages/analytics-plugin-mixpanel/src/browser.js
 declare module '@analytics/mixpanel' {
-  type AnalyticsPlugin = import('analytics').AnalyticsPlugin
+  // eslint-disable-next-line @typescript-eslint/consistent-type-imports
+  type AnalyticsPlugin = import('analytics').AnalyticsPlugin;
 
   /**
    * Mixpanel Analytics plugin
@@ -17,7 +18,7 @@ declare module '@analytics/mixpanel' {
    *   token: 'abcdef123'
    * })
    */
-  function mixpanelPlugin(pluginConfig: { token: string; options?: any; pageEvent?: string; customScriptSrc?: string }): AnalyticsPlugin
+  function mixpanelPlugin(pluginConfig: { token: string; options?: any; pageEvent?: string; customScriptSrc?: string }): AnalyticsPlugin;
 
-  export default mixpanelPlugin
+  export default mixpanelPlugin;
 }

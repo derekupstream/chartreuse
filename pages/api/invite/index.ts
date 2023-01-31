@@ -1,47 +1,50 @@
-import type { NextApiRequest, NextApiResponse } from 'next'
-import prisma from 'lib/prisma'
-import { Prisma, Invite, User, Org } from '@prisma/client'
-import { sendEmail } from 'lib/mailgun'
-import nc from 'next-connect'
-import { onError, onNoMatch, getUser, NextApiRequestWithUser } from 'lib/middleware'
+import type { Invite } from '@prisma/client';
+import { Prisma, User, Org } from '@prisma/client';
+import type { NextApiRequest, NextApiResponse } from 'next';
+import nc from 'next-connect';
 
-const handler = nc<NextApiRequest, NextApiResponse>({ onError, onNoMatch })
+import { sendEmail } from 'lib/mailgun';
+import type { NextApiRequestWithUser } from 'lib/middleware';
+import { onError, onNoMatch, getUser } from 'lib/middleware';
+import prisma from 'lib/prisma';
 
-handler.use(getUser).post(sendInvite)
+const handler = nc<NextApiRequest, NextApiResponse>({ onError, onNoMatch });
+
+handler.use(getUser).post(sendInvite);
 
 type Response = {
-  invite: Invite
-}
+  invite: Invite;
+};
 
 async function sendInvite(req: NextApiRequestWithUser, res: NextApiResponse<Response>) {
-  const { email, accountId } = req.body
-  const orgId = req.user.orgId
-  const userId = req.user.id
+  const { email, accountId } = req.body;
+  const orgId = req.user.orgId;
+  const userId = req.user.id;
   const invite = await prisma.invite.create({
     data: {
       email,
       sentBy: {
         connect: {
-          id: userId,
-        },
+          id: userId
+        }
       },
       account: accountId
         ? {
             connect: {
-              id: accountId,
-            },
+              id: accountId
+            }
           }
         : undefined,
       org: {
         connect: {
-          id: orgId,
-        },
-      },
+          id: orgId
+        }
+      }
     },
     include: {
-      org: true,
-    },
-  })
+      org: true
+    }
+  });
 
   await sendEmail({
     from: 'Chart Reuse <hello@chartreuse.eco>',
@@ -51,10 +54,10 @@ async function sendInvite(req: NextApiRequestWithUser, res: NextApiResponse<Resp
     'v:inviterName': req.user.name,
     'v:inviterJobTitle': req.user.title,
     'v:inviterOrg': invite.org.name,
-    'v:inviteUrl': `${req.headers.origin}/accept?inviteId=${invite.id}`,
-  })
+    'v:inviteUrl': `${req.headers.origin}/accept?inviteId=${invite.id}`
+  });
 
-  return res.status(200).json({ invite })
+  return res.status(200).json({ invite });
 }
 
-export default handler
+export default handler;

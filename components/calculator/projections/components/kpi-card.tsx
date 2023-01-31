@@ -1,8 +1,9 @@
-import { Typography } from 'antd'
-import styled from 'styled-components'
-import Card from './card'
-import { CardTitle } from './styles'
-import PercentTag from './percent-tag'
+import { Typography } from 'antd';
+import styled from 'styled-components';
+
+import Card from './card';
+import PercentTag from './percent-tag';
+import { CardTitle } from './styles';
 
 export const Value = styled(Typography.Text)`
   font-weight: bold;
@@ -10,7 +11,7 @@ export const Value = styled(Typography.Text)`
   line-height: 40px;
   margin-right: 10px;
   color: #141414;
-`
+`;
 
 export const Header = styled.div`
   display: flex;
@@ -30,17 +31,17 @@ export const Header = styled.div`
       font-size: 24px !important;
     }
   }
-`
+`;
 
 type Props = {
-  children?: any
-  baseline?: number
-  forecast?: number
-  changeStr: string
-  changePercent?: number
-  title?: string
-  style?: any
-}
+  children?: any;
+  baseline?: number;
+  forecast?: number;
+  changeStr: string;
+  changePercent?: number;
+  title?: string;
+  style?: any;
+};
 
 const CardComponent: React.FC<Props> = ({ children, style, ...props }) => {
   return (
@@ -48,11 +49,11 @@ const CardComponent: React.FC<Props> = ({ children, style, ...props }) => {
       <KPIContent {...props} />
       {children}
     </Card>
-  )
-}
+  );
+};
 
 export const KPIContent: React.FC<Props> = props => {
-  const { changePercent, changeStr, children } = props
+  const { changePercent, changeStr, children } = props;
 
   return (
     <Header>
@@ -61,7 +62,7 @@ export const KPIContent: React.FC<Props> = props => {
         <Value>{changeStr}</Value> {changePercent && <PercentTag value={changePercent} />}
       </div>
     </Header>
-  )
-}
+  );
+};
 
-export default CardComponent
+export default CardComponent;

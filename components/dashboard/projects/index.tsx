@@ -1,53 +1,54 @@
 /* eslint-disable react/display-name */
-import { DeleteOutlined, PlusOutlined } from '@ant-design/icons'
-import { Button, Card, Col, message, Popconfirm, Row, Space, Typography } from 'antd'
-import { useEffect } from 'react'
-import { useMutation, useQuery, useQueryClient } from 'react-query'
-import { Project, Account } from '@prisma/client'
-import { ProjectMetadata } from 'components/calculator/setup'
-import { useRouter } from 'next/router'
-import * as S from 'components/dashboard/styles'
-import ContentLoader from 'components/content-loader'
-import { DELETE, GET } from 'lib/http'
+import { DeleteOutlined, PlusOutlined } from '@ant-design/icons';
+import type { Project, Account } from '@prisma/client';
+import { Button, Card, Col, message, Popconfirm, Row, Space, Typography } from 'antd';
+import { useRouter } from 'next/router';
+import { useEffect } from 'react';
+import { useMutation, useQuery, useQueryClient } from 'react-query';
+
+import type { ProjectMetadata } from 'components/calculator/setup';
+import ContentLoader from 'components/content-loader';
+import * as S from 'components/dashboard/styles';
+import { DELETE, GET } from 'lib/http';
 
 interface PopulatedProject extends Project {
-  account: Account
+  account: Account;
 }
 
 const Projects = () => {
-  const queryClient = useQueryClient()
-  const router = useRouter()
+  const queryClient = useQueryClient();
+  const router = useRouter();
   const { data, isLoading, error } = useQuery('projects', () => {
-    return GET<{ projects: PopulatedProject[] }>('/api/projects')
-  })
+    return GET<{ projects: PopulatedProject[] }>('/api/projects');
+  });
 
   const deleteProject = useMutation((id: string) => {
-    return DELETE(`/api/projects/${id}`)
-  })
+    return DELETE(`/api/projects/${id}`);
+  });
 
   useEffect(() => {
     if (error) {
-      message.error((error as Error)?.message)
+      message.error((error as Error)?.message);
     }
-  }, [error])
+  }, [error]);
 
   const handleProjectDeletion = async (projectId: string) => {
     deleteProject.mutate(projectId, {
       onSuccess: () => {
-        message.success(`Project deleted`)
-        queryClient.invalidateQueries('projects')
+        message.success(`Project deleted`);
+        queryClient.invalidateQueries('projects');
       },
       onError: err => {
-        message.error((err as Error)?.message)
-      },
-    })
-  }
+        message.error((err as Error)?.message);
+      }
+    });
+  };
 
   return (
-    <Space direction="vertical" size="large" style={{ width: '100%' }}>
+    <Space direction='vertical' size='large' style={{ width: '100%' }}>
       <S.SpaceBetween>
         <Typography.Title>Projects</Typography.Title>
-        <Button type="primary" onClick={() => router.push('/projects/new')} icon={<PlusOutlined />}>
+        <Button type='primary' onClick={() => router.push('/projects/new')} icon={<PlusOutlined />}>
           Add project
         </Button>
       </S.SpaceBetween>
@@ -71,7 +72,7 @@ const Projects = () => {
                       <S.Actions>
                         <Popconfirm
                           title={
-                            <Space direction="vertical" size="small">
+                            <Space direction='vertical' size='small'>
                               <Typography.Text>
                                 Are you sure you want to delete the project &quot;
                                 {project.name}&quot;?
@@ -80,23 +81,23 @@ const Projects = () => {
                           }
                           onConfirm={() => handleProjectDeletion(project.id)}
                         >
-                          <Button icon={<DeleteOutlined />} type="text" loading={deleteProject.isLoading} />
+                          <Button icon={<DeleteOutlined />} type='text' loading={deleteProject.isLoading} />
                         </Popconfirm>
                       </S.Actions>
                       <Typography.Text>{(project?.metadata as ProjectMetadata)?.type}</Typography.Text>
                     </S.ProjectInfo>
                   </div>
-                  <Button type="ghost" block href={`/projects/${project.id}`}>
+                  <Button type='ghost' block href={`/projects/${project.id}`}>
                     View project
                   </Button>
                 </Card>
               </Col>
-            )
+            );
           })}
         </Row>
       )}
     </Space>
-  )
-}
+  );
+};
 
-export default Projects
+export default Projects;

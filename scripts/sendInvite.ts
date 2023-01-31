@@ -1,7 +1,7 @@
+import { sendEmail } from '../lib/mailgun';
 import prisma from '../lib/prisma';
-import { sendEmail } from '../lib/mailgun'
 
-export { }
+export {};
 
 const orgId = 'a2c6a7d5-d6aa-4172-8d7f-a775a5ba18b4';
 const email = 'mattwad+upstream2@gmail.com';
@@ -9,19 +9,18 @@ const inviterEmail = 'samantha@upstreamsolutions.org';
 const webHost = 'https://app.chartreuse.eco';
 
 (async () => {
-
   try {
     const org = await prisma.org.findFirst({
       where: { id: orgId }
-    })
+    });
     const inviter = await prisma.user.findFirst({
       where: { email: inviterEmail }
-    })
+    });
     if (!org) {
-      throw new Error('No org found: ' + orgId)
+      throw new Error('No org found: ' + orgId);
     }
     if (!inviter) {
-      throw new Error('No user found by email: ' + inviter)
+      throw new Error('No user found by email: ' + inviter);
     }
 
     const invite = await prisma.invite.create({
@@ -29,8 +28,8 @@ const webHost = 'https://app.chartreuse.eco';
         email,
         sentBy: {
           connect: {
-            id: inviter.id,
-          },
+            id: inviter.id
+          }
         },
         // account: accountId
         //   ? {
@@ -41,14 +40,14 @@ const webHost = 'https://app.chartreuse.eco';
         //   : undefined,
         org: {
           connect: {
-            id: orgId,
-          },
-        },
+            id: orgId
+          }
+        }
       },
       include: {
-        org: true,
-      },
-    })
+        org: true
+      }
+    });
 
     await sendEmail({
       from: 'Chart Reuse <hello@chartreuse.eco>',
@@ -58,14 +57,12 @@ const webHost = 'https://app.chartreuse.eco';
       'v:inviterName': inviter.name,
       'v:inviterJobTitle': inviter.title,
       'v:inviterOrg': invite.org.name,
-      'v:inviteUrl': `${webHost}/accept?inviteId=${invite.id}`,
-    })
+      'v:inviteUrl': `${webHost}/accept?inviteId=${invite.id}`
+    });
 
-    process.exit(0)
+    process.exit(0);
+  } catch (error) {
+    console.error(error);
+    process.exit(1);
   }
-  catch (error) {
-    console.error(error)
-    process.exit(1)
-  }
-
 })();

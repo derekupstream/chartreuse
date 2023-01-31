@@ -1,81 +1,84 @@
-import { Button, Col, Divider, Drawer, message, Popconfirm, Typography } from 'antd'
-import { useSimpleMutation, useSimpleQuery } from 'hooks/useSimpleQuery'
-import { useState } from 'react'
-import { AddBlock, Container, contentWrapperStyle, Placeholder, Subtitle } from '../expense-block'
-import { SectionContainer, SectionTitle } from '../styles'
-import { InfoCard, InfoRow } from 'components/calculator/styles'
-import { useRouter } from 'next/router'
-import { LaborCost } from '@prisma/client'
-import LaborFormDrawer from './labor-form-drawer'
-import { PlusOutlined } from '@ant-design/icons'
-import { formatToDollar } from 'lib/calculator/utils'
-import { OTHER_EXPENSES_FREQUENCIES } from 'lib/calculator/constants/other-expenses'
-import ContentLoader from 'components/content-loader'
+import { PlusOutlined } from '@ant-design/icons';
+import type { LaborCost } from '@prisma/client';
+import { Button, Col, Divider, Drawer, message, Popconfirm, Typography } from 'antd';
+import { useRouter } from 'next/router';
+import { useState } from 'react';
+
+import { InfoCard, InfoRow } from 'components/calculator/styles';
+import ContentLoader from 'components/content-loader';
+import { useSimpleMutation, useSimpleQuery } from 'hooks/useSimpleQuery';
+import { OTHER_EXPENSES_FREQUENCIES } from 'lib/calculator/constants/other-expenses';
+import { formatToDollar } from 'lib/calculator/utils';
+
+import { AddBlock, Container, contentWrapperStyle, Placeholder, Subtitle } from '../expense-block';
+import { SectionContainer, SectionTitle } from '../styles';
+
+import LaborFormDrawer from './labor-form-drawer';
 
 type Response = {
-  laborCosts: LaborCost[]
-}
+  laborCosts: LaborCost[];
+};
 
 const LaborSection = () => {
-  const route = useRouter()
-  const projectId = route.query.id
-  const url = `/api/labor-costs/?projectId=${projectId}`
-  const { data, isLoading, refetch } = useSimpleQuery<Response>(url)
-  const deleteLabor = useSimpleMutation(url, 'DELETE')
+  const route = useRouter();
+  const projectId = route.query.id;
+  const url = `/api/labor-costs/?projectId=${projectId}`;
+  const { data, isLoading, refetch } = useSimpleQuery<Response>(url);
+  const deleteLabor = useSimpleMutation(url, 'DELETE');
 
-  const [isDrawerVisible, setIsDrawerVisible] = useState(false)
-  const [activeLabor, setActiveLabor] = useState<LaborCost | null>(null)
+  const [isDrawerVisible, setIsDrawerVisible] = useState(false);
+  const [activeLabor, setActiveLabor] = useState<LaborCost | null>(null);
 
   const onClickAddExpense = () => {
-    setIsDrawerVisible(true)
-    setActiveLabor(null)
-  }
+    setIsDrawerVisible(true);
+    setActiveLabor(null);
+  };
 
   const onCloseDrawer = () => {
-    setIsDrawerVisible(false)
-    setActiveLabor(null)
-  }
+    setIsDrawerVisible(false);
+    setActiveLabor(null);
+  };
 
   function onEdit(item: LaborCost) {
-    setActiveLabor(item)
-    setIsDrawerVisible(true)
+    setActiveLabor(item);
+    setIsDrawerVisible(true);
   }
 
   const onSubmit = () => {
     if (activeLabor) {
-      message.success('Labor updated')
+      message.success('Labor updated');
     } else {
-      message.success('Labor created')
+      message.success('Labor created');
     }
-    setIsDrawerVisible(false)
-    setActiveLabor(null)
-    refetch()
-  }
+    setIsDrawerVisible(false);
+    setActiveLabor(null);
+    refetch();
+  };
 
   const onConfirmDelete = (id: string) => {
-    const reqBody = { projectId, id }
+    const reqBody = { projectId, id };
 
     deleteLabor.mutate(reqBody, {
       onSuccess: () => {
-        message.success('Labor deleted')
-        refetch()
-      },
-    })
-  }
+        message.success('Labor deleted');
+        refetch();
+      }
+    });
+  };
 
   const getFrequencyInNumber = (name: string) => {
-    return OTHER_EXPENSES_FREQUENCIES.find(freq => freq.name.toString() === name)?.annualOccurrence! || 1
-  }
+    return OTHER_EXPENSES_FREQUENCIES.find(freq => freq.name.toString() === name)?.annualOccurrence || 1;
+  };
 
   if (isLoading) {
-    return <ContentLoader />
+    return <ContentLoader />;
   }
   return (
     <Container>
       <SectionContainer>
         <SectionTitle>Labor</SectionTitle>
         {!!data?.laborCosts?.length && (
-          <Button type="primary" onClick={onClickAddExpense} icon={<PlusOutlined />} style={{ paddingRight: '4em', paddingLeft: '4em' }}>
+          <Button type='primary' onClick={onClickAddExpense} icon={<PlusOutlined />} style={{ paddingRight: '4em', paddingLeft: '4em' }}>
             Add labor
           </Button>
         )}
@@ -91,21 +94,21 @@ const LaborSection = () => {
             <Col span={16}>
               <Subtitle>{labor.description}</Subtitle>
               <a
-                href="#"
+                href='#'
                 onClick={e => {
-                  onEdit(labor)
-                  e.preventDefault()
+                  onEdit(labor);
+                  e.preventDefault();
                 }}
               >
                 Edit
               </a>
               <Typography.Text style={{ opacity: '.25' }}> | </Typography.Text>
-              <Popconfirm title="Are you sure to delete this item?" onConfirm={() => onConfirmDelete(labor.id)} okText="Yes" cancelText="No">
-                <a href="#">Delete</a>
+              <Popconfirm title='Are you sure to delete this item?' onConfirm={() => onConfirmDelete(labor.id)} okText='Yes' cancelText='No'>
+                <a href='#'>Delete</a>
               </Popconfirm>
             </Col>
             <Col span={8}>
-              <InfoCard theme="forecast">
+              <InfoCard theme='forecast'>
                 <Typography.Title level={5}>Forecast</Typography.Title>
                 <table>
                   <thead>
@@ -131,7 +134,7 @@ const LaborSection = () => {
         ))
       ) : (
         <AddBlock>
-          <Button onClick={onClickAddExpense} icon={<PlusOutlined />} type="primary" style={{ paddingRight: '4em', paddingLeft: '4em' }}>
+          <Button onClick={onClickAddExpense} icon={<PlusOutlined />} type='primary' style={{ paddingRight: '4em', paddingLeft: '4em' }}>
             Add labor
           </Button>
           <Placeholder>You have no labor entries yet. Click &apos;+ Add labor&apos; above to get started.</Placeholder>
@@ -141,7 +144,7 @@ const LaborSection = () => {
         <LaborFormDrawer input={activeLabor} onClose={onSubmit} />
       </Drawer>
     </Container>
-  )
-}
+  );
+};
 
-export default LaborSection
+export default LaborSection;

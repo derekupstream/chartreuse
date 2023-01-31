@@ -1,22 +1,24 @@
-import { Typography } from 'antd'
-import { Wrapper } from '../styles'
-import { Project } from '.prisma/client'
-import DishWashingSection from './components/dish-washing/dish-washing-section'
-import LaborSection from './components/labor/labor-section'
-import WasteHaulingSection from './components/waste-hauling/waste-hauling-section'
-import OtherExpenseSection from './components/other-expenses/other-expenses-section'
-import { useFooterState } from '../footer'
-import { useEffect } from 'react'
+import type { Project } from '@prisma/client';
+import { Typography } from 'antd';
+import { useEffect } from 'react';
+
+import { useFooterState } from '../footer';
+import { Wrapper } from '../styles';
+
+import DishWashingSection from './components/dish-washing/dish-washing-section';
+import LaborSection from './components/labor/labor-section';
+import OtherExpenseSection from './components/other-expenses/other-expenses-section';
+import WasteHaulingSection from './components/waste-hauling/waste-hauling-section';
 
 type ServerSideProps = {
-  project: Project
-}
+  project: Project;
+};
 
 export default function AdditionalCosts({ project }: ServerSideProps) {
-  const { setFooterState } = useFooterState()
+  const { setFooterState } = useFooterState();
   useEffect(() => {
-    setFooterState({ path: '/additional-costs', stepCompleted: true })
-  }, [setFooterState])
+    setFooterState({ path: '/additional-costs', stepCompleted: true });
+  }, [setFooterState]);
 
   return (
     <Wrapper>
@@ -34,5 +36,5 @@ export default function AdditionalCosts({ project }: ServerSideProps) {
       <br />
       <OtherExpenseSection />
     </Wrapper>
-  )
+  );
 }

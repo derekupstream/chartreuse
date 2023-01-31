@@ -1,17 +1,20 @@
-import type { NextApiResponse } from 'next'
-import { projectHandler, NextApiRequestWithUser } from 'lib/middleware'
-import { saveInventoryRecords, InventoryInput } from 'lib/inventory/saveInventoryRecords'
+import type { NextApiResponse } from 'next';
 
-const handler = projectHandler()
+import type { InventoryInput } from 'lib/inventory/saveInventoryRecords';
+import { saveInventoryRecords } from 'lib/inventory/saveInventoryRecords';
+import type { NextApiRequestWithUser } from 'lib/middleware';
+import { projectHandler } from 'lib/middleware';
 
-handler.post(uploadEndpoint)
+const handler = projectHandler();
+
+handler.post(uploadEndpoint);
 
 async function uploadEndpoint(req: NextApiRequestWithUser, res: NextApiResponse) {
-  const projectId = req.query.id as string
+  const projectId = req.query.id as string;
 
-  await saveInventoryRecords(projectId, req.body as InventoryInput)
+  await saveInventoryRecords(projectId, req.body as InventoryInput);
 
-  res.status(200).end()
+  res.status(200).end();
 }
 
-export default handler
+export default handler;

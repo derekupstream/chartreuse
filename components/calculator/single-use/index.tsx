@@ -1,48 +1,51 @@
-import { Button, Divider, Drawer, Typography, Spin, Row, Col, Popconfirm, message, Card } from 'antd'
-import { useState } from 'react'
-import { PlusOutlined } from '@ant-design/icons'
-import SingleUseForm from './single-use-form'
-import * as S from '../styles'
-import { useEffect } from 'react'
-import { SingleUseProduct } from 'lib/inventory/types/products'
-import { SingleUseLineItem } from 'lib/inventory/types/projects'
-import { DELETE, GET } from 'lib/http'
-import { Project } from '.prisma/client'
-import { DashboardUser } from 'components/dashboard'
-import { PRODUCT_CATEGORIES } from 'lib/calculator/constants/product-categories'
-import useLoadingState from 'hooks/useLoadingState'
-import ContentLoader from 'components/content-loader'
-import { getannualOccurrence } from 'lib/calculator/constants/frequency'
-import { useFooterState } from '../footer'
-import styled from 'styled-components'
-import { CATEGORY_ICONS } from './category-icons'
-import chartreuseClient from 'lib/chartreuseClient'
+import { PlusOutlined } from '@ant-design/icons';
+import type { Project } from '@prisma/client';
+import { Button, Divider, Drawer, Typography, Spin, Row, Col, Popconfirm, message, Card } from 'antd';
+import { useState } from 'react';
+import { useEffect } from 'react';
+import styled from 'styled-components';
+
+import ContentLoader from 'components/content-loader';
+import type { DashboardUser } from 'components/dashboard';
+import useLoadingState from 'hooks/useLoadingState';
+import { getannualOccurrence } from 'lib/calculator/constants/frequency';
+import { PRODUCT_CATEGORIES } from 'lib/calculator/constants/product-categories';
+import chartreuseClient from 'lib/chartreuseClient';
+import { DELETE, GET } from 'lib/http';
+import type { SingleUseProduct } from 'lib/inventory/types/products';
+import type { SingleUseLineItem } from 'lib/inventory/types/projects';
+
+import { useFooterState } from '../footer';
+import * as S from '../styles';
+
+import { CATEGORY_ICONS } from './category-icons';
+import SingleUseForm from './single-use-form';
 
 type ServerSideProps = {
-  project: Project
-  user: DashboardUser
-}
+  project: Project;
+  user: DashboardUser;
+};
 
 interface SingleUseItemRecord {
-  lineItem: SingleUseLineItem
-  product: SingleUseProduct
+  lineItem: SingleUseLineItem;
+  product: SingleUseProduct;
 }
 
 const SmallText = styled(Typography.Text)`
   font-size: 0.9rem;
-`
+`;
 
 const BaselineCard = ({ item }: { item: SingleUseItemRecord }) => {
-  const annualOccurrence = getannualOccurrence(item.lineItem.frequency)
-  const baselineTotal = annualOccurrence * item.lineItem.caseCost * item.lineItem.casesPurchased
+  const annualOccurrence = getannualOccurrence(item.lineItem.frequency);
+  const baselineTotal = annualOccurrence * item.lineItem.caseCost * item.lineItem.casesPurchased;
 
-  const { setFooterState } = useFooterState()
+  const { setFooterState } = useFooterState();
   useEffect(() => {
-    setFooterState({ path: '/single-use-items', stepCompleted: true })
-  }, [setFooterState])
+    setFooterState({ path: '/single-use-items', stepCompleted: true });
+  }, [setFooterState]);
 
   return (
-    <S.InfoCard theme="baseline">
+    <S.InfoCard theme='baseline'>
       <Row>
         <Col span={16}>
           <Typography.Title level={5}>Baseline</Typography.Title>
@@ -66,17 +69,17 @@ const BaselineCard = ({ item }: { item: SingleUseItemRecord }) => {
         </Col>
       </Row>
     </S.InfoCard>
-  )
-}
+  );
+};
 
 const InfoCard = ({ item }: { item: SingleUseItemRecord }) => {
-  const annualOccurrence = getannualOccurrence(item.lineItem.frequency)
-  const baselineTotal = annualOccurrence * item.lineItem.caseCost * item.lineItem.casesPurchased
-  const forecastTotal = annualOccurrence * item.lineItem.newCaseCost * item.lineItem.newCasesPurchased
-  const change = forecastTotal - baselineTotal
-  const isNegativeChange = change < 0
+  const annualOccurrence = getannualOccurrence(item.lineItem.frequency);
+  const baselineTotal = annualOccurrence * item.lineItem.caseCost * item.lineItem.casesPurchased;
+  const forecastTotal = annualOccurrence * item.lineItem.newCaseCost * item.lineItem.newCasesPurchased;
+  const change = forecastTotal - baselineTotal;
+  const isNegativeChange = change < 0;
   return (
-    <S.InfoCard theme="forecast">
+    <S.InfoCard theme='forecast'>
       <Row>
         <Col span={10}>
           <Typography.Title level={5}>Forecast</Typography.Title>
@@ -113,22 +116,22 @@ const InfoCard = ({ item }: { item: SingleUseItemRecord }) => {
         </Col>
       </Row>
     </S.InfoCard>
-  )
-}
+  );
+};
 
 const ItemRow = ({ item, onEdit, onDelete }: { item: SingleUseItemRecord; onEdit: (item: SingleUseItemRecord) => void; onDelete: () => void }) => {
   function confirm() {
     chartreuseClient
       .deleteSingleUseItem(item.lineItem.projectId, item.lineItem.id)
       .then(() => {
-        message.success('Item removed')
-        onDelete()
+        message.success('Item removed');
+        onDelete();
       })
       .catch(error => {
         if (error.error || error.message) {
-          message.error(error.error || error.message)
+          message.error(error.error || error.message);
         }
-      })
+      });
   }
 
   return (
@@ -136,17 +139,17 @@ const ItemRow = ({ item, onEdit, onDelete }: { item: SingleUseItemRecord; onEdit
       <Col span={8}>
         <Typography.Title level={5}>{item.product.description}</Typography.Title>
         <a
-          href="#"
+          href='#'
           onClick={e => {
-            onEdit(item)
-            e.preventDefault()
+            onEdit(item);
+            e.preventDefault();
           }}
         >
           Edit
         </a>
         <Typography.Text style={{ opacity: '.25' }}> | </Typography.Text>
-        <Popconfirm title="Are you sure you want to delete this item?" onConfirm={confirm} okText="Yes" cancelText="No">
-          <a href="#">Delete</a>
+        <Popconfirm title='Are you sure you want to delete this item?' onConfirm={confirm} okText='Yes' cancelText='No'>
+          <a href='#'>Delete</a>
         </Popconfirm>
       </Col>
       <Col span={8}>
@@ -156,24 +159,24 @@ const ItemRow = ({ item, onEdit, onDelete }: { item: SingleUseItemRecord; onEdit
         <InfoCard item={item} />
       </Col>
     </S.InfoRow>
-  )
-}
+  );
+};
 
 const SummaryRow = ({ lineItems }: { lineItems: SingleUseLineItem[] }) => {
-  const baselineProductCount = lineItems.filter(item => item.casesPurchased > 0).length
-  const forecastProductCount = lineItems.filter(item => item.newCasesPurchased > 0).length
+  const baselineProductCount = lineItems.filter(item => item.casesPurchased > 0).length;
+  const forecastProductCount = lineItems.filter(item => item.newCasesPurchased > 0).length;
   const baselineCost = lineItems.reduce((total, item) => {
-    const annualOccurrence = getannualOccurrence(item.frequency)
-    const itemTotal = annualOccurrence * item.caseCost * item.casesPurchased
-    return total + itemTotal
-  }, 0)
+    const annualOccurrence = getannualOccurrence(item.frequency);
+    const itemTotal = annualOccurrence * item.caseCost * item.casesPurchased;
+    return total + itemTotal;
+  }, 0);
   const forecastCost = lineItems.reduce((total, item) => {
-    const annualOccurrence = getannualOccurrence(item.frequency)
-    const itemTotal = annualOccurrence * item.newCaseCost * item.newCasesPurchased
-    return total + itemTotal
-  }, 0)
-  const change = forecastCost - baselineCost
-  const isChangeNegative = change < 0
+    const annualOccurrence = getannualOccurrence(item.frequency);
+    const itemTotal = annualOccurrence * item.newCaseCost * item.newCasesPurchased;
+    return total + itemTotal;
+  }, 0);
+  const change = forecastCost - baselineCost;
+  const isChangeNegative = change < 0;
   return (
     <S.InfoCard style={{ boxShadow: 'none' }}>
       <Row>
@@ -235,28 +238,28 @@ const SummaryRow = ({ lineItems }: { lineItems: SingleUseLineItem[] }) => {
         </Col>
       </Row>
     </S.InfoCard>
-  )
-}
+  );
+};
 
 export default function SingleUse({ project }: ServerSideProps) {
-  const [formStep, setFormStep] = useState<number>(1)
-  const [isDrawerVisible, setIsDrawerVisible] = useState<boolean>(false)
-  const [lineItem, setLineItem] = useState<SingleUseLineItem | null>(null)
+  const [formStep, setFormStep] = useState<number>(1);
+  const [isDrawerVisible, setIsDrawerVisible] = useState<boolean>(false);
+  const [lineItem, setLineItem] = useState<SingleUseLineItem | null>(null);
   const [lineItems, setLineItems] = useLoadingState<{
-    data: SingleUseLineItem[]
-  }>({ data: [] })
-  const [products, setProducts] = useLoadingState<{ data: SingleUseProduct[] }>({ data: [] })
+    data: SingleUseLineItem[];
+  }>({ data: [] });
+  const [products, setProducts] = useLoadingState<{ data: SingleUseProduct[] }>({ data: [] });
 
   useEffect(() => {
-    getProducts()
-    getLineItems()
+    getProducts();
+    getLineItems();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, []);
 
   async function getProducts() {
     try {
-      const products = await GET<SingleUseProduct[]>('/api/inventory/single-use-products')
-      setProducts({ data: products, isLoading: false })
+      const products = await GET<SingleUseProduct[]>('/api/inventory/single-use-products');
+      setProducts({ data: products, isLoading: false });
     } catch (error) {
       //
     }
@@ -264,54 +267,54 @@ export default function SingleUse({ project }: ServerSideProps) {
 
   async function getLineItems() {
     try {
-      const { lineItems } = await GET<{ lineItems: SingleUseLineItem[] }>(`/api/projects/${project.id}/single-use-items`)
-      setLineItems({ data: lineItems, isLoading: false })
+      const { lineItems } = await GET<{ lineItems: SingleUseLineItem[] }>(`/api/projects/${project.id}/single-use-items`);
+      setLineItems({ data: lineItems, isLoading: false });
     } catch (error) {
       //
     }
   }
 
   function addItem() {
-    setLineItem(null)
-    setIsDrawerVisible(true)
+    setLineItem(null);
+    setIsDrawerVisible(true);
   }
 
   function editItem({ lineItem: _lineItem }: SingleUseItemRecord) {
-    setLineItem(_lineItem)
-    setIsDrawerVisible(true)
+    setLineItem(_lineItem);
+    setIsDrawerVisible(true);
   }
 
   function closeDrawer() {
-    setIsDrawerVisible(false)
+    setIsDrawerVisible(false);
   }
 
   function onSubmitNewProduct() {
-    closeDrawer()
-    getLineItems()
+    closeDrawer();
+    getLineItems();
   }
 
   const items = lineItems.data.reduce<{
-    [categoryId: string]: SingleUseItemRecord[]
+    [categoryId: string]: SingleUseItemRecord[];
   }>((items, item) => {
-    const product = products.data.find(p => p.id === item.productId)
+    const product = products.data.find(p => p.id === item.productId);
     if (product) {
       const record: SingleUseItemRecord = {
         lineItem: item,
-        product,
-      }
-      items[product.category] = items[product.category] || []
-      items[product.category].push(record)
+        product
+      };
+      items[product.category] = items[product.category] || [];
+      items[product.category].push(record);
     } else if (products.data.length) {
-      console.error('Could not find product by product id:', item.productId)
+      console.error('Could not find product by product id:', item.productId);
     }
-    return items
-  }, {})
+    return items;
+  }, {});
 
   return (
     <S.Wrapper>
       <div style={{ display: 'flex', justifyContent: 'space-between' }}>
         <Typography.Title level={1}>Single-use purchasing</Typography.Title>
-        <Button type="primary" onClick={addItem} icon={<PlusOutlined />} style={{ paddingRight: '4em', paddingLeft: '4em' }}>
+        <Button type='primary' onClick={addItem} icon={<PlusOutlined />} style={{ paddingRight: '4em', paddingLeft: '4em' }}>
           Add a single-use item
         </Button>
       </div>
@@ -340,7 +343,7 @@ export default function SingleUse({ project }: ServerSideProps) {
       )}
       <Drawer
         title={formStep === 3 ? 'Add purchasing forecast' : 'Add a single-use item'}
-        placement="right"
+        placement='right'
         onClose={closeDrawer}
         visible={isDrawerVisible}
         contentWrapperStyle={{ width: '600px' }}
@@ -349,5 +352,5 @@ export default function SingleUse({ project }: ServerSideProps) {
         <SingleUseForm formStep={formStep} setFormStep={setFormStep} lineItem={lineItem} projectId={project.id} products={products.data} onSubmit={onSubmitNewProduct} />
       </Drawer>
     </S.Wrapper>
-  )
+  );
 }

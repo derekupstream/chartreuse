@@ -1,16 +1,19 @@
-import { FallOutlined, SwapRightOutlined } from '@ant-design/icons'
-import { Row, Col, Typography } from 'antd'
-import { Text, Title, Value } from './components/styles'
-import Card from '../components/card'
-import { FooterData } from './components/footer'
-import TitleWithTooltip from '../components/title-with-tooltip'
-import { ProjectionsResponse } from 'lib/calculator/getProjections'
-import { formatToDollar } from 'lib/calculator/utils'
-import { SectionContainer, SectionHeader } from '../components/styles'
+import { FallOutlined, SwapRightOutlined } from '@ant-design/icons';
+import { Row, Col, Typography } from 'antd';
+
+import type { ProjectionsResponse } from 'lib/calculator/getProjections';
+import { formatToDollar } from 'lib/calculator/utils';
+
+import Card from '../components/card';
+import { SectionContainer, SectionHeader } from '../components/styles';
+import TitleWithTooltip from '../components/title-with-tooltip';
+
+import { FooterData } from './components/footer';
+import { Text, Title, Value } from './components/styles';
 
 type Props = {
-  data: ProjectionsResponse['financialResults']
-}
+  data: ProjectionsResponse['financialResults'];
+};
 
 const FinancialSummary: React.FC<Props> = ({ data: financialResults }) => {
   return (
@@ -18,7 +21,7 @@ const FinancialSummary: React.FC<Props> = ({ data: financialResults }) => {
       <SectionHeader>Financial summary</SectionHeader>
 
       <Card>
-        <TitleWithTooltip title="Annual program saving &amp; expenses" tooltipTitle="title" tooltipContent={<p>some description</p>} />
+        <TitleWithTooltip title='Annual program saving &amp; expenses' tooltipTitle='title' tooltipContent={<p>some description</p>} />
 
         <Row gutter={40}>
           <Col span={8}>
@@ -31,44 +34,44 @@ const FinancialSummary: React.FC<Props> = ({ data: financialResults }) => {
 
             <hr />
 
-            <FooterData title="Single-use purchasing" value={formatToDollar(financialResults.annualCostChanges.singleUseProductChange)} />
-            <FooterData title="Waste hauling" value={formatToDollar(financialResults.annualCostChanges.wasteHauling)} />
+            <FooterData title='Single-use purchasing' value={formatToDollar(financialResults.annualCostChanges.singleUseProductChange)} />
+            <FooterData title='Waste hauling' value={formatToDollar(financialResults.annualCostChanges.wasteHauling)} />
           </Col>
 
           <Col span={8}>
             <Text strong>One-time expenses</Text>
 
             <Title>Annual total</Title>
-            <Value color="black">{formatToDollar(financialResults.oneTimeCosts.total)}</Value>
+            <Value color='black'>{formatToDollar(financialResults.oneTimeCosts.total)}</Value>
 
             <Title>Payback Period</Title>
             <Value>{financialResults.summary.paybackPeriodsMonths === 0 ? 'N/A' : financialResults.summary.paybackPeriodsMonths + '  mos.'}</Value>
 
             <hr />
 
-            <FooterData title="Reusable purchasing" value={formatToDollar(financialResults.oneTimeCosts.reusableProductCosts)} />
-            <FooterData title="Additional expenses" value={formatToDollar(financialResults.oneTimeCosts.additionalCosts)} />
+            <FooterData title='Reusable purchasing' value={formatToDollar(financialResults.oneTimeCosts.reusableProductCosts)} />
+            <FooterData title='Additional expenses' value={formatToDollar(financialResults.oneTimeCosts.additionalCosts)} />
           </Col>
 
           <Col span={8}>
             <Text strong>Recurring expenses</Text>
             <Title>Annual total</Title>
-            <Value color="black">{formatToDollar(financialResults.annualCostChanges.change - financialResults.annualCostChanges.singleUseProductChange)}</Value>
+            <Value color='black'>{formatToDollar(financialResults.annualCostChanges.change - financialResults.annualCostChanges.singleUseProductChange)}</Value>
 
             <Title>&nbsp;</Title>
             <Value>&nbsp;</Value>
             <hr />
 
-            <FooterData title="Reusables restocking" value={formatToDollar(financialResults.annualCostChanges.reusableProductCosts)} />
-            <FooterData title="Labor" value={formatToDollar(financialResults.annualCostChanges.laborCosts)} />
-            <FooterData title="Dishwashing" value={formatToDollar(financialResults.annualCostChanges.utilities)} />
-            <FooterData title="Waste hauling" value={formatToDollar(financialResults.annualCostChanges.wasteHauling)} />
-            <FooterData title="Additional expenses" value={formatToDollar(financialResults.annualCostChanges.otherExpenses)} />
+            <FooterData title='Reusables restocking' value={formatToDollar(financialResults.annualCostChanges.reusableProductCosts)} />
+            <FooterData title='Labor' value={formatToDollar(financialResults.annualCostChanges.laborCosts)} />
+            <FooterData title='Dishwashing' value={formatToDollar(financialResults.annualCostChanges.utilities)} />
+            <FooterData title='Waste hauling' value={formatToDollar(financialResults.annualCostChanges.wasteHauling)} />
+            <FooterData title='Additional expenses' value={formatToDollar(financialResults.annualCostChanges.otherExpenses)} />
           </Col>
         </Row>
       </Card>
     </SectionContainer>
-  )
-}
+  );
+};
 
-export default FinancialSummary
+export default FinancialSummary;

@@ -1,41 +1,42 @@
-import ExcelJS from 'exceljs'
-import prisma from 'lib/prisma'
+import ExcelJS from 'exceljs';
+
+import prisma from 'lib/prisma';
 
 export async function getUserExport() {
   const users = await prisma.user.findMany({
     include: {
       org: true,
-      account: true,
-    },
-  })
+      account: true
+    }
+  });
 
-  return getUserExportFile(users)
+  return getUserExportFile(users);
 }
 
 function getUsers() {
   return prisma.user.findMany({
     include: {
       org: true,
-      account: true,
+      account: true
     },
     orderBy: {
-      createdAt: 'desc',
-    },
-  })
+      createdAt: 'desc'
+    }
+  });
 }
 
-type User = Awaited<ReturnType<typeof getUsers>>[number]
+type User = Awaited<ReturnType<typeof getUsers>>[number];
 
 function getUserExportFile(users: User[]) {
-  const workbook = new ExcelJS.Workbook()
+  const workbook = new ExcelJS.Workbook();
 
-  addUsersSheet(workbook, users)
+  addUsersSheet(workbook, users);
 
-  return workbook
+  return workbook;
 }
 
 function addUsersSheet(workbook: ExcelJS.Workbook, users: User[]) {
-  const sheet = workbook.addWorksheet('Users')
+  const sheet = workbook.addWorksheet('Users');
 
   sheet.columns = [
     { header: 'Email', key: 'email', width: 30 },
@@ -43,8 +44,8 @@ function addUsersSheet(workbook: ExcelJS.Workbook, users: User[]) {
     { header: 'Phone', key: 'phone', width: 30 },
     { header: 'Join date', key: 'joinDate', width: 20 },
     { header: 'Account', key: 'account', width: 30 },
-    { header: 'Organization', key: 'org', width: 30 },
-  ]
+    { header: 'Organization', key: 'org', width: 30 }
+  ];
 
   sheet.addRows(
     users.map(user => ({
@@ -53,7 +54,7 @@ function addUsersSheet(workbook: ExcelJS.Workbook, users: User[]) {
       phone: user.phone,
       joinDate: user.createdAt,
       account: user.account?.name || '',
-      org: user.org.name,
+      org: user.org.name
     }))
-  )
+  );
 }

@@ -1,5 +1,5 @@
-import styled from 'styled-components'
-import { Layout, Steps as AntSteps } from 'antd'
+import { Layout, Steps as AntSteps } from 'antd';
+import styled from 'styled-components';
 
 export const LogoAndMenuWrapper = styled.div`
   display: flex;
@@ -7,7 +7,7 @@ export const LogoAndMenuWrapper = styled.div`
   > ul {
     margin-left: 20px;
   }
-`
+`;
 
 export const LayoutHeader = styled(Layout.Header)`
   padding: 0 1rem;
@@ -15,23 +15,28 @@ export const LayoutHeader = styled(Layout.Header)`
   justify-content: space-between;
   align-items: center;
   background-color: white;
-`
+`;
 
 export const ContentContainer = styled(Layout.Content)`
   padding: 2rem;
   margin: 0 auto;
+  background: red;
+  display: flex;
   width: 100%;
   background-color: #f4f3f0;
   background-position: 100% 0;
   background-repeat: no-repeat;
   background-size: 400px;
-`
+`;
 
 export const Content = styled.div`
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
   margin: 0 auto;
   max-width: 1100px;
   width: 100%;
-`
+`;
 
 export const OrgAndUserWrapper = styled.div`
   display: flex;
@@ -40,13 +45,13 @@ export const OrgAndUserWrapper = styled.div`
   button {
     margin-left: 20px;
   }
-`
+`;
 
 export const SpaceBetween = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
-`
+`;
 
 export const SiderWrapper = styled.div`
   padding: 1rem;
@@ -54,7 +59,7 @@ export const SiderWrapper = styled.div`
   .ant-typography {
     color: white;
   }
-`
+`;
 
 export const Steps = styled(AntSteps)`
   & {
@@ -67,21 +72,21 @@ export const Steps = styled(AntSteps)`
     min-width: 150px;
     font-size: 13px;
   }
-`
+`;
 
 export const ProjectType = styled.div`
   text-transform: uppercase;
   font-size: 8px;
   color: #6b6b6b;
-`
+`;
 
 export const ProjectInfo = styled.div`
   margin-bottom: 20px;
   margin-top: 20px;
-`
+`;
 
 export const Actions = styled.div`
   position: absolute;
   top: 20px;
   right: 20px;
-`
+`;

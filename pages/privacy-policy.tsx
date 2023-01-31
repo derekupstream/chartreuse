@@ -1,28 +1,29 @@
 /* eslint-disable react/no-unescaped-entities */
-import Link from 'next/link'
-import Image from 'next/legacy/image'
-import Logo from 'public/images/chart-reuse-logo-black.png'
-import Container from 'components/container'
-import Header from 'components/header'
-import styled from 'styled-components'
+import Image from 'next/legacy/image';
+import Link from 'next/link';
+import styled from 'styled-components';
+
+import Container from 'components/container';
+import Header from 'components/header';
+import Logo from 'public/images/chart-reuse-logo-black.png';
 
 const LogoWrapper = styled(Link)`
   display: block;
   text-align: center;
   width: 100%;
-`
+`;
 
 const StyledContainer = styled(Container)`
   padding: 4rem 0;
-`
+`;
 
 export default function PrivacyPolicy() {
   return (
     <>
-      <Header title="Privacy Policy" />
+      <Header title='Privacy Policy' />
       <StyledContainer>
-        <LogoWrapper href="/">
-          <Image src={Logo} width={384} height={99} alt="Chart Reuse" />
+        <LogoWrapper href='/'>
+          <Image src={Logo} width={384} height={99} alt='Chart Reuse' />
         </LogoWrapper>
         <h1>Privacy Policy</h1>
         <p>Last updated: January 12, 2022</p>
@@ -33,7 +34,7 @@ export default function PrivacyPolicy() {
         <p>
           We use Your Personal data to provide and improve the Service. By using the Service, You agree to the collection and use of information in accordance with this Privacy Policy. This Privacy
           Policy has been created with the help of the{' '}
-          <a href="https://www.privacypolicies.com/blog/privacy-policy-template/" target="_blank" rel="noreferrer">
+          <a href='https://www.privacypolicies.com/blog/privacy-policy-template/' target='_blank' rel='noreferrer'>
             Privacy Policy Template
           </a>
           .
@@ -288,7 +289,7 @@ export default function PrivacyPolicy() {
           <li>
             <p>
               By visiting this page on our website:{' '}
-              <a href="https://www.chartreuse.eco/" rel="external nofollow noopener noreferrer" target="_blank">
+              <a href='https://www.chartreuse.eco/' rel='external nofollow noopener noreferrer' target='_blank'>
                 https://www.chartreuse.eco/
               </a>
             </p>
@@ -296,5 +297,5 @@ export default function PrivacyPolicy() {
         </ul>
       </StyledContainer>
     </>
-  )
+  );
 }

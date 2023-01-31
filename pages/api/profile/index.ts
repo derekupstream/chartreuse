@@ -1,17 +1,19 @@
-import type { NextApiRequest, NextApiResponse } from 'next'
-import prisma from 'lib/prisma'
-import { User, Prisma, Role } from '@prisma/client'
-import { trackEvent } from 'lib/tracking'
+import type { User, Prisma } from '@prisma/client';
+import { Role } from '@prisma/client';
+import type { NextApiRequest, NextApiResponse } from 'next';
+
+import prisma from 'lib/prisma';
+import { trackEvent } from 'lib/tracking';
 
 type Response = {
-  user?: User
-  error?: string
-}
+  user?: User;
+  error?: string;
+};
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<Response>) {
   if (req.method === 'POST') {
     try {
-      const { id, name, email, title, phone, orgId, accountId, inviteId } = req.body
+      const { id, name, email, title, phone, orgId, accountId, inviteId } = req.body;
 
       const user = await prisma.user.create({
         data: {
@@ -23,59 +25,59 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           role: Role.ACCOUNT_ADMIN,
           org: {
             connect: {
-              id: orgId,
-            },
+              id: orgId
+            }
           },
           account: accountId
             ? {
                 connect: {
-                  id: accountId,
-                },
+                  id: accountId
+                }
               }
-            : undefined,
+            : undefined
         },
         include: {
-          org: true,
-        },
-      })
+          org: true
+        }
+      });
 
       if (accountId) {
         const account = await prisma.account.findFirst({
-          where: { id: accountId },
-        })
+          where: { id: accountId }
+        });
         if (!account?.accountContactEmail) {
           await prisma.account.update<Prisma.AccountUpdateArgs>({
             where: {
-              id: accountId,
+              id: accountId
             },
             data: {
-              accountContactEmail: email,
-            },
-          })
+              accountContactEmail: email
+            }
+          });
         }
       }
 
       if (inviteId) {
         await prisma.invite.update<Prisma.InviteUpdateArgs>({
           where: {
-            id: inviteId,
+            id: inviteId
           },
           data: {
-            accepted: true,
-          },
-        })
+            accepted: true
+          }
+        });
         await trackEvent({
           type: 'join_org',
-          userId: user.id,
-        })
+          userId: user.id
+        });
       }
 
-      return res.status(200).json({ user })
+      return res.status(200).json({ user });
     } catch (error: any) {
-      return res.status(500).json({ error: error.message })
+      return res.status(500).json({ error: error.message });
     }
   }
 
   // Handle any other HTTP method
-  return res.status(405).json({ error: 'Method not allowed' })
+  return res.status(405).json({ error: 'Method not allowed' });
 }

@@ -1,25 +1,27 @@
-import prisma from 'lib/prisma'
-import { OtherExpense, Prisma } from '@prisma/client'
-import nc from 'next-connect'
-import type { NextApiRequest, NextApiResponse } from 'next'
-import { CreateOtherExpenseValidator } from 'lib/validators'
-import getUser, { NextApiRequestWithUser } from 'lib/middleware/getUser'
-import onError from 'lib/middleware/onError'
-import onNoMatch from 'lib/middleware/onNoMatch'
-import { validateProject } from 'lib/middleware/validateProject'
+import type { OtherExpense, Prisma } from '@prisma/client';
+import type { NextApiRequest, NextApiResponse } from 'next';
+import nc from 'next-connect';
 
-const handler = nc<NextApiRequest, NextApiResponse>({ onError, onNoMatch })
+import type { NextApiRequestWithUser } from 'lib/middleware/getUser';
+import getUser from 'lib/middleware/getUser';
+import onError from 'lib/middleware/onError';
+import onNoMatch from 'lib/middleware/onNoMatch';
+import { validateProject } from 'lib/middleware/validateProject';
+import prisma from 'lib/prisma';
+import { CreateOtherExpenseValidator } from 'lib/validators';
 
-handler.use(getUser).use(validateProject).get(getAdditionalCosts).post(createAdditionalCost).delete(deleteAdditionalCost)
+const handler = nc<NextApiRequest, NextApiResponse>({ onError, onNoMatch });
+
+handler.use(getUser).use(validateProject).get(getAdditionalCosts).post(createAdditionalCost).delete(deleteAdditionalCost);
 
 async function getAdditionalCosts(req: NextApiRequestWithUser, res: NextApiResponse<{ otherExpenses: OtherExpense[] }>) {
-  const projectId = req.query.projectId as string
+  const projectId = req.query.projectId as string;
   const otherExpenses = await prisma.otherExpense.findMany<Prisma.OtherExpenseFindManyArgs>({
     where: {
-      projectId,
-    },
-  })
-  res.status(200).json({ otherExpenses })
+      projectId
+    }
+  });
+  res.status(200).json({ otherExpenses });
 }
 
 async function createAdditionalCost(req: NextApiRequestWithUser, res: NextApiResponse<{ additionalCost: OtherExpense }>) {
@@ -28,37 +30,37 @@ async function createAdditionalCost(req: NextApiRequestWithUser, res: NextApiRes
     cost: req.body.cost,
     frequency: String(req.body.frequency),
     categoryId: req.body.categoryId,
-    description: req.body.description,
-  }
+    description: req.body.description
+  };
 
-  CreateOtherExpenseValidator.parse(data)
+  CreateOtherExpenseValidator.parse(data);
 
-  let additionalCost: OtherExpense
+  let additionalCost: OtherExpense;
 
   if (req.body.id) {
     additionalCost = await prisma.otherExpense.update({
       where: {
-        id: req.body.id,
+        id: req.body.id
       },
-      data: req.body,
-    })
+      data: req.body
+    });
   } else {
     additionalCost = await prisma.otherExpense.create({
-      data: req.body,
-    })
+      data: req.body
+    });
   }
 
-  res.status(200).json({ additionalCost })
+  res.status(200).json({ additionalCost });
 }
 
 async function deleteAdditionalCost(req: NextApiRequestWithUser, res: NextApiResponse) {
   await prisma.otherExpense.deleteMany({
     where: {
       id: req.body.id,
-      projectId: req.body.projectId,
-    },
-  })
-  res.status(200).json({})
+      projectId: req.body.projectId
+    }
+  });
+  res.status(200).json({});
 }
 
-export default handler
+export default handler;

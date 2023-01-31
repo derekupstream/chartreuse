@@ -1,93 +1,95 @@
-import { GetServerSideProps } from 'next'
-import { useCallback } from 'react'
-import { useRouter } from 'next/router'
-import InviteProfileForm from 'components/invite-profile-form'
-import Header from 'components/header'
-import { message } from 'antd'
-import { useMutation } from 'react-query'
-import { useAuth } from 'hooks/useAuth'
-import FormPageTemplate from 'components/form-page-template'
-import prisma from 'lib/prisma'
-import MessagePage from 'components/message-page'
-import PageLoader from 'components/page-loader'
-import chartreuseClient, { CreateProfileInput } from 'lib/chartreuseClient'
+import { message } from 'antd';
+import type { GetServerSideProps } from 'next';
+import { useRouter } from 'next/router';
+import { useCallback } from 'react';
+import { useMutation } from 'react-query';
+
+import FormPageTemplate from 'components/form-page-template';
+import Header from 'components/header';
+import InviteProfileForm from 'components/invite-profile-form';
+import MessagePage from 'components/message-page';
+import PageLoader from 'components/page-loader';
+import { useAuth } from 'hooks/useAuth';
+import type { CreateProfileInput } from 'lib/chartreuseClient';
+import chartreuseClient from 'lib/chartreuseClient';
+import prisma from 'lib/prisma';
 
 export const getServerSideProps: GetServerSideProps = async context => {
   try {
-    const inviteId = context.query.inviteId as string
+    const inviteId = context.query.inviteId as string;
 
     if (!inviteId) {
       return {
-        props: { error: 'Invalid Invite' },
-      }
+        props: { error: 'Invalid Invite' }
+      };
     }
 
     const invite = await prisma.invite.findUnique({
       where: {
-        id: inviteId,
+        id: inviteId
       },
       include: {
         sentBy: true,
         account: true,
-        org: true,
-      },
-    })
+        org: true
+      }
+    });
 
     if (!invite) {
       return {
-        props: { error: 'Invalid Invite' },
-      }
+        props: { error: 'Invalid Invite' }
+      };
     }
 
     if (invite.accepted) {
       return {
         props: {
-          error: 'Invite was already accepted',
-        },
-      }
+          error: 'Invite was already accepted'
+        }
+      };
     }
 
     return {
       props: {
         org: invite.org,
-        account: invite.account,
-      },
-    }
+        account: invite.account
+      }
+    };
   } catch (error: any) {
-    return { props: { error: error.message } }
+    return { props: { error: error.message } };
   }
-}
+};
 
 type InviteProfileFields = {
-  name: string
-  title: string
-  phone: string
-}
+  name: string;
+  title: string;
+  phone: string;
+};
 
 type Props = {
   org: {
-    id: string
-    name: string
-  }
+    id: string;
+    name: string;
+  };
   account: {
-    id: string
-    name: string
-  }
-  error?: string
-}
+    id: string;
+    name: string;
+  };
+  error?: string;
+};
 
 export default function InviteProfile({ org, account, error }: Props) {
-  const router = useRouter()
-  const { user } = useAuth()
+  const router = useRouter();
+  const { user } = useAuth();
 
   const createInviteProfile = useMutation((data: CreateProfileInput) => {
-    return chartreuseClient.createProfile(data)
-  })
+    return chartreuseClient.createProfile(data);
+  });
 
   const handleInviteProfileCreation = useCallback(
     async ({ name, title, phone }: InviteProfileFields) => {
       if (!user || !org) {
-        throw new Error('No user or org authed')
+        throw new Error('No user or org authed');
       }
       createInviteProfile.mutate(
         {
@@ -98,38 +100,38 @@ export default function InviteProfile({ org, account, error }: Props) {
           inviteId: router?.query.inviteId as string,
           title,
           name,
-          phone,
+          phone
         },
         {
           onSuccess: () => {
-            router.push('/')
+            router.push('/');
           },
           onError: err => {
-            message.error((err as Error)?.message)
-          },
+            message.error((err as Error)?.message);
+          }
         }
-      )
+      );
     },
     [account?.id, createInviteProfile, org?.id, router, user?.email, user?.uid]
-  )
+  );
 
   if (error) {
-    return <MessagePage title="Oops!" message={error} />
+    return <MessagePage title='Oops!' message={error} />;
   }
 
   if (!user || !org) {
-    return <PageLoader />
+    return <PageLoader />;
   }
 
   return (
     <>
-      <Header title="Setup Profile" />
+      <Header title='Setup Profile' />
 
       <main>
-        <FormPageTemplate title="Setup your Profile" subtitle={`Setup your profile to accept the invite to join ${org?.name} at Chart Reuse.`}>
+        <FormPageTemplate title='Setup your Profile' subtitle={`Setup your profile to accept the invite to join ${org?.name} at Chart Reuse.`}>
           <InviteProfileForm onSubmit={handleInviteProfileCreation as (values: unknown) => void} isLoading={createInviteProfile.isLoading} />
         </FormPageTemplate>
       </main>
     </>
-  )
+  );
 }

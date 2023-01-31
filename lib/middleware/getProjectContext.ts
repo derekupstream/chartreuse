@@ -1,14 +1,15 @@
-import nookies from 'nookies'
-import { Project } from '@prisma/client'
-import { GetServerSideProps } from 'next'
-import { verifyIdToken } from 'lib/auth/firebaseAdmin'
-import prisma from 'lib/prisma'
-import type { DashboardUser } from 'components/dashboard'
+import type { Project } from '@prisma/client';
+import type { GetServerSideProps } from 'next';
+import nookies from 'nookies';
+
+import type { DashboardUser } from 'components/dashboard';
+import { verifyIdToken } from 'lib/auth/firebaseAdmin';
+import prisma from 'lib/prisma';
 
 export type ProjectContext = {
-  user: DashboardUser
-  project: Project & { org: { name: string }; account: { name: string } }
-}
+  user: DashboardUser;
+  project: Project & { org: { name: string }; account: { name: string } };
+};
 
 export const UserDataToInclude = {
   org: {
@@ -17,82 +18,82 @@ export const UserDataToInclude = {
         include: {
           invites: {
             include: {
-              account: true,
-            },
+              account: true
+            }
           },
           users: {
             include: {
-              account: true,
-            },
-          },
-        },
-      },
-    },
-  },
-} as const
+              account: true
+            }
+          }
+        }
+      }
+    }
+  }
+} as const;
 
 export const getProjectContext: GetServerSideProps = async context => {
   try {
-    const cookies = nookies.get(context)
+    const cookies = nookies.get(context);
     if (!cookies.token) {
-      throw new Error('Request requires authentication')
+      throw new Error('Request requires authentication');
     }
-    const token = await verifyIdToken(cookies.token)
+    const token = await verifyIdToken(cookies.token);
 
     const user = await prisma.user.findUnique({
       where: {
-        id: token.uid,
+        id: token.uid
       },
-      include: UserDataToInclude,
-    })
+      include: UserDataToInclude
+    });
 
     if (!user) {
       return {
         redirect: {
           permanent: false,
-          destination: '/org-setup',
-        },
-      }
+          destination: '/org-setup'
+        }
+      };
     }
 
-    const { id } = context.query
+    const { id } = context.query;
     const project = await prisma.project.findUnique({
       where: { id: id as string },
       include: {
         account: {
           select: {
-            name: true,
-          },
+            name: true
+          }
         },
         org: {
           select: {
-            name: true,
-          },
-        },
-      },
-    })
+            name: true
+          }
+        }
+      }
+    });
 
     if (!project) {
       return {
-        notFound: true,
-      }
+        notFound: true
+      };
     }
     const projectContext: ProjectContext = {
       // @ts-ignore - fix DashboardUser type to match
       user,
-      project,
-    }
+      project
+    };
 
     return {
-      props: projectContext,
-    }
+      props: projectContext
+    };
   } catch (error: any) {
-    console.error('Error getting project context', error)
+    console.error('Error getting project context', error);
     return {
       redirect: {
         permanent: false,
-        destination: '/login',
-      },
-    }
+        destination: '/login'
+      }
+    };
   }
-}
+};

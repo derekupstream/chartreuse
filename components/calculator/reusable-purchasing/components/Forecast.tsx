@@ -1,19 +1,21 @@
-import { Col, Row, Typography } from 'antd'
-import { InfoCard, SmallText, SmallerText } from '../../styles'
-import { FC } from 'react'
-import { ReusableLineItem } from 'lib/inventory/types/projects'
-import { formatToDollar, round } from 'lib/calculator/utils'
+import { Col, Row, Typography } from 'antd';
+import type { FC } from 'react';
+
+import { formatToDollar, round } from 'lib/calculator/utils';
+import type { ReusableLineItem } from 'lib/inventory/types/projects';
+
+import { InfoCard, SmallText, SmallerText } from '../../styles';
 
 interface Props {
-  item: ReusableLineItem
+  item: ReusableLineItem;
 }
 
 const Forecast: FC<Props> = ({ item }) => {
-  const oneTimeCost = item.caseCost * item.casesPurchased
-  const annualCost = oneTimeCost * item.annualRepurchasePercentage
+  const oneTimeCost = item.caseCost * item.casesPurchased;
+  const annualCost = oneTimeCost * item.annualRepurchasePercentage;
 
   return (
-    <InfoCard theme="forecast">
+    <InfoCard theme='forecast'>
       <Row>
         <Col span={17}>
           <Typography.Title level={5}>Repurchase Forecast</Typography.Title>
@@ -47,7 +49,7 @@ const Forecast: FC<Props> = ({ item }) => {
         </Col>
       </Row>
     </InfoCard>
-  )
-}
+  );
+};
 
-export default Forecast
+export default Forecast;

@@ -1,11 +1,14 @@
-import { Typography, Table, TableColumnsType } from 'antd'
-import Card from 'components/calculator/projections/components/card'
-import { TitleRow } from '../../styles'
-import { SingleUseLineItemRecord, SingleUseLineItemPopulated } from 'lib/inventory/types/projects'
-import { formatToDollar } from 'lib/calculator/utils'
-import { formatDateShort } from 'lib/dates'
-import styled from 'styled-components'
-import { ChartTitle } from 'components/calculator/projections/environmental/components/styles'
+import type { TableColumnsType } from 'antd';
+import { Typography, Table } from 'antd';
+import styled from 'styled-components';
+
+import Card from 'components/calculator/projections/components/card';
+import { ChartTitle } from 'components/calculator/projections/environmental/components/styles';
+import { formatToDollar } from 'lib/calculator/utils';
+import { formatDateShort } from 'lib/dates';
+import type { SingleUseLineItemRecord, SingleUseLineItemPopulated } from 'lib/inventory/types/projects';
+
+import { TitleRow } from '../../styles';
 
 const StyledCard = styled(Card)`
   .ant-table-expanded-row {
@@ -20,12 +23,12 @@ const StyledCard = styled(Card)`
       padding-bottom: 0.5em;
     }
   }
-`
+`;
 
 const ExpandedRow = styled.div`
   display: flex;
   justify-content: space-between;
-`
+`;
 
 const recordColumns: TableColumnsType<SingleUseLineItemRecord> = [
   {
@@ -37,8 +40,8 @@ const recordColumns: TableColumnsType<SingleUseLineItemRecord> = [
         <>
           <Typography.Text>{record.casesPurchased}</Typography.Text>
         </>
-      )
-    },
+      );
+    }
   },
   {
     title: 'Units/Case',
@@ -49,8 +52,8 @@ const recordColumns: TableColumnsType<SingleUseLineItemRecord> = [
         <>
           <Typography.Text>{record.unitsPerCase}</Typography.Text>
         </>
-      )
-    },
+      );
+    }
   },
   {
     title: 'Cost',
@@ -61,8 +64,8 @@ const recordColumns: TableColumnsType<SingleUseLineItemRecord> = [
         <>
           <Typography.Text>{formatToDollar(record.totalCost)}</Typography.Text>
         </>
-      )
-    },
+      );
+    }
   },
   {
     title: 'Date',
@@ -73,19 +76,19 @@ const recordColumns: TableColumnsType<SingleUseLineItemRecord> = [
         <>
           <Typography.Text>{!record.entryDate.includes('Z') ? <em>({record.entryDate})</em> : formatDateShort(new Date(record.entryDate))}</Typography.Text>
         </>
-      )
-    },
-  },
-]
+      );
+    }
+  }
+];
 
 function expandedRowRender(item: SingleUseLineItemPopulated) {
   const baselineItem: SingleUseLineItemRecord = {
     ...item,
-    entryDate: item.frequency,
-  }
-  const records = [...item.records]
+    entryDate: item.frequency
+  };
+  const records = [...item.records];
   if (records.length > 0) {
-    records.push(baselineItem)
+    records.push(baselineItem);
   }
   return (
     <ExpandedRow>
@@ -97,9 +100,9 @@ function expandedRowRender(item: SingleUseLineItemPopulated) {
           </Typography.Paragraph>
         )}
       </div>
-      <Table<SingleUseLineItemRecord> style={{ width: 410 }} dataSource={records} columns={recordColumns} pagination={false} showHeader={false} rowKey="id" />
+      <Table<SingleUseLineItemRecord> style={{ width: 410 }} dataSource={records} columns={recordColumns} pagination={false} showHeader={false} rowKey='id' />
     </ExpandedRow>
-  )
+  );
 }
 
 const columns: TableColumnsType<SingleUseLineItemPopulated> = [
@@ -112,8 +115,8 @@ const columns: TableColumnsType<SingleUseLineItemPopulated> = [
         <>
           <Typography.Text>{record.categoryName}</Typography.Text>
         </>
-      )
-    },
+      );
+    }
   },
   {
     title: 'Item',
@@ -124,8 +127,8 @@ const columns: TableColumnsType<SingleUseLineItemPopulated> = [
         <>
           <Typography.Text>{record.product.description}</Typography.Text>
         </>
-      )
-    },
+      );
+    }
   },
   {
     title: 'Cases',
@@ -136,8 +139,8 @@ const columns: TableColumnsType<SingleUseLineItemPopulated> = [
         <>
           <Typography.Text>{item.records[0]?.casesPurchased ?? item.casesPurchased}</Typography.Text>
         </>
-      )
-    },
+      );
+    }
   },
   {
     title: 'Units/Case',
@@ -148,8 +151,8 @@ const columns: TableColumnsType<SingleUseLineItemPopulated> = [
         <>
           <Typography.Text>{item.records[0]?.unitsPerCase ?? item.unitsPerCase}</Typography.Text>
         </>
-      )
-    },
+      );
+    }
   },
   {
     title: 'Cost',
@@ -160,8 +163,8 @@ const columns: TableColumnsType<SingleUseLineItemPopulated> = [
         <>
           <Typography.Text>{formatToDollar(item.records[0]?.totalCost ?? item.totalCost)}</Typography.Text>
         </>
-      )
-    },
+      );
+    }
   },
   {
     title: 'Date',
@@ -172,10 +175,10 @@ const columns: TableColumnsType<SingleUseLineItemPopulated> = [
         <>
           <Typography.Text>{item.records[0] ? formatDateShort(new Date(item.records[0].entryDate)) : <em>({item.frequency})</em>}</Typography.Text>
         </>
-      )
-    },
-  },
-]
+      );
+    }
+  }
+];
 
 export function SingleUseInventoryTable({ items }: { items: SingleUseLineItemPopulated[] }) {
   return (
@@ -184,7 +187,7 @@ export function SingleUseInventoryTable({ items }: { items: SingleUseLineItemPop
         <Typography.Title level={3}>Single Use Items</Typography.Title>
       </TitleRow>
       <br />
-      <Table<SingleUseLineItemPopulated> dataSource={items} columns={columns} expandable={{ expandedRowRender, expandRowByClick: true }} rowKey="id" />
+      <Table<SingleUseLineItemPopulated> dataSource={items} columns={columns} expandable={{ expandedRowRender, expandRowByClick: true }} rowKey='id' />
     </StyledCard>
-  )
+  );
 }

@@ -1,11 +1,11 @@
-import styled from 'styled-components'
-import Link from 'next/link'
+import Link from 'next/link';
+import styled from 'styled-components';
 
 export const Row = styled.div`
   display: flex;
   flex-direction: row;
   align-items: end;
-`
+`;
 
 export const LinkBox = styled(Link)`
   cursor: pointer;
@@ -34,7 +34,7 @@ export const LinkBox = styled(Link)`
   &:hover .page-title {
     color: #2bbe50;
   }
-`
+`;
 
 export const Container = styled.div`
   position: relative;
@@ -48,4 +48,4 @@ export const Container = styled.div`
   background-color: #ffffff;
   box-shadow: 0px -2px 8px rgba(0, 0, 0, 0.05);
   padding: 0 24px;
-`
+`;

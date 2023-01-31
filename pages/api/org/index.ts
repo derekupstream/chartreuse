@@ -1,20 +1,22 @@
-import type { NextApiRequest, NextApiResponse } from 'next'
-import prisma from 'lib/prisma'
-import { User, Prisma, Role } from '@prisma/client'
-import { trackEvent } from 'lib/tracking'
-import { defaultHandler } from 'lib/middleware/handler'
+import type { User, Prisma } from '@prisma/client';
+import { Role } from '@prisma/client';
+import type { NextApiRequest, NextApiResponse } from 'next';
 
-const handler = defaultHandler()
+import { defaultHandler } from 'lib/middleware/handler';
+import prisma from 'lib/prisma';
+import { trackEvent } from 'lib/tracking';
+
+const handler = defaultHandler();
 
 type Response = {
-  user?: User
-  error?: string
-}
+  user?: User;
+  error?: string;
+};
 
-handler.post(createOrg)
+handler.post(createOrg);
 
 async function createOrg(req: NextApiRequest, res: NextApiResponse<Response>) {
-  const { id, name, email, title, orgName, numberOfClientAccounts, phone } = req.body
+  const { id, name, email, title, orgName, numberOfClientAccounts, phone } = req.body;
 
   const user = await prisma.user.create<Prisma.UserCreateArgs>({
     data: {
@@ -27,18 +29,18 @@ async function createOrg(req: NextApiRequest, res: NextApiResponse<Response>) {
       org: {
         create: {
           name: orgName,
-          metadata: { numberOfClientAccounts },
-        },
-      },
-    },
-  })
+          metadata: { numberOfClientAccounts }
+        }
+      }
+    }
+  });
 
   await trackEvent({
     type: 'signup',
-    userId: id,
-  })
+    userId: id
+  });
 
-  return res.status(200).json({ user })
+  return res.status(200).json({ user });
 }
 
-export default handler
+export default handler;

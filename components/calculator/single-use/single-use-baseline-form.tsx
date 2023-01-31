@@ -1,36 +1,38 @@
-import { Button, Form, Input, Radio, Typography } from 'antd'
-import * as S from '../styles'
-import { SingleUseLineItem } from 'lib/inventory/types/projects'
-import { useState, useEffect } from 'react'
+import { Button, Form, Input, Radio, Typography } from 'antd';
+import { useState, useEffect } from 'react';
 
-type FormProps = Record<keyof SingleUseLineItem, string | number | undefined>
+import type { SingleUseLineItem } from 'lib/inventory/types/projects';
+
+import * as S from '../styles';
+
+type FormProps = Record<keyof SingleUseLineItem, string | number | undefined>;
 
 export default function SelectQuantityStep({
   input,
   productName,
   goBack,
-  onSubmit,
+  onSubmit
 }: {
-  input?: Partial<SingleUseLineItem>
-  productName?: string
-  goBack: (form: Partial<SingleUseLineItem>) => void
-  onSubmit: (form: Partial<SingleUseLineItem>) => void
+  input?: Partial<SingleUseLineItem>;
+  productName?: string;
+  goBack: (form: Partial<SingleUseLineItem>) => void;
+  onSubmit: (form: Partial<SingleUseLineItem>) => void;
 }) {
-  const [form] = Form.useForm<FormProps>()
-  const [disabledSave, setDisabledSave] = useState(true)
+  const [form] = Form.useForm<FormProps>();
+  const [disabledSave, setDisabledSave] = useState(true);
 
   const handleFormChange = () => {
-    const hasErrors = !form.isFieldsTouched(true) || form.getFieldsError().some(({ errors }) => errors.length)
-    setDisabledSave(hasErrors)
-  }
+    const hasErrors = !form.isFieldsTouched(true) || form.getFieldsError().some(({ errors }) => errors.length);
+    setDisabledSave(hasErrors);
+  };
 
   function _goBack() {
     goBack({
       frequency: form.getFieldValue('frequency'),
       unitsPerCase: parseInt(form.getFieldValue('unitsPerCase') || '0'),
       casesPurchased: parseInt(form.getFieldValue('casesPurchased') || '0'),
-      caseCost: parseInt(form.getFieldValue('caseCost') || '0'),
-    })
+      caseCost: parseInt(form.getFieldValue('caseCost') || '0')
+    });
   }
 
   function _onSubmit(values: FormProps) {
@@ -39,55 +41,55 @@ export default function SelectQuantityStep({
       unitsPerCase: parseInt((values.unitsPerCase as string) || '0'),
       casesPurchased: parseInt((values.casesPurchased as string) || '0'),
       caseCost: parseInt((values.caseCost as string) || '0'),
-      newCaseCost: input?.newCaseCost || parseInt((values.caseCost as string) || '0'),
-    })
+      newCaseCost: input?.newCaseCost || parseInt((values.caseCost as string) || '0')
+    });
   }
 
   useEffect(() => {
     if (input) {
-      form.setFieldsValue(input)
+      form.setFieldsValue(input);
       // set default vlaues
       if (!input.frequency) {
         form.setFieldsValue({
-          frequency: 'Annually',
-        })
+          frequency: 'Annually'
+        });
       }
-      handleFormChange()
+      handleFormChange();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [input])
+  }, [input]);
 
   return (
-    <Form form={form} layout="vertical" onFieldsChange={handleFormChange} onFinish={_onSubmit}>
+    <Form form={form} layout='vertical' onFieldsChange={handleFormChange} onFinish={_onSubmit}>
       <Typography.Title level={4}>{productName}</Typography.Title>
 
-      <Form.Item label="Purchasing Frequency" name="frequency" rules={[{ required: true, message: 'Please select a frequency' }]}>
+      <Form.Item label='Purchasing Frequency' name='frequency' rules={[{ required: true, message: 'Please select a frequency' }]}>
         <Radio.Group value={input?.frequency}>
-          <Radio.Button value="Daily">Daily</Radio.Button>
-          <Radio.Button value="Weekly">Weekly</Radio.Button>
-          <Radio.Button value="Monthly">Monthly</Radio.Button>
-          <Radio.Button value="Annually">Annually</Radio.Button>
+          <Radio.Button value='Daily'>Daily</Radio.Button>
+          <Radio.Button value='Weekly'>Weekly</Radio.Button>
+          <Radio.Button value='Monthly'>Monthly</Radio.Button>
+          <Radio.Button value='Annually'>Annually</Radio.Button>
         </Radio.Group>
       </Form.Item>
 
-      <Form.Item name="casesPurchased" label="Cases Purchased" rules={[{ required: true }]}>
-        <Input type="number" />
+      <Form.Item name='casesPurchased' label='Cases Purchased' rules={[{ required: true }]}>
+        <Input type='number' />
       </Form.Item>
 
-      <Form.Item name="unitsPerCase" label="Units per case" rules={[{ required: true }]}>
-        <Input type="number" />
+      <Form.Item name='unitsPerCase' label='Units per case' rules={[{ required: true }]}>
+        <Input type='number' />
       </Form.Item>
 
-      <Form.Item name="caseCost" label="Cost per case" rules={[{ required: true }]}>
-        <Input type="number" prefix="$" />
+      <Form.Item name='caseCost' label='Cost per case' rules={[{ required: true }]}>
+        <Input type='number' prefix='$' />
       </Form.Item>
 
       <S.BoxEnd>
         <Button onClick={_goBack}>{'Go Back'}</Button>
-        <Button disabled={disabledSave} size="large" type="primary" htmlType="submit">
+        <Button disabled={disabledSave} size='large' type='primary' htmlType='submit'>
           {'Next'}
         </Button>
       </S.BoxEnd>
     </Form>
-  )
+  );
 }

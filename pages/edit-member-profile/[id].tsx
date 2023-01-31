@@ -1,142 +1,143 @@
-import { useCallback } from 'react'
-import Header from 'components/header'
-import { message } from 'antd'
-import FormPageTemplate from 'components/form-page-template'
-import { useMutation } from 'react-query'
-import { GetServerSideProps } from 'next'
-import nookies from 'nookies'
-import { verifyIdToken } from 'lib/auth/firebaseAdmin'
-import PageLoader from 'components/page-loader'
-import prisma from 'lib/prisma'
-import { useRouter } from 'next/router'
-import Link from 'next/link'
-import { ArrowLeftOutlined } from '@ant-design/icons'
-import MemberEditForm from 'components/member-edit-form'
-import chartreuseClient from 'lib/chartreuseClient'
+import { ArrowLeftOutlined } from '@ant-design/icons';
+import { message } from 'antd';
+import type { GetServerSideProps } from 'next';
+import Link from 'next/link';
+import { useRouter } from 'next/router';
+import nookies from 'nookies';
+import { useCallback } from 'react';
+import { useMutation } from 'react-query';
+
+import FormPageTemplate from 'components/form-page-template';
+import Header from 'components/header';
+import MemberEditForm from 'components/member-edit-form';
+import PageLoader from 'components/page-loader';
+import { verifyIdToken } from 'lib/auth/firebaseAdmin';
+import chartreuseClient from 'lib/chartreuseClient';
+import prisma from 'lib/prisma';
 
 export const getServerSideProps: GetServerSideProps = async context => {
   try {
-    const cookies = nookies.get(context)
-    const token = await verifyIdToken(cookies.token)
+    const cookies = nookies.get(context);
+    const token = await verifyIdToken(cookies.token);
 
-    const { id } = context.query
+    const { id } = context.query;
 
     if (!id) {
       return {
         redirect: {
           permanent: false,
-          destination: '/',
-        },
-      }
+          destination: '/'
+        }
+      };
     }
 
     const admin = await prisma.user.findUnique({
       where: {
-        id: token.uid,
+        id: token.uid
       },
       include: {
         org: {
           include: {
-            accounts: true,
-          },
-        },
-      },
-    })
+            accounts: true
+          }
+        }
+      }
+    });
 
     const user = await prisma.user.findUnique({
       where: {
-        id: id as string,
+        id: id as string
       },
       include: {
-        account: true,
-      },
-    })
+        account: true
+      }
+    });
 
     if (!admin || !user) {
       return {
         redirect: {
           permanent: false,
-          destination: '/',
-        },
-      }
+          destination: '/'
+        }
+      };
     }
 
     return {
       props: JSON.parse(
         JSON.stringify({
           user: user,
-          org: admin.org,
+          org: admin.org
         })
-      ),
-    }
+      )
+    };
   } catch (error: any) {
     return {
       redirect: {
         permanent: false,
-        destination: '/',
-      },
-    }
+        destination: '/'
+      }
+    };
   }
-}
+};
 
 type MemberEditFields = {
-  name: string
-  email: string
-  title: string
-  phone: string
-  accountId: string
-}
+  name: string;
+  email: string;
+  title: string;
+  phone: string;
+  accountId: string;
+};
 
 type Props = {
   user: {
-    id: string
-    name: string
-    email: string
-    title: string
-    phone: string
+    id: string;
+    name: string;
+    email: string;
+    title: string;
+    phone: string;
     account: {
-      id: string
-    }
-  }
+      id: string;
+    };
+  };
   org: {
-    id: string
+    id: string;
     accounts: {
-      id: string
-      name: string
-    }[]
-  }
-}
+      id: string;
+      name: string;
+    }[];
+  };
+};
 
 export default function EditMemberProfile({ org, user }: Props) {
-  const router = useRouter()
+  const router = useRouter();
 
   function handleAccountUpdate(data: MemberEditFields) {
     chartreuseClient
       .updateProfile({
         id: user.id,
-        ...data,
+        ...data
       })
       .then(() => {
-        message.success('Member edited with success.')
+        message.success('Member edited with success.');
 
-        router.push('/members')
+        router.push('/members');
       })
       .catch(err => {
-        message.error((err as Error)?.message)
-      })
+        message.error((err as Error)?.message);
+      });
   }
 
-  if (!org) return <PageLoader />
+  if (!org) return <PageLoader />;
 
   return (
     <>
-      <Header title="Edit Account Member" />
+      <Header title='Edit Account Member' />
 
       <main>
         <FormPageTemplate
-          title="Edit account member"
+          title='Edit account member'
           navBackLink={
-            <Link href="/">
+            <Link href='/'>
               <ArrowLeftOutlined /> back to dashboard
             </Link>
           }
@@ -149,12 +150,12 @@ export default function EditMemberProfile({ org, user }: Props) {
               email: user.email,
               title: user.title,
               phone: user.phone,
-              accountId: user.account?.id,
+              accountId: user.account?.id
             }}
             accounts={org.accounts}
           />
         </FormPageTemplate>
       </main>
     </>
-  )
+  );
 }

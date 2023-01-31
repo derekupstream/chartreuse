@@ -1,10 +1,11 @@
-import { DualAxes, DualAxesConfig } from '@ant-design/plots'
+import type { DualAxesConfig } from '@ant-design/plots';
+import { DualAxes } from '@ant-design/plots';
 
 type Props = {
-  data: { label: string; value: number }[]
-  seriesField?: string
-  useUnits: boolean
-}
+  data: { label: string; value: number }[];
+  seriesField?: string;
+  useUnits: boolean;
+};
 
 const Chart: React.FC<Props> = ({ data, seriesField, useUnits }) => {
   const config: DualAxesConfig = {
@@ -20,15 +21,15 @@ const Chart: React.FC<Props> = ({ data, seriesField, useUnits }) => {
     legend: false,
     theme: {
       styleSheet: {
-        brandColor: '#95EE49',
-      },
+        brandColor: '#95EE49'
+      }
     },
     xField: 'label',
     yField: ['value', 'count'],
     meta: {
       value: {
-        formatter: v => (useUnits ? v.toLocaleString() + ' units' : '$' + v.toLocaleString()),
-      },
+        formatter: v => (useUnits ? v.toLocaleString() + ' units' : '$' + v.toLocaleString())
+      }
     },
     geometryOptions: [
       {
@@ -36,7 +37,7 @@ const Chart: React.FC<Props> = ({ data, seriesField, useUnits }) => {
         seriesField,
         //color: '#E0FACA',
         color: ['#E0FACA', '#95EE49'],
-        isGroup: true,
+        isGroup: true
       },
       {
         color: '#95EE49',
@@ -45,12 +46,12 @@ const Chart: React.FC<Props> = ({ data, seriesField, useUnits }) => {
         lineStyle: {
           lineWidth: 2,
           smooth: true,
-          lineDash: [8, 8],
-        },
-      },
-    ],
-  }
-  return <DualAxes {...config} />
-}
+          lineDash: [8, 8]
+        }
+      }
+    ]
+  };
+  return <DualAxes {...config} />;
+};
 
-export default Chart
+export default Chart;

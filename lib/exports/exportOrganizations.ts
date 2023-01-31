@@ -1,43 +1,47 @@
-import ExcelJS from 'exceljs'
-import prisma from 'lib/prisma'
-import { Project, Org, Account, Dishwasher, OtherExpense, LaborCost, ReusableLineItem, SingleUseLineItem, WasteHaulingCost } from '@prisma/client'
-import { getAllProjections, AllProjectsSummary as _AllProjectsSummary, ProjectionsResponse } from 'lib/calculator/getProjections'
-import { poundsToTons } from 'lib/calculator/constants/conversions'
-import { getSingleUseProducts } from 'lib/inventory/getSingleUseProducts'
-import { LABOR_CATEGORIES } from 'lib/calculator/constants/labor-categories'
-import { getDishwasherStats } from 'lib/calculator/calculations/dishwasher'
-import { Frequency, getannualOccurrence } from 'lib/calculator/constants/frequency'
-import { OTHER_EXPENSES } from 'lib/calculator/constants/other-expenses'
-import { SingleUseProduct } from 'lib/inventory/types/products'
-import { round } from 'lib/calculator/utils'
-import { getUtilitiesByState, USState } from 'lib/calculator/constants/utilities'
+import type { Project, Org, Account, Dishwasher, OtherExpense, LaborCost, ReusableLineItem, SingleUseLineItem, WasteHaulingCost } from '@prisma/client';
+import ExcelJS from 'exceljs';
+
+import { getDishwasherStats } from 'lib/calculator/calculations/dishwasher';
+import { poundsToTons } from 'lib/calculator/constants/conversions';
+import type { Frequency } from 'lib/calculator/constants/frequency';
+import { getannualOccurrence } from 'lib/calculator/constants/frequency';
+import { LABOR_CATEGORIES } from 'lib/calculator/constants/labor-categories';
+import { OTHER_EXPENSES } from 'lib/calculator/constants/other-expenses';
+import type { USState } from 'lib/calculator/constants/utilities';
+import { getUtilitiesByState } from 'lib/calculator/constants/utilities';
+import { getAllProjections } from 'lib/calculator/getProjections';
+import type { AllProjectsSummary as _AllProjectsSummary, ProjectionsResponse } from 'lib/calculator/getProjections';
+import { round } from 'lib/calculator/utils';
+import { getSingleUseProducts } from 'lib/inventory/getSingleUseProducts';
+import type { SingleUseProduct } from 'lib/inventory/types/products';
+import prisma from 'lib/prisma';
 
 // create our own version of ProjectData. Nicer would be to make teh types in lib/calculator generic
 interface ProjectData extends Project {
-  org: Org
-  account: Account
-  dishwashers: Dishwasher[]
-  otherExpenses: OtherExpense[]
-  laborCosts: LaborCost[]
-  reusableItems: ReusableLineItem[]
-  singleUseItems: SingleUseLineItem[]
-  wasteHaulingCosts: WasteHaulingCost[]
+  org: Org;
+  account: Account;
+  dishwashers: Dishwasher[];
+  otherExpenses: OtherExpense[];
+  laborCosts: LaborCost[];
+  reusableItems: ReusableLineItem[];
+  singleUseItems: SingleUseLineItem[];
+  wasteHaulingCosts: WasteHaulingCost[];
 }
 
 interface ProjectSummary extends ProjectData {
-  projections: ProjectionsResponse
+  projections: ProjectionsResponse;
 }
 
 interface AllProjectsSummary extends Omit<_AllProjectsSummary, 'projects'> {
-  projects: ProjectSummary[]
+  projects: ProjectSummary[];
 }
 
-type SheetRow = Record<string, string | number>
+type SheetRow = Record<string, string | number>;
 
 export async function getOrgExport(orgId: string) {
   const projects = await prisma.project.findMany({
     where: {
-      orgId,
+      orgId
     },
     include: {
       account: true,
@@ -47,82 +51,82 @@ export async function getOrgExport(orgId: string) {
       laborCosts: true,
       reusableItems: true,
       singleUseItems: true,
-      wasteHaulingCosts: true,
-    },
-  })
-  const data = await getAllProjections(projects)
-  const products = await getSingleUseProducts({ orgId })
+      wasteHaulingCosts: true
+    }
+  });
+  const data = await getAllProjections(projects);
+  const products = await getSingleUseProducts({ orgId });
 
-  return getExportFile(data as AllProjectsSummary, products)
+  return getExportFile(data as AllProjectsSummary, products);
 }
 
 const worksheetOptions: Partial<ExcelJS.AddWorksheetOptions> = {
-  views: [{ state: 'frozen', xSplit: 1, ySplit: 1 }], // lock the first row
-}
+  views: [{ state: 'frozen', xSplit: 1, ySplit: 1 }] // lock the first row
+};
 
 function getExportFile(data: AllProjectsSummary, products: SingleUseProduct[]) {
-  const workbook = new ExcelJS.Workbook()
+  const workbook = new ExcelJS.Workbook();
 
-  addSummarySheet(workbook, data)
-  addProjectsSheet(workbook, data)
-  addSingleUseSheet(workbook, data, products)
-  addReusablesSheet(workbook, data)
-  addAdditionalCostsSheet(workbook, data)
-  addDishwasherSheet(workbook, data)
+  addSummarySheet(workbook, data);
+  addProjectsSheet(workbook, data);
+  addSingleUseSheet(workbook, data, products);
+  addReusablesSheet(workbook, data);
+  addAdditionalCostsSheet(workbook, data);
+  addDishwasherSheet(workbook, data);
 
-  return workbook
+  return workbook;
 }
 
 // Define Summary Worksheet
 function addSummarySheet(workbook: ExcelJS.Workbook, data: AllProjectsSummary) {
-  const sheet = workbook.addWorksheet('All Projects Summary', worksheetOptions)
+  const sheet = workbook.addWorksheet('All Projects Summary', worksheetOptions);
 
   sheet.columns = [
     { header: '', key: 'title', width: 30 },
     { header: 'Baseline', key: 'baseline', width: 20 },
     { header: 'Forecast', key: 'forecast', width: 20 },
-    { header: 'Change', key: 'change', width: 20 },
-  ]
+    { header: 'Change', key: 'change', width: 20 }
+  ];
 
   const rows: SheetRow[] = [
     {
       title: 'Estimated Savings ($)',
       baseline: data.summary.savings.baseline,
       forecast: data.summary.savings.forecast,
-      change: data.summary.savings.baseline - data.summary.savings.forecast,
+      change: data.summary.savings.baseline - data.summary.savings.forecast
     },
     {
       title: 'Single-Use Reduction (units)',
       baseline: data.summary.singleUse.baseline,
       forecast: data.summary.singleUse.forecast,
-      change: data.summary.singleUse.baseline - data.summary.singleUse.forecast,
+      change: data.summary.singleUse.baseline - data.summary.singleUse.forecast
     },
     {
       title: 'Waste Reduction (lbs)',
       baseline: data.summary.waste.baseline,
       forecast: data.summary.waste.forecast,
-      change: data.summary.waste.baseline - data.summary.waste.forecast,
+      change: data.summary.waste.baseline - data.summary.waste.forecast
     },
     {
       title: 'Waste Reduction (tons)',
       baseline: poundsToTons(data.summary.waste.baseline),
       forecast: poundsToTons(data.summary.waste.forecast),
-      change: poundsToTons(data.summary.waste.baseline - data.summary.waste.forecast),
+      change: poundsToTons(data.summary.waste.baseline - data.summary.waste.forecast)
     },
     {
       title: 'GHG Reduction (MTC02e)',
       baseline: data.summary.gas.baseline,
       forecast: data.summary.gas.forecast,
-      change: data.summary.gas.baseline - data.summary.gas.forecast,
-    },
-  ]
+      change: data.summary.gas.baseline - data.summary.gas.forecast
+    }
+  ];
 
-  sheet.addRows(rows)
+  sheet.addRows(rows);
 }
 
 // Define Projects Worksheet
 function addProjectsSheet(workbook: ExcelJS.Workbook, data: AllProjectsSummary) {
-  const sheet = workbook.addWorksheet('Projects', worksheetOptions)
+  const sheet = workbook.addWorksheet('Projects', worksheetOptions);
 
   sheet.columns = [
     { header: 'Project', key: 'title', width: 30 },
@@ -132,7 +136,7 @@ function addProjectsSheet(workbook: ExcelJS.Workbook, data: AllProjectsSummary) 
       .map(title => [
         { header: `${title}: Baseline`, key: `${title}_baseline`, width: 20 },
         { header: `${title}: Forecast`, key: `${title}_forecast`, width: 20 },
-        { header: `${title}: Change`, key: `${title}_change`, width: 20 },
+        { header: `${title}: Change`, key: `${title}_change`, width: 20 }
       ])
       .flat(),
     { header: 'Gas Utility ($/therm)', key: 'gasRate', width: 20 },
@@ -143,12 +147,12 @@ function addProjectsSheet(workbook: ExcelJS.Workbook, data: AllProjectsSummary) 
     { header: 'Daily Customers', key: 'dailyCustomers', width: 20 },
     { header: 'Dine-in vs Take-out', key: 'dineInVsTakeOut', width: 20 },
     { header: 'Food Prep', key: 'whereIsFoodPrepared', width: 20 },
-    { header: 'Dishwashing Type', key: 'dishwashingType', width: 30 },
-  ]
+    { header: 'Dishwashing Type', key: 'dishwashingType', width: 30 }
+  ];
 
   const rows = data.projects.map(project => {
-    const metadata = project.metadata as any
-    const utilityRates = getUtilitiesByState(project.account.USState as USState)
+    const metadata = project.metadata as any;
+    const utilityRates = getUtilitiesByState(project.account.USState as USState);
     return {
       title: project.name,
       Savings_baseline: project.projections.financialResults.annualCostChanges.baseline,
@@ -173,19 +177,19 @@ function addProjectsSheet(workbook: ExcelJS.Workbook, data: AllProjectsSummary) 
       whereIsFoodPrepared: metadata.whereIsFoodPrepared,
       dishwashingType: metadata.dishwashingType,
       account: project.account.name,
-      org: project.org.name,
-    }
-  })
+      org: project.org.name
+    };
+  });
 
-  sheet.addRows(rows)
+  sheet.addRows(rows);
 }
 
 // Define Single-Use Worksheet
 function addSingleUseSheet(workbook: ExcelJS.Workbook, data: AllProjectsSummary, products: SingleUseProduct[]) {
-  const sheet = workbook.addWorksheet('Single-Use Items', worksheetOptions)
+  const sheet = workbook.addWorksheet('Single-Use Items', worksheetOptions);
 
   function getProduct(item: { productId: string }): Partial<SingleUseProduct> {
-    return products.find(product => product.id === item.productId) || {}
+    return products.find(product => product.id === item.productId) || {};
   }
 
   sheet.columns = [
@@ -198,8 +202,8 @@ function addSingleUseSheet(workbook: ExcelJS.Workbook, data: AllProjectsSummary,
     { header: 'Cases Purchased: Forecast', key: 'newCasesPurchased', width: 20 },
     { header: 'Project', key: 'project', width: 30 },
     { header: 'Account', key: 'account', width: 30 },
-    { header: 'Organization', key: 'org', width: 30 },
-  ]
+    { header: 'Organization', key: 'org', width: 30 }
+  ];
 
   const rows: SheetRow[] = data.projects
     .map(project =>
@@ -213,17 +217,17 @@ function addSingleUseSheet(workbook: ExcelJS.Workbook, data: AllProjectsSummary,
         frequency: item.frequency,
         newCaseCost: item.newCaseCost,
         newCasesPurchased: item.newCasesPurchased,
-        unitsPerCase: item.unitsPerCase,
+        unitsPerCase: item.unitsPerCase
       }))
     )
-    .flat()
+    .flat();
 
-  sheet.addRows(rows)
+  sheet.addRows(rows);
 }
 
 // Define Reusables Worksheet
 function addReusablesSheet(workbook: ExcelJS.Workbook, data: AllProjectsSummary) {
-  const sheet = workbook.addWorksheet('Reusable Items', worksheetOptions)
+  const sheet = workbook.addWorksheet('Reusable Items', worksheetOptions);
 
   sheet.columns = [
     { header: 'Description', key: 'title', width: 30 },
@@ -233,8 +237,8 @@ function addReusablesSheet(workbook: ExcelJS.Workbook, data: AllProjectsSummary)
     { header: 'Units per case', key: 'unitsPerCase', width: 20 },
     { header: 'Project', key: 'project', width: 30 },
     { header: 'Account', key: 'account', width: 30 },
-    { header: 'Organization', key: 'org', width: 30 },
-  ]
+    { header: 'Organization', key: 'org', width: 30 }
+  ];
 
   const rows: SheetRow[] = data.projects
     .map(project =>
@@ -246,17 +250,17 @@ function addReusablesSheet(workbook: ExcelJS.Workbook, data: AllProjectsSummary)
         repurchase: round(item.annualRepurchasePercentage, 2),
         caseCost: item.caseCost,
         casesPurchased: item.casesPurchased,
-        unitsPerCase: item.unitsPerCase,
+        unitsPerCase: item.unitsPerCase
       }))
     )
-    .flat()
+    .flat();
 
-  sheet.addRows(rows)
+  sheet.addRows(rows);
 }
 
 // Define Additional Costs Worksheet
 function addAdditionalCostsSheet(workbook: ExcelJS.Workbook, data: AllProjectsSummary) {
-  const sheet = workbook.addWorksheet('Additional Costs', worksheetOptions)
+  const sheet = workbook.addWorksheet('Additional Costs', worksheetOptions);
 
   sheet.columns = [
     { header: 'Description', key: 'title', width: 30 },
@@ -267,8 +271,8 @@ function addAdditionalCostsSheet(workbook: ExcelJS.Workbook, data: AllProjectsSu
     { header: 'Annual Cost', key: 'forecastAnnualCost', width: 20 },
     { header: 'Project', key: 'project', width: 30 },
     { header: 'Account', key: 'account', width: 30 },
-    { header: 'Organization', key: 'org', width: 30 },
-  ]
+    { header: 'Organization', key: 'org', width: 30 }
+  ];
 
   sheet.addRows(
     data.projects
@@ -281,7 +285,7 @@ function addAdditionalCostsSheet(workbook: ExcelJS.Workbook, data: AllProjectsSu
           category: LABOR_CATEGORIES.find(cat => cat.id === item.categoryId)?.name || '',
           frequency: item.frequency,
           forecastCost: item.cost,
-          forecastAnnualCost: getAnnualCost(item),
+          forecastAnnualCost: getAnnualCost(item)
         })),
         ...project.wasteHaulingCosts.map(item => ({
           title: item.description,
@@ -292,7 +296,7 @@ function addAdditionalCostsSheet(workbook: ExcelJS.Workbook, data: AllProjectsSu
           frequency: 'Monthly',
           baselineCost: item.monthlyCost,
           forecastCost: item.newMonthlyCost,
-          forecastAnnualCost: getAnnualCost({ cost: item.newMonthlyCost, frequency: 'Monthly' }),
+          forecastAnnualCost: getAnnualCost({ cost: item.newMonthlyCost, frequency: 'Monthly' })
         })),
         ...project.otherExpenses.map(item => ({
           title: item.description,
@@ -302,23 +306,23 @@ function addAdditionalCostsSheet(workbook: ExcelJS.Workbook, data: AllProjectsSu
           category: OTHER_EXPENSES.find(cat => cat.id === item.categoryId)?.name || '',
           frequency: item.frequency,
           forecastCost: item.cost,
-          forecastAnnualCost: getAnnualCost(item),
-        })),
+          forecastAnnualCost: getAnnualCost(item)
+        }))
       ])
       .flat()
-  )
+  );
 }
 
 function getAnnualCost({ frequency, cost }: { frequency: string; cost: number }) {
   if (frequency === 'One Time') {
-    return ''
+    return '';
   }
-  return cost * getannualOccurrence(frequency as Frequency)
+  return cost * getannualOccurrence(frequency as Frequency);
 }
 
 // Define Reusables Worksheet
 function addDishwasherSheet(workbook: ExcelJS.Workbook, data: AllProjectsSummary) {
-  const sheet = workbook.addWorksheet('Dishwasher Usage', worksheetOptions)
+  const sheet = workbook.addWorksheet('Dishwasher Usage', worksheetOptions);
 
   sheet.columns = [
     { header: '', key: 'type', width: 30 },
@@ -331,13 +335,13 @@ function addDishwasherSheet(workbook: ExcelJS.Workbook, data: AllProjectsSummary
     { header: 'Annual cost: Forecast', key: 'cost', width: 20 },
     { header: 'Project', key: 'project', width: 30 },
     { header: 'Account', key: 'account', width: 30 },
-    { header: 'Organization', key: 'org', width: 30 },
-  ]
+    { header: 'Organization', key: 'org', width: 30 }
+  ];
   sheet.addRows(
     data.projects
       .filter(project => project.dishwashers.length > 0)
       .map(project => {
-        const stats = getDishwasherStats({ dishwasher: project.dishwashers[0], state: project.account.USState as USState })
+        const stats = getDishwasherStats({ dishwasher: project.dishwashers[0], state: project.account.USState as USState });
         const rows: SheetRow[] = [
           {
             type: 'Electric Usage (kWh)',
@@ -349,7 +353,7 @@ function addDishwasherSheet(workbook: ExcelJS.Workbook, data: AllProjectsSummary
             costForecast: stats.electricCost.forecast,
             project: project.name,
             account: project.account.name,
-            org: project.org.name,
+            org: project.org.name
           },
           {
             type: 'Gas Usage (CF)',
@@ -361,7 +365,7 @@ function addDishwasherSheet(workbook: ExcelJS.Workbook, data: AllProjectsSummary
             costForecast: stats.gasCost.forecast,
             project: project.name,
             account: project.account.name,
-            org: project.org.name,
+            org: project.org.name
           },
           {
             type: 'Water Usage (gallons)',
@@ -373,11 +377,11 @@ function addDishwasherSheet(workbook: ExcelJS.Workbook, data: AllProjectsSummary
             costForecast: stats.waterCost.forecast,
             project: project.name,
             account: project.account.name,
-            org: project.org.name,
-          },
-        ]
-        return rows
+            org: project.org.name
+          }
+        ];
+        return rows;
       })
       .flat()
-  )
+  );
 }

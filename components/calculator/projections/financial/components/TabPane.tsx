@@ -1,11 +1,11 @@
-import styled from 'styled-components'
+import styled from 'styled-components';
 
 const Title = styled.span`
   font-weight: bold;
   font-size: 12px;
   line-height: 24px;
-`
+`;
 
 export const TabPaneTitle: React.FC<{ children: any }> = ({ children }) => {
-  return <Title>{children}</Title>
-}
+  return <Title>{children}</Title>;
+};

@@ -1,48 +1,50 @@
-import { sendEmail } from './mailgun'
-import { sendEvent, identify, MixpanelProfile } from './analytics/mixpanel.node'
-import prisma from 'lib/prisma'
+import prisma from 'lib/prisma';
 
-const WEB_HOST = process.env.NODE_ENV === 'production' ? 'https://app.chartreuse.eco' : 'http://localhost:3000'
+import type { MixpanelProfile } from './analytics/mixpanel.node';
+import { sendEvent, identify } from './analytics/mixpanel.node';
+import { sendEmail } from './mailgun';
 
-const IDENTITY_EVENTS: UserEventType[] = ['signup', 'join_org']
+const WEB_HOST = process.env.NODE_ENV === 'production' ? 'https://app.chartreuse.eco' : 'http://localhost:3000';
+
+const IDENTITY_EVENTS: UserEventType[] = ['signup', 'join_org'];
 
 type EventBase = {
   // props get passed to Mixpanel as metadata
-  props?: any
-}
+  props?: any;
+};
 
 type UserSignupEvent = EventBase & {
-  type: 'signup'
-}
+  type: 'signup';
+};
 type JoinOrgEvent = EventBase & {
-  type: 'join_org'
-}
+  type: 'join_org';
+};
 type CreateAccountEvent = EventBase & {
-  type: 'create_account'
+  type: 'create_account';
   props: {
-    accountName: string
-  }
-}
+    accountName: string;
+  };
+};
 type CreateProjectEvent = EventBase & {
-  type: 'create_project'
+  type: 'create_project';
   props: {
-    projectName: string
-  }
-}
+    projectName: string;
+  };
+};
 
-type UserEvent = UserSignupEvent | JoinOrgEvent | CreateAccountEvent | CreateProjectEvent
+type UserEvent = UserSignupEvent | JoinOrgEvent | CreateAccountEvent | CreateProjectEvent;
 
-export type UserEventType = UserEvent['type']
+export type UserEventType = UserEvent['type'];
 
 type Template = {
-  subject: string
-  body: (context: TemplateBaseContext, event?: any) => string
-}
+  subject: string;
+  body: (context: TemplateBaseContext, event?: any) => string;
+};
 
 type TemplateBaseContext = {
-  userEmail: string
-  orgName: string
-}
+  userEmail: string;
+  orgName: string;
+};
 
 const TEMPLATES: Record<UserEventType, Template> = {
   signup: {
@@ -51,7 +53,7 @@ const TEMPLATES: Record<UserEventType, Template> = {
     <p>
       ${context.userEmail} created the ${context.orgName} organization.
     </p>
-    `,
+    `
   },
   join_org: {
     subject: ' user joined an organization',
@@ -59,7 +61,7 @@ const TEMPLATES: Record<UserEventType, Template> = {
     <p>
       ${event.userEmail} accepted an invite and joined the ${event.orgName} organization.
     </p>
-    `,
+    `
   },
   create_account: {
     subject: 'An account was created',
@@ -67,7 +69,7 @@ const TEMPLATES: Record<UserEventType, Template> = {
       <p>
         A new account "${event.props.accountName}" was created by ${context.userEmail} for the ${context.orgName} organization.
       </p>
-    `,
+    `
   },
   create_project: {
     subject: 'A project was created',
@@ -75,38 +77,38 @@ const TEMPLATES: Record<UserEventType, Template> = {
       <p>
         A new project "${event.props.projectName}" was created by ${context.userEmail} for the ${context.orgName} organization.
       </p>
-    `,
-  },
-}
+    `
+  }
+};
 
 export async function trackEvent(event: UserEvent & { userId: string }) {
-  const template = TEMPLATES[event.type]
+  const template = TEMPLATES[event.type];
   try {
     const user = await prisma.user.findUniqueOrThrow({
       where: { id: event.userId },
-      include: { org: true },
-    })
+      include: { org: true }
+    });
     if (process.env.NOTIFICATIONS_EMAIL) {
       await sendEmail({
         from: 'Chart Reuse <noreply@chartreuse.eco>',
         to: process.env.NOTIFICATIONS_EMAIL,
         subject: `New Event: ${template.subject}`,
-        html: `${template.body({ userEmail: user?.email, orgName: user.org.name }, event)}<br /><p>Sent from <a href="${WEB_HOST}">app.chartreuse.eco</a></p>`,
-      })
-      console.log(`Sent user event email for event to ${process.env.NOTIFICATIONS_EMAIL}: ` + event.type)
+        html: `${template.body({ userEmail: user?.email, orgName: user.org.name }, event)}<br /><p>Sent from <a href="${WEB_HOST}">app.chartreuse.eco</a></p>`
+      });
+      console.log(`Sent user event email for event to ${process.env.NOTIFICATIONS_EMAIL}: ` + event.type);
     }
 
     if (IDENTITY_EVENTS.includes(event.type)) {
       const profile: MixpanelProfile = {
         $created: user.createdAt.toISOString(),
         $name: user.name ?? '',
-        Organization: user.org.name,
-      }
-      identify(user.id, profile)
+        Organization: user.org.name
+      };
+      identify(user.id, profile);
     }
 
-    await sendEvent(event.type, { userId: event.userId, Organization: user.org.name, ...event.props })
+    await sendEvent(event.type, { userId: event.userId, Organization: user.org.name, ...event.props });
   } catch (error) {
-    console.error(`Error sending user event "${event.type}"`, error)
+    console.error(`Error sending user event "${event.type}"`, error);
   }
 }

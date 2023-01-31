@@ -1,90 +1,93 @@
-import { Col, Row as AntdRow, Form, Radio, Select } from 'antd'
-import { useState } from 'react'
-import Spacer from 'components/spacer/spacer'
-import { changeValue } from 'lib/number'
-import ColumnChart from './components/chart-column-trendline'
-import PieChart from './components/category-piechart'
-import KPICard, { Header } from '../components/kpi-card'
-import { CardTitle, Divider, SectionContainer, SectionHeader } from '../../projections/components/styles'
-import { Card, Body, Section, Value, Row, Label } from '../../projections/single-use-details/styles'
-import { PRODUCT_CATEGORIES } from 'lib/calculator/constants/product-categories'
-import { ProjectInventory } from 'lib/inventory/types/projects'
-import { DateRange } from 'lib/calculator/types'
-import { getActuals } from 'lib/calculator/getActuals'
-import styled from 'styled-components'
+import { Col, Row as AntdRow, Form, Radio, Select } from 'antd';
+import { useState } from 'react';
+import styled from 'styled-components';
+
+import Spacer from 'components/spacer/spacer';
+import { PRODUCT_CATEGORIES } from 'lib/calculator/constants/product-categories';
+import { getActuals } from 'lib/calculator/getActuals';
+import type { DateRange } from 'lib/calculator/types';
+import type { ProjectInventory } from 'lib/inventory/types/projects';
+import { changeValue } from 'lib/number';
+
+import { CardTitle, Divider, SectionContainer, SectionHeader } from '../../projections/components/styles';
+import { Card, Body, Section, Value, Row, Label } from '../../projections/single-use-details/styles';
+import KPICard, { Header } from '../components/kpi-card';
+
+import PieChart from './components/category-piechart';
+import ColumnChart from './components/chart-column-trendline';
 
 const StyledCol = styled(Col)`
   @media print {
     flex: 0 0 33.33333333% !important;
     max-width: 33.33333333% !important;
   }
-`
+`;
 
 interface SelectOption<T extends string = string> {
-  label: string
-  value: T
+  label: string;
+  value: T;
 }
 
-const categoryOptions: SelectOption[] = [...PRODUCT_CATEGORIES].map(cat => ({ label: cat.name, value: cat.id }))
+const categoryOptions: SelectOption[] = [...PRODUCT_CATEGORIES].map(cat => ({ label: cat.name, value: cat.id }));
 
 export function SingleUseActuals({ inventory, dateRange, periodSelect }: { inventory: ProjectInventory; dateRange?: DateRange; periodSelect: JSX.Element }) {
-  const [selectedCategoryId, setSelectedCategory] = useState<string | undefined>(undefined)
-  const [useUnits, setUseUnits] = useState(true)
+  const [selectedCategoryId, setSelectedCategory] = useState<string | undefined>(undefined);
+  const [useUnits, setUseUnits] = useState(true);
 
-  const actuals = getActuals(inventory, { dateRange, categoryId: selectedCategoryId })
-  const categories = inventory.singleUseItems.map(item => item.product.category)
-  const availableCategories = categoryOptions.filter(option => categories.includes(option.value))
+  const actuals = getActuals(inventory, { dateRange, categoryId: selectedCategoryId });
+  const categories = inventory.singleUseItems.map(item => item.product.category);
+  const availableCategories = categoryOptions.filter(option => categories.includes(option.value));
 
   // add All Categories to top of list
-  availableCategories.unshift({ label: 'All categories', value: '' })
+  availableCategories.unshift({ label: 'All categories', value: '' });
 
-  const selectedCategory = availableCategories.find(period => period.value === selectedCategoryId)
+  const selectedCategory = availableCategories.find(period => period.value === selectedCategoryId);
 
   const columnData = Object.entries(actuals.singleUseProducts.purchases).map(([date, record]) => {
     return {
       label: new Date(date).toLocaleDateString(),
-      value: useUnits ? record.unitCount : record.totalCost,
-    }
-  })
+      value: useUnits ? record.unitCount : record.totalCost
+    };
+  });
 
   const pieData = Object.entries(actuals.singleUseProducts.categories).map(([categoryId, values]) => {
-    const category = PRODUCT_CATEGORIES.find(cat => cat.id === categoryId)!
+    const category = PRODUCT_CATEGORIES.find(cat => cat.id === categoryId)!;
     return {
       label: category.name,
-      value: values.unitCount,
-    }
-  })
+      value: values.unitCount
+    };
+  });
 
   function selectCategory(categoryId: string) {
-    setSelectedCategory(categoryId)
+    setSelectedCategory(categoryId);
   }
 
   function selectUnits(e: any) {
-    setUseUnits(e.target.value === 'units')
+    setUseUnits(e.target.value === 'units');
   }
 
-  console.log({ actuals })
+  console.log({ actuals });
 
   return (
     <>
       <Row spaceBetween flexStart>
         <SectionHeader style={{ margin: 0 }}>Total single-use purchasing history</SectionHeader>
 
-        <Form layout="horizontal">{periodSelect}</Form>
+        <Form layout='horizontal'>{periodSelect}</Form>
       </Row>
       <Divider />
       <Card style={{ marginRight: 0 }}>
         <Row spaceBetween>
           <CardTitle>{selectedCategory?.label ?? 'All categories'}</CardTitle>
 
-          <Form layout="inline" style={{ width: 'auto' }}>
-            <Form.Item label="Categories:" style={{ minWidth: 210 }}>
-              <Select defaultValue="" onChange={selectCategory} options={availableCategories} />
+          <Form layout='inline' style={{ width: 'auto' }}>
+            <Form.Item label='Categories:' style={{ minWidth: 210 }}>
+              <Select defaultValue='' onChange={selectCategory} options={availableCategories} />
             </Form.Item>
             <Form.Item>
-              <Radio.Group defaultValue={useUnits ? 'units' : 'cost'} buttonStyle="solid" onChange={selectUnits}>
-                <Radio.Button value="units">Units</Radio.Button>
-                <Radio.Button value="cost">Cost</Radio.Button>
+              <Radio.Group defaultValue={useUnits ? 'units' : 'cost'} buttonStyle='solid' onChange={selectUnits}>
+                <Radio.Button value='units'>Units</Radio.Button>
+                <Radio.Button value='cost'>Cost</Radio.Button>
               </Radio.Group>
             </Form.Item>
           </Form>
@@ -93,7 +96,7 @@ export function SingleUseActuals({ inventory, dateRange, periodSelect }: { inven
         <ColumnChart data={columnData} useUnits={useUnits} />
       </Card>
       <AntdRow gutter={[29, 29]}>
-        <StyledCol xs={24} lg={8} className="print-kpi-card">
+        <StyledCol xs={24} lg={8} className='print-kpi-card'>
           <Card style={{ margin: 0 }}>
             <Header>
               <CardTitle>Breakdown by category</CardTitle>
@@ -103,10 +106,10 @@ export function SingleUseActuals({ inventory, dateRange, periodSelect }: { inven
             </div>
           </Card>
         </StyledCol>
-        <StyledCol xs={24} md={12} lg={8} className="print-kpi-card">
+        <StyledCol xs={24} md={12} lg={8} className='print-kpi-card'>
           <KPICard
             style={{ height: '100%' }}
-            title="Biggest change"
+            title='Biggest change'
             changePercent={actuals.singleUseProducts.biggestChangeCategory?.changePercent}
             changeStr={
               actuals.singleUseProducts.biggestChangeCategory
@@ -115,15 +118,15 @@ export function SingleUseActuals({ inventory, dateRange, periodSelect }: { inven
             }
           />
         </StyledCol>
-        <StyledCol xs={24} md={12} lg={8} className="print-kpi-card">
+        <StyledCol xs={24} md={12} lg={8} className='print-kpi-card'>
           <KPICard
             style={{ height: '100%' }}
-            title="Biggest savings"
+            title='Biggest savings'
             changePercent={actuals.singleUseProducts.biggestSavingsCategory?.changePercent}
             changeStr={
               actuals.singleUseProducts.biggestSavingsCategory
                 ? `${categoryName(actuals.singleUseProducts.biggestSavingsCategory.id)}: ${changeValue(actuals.singleUseProducts.biggestSavingsCategory.change, {
-                    preUnit: '$',
+                    preUnit: '$'
                   }).toLocaleString()} `
                 : 'N/A'
             }
@@ -131,9 +134,9 @@ export function SingleUseActuals({ inventory, dateRange, periodSelect }: { inven
         </StyledCol>
       </AntdRow>
     </>
-  )
+  );
 }
 
 function categoryName(category: string) {
-  return PRODUCT_CATEGORIES.find(cat => cat.id === category)?.name ?? category
+  return PRODUCT_CATEGORIES.find(cat => cat.id === category)?.name ?? category;
 }
