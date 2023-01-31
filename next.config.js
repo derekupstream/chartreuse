@@ -39,8 +39,8 @@ const config = {
       },
       {
         source: '/projects/:projectId',
-        destination: '/projects/:projectId/setup',
-        permanent: true
+        destination: '/projects/:projectId/single-use-items',
+        permanent: false
       }
     ];
   }

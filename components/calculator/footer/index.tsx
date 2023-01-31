@@ -16,7 +16,7 @@ const FooterContext = createContext<{ state: FooterState | null; setFooterState:
 export const useFooterState = () => useContext(FooterContext);
 
 export function FooterProvider({ children }: { children: React.ReactNode }) {
-  const [state, setFooterState] = useState<FooterState>({ path: '/setup', stepCompleted: false });
+  const [state, setFooterState] = useState<FooterState>({ path: CALCULATOR_STEPS[0].path, stepCompleted: false });
 
   return <FooterContext.Provider value={{ state, setFooterState }}>{children}</FooterContext.Provider>;
 }

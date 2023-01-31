@@ -1,7 +1,7 @@
 import type { Prisma, Project } from '@prisma/client';
 import type { NextApiRequest, NextApiResponse } from 'next';
 
-import type { ProjectMetadata } from 'components/calculator/setup';
+import type { ProjectMetadata } from 'components/projects/[id]/edit';
 import prisma from 'lib/prisma';
 
 type Response = {

@@ -1,19 +1,14 @@
 import type { Project } from '@prisma/client';
-import { Prisma } from '@prisma/client';
 import { Button, Input, Typography, Slider, message } from 'antd';
 import { Form, Select } from 'antd';
 import type { Store } from 'antd/lib/form/interface';
 import { useRouter } from 'next/router';
-import { useEffect } from 'react';
 import styled from 'styled-components';
 
 import * as S from 'components/calculator/styles';
 import type { DashboardUser } from 'components/dashboard';
 import type { ProjectInput } from 'lib/chartreuseClient';
 import chartreuseClient from 'lib/chartreuseClient';
-import { POST, PUT } from 'lib/http';
-
-import { useFooterState } from '../footer';
 
 const Wrapper = styled(S.Wrapper)`
   display: flex;
@@ -44,7 +39,7 @@ export type ProjectMetadata = {
   whereIsFoodPrepared: (typeof WhereFoodIsPrepared)[number];
 };
 
-export default function SetupPage({ user, project }: { user: DashboardUser; project?: Project }) {
+export default function ProjectForm({ user, project, successPath }: { user: DashboardUser; project?: Project; successPath: (id: string) => string }) {
   const router = useRouter();
 
   async function saveProject({ name, accountId, ...metadata }: Store) {
@@ -61,17 +56,12 @@ export default function SetupPage({ user, project }: { user: DashboardUser; proj
 
     req
       .then(res => {
-        router.push(`/projects/${res.project.id}/single-use-items`);
+        router.push(successPath(res.project.id));
       })
       .catch(err => {
         message.error((err as Error)?.message);
       });
   }
-
-  const { setFooterState } = useFooterState();
-  useEffect(() => {
-    setFooterState({ path: '/setup', stepCompleted: true });
-  }, [setFooterState]);
 
   return (
     <Wrapper>

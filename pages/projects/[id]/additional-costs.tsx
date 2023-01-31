@@ -12,7 +12,7 @@ export const getServerSideProps: GetServerSideProps = async context => {
 
 function AdditionalCostsPage({ project, user }: ProjectContext) {
   return (
-    <ProjectLayout currentStepIndex={3} project={project} title={`${project.name} - Additional Costs`} user={user}>
+    <ProjectLayout currentStepIndex={2} project={project} title={`${project.name} - Additional Costs`} user={user}>
       <AdditionalCosts project={project} />
     </ProjectLayout>
   );

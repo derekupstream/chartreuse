@@ -1,5 +1,5 @@
 export const CALCULATOR_STEPS = [
-  { path: '/setup', title: 'Project settings' },
+  //{ path: '/setup', title: 'Project settings' },
   { path: '/single-use-items', title: 'Single-Use purchasing' },
   { path: '/reusable-items', title: 'Reusables purchasing' },
   { path: '/additional-costs', title: 'Additional costs' },

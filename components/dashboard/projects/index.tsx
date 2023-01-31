@@ -1,14 +1,15 @@
 /* eslint-disable react/display-name */
-import { DeleteOutlined, PlusOutlined } from '@ant-design/icons';
+import { DeleteOutlined, PlusOutlined, EditOutlined } from '@ant-design/icons';
 import type { Project, Account } from '@prisma/client';
 import { Button, Card, Col, message, Popconfirm, Row, Space, Typography } from 'antd';
+import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from 'react-query';
 
-import type { ProjectMetadata } from 'components/calculator/setup';
 import ContentLoader from 'components/content-loader';
 import * as S from 'components/dashboard/styles';
+import type { ProjectMetadata } from 'components/projects/[id]/edit';
 import { DELETE, GET } from 'lib/http';
 
 interface PopulatedProject extends Project {
@@ -70,6 +71,9 @@ const Projects = () => {
                     <S.ProjectInfo>
                       <S.ProjectType>Location Type</S.ProjectType>
                       <S.Actions>
+                        <Link href={`/projects/${project.id}/edit`} passHref legacyBehavior>
+                          <Button icon={<EditOutlined />} type='text' />
+                        </Link>
                         <Popconfirm
                           title={
                             <Space direction='vertical' size='small'>

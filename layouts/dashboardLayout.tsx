@@ -5,7 +5,7 @@ import HaveQuestions from 'components/have-questions';
 
 import BaseLayout from './baseLayout';
 
-type DashboardProps = {
+export type DashboardProps = {
   children: any;
   selectedMenuItem: string;
   title: string;

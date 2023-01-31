@@ -18,7 +18,7 @@ function ReusablesPurchasingPage({ project, user }: ProjectContext) {
   }, []);
 
   return (
-    <ProjectLayout currentStepIndex={2} project={project} title={`${project.name} - Reusable Items`} user={user}>
+    <ProjectLayout currentStepIndex={1} project={project} title={`${project.name} - Reusable Items`} user={user}>
       <ReusablesPurchasing />
     </ProjectLayout>
   );

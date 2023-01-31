@@ -2,7 +2,7 @@ import type { Prisma, Project } from '@prisma/client';
 import type { NextApiRequest, NextApiResponse } from 'next';
 import nc from 'next-connect';
 
-import type { ProjectMetadata } from 'components/calculator/setup';
+import type { ProjectMetadata } from 'components/projects/[id]/edit';
 import type { NextApiRequestWithUser } from 'lib/middleware/getUser';
 import getUser from 'lib/middleware/getUser';
 import onError from 'lib/middleware/onError';

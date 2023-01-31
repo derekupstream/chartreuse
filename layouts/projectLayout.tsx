@@ -1,6 +1,7 @@
 import { ArrowLeftOutlined } from '@ant-design/icons';
 import type { Project } from '@prisma/client';
 import { Button, Space, Steps, Typography } from 'antd';
+import Link from 'next/link'
 import { useRouter } from 'next/router';
 import styled from 'styled-components';
 
@@ -24,6 +25,15 @@ type Props = {
   user: DashboardUser;
 };
 
+export function BackToProjectsButton () {
+  return <Link href='/projects' passHref legacyBehavior>
+    <Button type='text' href='/projects'>
+      <ArrowLeftOutlined />
+      Back to projects
+    </Button>
+  </Link>
+}
+
 export default function ProjectLayout({ children, project, currentStepIndex, ...pageProps }: React.PropsWithChildren<Props>) {
   const router = useRouter();
 
@@ -34,10 +44,7 @@ export default function ProjectLayout({ children, project, currentStepIndex, ...
           <S.Content>
             <Space direction='vertical' size='large' style={{ width: '100%' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <Button type='text' href='/projects'>
-                  <ArrowLeftOutlined />
-                  Back to projects
-                </Button>
+                <BackToProjectsButton />
                 <Title level={3}>{project?.name}</Title>
               </div>
               <S.Steps
