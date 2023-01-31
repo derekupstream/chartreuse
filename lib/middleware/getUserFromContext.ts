@@ -7,6 +7,9 @@ import type { Prisma } from '@prisma/client'
 export async function getUserFromContext<T extends Partial<Prisma.UserInclude> = {}>(context: GetServerSidePropsContext, dataToInclude: T = {} as T) {
   try {
     const cookies = nookies.get(context)
+    if (!cookies.token) {
+      throw new Error('Request requires authentication')
+    }
     const token = await verifyIdToken(cookies.token)
 
     const user = await prisma.user.findUnique({

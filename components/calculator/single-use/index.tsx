@@ -245,7 +245,7 @@ export default function SingleUse({ project }: ServerSideProps) {
   const [lineItems, setLineItems] = useLoadingState<{
     data: SingleUseLineItem[]
   }>({ data: [] })
-  const [products, setProducts] = useState<SingleUseProduct[]>([])
+  const [products, setProducts] = useLoadingState<{ data: SingleUseProduct[] }>({ data: [] })
 
   useEffect(() => {
     getProducts()
@@ -256,7 +256,7 @@ export default function SingleUse({ project }: ServerSideProps) {
   async function getProducts() {
     try {
       const products = await GET<SingleUseProduct[]>('/api/inventory/single-use-products')
-      setProducts(products)
+      setProducts({ data: products, isLoading: false })
     } catch (error) {
       //
     }
@@ -293,7 +293,7 @@ export default function SingleUse({ project }: ServerSideProps) {
   const items = lineItems.data.reduce<{
     [categoryId: string]: SingleUseItemRecord[]
   }>((items, item) => {
-    const product = products.find(p => p.id === item.productId)
+    const product = products.data.find(p => p.id === item.productId)
     if (product) {
       const record: SingleUseItemRecord = {
         lineItem: item,
@@ -301,7 +301,7 @@ export default function SingleUse({ project }: ServerSideProps) {
       }
       items[product.category] = items[product.category] || []
       items[product.category].push(record)
-    } else {
+    } else if (products.data.length) {
       console.error('Could not find product by product id:', item.productId)
     }
     return items
@@ -316,7 +316,7 @@ export default function SingleUse({ project }: ServerSideProps) {
         </Button>
       </div>
       <Typography.Title level={5}>Create a baseline of single-use items you purchase regularly. Forecast what you could save by reducing or eliminating these items.</Typography.Title>
-      {lineItems.isLoading ? (
+      {lineItems.isLoading || products.isLoading ? (
         <ContentLoader />
       ) : (
         <>
@@ -346,7 +346,7 @@ export default function SingleUse({ project }: ServerSideProps) {
         contentWrapperStyle={{ width: '600px' }}
         destroyOnClose={true}
       >
-        <SingleUseForm formStep={formStep} setFormStep={setFormStep} lineItem={lineItem} projectId={project.id} products={products} onSubmit={onSubmitNewProduct} />
+        <SingleUseForm formStep={formStep} setFormStep={setFormStep} lineItem={lineItem} projectId={project.id} products={products.data} onSubmit={onSubmitNewProduct} />
       </Drawer>
     </S.Wrapper>
   )

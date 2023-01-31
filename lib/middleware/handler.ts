@@ -3,16 +3,14 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { onError, onNoMatch, getUser } from 'lib/middleware'
 import { validateProject } from 'lib/middleware/validateProject'
 
-const handler = nc<NextApiRequest, NextApiResponse>({ onError, onNoMatch })
-
 export function defaultHandler() {
-  return handler
+  return nc<NextApiRequest, NextApiResponse>({ onError, onNoMatch })
 }
 
 export function handlerWithUser() {
-  return handler.use(getUser)
+  return defaultHandler().use(getUser)
 }
 
 export function projectHandler() {
-  return handler.use(getUser).use(validateProject)
+  return defaultHandler().use(getUser).use(validateProject)
 }
