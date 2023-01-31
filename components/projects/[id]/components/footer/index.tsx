@@ -2,8 +2,8 @@ import { ArrowLeftOutlined, ArrowRightOutlined } from '@ant-design/icons';
 import { useRouter } from 'next/router';
 import { createContext, useContext, useState } from 'react';
 
-import type { ProjectPath } from '../steps';
-import { CALCULATOR_STEPS } from '../steps';
+import type { ProjectPath } from '../../steps';
+import { CALCULATOR_STEPS } from '../../steps';
 
 import { Container, LinkBox, Row } from './styles';
 

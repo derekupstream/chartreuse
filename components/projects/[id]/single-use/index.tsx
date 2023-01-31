@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { useEffect } from 'react';
 import styled from 'styled-components';
 
-import ContentLoader from 'components/content-loader';
+import ContentLoader from 'components/common/content-loader';
 import type { DashboardUser } from 'components/dashboard';
 import useLoadingState from 'hooks/useLoadingState';
 import { getannualOccurrence } from 'lib/calculator/constants/frequency';
@@ -15,7 +15,8 @@ import { DELETE, GET } from 'lib/http';
 import type { SingleUseProduct } from 'lib/inventory/types/products';
 import type { SingleUseLineItem } from 'lib/inventory/types/projects';
 
-import { useFooterState } from '../footer';
+import { EmptyState } from '../components/empty-state';
+import { useFooterState } from '../components/footer';
 import * as S from '../styles';
 
 import { CATEGORY_ICONS } from './category-icons';
@@ -310,19 +311,24 @@ export default function SingleUse({ project }: ServerSideProps) {
     return items;
   }, {});
 
+  const hasItems = lineItems.data.length > 0;
+
   return (
     <S.Wrapper>
       <div style={{ display: 'flex', justifyContent: 'space-between' }}>
         <Typography.Title level={1}>Single-use purchasing</Typography.Title>
-        <Button type='primary' onClick={addItem} icon={<PlusOutlined />} style={{ paddingRight: '4em', paddingLeft: '4em' }}>
-          Add a single-use item
-        </Button>
+        {hasItems && (
+          <Button type='primary' onClick={addItem} icon={<PlusOutlined />} style={{ paddingRight: '4em', paddingLeft: '4em' }}>
+            Add a single-use item
+          </Button>
+        )}
       </div>
       <Typography.Title level={5}>Create a baseline of single-use items you purchase regularly. Forecast what you could save by reducing or eliminating these items.</Typography.Title>
       {lineItems.isLoading || products.isLoading ? (
         <ContentLoader />
       ) : (
         <>
+          {!hasItems && <EmptyState label='Add a single-use item' message={`You have no single-use items yet. Click '+ Add a single-use item' above to get started.`} onClick={addItem} />}
           {PRODUCT_CATEGORIES.map(
             (category, index) =>
               items[category.id] && (

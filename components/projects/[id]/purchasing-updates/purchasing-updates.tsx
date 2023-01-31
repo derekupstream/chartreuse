@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useReactToPrint } from 'react-to-print';
 import useSWR from 'swr';
 
-import ContentLoader from 'components/content-loader';
+import ContentLoader from 'components/common/content-loader';
 import { ProjectInfo } from 'components/dashboard/styles';
 import { PrintHeader } from 'components/print/print-header';
 import { ActualsResponse } from 'lib/calculator/getActuals';
@@ -13,7 +13,7 @@ import chartreuseClient from 'lib/chartreuseClient';
 import type { ProjectContext } from 'lib/middleware/getProjectContext';
 
 import { AddBlock, Placeholder } from '../additional-costs/components/expense-block';
-import { useFooterState } from '../footer';
+import { useFooterState } from '../components/footer';
 import { CardTitle, Divider, SectionContainer, SectionHeader } from '../projections/components/styles';
 import { Wrapper } from '../styles';
 

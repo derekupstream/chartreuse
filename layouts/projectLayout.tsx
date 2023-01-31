@@ -5,11 +5,11 @@ import Link from 'next/link'
 import { useRouter } from 'next/router';
 import styled from 'styled-components';
 
-import CalculatorFooter, { FooterProvider } from 'components/calculator/footer';
-import { CALCULATOR_STEPS } from 'components/calculator/steps';
 import { ErrorBoundary } from 'components/common/errors/ErrorBoundary';
 import type { DashboardUser } from 'components/dashboard';
 import * as S from 'components/dashboard/styles';
+import CalculatorFooter, { FooterProvider } from 'components/projects/[id]/components/footer';
+import { CALCULATOR_STEPS } from 'components/projects/[id]/steps';
 
 import BaseLayout from './baseLayout';
 

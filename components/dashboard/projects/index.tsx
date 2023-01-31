@@ -7,7 +7,7 @@ import { useRouter } from 'next/router';
 import { useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from 'react-query';
 
-import ContentLoader from 'components/content-loader';
+import ContentLoader from 'components/common/content-loader';
 import * as S from 'components/dashboard/styles';
 import type { ProjectMetadata } from 'components/projects/[id]/edit';
 import { DELETE, GET } from 'lib/http';

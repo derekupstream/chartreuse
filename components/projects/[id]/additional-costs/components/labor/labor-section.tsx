@@ -4,12 +4,12 @@ import { Button, Col, Divider, Drawer, message, Popconfirm, Typography } from 'a
 import { useRouter } from 'next/router';
 import { useState } from 'react';
 
-import { InfoCard, InfoRow } from 'components/calculator/styles';
-import ContentLoader from 'components/content-loader';
+import ContentLoader from 'components/common/content-loader';
 import { useSimpleMutation, useSimpleQuery } from 'hooks/useSimpleQuery';
 import { OTHER_EXPENSES_FREQUENCIES } from 'lib/calculator/constants/other-expenses';
 import { formatToDollar } from 'lib/calculator/utils';
 
+import { InfoCard, InfoRow } from '../../../styles';
 import { AddBlock, Container, contentWrapperStyle, Placeholder, Subtitle } from '../expense-block';
 import { SectionContainer, SectionTitle } from '../styles';
 

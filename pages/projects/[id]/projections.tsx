@@ -1,6 +1,6 @@
 import type { GetServerSideProps } from 'next';
 
-import Projections from 'components/calculator/projections';
+import Projections from 'components/projects/[id]/projections';
 import ProjectLayout from 'layouts/projectLayout';
 import type { ProjectContext } from 'lib/middleware';
 import { getProjectContext } from 'lib/middleware';

@@ -5,12 +5,12 @@ import { useRouter } from 'next/router';
 import React, { useState } from 'react';
 import styled from 'styled-components';
 
-import { InfoCard, InfoRow } from 'components/calculator/styles';
-import ContentLoader from 'components/content-loader';
+import ContentLoader from 'components/common/content-loader';
 import { useSimpleMutation, useSimpleQuery } from 'hooks/useSimpleQuery';
 import { formatToDollar } from 'lib/calculator/utils';
 import type { WasteHaulingService } from 'lib/inventory/types/projects';
 
+import { InfoCard, InfoRow } from '../../../styles';
 import { AddBlock, Container, contentWrapperStyle, Placeholder, Subtitle } from '../expense-block';
 import { SectionContainer, SectionData, SectionTitle } from '../styles';
 

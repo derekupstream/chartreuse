@@ -1,7 +1,7 @@
 import type { GetServerSideProps } from 'next';
 import ReactToPrint from 'react-to-print';
 
-import { PurchasingUpdates } from 'components/calculator/purchasing-updates/purchasing-updates';
+import { PurchasingUpdates } from 'components/projects/[id]/purchasing-updates/purchasing-updates';
 import ProjectLayout from 'layouts/projectLayout';
 import type { ProjectContext } from 'lib/middleware';
 import { getProjectContext } from 'lib/middleware';

@@ -4,13 +4,13 @@ import { useEffect, useRef, useState } from 'react';
 import { useReactToPrint } from 'react-to-print';
 import styled from 'styled-components';
 
-import ContentLoader from 'components/content-loader';
+import ContentLoader from 'components/common/content-loader';
 import { PrintHeader } from 'components/print/print-header';
 import { useSimpleQuery } from 'hooks/useSimpleQuery';
 import type { ProjectionsResponse } from 'lib/calculator/getProjections';
 import type { ProjectContext } from 'lib/middleware/getProjectContext';
 
-import { useFooterState } from '../footer';
+import { useFooterState } from '../components/footer';
 import { Wrapper } from '../styles';
 
 import EnvironmentalSummary from './environmental/summary';

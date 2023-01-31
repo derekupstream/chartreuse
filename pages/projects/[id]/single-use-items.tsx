@@ -1,6 +1,6 @@
 import type { GetServerSideProps } from 'next';
 
-import SingleUse from 'components/calculator/single-use';
+import SingleUse from 'components/projects/[id]/single-use';
 import ProjectLayout from 'layouts/projectLayout';
 import type { ProjectContext } from 'lib/middleware';
 import { getProjectContext } from 'lib/middleware';

@@ -1,6 +1,6 @@
 import type { GetServerSideProps } from 'next';
 
-import AdditionalCosts from 'components/calculator/additional-costs';
+import AdditionalCosts from 'components/projects/[id]/additional-costs';
 import ProjectLayout from 'layouts/projectLayout';
 import type { ProjectContext } from 'lib/middleware';
 import { getProjectContext } from 'lib/middleware';

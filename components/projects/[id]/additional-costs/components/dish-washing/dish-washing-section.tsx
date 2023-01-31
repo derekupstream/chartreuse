@@ -5,13 +5,13 @@ import { useRouter } from 'next/router';
 import React, { useState } from 'react';
 import styled from 'styled-components';
 
-import { InfoCard, InfoRow } from 'components/calculator/styles';
-import ContentLoader from 'components/content-loader';
+import ContentLoader from 'components/common/content-loader';
 import { useSimpleMutation } from 'hooks/useSimpleQuery';
 import { useSimpleQuery } from 'hooks/useSimpleQuery';
 import * as http from 'lib/http';
 import type { Response } from 'pages/api/dishwashers/index';
 
+import { InfoCard, InfoRow } from '../../../styles';
 import { AddBlock, Container, contentWrapperStyle, Placeholder, Subtitle } from '../expense-block';
 import { SectionTitle, SectionContainer } from '../styles';
 

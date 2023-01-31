@@ -2,7 +2,7 @@ import type { Project } from '@prisma/client';
 import { Typography } from 'antd';
 import { useEffect } from 'react';
 
-import { useFooterState } from '../footer';
+import { useFooterState } from '../components/footer';
 import { Wrapper } from '../styles';
 
 import DishWashingSection from './components/dish-washing/dish-washing-section';

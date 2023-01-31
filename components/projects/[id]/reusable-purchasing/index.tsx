@@ -4,14 +4,15 @@ import { useRouter } from 'next/router';
 import { useState, useEffect } from 'react';
 import styled from 'styled-components';
 
-import ContentLoader from 'components/content-loader';
+import ContentLoader from 'components/common/content-loader';
 import { PRODUCT_CATEGORIES } from 'lib/calculator/constants/product-categories';
 import { formatToDollar } from 'lib/calculator/utils';
 import chartreuseClient from 'lib/chartreuseClient';
 import * as http from 'lib/http';
 import type { ReusableLineItem } from 'lib/inventory/types/projects';
 
-import { useFooterState } from '../footer';
+import { EmptyState } from '../components/empty-state';
+import { useFooterState } from '../components/footer';
 import { CATEGORY_ICONS } from '../single-use/category-icons';
 import * as S from '../styles';
 
@@ -132,13 +133,17 @@ export default function ReusablePurchasing() {
     setIsDrawerVisible(false);
   }
 
+  const hasItems = lineItems.length > 0;
+
   return (
     <S.Wrapper>
       <div style={{ display: 'flex', justifyContent: 'space-between' }}>
         <Typography.Title level={1}>Reusables purchasing</Typography.Title>
-        <Button type='primary' onClick={addItem} icon={<PlusOutlined />} style={{ paddingRight: '4em', paddingLeft: '4em' }}>
-          Add reusable item
-        </Button>
+        {hasItems && (
+          <Button type='primary' onClick={addItem} icon={<PlusOutlined />} style={{ paddingRight: '4em', paddingLeft: '4em' }}>
+            Add reusable item
+          </Button>
+        )}
       </div>
       <Typography.Title level={5}>
         Enter reusable items to replace single-use items as appropriate. It is possible to eliminate a single-use item without a purchase of a reusable ware. For example, if you have three sizes of
@@ -158,6 +163,7 @@ export default function ReusablePurchasing() {
         <ContentLoader />
       ) : (
         <>
+          {!hasItems && <EmptyState label='Add a reusable item' message={`You have no reusable items yet. Click '+ Add a reusable item' above to get started.`} onClick={addItem} />}
           {PRODUCT_CATEGORIES.map((category, index) => {
             const getItemsWithSameId = (item: ReusableLineItem) => item.categoryId === category.id.toString();
             const item = lineItems.find(getItemsWithSameId);

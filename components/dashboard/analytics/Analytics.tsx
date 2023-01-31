@@ -5,15 +5,15 @@ import { Button, Col, Form, Row, Select, Space, Table, Typography, Divider } fro
 import { useRouter } from 'next/router';
 import type { ReactNode } from 'react';
 
-import ContentLoader from 'components/content-loader';
+import ContentLoader from 'components/common/content-loader';
+import Card from 'components/projects/[id]/projections/components/card';
+import GroupedBar from 'components/projects/[id]/projections/components/grouped-bar';
+import * as S from 'components/projects/[id]/projections/components/styles';
 import Spacer from 'components/spacer/spacer';
 import type { SummaryValues, AllProjectsSummary, ProjectSummary } from 'lib/calculator/getProjections';
 import { formatToDollar } from 'lib/calculator/utils';
 import { requestDownload } from 'lib/files';
 
-import Card from '../../calculator/projections/components/card';
-import GroupedBar from '../../calculator/projections/components/grouped-bar';
-import * as S from '../../calculator/projections/components/styles';
 import * as S2 from '../styles';
 
 export interface PageProps {

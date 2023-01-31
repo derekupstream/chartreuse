@@ -5,10 +5,11 @@ import type { Store } from 'antd/lib/form/interface';
 import { useRouter } from 'next/router';
 import styled from 'styled-components';
 
-import * as S from 'components/calculator/styles';
 import type { DashboardUser } from 'components/dashboard';
 import type { ProjectInput } from 'lib/chartreuseClient';
 import chartreuseClient from 'lib/chartreuseClient';
+
+import * as S from './styles';
 
 const Wrapper = styled(S.Wrapper)`
   display: flex;
