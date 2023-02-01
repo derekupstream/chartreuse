@@ -1,10 +1,9 @@
-import { PrinterOutlined } from '@ant-design/icons';
-import { Button, Col, Row, Menu, Typography } from 'antd';
+import { Col, Row, Menu, Typography } from 'antd';
 import { useEffect, useRef, useState } from 'react';
-import { useReactToPrint } from 'react-to-print';
 import styled from 'styled-components';
 
 import ContentLoader from 'components/common/content-loader';
+import { PrintButton } from 'components/print/print-button';
 import { PrintHeader } from 'components/print/print-header';
 import { useSimpleQuery } from 'hooks/useSimpleQuery';
 import type { ProjectionsResponse } from 'lib/calculator/getProjections';
@@ -39,11 +38,7 @@ const Projections = ({ project }: { project: ProjectContext['project'] }) => {
   }
 
   // for printing
-  const componentRef = useRef(null);
-  const handlePrint = useReactToPrint({
-    content: () => componentRef.current,
-    documentTitle: `${project.name} Savings projections - Chart Reuse`
-  });
+  const printRef = useRef(null);
 
   if (!data || isLoading) {
     return (
@@ -54,13 +49,11 @@ const Projections = ({ project }: { project: ProjectContext['project'] }) => {
   }
 
   return (
-    <Wrapper ref={componentRef}>
+    <Wrapper ref={printRef}>
       <PrintHeader accountName={project.account.name} orgName={project.org.name} projectName={project.name} />
       <div style={{ display: 'flex', justifyContent: 'space-between' }}>
         <Typography.Title level={1}>Savings projections</Typography.Title>
-        <Button className='dont-print-me' onClick={handlePrint}>
-          <PrinterOutlined /> Print
-        </Button>
+        <PrintButton printRef={printRef} pdfTitle={`${project.name} Savings Projections - Chart Reuse`} />
       </div>
       <Row gutter={24}>
         <Col span={5} className='dont-print-me'>

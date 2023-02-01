@@ -239,7 +239,7 @@ export default function AnalyticsPage({ user, data, allProjects, isUpstreamView 
             </>
           )}
           <div style={{ display: 'flex', gap: '1em' }} className='dont-print-me'>
-            <PrintButton printRef={printRef} pdfTitle={`Account Analytics - Chart Reuse`} />
+            <PrintButton printRef={printRef} pdfTitle={`${user.org.name} Projects Overview - Chart Reuse`} />
             <Button onClick={() => exportData()}>
               <DownloadOutlined /> Export Data
             </Button>
