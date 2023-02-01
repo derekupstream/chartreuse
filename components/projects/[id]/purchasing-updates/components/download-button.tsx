@@ -6,11 +6,12 @@ import { requestDownload } from 'lib/files';
 interface Props {
   projectId: string;
   onClick?: () => void;
+  label?: string;
   size?: 'large' | 'middle' | 'small';
-  type?: 'primary' | 'default';
+  type?: 'primary' | 'text' | 'default';
 }
 
-export function DownloadButton({ projectId, onClick, size = 'large', type = 'primary' }: Props) {
+export function DownloadButton({ projectId, onClick, label = 'Download', size = 'large', type = 'primary' }: Props) {
   function exportData() {
     requestDownload({
       api: `/api/projects/${projectId}/inventory/download`,
@@ -21,7 +22,7 @@ export function DownloadButton({ projectId, onClick, size = 'large', type = 'pri
 
   return (
     <Button size={size} type={type} onClick={exportData}>
-      <DownloadOutlined /> Download
+      <DownloadOutlined /> {label}
     </Button>
   );
 }

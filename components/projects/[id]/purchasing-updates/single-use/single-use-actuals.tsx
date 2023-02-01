@@ -43,12 +43,14 @@ export function SingleUseActuals({ inventory, dateRange, periodSelect }: { inven
 
   const selectedCategory = availableCategories.find(period => period.value === selectedCategoryId);
 
-  const columnData = Object.entries(actuals.singleUseProducts.purchases).map(([date, record]) => {
-    return {
-      label: new Date(date).toLocaleDateString(),
-      value: useUnits ? record.unitCount : record.totalCost
-    };
-  });
+  const columnData = Object.entries(actuals.singleUseProducts.purchases)
+    .sort(([date]) => new Date(date).getTime())
+    .map(([date, record]) => {
+      return {
+        label: new Date(date).toLocaleDateString(),
+        value: useUnits ? record.unitCount : record.totalCost
+      };
+    });
 
   const pieData = Object.entries(actuals.singleUseProducts.categories).map(([categoryId, values]) => {
     const category = PRODUCT_CATEGORIES.find(cat => cat.id === categoryId)!;

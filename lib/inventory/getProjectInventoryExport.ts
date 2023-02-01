@@ -1,16 +1,14 @@
-import type { Project, SingleUseLineItem } from '@prisma/client';
-import { Org, Account, Dishwasher, OtherExpense, LaborCost, ReusableLineItem, WasteHaulingCost } from '@prisma/client';
+import type { Project, SingleUseLineItem, SingleUseLineItemRecord } from '@prisma/client';
 import ExcelJS from 'exceljs';
 
 import { PRODUCT_CATEGORIES } from 'lib/calculator/constants/product-categories';
-import { getAllProjections, AllProjectsSummary as _AllProjectsSummary, ProjectionsResponse } from 'lib/calculator/getProjections';
 import { getSingleUseProducts } from 'lib/inventory/getSingleUseProducts';
 import type { SingleUseProduct } from 'lib/inventory/types/products';
 import prisma from 'lib/prisma';
 
 // create our own version of ProjectData. Nicer would be to make teh types in lib/calculator generic
 interface ProjectData extends Project {
-  singleUseItems: SingleUseLineItem[];
+  singleUseItems: (SingleUseLineItem & { records: SingleUseLineItemRecord[] })[];
 }
 
 type SheetRow = Record<string, string | number>;
@@ -23,7 +21,11 @@ export async function getProjectInventoryExport(projectId: string) {
     include: {
       account: true,
       org: true,
-      singleUseItems: true
+      singleUseItems: {
+        include: {
+          records: true
+        }
+      }
     }
   });
 
@@ -65,7 +67,16 @@ function addSingleUseSheet(workbook: ExcelJS.Workbook, data: ProjectData, produc
     return PRODUCT_CATEGORIES.find(category => category.id === item.category)?.name || '';
   }
 
-  const dates = [new Date()];
+  const dates: Date[] = [];
+  data.singleUseItems.forEach(item => {
+    item.records.forEach(record => {
+      if (dates.every(d => d.toISOString() !== record.entryDate.toISOString())) {
+        dates.push(record.entryDate);
+      }
+    });
+  });
+  // add today for new entry
+  dates.sort().push(new Date());
 
   const columns: Partial<ExcelJS.Column>[] = [
     { header: 'Row id', key: 'id', width: 40, style: greyFill },
@@ -99,9 +110,15 @@ function addSingleUseSheet(workbook: ExcelJS.Workbook, data: ProjectData, produc
       unitsPerCase: item.unitsPerCase,
       caseCost: item.caseCost,
       casesPurchased: item.casesPurchased,
-      [`${dates[0]}-unitsPerCase`]: '',
-      [`${dates[0]}-caseCost`]: '',
-      [`${dates[0]}-casesPurchased`]: ''
+      ...dates.reduce((records, date) => {
+        const record = item.records.find(record => record.entryDate.toISOString() === date.toISOString());
+        return {
+          ...records,
+          [`${date}-unitsPerCase`]: record?.unitsPerCase || '',
+          [`${date}-caseCost`]: record?.caseCost || '',
+          [`${date}-casesPurchased`]: record?.casesPurchased || ''
+        };
+      }, {})
     };
   });
 

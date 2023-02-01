@@ -4,7 +4,7 @@ import { isValidDateString } from 'lib/dates';
 
 import type { InventoryInput, SingleUseRecord } from './saveInventoryRecords';
 
-export function importRecordsFromExcel(file: File): Promise<InventoryInput> {
+export function importRecordsFromExcel(file: Blob): Promise<InventoryInput> {
   return new Promise((resolve, reject) => {
     const wb = new ExcelJS.Workbook();
     const reader = new FileReader();
@@ -15,7 +15,6 @@ export function importRecordsFromExcel(file: File): Promise<InventoryInput> {
       wb.xlsx
         .load(buffer)
         .then(async workbook => {
-          console.log('columns', workbook.worksheets[0].columns);
           const inventoryInput = convertWorkbookToInventoryInput(workbook);
           resolve(inventoryInput);
         })
@@ -26,17 +25,22 @@ export function importRecordsFromExcel(file: File): Promise<InventoryInput> {
 
 function convertWorkbookToInventoryInput(workbook: ExcelJS.Workbook): InventoryInput {
   const sheet = workbook.worksheets[0];
-  const entryDates: string[] = [];
+  const entryDates: Date[] = [];
   const singleUseItems: InventoryInput['singleUseItems'] = [];
   sheet.eachRow((row, rowIndex) => {
     // first row is table headers
     if (rowIndex === 1 && row.values.length) {
       for (let i = 7; i < row.values.length; i = i + 3) {
-        const dateString = (row.values as string[])[i];
-        if (!isValidDateString(dateString)) {
+        // depending on the cell format, the value may be a string or a Date object
+        const dateString = (row.values as (string | Date)[])[i];
+        if (typeof dateString === 'string' && !isValidDateString(dateString)) {
           throw new Error('Invalid date column: ' + dateString);
         }
-        entryDates.push(dateString);
+        if (typeof dateString === 'string') {
+          entryDates.push(new Date(dateString));
+        } else {
+          entryDates.push(dateString);
+        }
       }
     }
     // skip the 2nd row which is used for subheaders
@@ -46,14 +50,8 @@ function convertWorkbookToInventoryInput(workbook: ExcelJS.Workbook): InventoryI
         records: entryDates
           .map((entryDate, index) => {
             const startIndex: number = 7 + index * 3;
-            console.log({
-              entryDate: entryDate,
-              unitsPerCase: getNumberValue(row, startIndex),
-              caseCost: getNumberValue(row, startIndex + 1),
-              casesPurchased: getNumberValue(row, startIndex + 2)
-            });
             return {
-              entryDate: entryDate,
+              entryDate: entryDate.toISOString(),
               unitsPerCase: getNumberValue(row, startIndex),
               caseCost: getNumberValue(row, startIndex + 1),
               casesPurchased: getNumberValue(row, startIndex + 2)
@@ -64,6 +62,7 @@ function convertWorkbookToInventoryInput(workbook: ExcelJS.Workbook): InventoryI
       });
     }
   });
+
   return {
     singleUseItems
   };
@@ -76,6 +75,9 @@ function isCompleteRecord(record: any): record is SingleUseRecord {
 
 function getNumberValue(row: ExcelJS.Row, index: number): number | null {
   const value = getValue(row, index);
+  if (!value) {
+    return null;
+  }
   if (typeof value === 'string') {
     return parseInt(value, 10);
   }
@@ -84,6 +86,5 @@ function getNumberValue(row: ExcelJS.Row, index: number): number | null {
 
 function getValue(row: ExcelJS.Row, index: number): string | number | null {
   const val = row.getCell(index).value;
-  console.log('val', index, val);
   return typeof val === 'string' || typeof val === 'number' ? val : null;
 }
