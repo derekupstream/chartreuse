@@ -1,28 +1,22 @@
-import { PrinterOutlined } from '@ant-design/icons';
-import { Button, Typography } from 'antd';
-import { Tabs } from 'antd';
+import { Typography } from 'antd';
 import { useEffect, useRef, useState } from 'react';
 import useSWR from 'swr';
 
 import ContentLoader from 'components/common/content-loader';
-import { ProjectInfo } from 'components/dashboard/styles';
 import { PrintButton } from 'components/print/print-button';
 import { PrintHeader } from 'components/print/print-header';
-import { ActualsResponse } from 'lib/calculator/getActuals';
 import chartreuseClient from 'lib/chartreuseClient';
 import type { ProjectContext } from 'lib/middleware/getProjectContext';
 
 import { AddBlock, Placeholder } from '../additional-costs/components/expense-block';
 import { useFooterState } from '../components/footer';
-import { CardTitle, Divider, SectionContainer, SectionHeader } from '../projections/components/styles';
+import { SectionContainer } from '../projections/components/styles';
 import { Wrapper } from '../styles';
 
 import { EmptyState } from './components/empty-state';
 import type { PeriodOption } from './components/period-select';
 import { PeriodSelect, convertPeriodToDates } from './components/period-select';
 import { UploadButton } from './components/upload-button';
-import { EnvironmentalSummary } from './project-impact/environmental-summary-actuals';
-import { ProjectImpact } from './project-impact/project-impact-actuals';
 import { SingleUseActuals } from './single-use/single-use-actuals';
 
 export function PurchasingUpdates({ project }: { project: ProjectContext['project'] }) {
@@ -45,6 +39,7 @@ export function PurchasingUpdates({ project }: { project: ProjectContext['projec
 
   function onUpload() {
     refreshInventory();
+    chartreuseClient.sendMailchimpEvent('completed_single_use_step');
   }
 
   function clickDownload() {

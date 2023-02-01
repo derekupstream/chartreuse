@@ -5,7 +5,7 @@ import prisma from 'lib/prisma';
 import { mailchimp } from './client';
 import { listId } from './client';
 
-export const MAILCHIMP_EVENTS = ['completed_single_use_step'] as const;
+export const MAILCHIMP_EVENTS = ['completed_single_use_step', 'completed_purchasing_updates_step'] as const;
 
 export type MailChimpEvent = (typeof MAILCHIMP_EVENTS)[number];
 
