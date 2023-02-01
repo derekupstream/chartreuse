@@ -39,7 +39,7 @@ export function PurchasingUpdates({ project }: { project: ProjectContext['projec
 
   function onUpload() {
     refreshInventory();
-    chartreuseClient.sendMailchimpEvent('completed_single_use_step');
+    chartreuseClient.sendMailchimpEvent('completed_purchasing_updates_step');
   }
 
   function clickDownload() {
