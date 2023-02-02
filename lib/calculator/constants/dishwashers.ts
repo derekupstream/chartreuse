@@ -7,8 +7,8 @@ export const DISHWASHER_TYPES = [
   { name: 'Under Counter' },
   { name: 'Stationary Single Tank Door' },
   { name: 'Single Tank Conveyer' },
-  { name: 'Multi Tank Conveyer' },
-  { name: 'Pot, Pan, and Utensil' }
+  { name: 'Multi Tank Conveyer' }
+  //{ name: 'Pot, Pan, and Utensil' } - details are missing in the original spreadsheet
 ] as const;
 
 export const FUEL_TYPES = [{ name: 'Electric' }, { name: 'Gas' }] as const;
