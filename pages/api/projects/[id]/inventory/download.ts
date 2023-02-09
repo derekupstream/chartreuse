@@ -11,6 +11,8 @@ handler.get(exportEndpoint);
 async function exportEndpoint(req: NextApiRequestWithUser, res: NextApiResponse) {
   const projectId = req.query.id as string;
 
+  if (typeof projectId !== 'string') throw new Error('No project id provided');
+
   const file = await getProjectInventoryExport(projectId);
 
   const buffer = await file.xlsx.writeBuffer();

@@ -38,9 +38,9 @@ interface SingleUseProductResults {
   };
 }
 
-export function getSingleUseProductForecast(project: ProjectInventory): SingleUseProductResults {
-  const summary = getSingleUseProductSummary(project.singleUseItems);
-  const resultsByType = getResultsByType(project.singleUseItems);
+export function getSingleUseProductForecast(inventory: ProjectInventory): SingleUseProductResults {
+  const summary = getSingleUseProductSummary(inventory.singleUseItems);
+  const resultsByType = getResultsByType(inventory.singleUseItems);
 
   return {
     summary,

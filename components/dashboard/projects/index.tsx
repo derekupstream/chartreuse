@@ -62,7 +62,7 @@ const Projects = () => {
               <Col xs={24} md={12} lg={8} key={project.id}>
                 <Card style={{ height: '100%' }} bodyStyle={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
                   <div style={{ flexGrow: 1 }}>
-                    <Typography.Title level={3} style={{ marginBottom: 0, paddingRight: 20 }}>
+                    <Typography.Title level={3} style={{ marginBottom: 0, paddingRight: 60 }}>
                       {project.name}
                     </Typography.Title>
                     <Typography.Title level={5} style={{ marginTop: 0 }}>

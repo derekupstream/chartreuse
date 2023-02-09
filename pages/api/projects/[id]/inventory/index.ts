@@ -16,6 +16,8 @@ handler.use(getUser).use(validateProject).get(getItems);
 async function getItems(req: NextApiRequestWithUser, res: NextApiResponse<ProjectInventory>) {
   const projectId = req.query.id as string;
 
+  if (typeof projectId !== 'string') throw new Error('No project id provided');
+
   const inventory = await getProjectInventory(projectId);
 
   res.status(200).json(inventory);

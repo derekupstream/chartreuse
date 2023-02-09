@@ -11,6 +11,8 @@ handler.delete(deleteEndpoint);
 async function deleteEndpoint(req: NextApiRequestWithUser, res: NextApiResponse) {
   const projectId = req.query.id as string;
 
+  if (typeof projectId !== 'string') throw new Error('No project id provided');
+
   await prisma.singleUseLineItemRecord.deleteMany({
     where: {
       singleUseLineItem: {

@@ -1,5 +1,3 @@
-import { Account, Project } from '@prisma/client';
-
 import { getProjectInventory } from '../inventory/getProjectInventory';
 
 import { getEnvironmentalResults } from './calculations/environmental-results';

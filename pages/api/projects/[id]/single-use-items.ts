@@ -11,6 +11,9 @@ handler.get(getItems).post(addItem).delete(deleteItem);
 
 async function getItems(req: NextApiRequestWithUser, res: NextApiResponse<{ lineItems?: SingleUseLineItem[] }>) {
   const projectId = req.query.id as string;
+
+  if (typeof projectId !== 'string') throw new Error('No project id provided');
+
   const lineItems = await prisma.singleUseLineItem.findMany({
     where: {
       projectId
