@@ -24,7 +24,7 @@ export function importRecordsFromExcel(file: Blob): Promise<InventoryInput> {
 }
 
 function convertWorkbookToInventoryInput(workbook: ExcelJS.Workbook): InventoryInput {
-  const sheet = workbook.worksheets[0];
+  const sheet = workbook.worksheets[1];
   const entryDates: Date[] = [];
   const singleUseItems: InventoryInput['singleUseItems'] = [];
   sheet.eachRow((row, rowIndex) => {
