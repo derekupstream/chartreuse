@@ -1,5 +1,6 @@
 import type { ProjectInventory } from '../../inventory/types/projects';
 import type { DateRange } from '../types';
+import { calculatePercentChange } from '../utils';
 
 interface SingleUseProductActuals {
   purchases: Record<string, TotalsForDate>;
@@ -133,12 +134,12 @@ function getBiggestChange(singleUseItems: ProjectInventory['singleUseItems'], va
   const category = categoriesWithChange.reduce((a, b) => {
     results[b] = {
       change: deltas[b].end - deltas[b].start,
-      changePercent: (deltas[b].end - deltas[b].start) / deltas[b].start,
+      changePercent: calculatePercentChange(deltas[b].start, deltas[b].end),
       id: b
     };
     return Math.abs(results[a]?.change) > Math.abs(results[b].change) ? a : b;
   }, categoriesWithChange[0]);
-
+  console.log('BIGEST CHANGE', results[category]);
   return results[category];
 }
 

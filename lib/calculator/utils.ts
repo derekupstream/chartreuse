@@ -5,7 +5,7 @@ export function round(int: number, decimals = 0): number {
 }
 
 // calculate the change in percent
-function calculatePercentChange(baseline: number, forecast: number) {
+export function calculatePercentChange(baseline: number, forecast: number) {
   return baseline === 0 ? 0 : round(((forecast - baseline) / baseline) * 100);
 }
 

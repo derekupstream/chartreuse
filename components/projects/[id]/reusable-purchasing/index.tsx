@@ -155,7 +155,7 @@ export default function ReusablePurchasing() {
         <br />
         <ol>
           <li>The replacement will likely be purchased in bulk, which will be a new recurring purchase.</li>
-          <li>Any new dispensing equipment will be included in Step 4, “Other Costs.”</li>
+          <li>Any new dispensing equipment will be included in Step 3, “Other Costs.”</li>
         </ol>
         <br />
       </Typography.Title>
