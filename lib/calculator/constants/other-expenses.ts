@@ -23,6 +23,11 @@ export const OTHER_EXPENSES = [
     description: 'Cost of any renovations required to accomodate washing and serving reusable products.'
   },
   {
+    id: '6',
+    name: 'Rebates/Grants',
+    description: 'Money from an outside source used for this project should be added with a (-) value.'
+  },
+  {
     id: '5',
     name: 'Other',
     description: 'Please use this for costs that do not fit into the other categories and add details in the description field.'
@@ -40,5 +45,6 @@ export const OTHER_EXPENSES_CATEGORIES = [
   { name: 'Supplies', id: '2' },
   { name: 'Vendors', id: '3' },
   { name: 'Renovation', id: '4' },
+  { name: 'Rebates/Grants', id: '6' },
   { name: 'Other', id: '5' }
 ];
