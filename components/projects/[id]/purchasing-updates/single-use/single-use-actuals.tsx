@@ -30,7 +30,7 @@ interface SelectOption<T extends string = string> {
 
 const categoryOptions: SelectOption[] = [...PRODUCT_CATEGORIES].map(cat => ({ label: cat.name, value: cat.id }));
 
-export function SingleUseActuals({ inventory, dateRange, periodSelect }: { inventory: ProjectInventory; dateRange?: DateRange; periodSelect: JSX.Element }) {
+export function SingleUseActuals({ inventory, dateRange, friendlyPeriod, periodSelect }: { inventory: ProjectInventory; friendlyPeriod: string; dateRange?: DateRange; periodSelect: JSX.Element }) {
   const [selectedCategoryId, setSelectedCategory] = useState<string | undefined>(undefined);
   const [useUnits, setUseUnits] = useState(true);
 
@@ -68,14 +68,21 @@ export function SingleUseActuals({ inventory, dateRange, periodSelect }: { inven
     setUseUnits(e.target.value === 'units');
   }
 
-  console.log({ actuals });
+  // console.log({ actuals });
 
   return (
     <>
       <Row spaceBetween flexStart>
         <SectionHeader style={{ margin: 0 }}>Total single-use purchasing history</SectionHeader>
 
-        <Form layout='horizontal'>{periodSelect}</Form>
+        <Form className='dont-print-me' layout='horizontal'>
+          {periodSelect}
+        </Form>
+        {
+          <p className='print-only'>
+            Time period: <strong>{friendlyPeriod}</strong>
+          </p>
+        }
       </Row>
       <Divider />
       <Card style={{ marginRight: 0 }}>

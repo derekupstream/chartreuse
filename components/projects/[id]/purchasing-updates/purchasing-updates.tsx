@@ -15,7 +15,7 @@ import { Wrapper } from '../styles';
 
 import { EmptyState } from './components/empty-state';
 import type { PeriodOption } from './components/period-select';
-import { PeriodSelect, convertPeriodToDates } from './components/period-select';
+import { PeriodSelect, getFriendlyPeriod } from './components/period-select';
 import { UploadButton } from './components/upload-button';
 import { SingleUseActuals } from './single-use/single-use-actuals';
 
@@ -52,7 +52,7 @@ export function PurchasingUpdates({ project }: { project: ProjectContext['projec
 
   const showEmptyState = !hasRecordsToShow && !clickedDownload;
 
-  const dateRange = convertPeriodToDates(selectedPeriod?.value);
+  const friendlyPeriod = getFriendlyPeriod(selectedPeriod?.value);
 
   return (
     <Wrapper ref={printRef}>
@@ -80,7 +80,7 @@ export function PurchasingUpdates({ project }: { project: ProjectContext['projec
       {!isLoading && !showEmptyState && inventory && hasRecordsToShow && (
         <>
           <SectionContainer>
-            <SingleUseActuals inventory={inventory} periodSelect={<PeriodSelect onChange={setSelectedPeriod} />} />
+            <SingleUseActuals inventory={inventory} friendlyPeriod={friendlyPeriod} periodSelect={<PeriodSelect onChange={setSelectedPeriod} />} />
           </SectionContainer>
           {/* <SectionContainer>
             <div className="page-break" />

@@ -48,6 +48,14 @@ export function convertPeriodToDates(period: PeriodValue | undefined): DateRange
   }
 }
 
+export function getFriendlyPeriod(period: PeriodValue | undefined): string {
+  const dates = convertPeriodToDates(period);
+  if (dates.start && dates.end) {
+    return `${date.format(dates.start, 'MMM yyyy')} - ${date.format(dates.end, 'MMM yyyy')}`;
+  }
+  return 'All time';
+}
+
 export function PeriodSelect({ onChange }: { onChange: (value: PeriodOption) => void }) {
   function _onChange(_: PeriodValue, option: PeriodOption | PeriodOption[]) {
     onChange(option as PeriodOption);
