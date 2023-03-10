@@ -228,32 +228,26 @@ export default function AnalyticsPage({ user, data, allProjects, isUpstreamView 
       <S2.SpaceBetween>
         <Typography.Title className='dont-print-me'>{isUpstreamView ? 'Upstream Analytics' : `${user.org.name}'s Analytics`}</Typography.Title>
 
-        <span>
-          {isUpstreamView && (
-            <>
-              <Form layout='horizontal' style={{ minWidth: 350, width: '49%' }}>
-                <Form.Item label='Filter projects'>
-                  <Select allowClear mode='multiple' defaultValue={selectedProjects} placeholder='Select Projects' onChange={handleChange} options={options} />
-                </Form.Item>
-              </Form>
-            </>
-          )}
-          <div style={{ display: 'flex', gap: '1em' }} className='dont-print-me'>
-            <PrintButton printRef={printRef} pdfTitle={`${user.org.name} Projects Overview - Chart Reuse`} />
-            <Button onClick={() => exportData()}>
-              <DownloadOutlined /> Export Data
-            </Button>
-          </div>
-        </span>
+        <div style={{ display: 'flex', gap: '1em' }} className='dont-print-me'>
+          <PrintButton printRef={printRef} pdfTitle={`${user.org.name} Projects Overview - Chart Reuse`} />
+          <Button onClick={() => exportData()}>
+            <DownloadOutlined /> Export Data
+          </Button>
+        </div>
       </S2.SpaceBetween>
 
       <Spacer vertical={spacing} />
 
-      <Typography.Title level={3} style={{ margin: 0 }}>
-        High-Level Overview
-      </Typography.Title>
-
-      <Spacer vertical={spacing} />
+      <S2.SpaceBetween>
+        <Typography.Title level={3} style={{ margin: 0 }}>
+          High-Level Overview
+        </Typography.Title>
+        <Form layout='horizontal' style={{ minWidth: 350, maxWidth: '49%' }}>
+          <Form.Item label='Filter projects'>
+            <Select allowClear mode='multiple' defaultValue={selectedProjects} placeholder='Select Projects' onChange={handleChange} options={options} />
+          </Form.Item>
+        </Form>
+      </S2.SpaceBetween>
 
       <Divider style={{ margin: 0 }} />
 

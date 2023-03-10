@@ -49,7 +49,7 @@ export const OrgAndUserWrapper = styled.div`
 
 export const SpaceBetween = styled.div`
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
 `;
 

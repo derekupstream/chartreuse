@@ -89,10 +89,6 @@ class Client {
     return http.DELETE(`/api/projects/${projectId}/single-use-items`, { id: lineItemId });
   }
 
-  getProjectSummaries() {
-    return http.GET<AllProjectsSummary>('/api/projections');
-  }
-
   getProjectInventory(projectId: string) {
     return http.GET<ProjectInventory>(`/api/projects/${projectId}/inventory`);
   }
