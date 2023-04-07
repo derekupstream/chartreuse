@@ -15,12 +15,13 @@ const handler = nc<NextApiRequest, NextApiResponse>({ onError, onNoMatch });
 handler.use(getUser).get(getProjects).post(createProject);
 
 async function createProject(req: NextApiRequestWithUser, res: NextApiResponse<{ project: Project }>) {
-  const { name, metadata, accountId } = req.body;
+  const { name, metadata, accountId, USState } = req.body;
 
   const project = await prisma.project.create({
     data: {
       name,
       metadata: metadata as ProjectMetadata,
+      USState,
       account: {
         connect: {
           id: accountId

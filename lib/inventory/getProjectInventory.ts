@@ -37,7 +37,7 @@ export async function getProjectInventory(projectId: string): Promise<ProjectInv
   }
 
   // get utility rates
-  const state = project.account.USState as USState;
+  const state = project.USState as USState;
   const utilityRates = getUtilitiesByState(state);
 
   // map db model types to frontend types

@@ -30,21 +30,19 @@ async function getDishwashers(req: NextApiRequestWithUser, res: NextApiResponse<
       projectId
     },
     include: {
-      project: {
-        include: {
-          account: true
-        }
-      }
+      project: true
     }
   });
+
+  console.log(dishwashers[0]);
 
   if (dishwashers.length === 0) {
     res.status(200).end();
   } else {
-    const accountId = dishwashers[0].project.account.id;
-    const state = dishwashers[0].project.account.USState as USState;
+    const accountId = dishwashers[0].project.accountId;
+    const state = dishwashers[0].project.USState as USState;
     const rates = getUtilitiesByState(state);
-
+    console.log({ state });
     const dishwasherDTOs = dishwashers.map(({ project, ...dishwasherOnly }) => ({
       dishwasher: dishwasherOnly,
       stats: getDishwasherStats({ state, dishwasher: dishwasherOnly })

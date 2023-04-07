@@ -28,7 +28,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     }
   } else if (req.method === 'PUT') {
     try {
-      const { name, metadata, accountId, orgId } = req.body;
+      const { name, metadata, accountId, USState, orgId } = req.body;
 
       const project = await prisma.project.update<Prisma.ProjectUpdateArgs>({
         where: {
@@ -37,6 +37,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         data: {
           name,
           metadata: metadata as ProjectMetadata,
+          USState,
           account: {
             connect: {
               id: accountId

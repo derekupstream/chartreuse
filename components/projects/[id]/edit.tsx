@@ -6,6 +6,7 @@ import { useRouter } from 'next/router';
 import styled from 'styled-components';
 
 import type { DashboardUser } from 'components/dashboard';
+import { STATES } from 'lib/calculator/constants/utilities';
 import type { ProjectInput } from 'lib/chartreuseClient';
 import chartreuseClient from 'lib/chartreuseClient';
 
@@ -43,12 +44,15 @@ export type ProjectMetadata = {
 export default function ProjectForm({ user, project, successPath }: { user: DashboardUser; project?: Project; successPath: (id: string) => string }) {
   const router = useRouter();
 
-  async function saveProject({ name, accountId, ...metadata }: Store) {
+  const urlRedirect = typeof router.query.redirect === 'string' ? router.query.redirect : null;
+
+  async function saveProject({ name, accountId, USState, ...metadata }: Store) {
     const params: ProjectInput = {
       id: project?.id,
       name,
       metadata,
       accountId,
+      USState,
       // @ts-ignore
       orgId: user.org.id
     };
@@ -57,7 +61,7 @@ export default function ProjectForm({ user, project, successPath }: { user: Dash
 
     req
       .then(res => {
-        router.push(successPath(res.project.id));
+        router.push(urlRedirect || successPath(res.project.id));
       })
       .catch(err => {
         message.error((err as Error)?.message);
@@ -73,8 +77,9 @@ export default function ProjectForm({ user, project, successPath }: { user: Dash
           accountId: user.org.accounts[0].id,
           customers: 0,
           dineInVsTakeOut: 0,
-          ...(project || {}),
-          ...((project?.metadata as any) || {})
+          USState: 'California',
+          ...((project?.metadata as any) || {}),
+          ...(project || {})
         }}
         onFinish={saveProject as any}
       >
@@ -130,6 +135,16 @@ export default function ProjectForm({ user, project, successPath }: { user: Dash
                 </Select.Option>
               );
             })}
+          </Select>
+        </Form.Item>
+
+        <Form.Item label='Account US State' name='USState'>
+          <Select showSearch style={{ width: '100%' }}>
+            {STATES.map(state => (
+              <Select.Option key={state.name} value={state.name}>
+                {state.name}
+              </Select.Option>
+            ))}
           </Select>
         </Form.Item>
 

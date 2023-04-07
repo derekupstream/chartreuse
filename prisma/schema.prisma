@@ -91,6 +91,8 @@ model Project {
   laborCosts        LaborCost[]
   wasteHaulingCosts WasteHaulingCost[]
   dishwashers       Dishwasher[]
+  USState           String              @default("California")
+  utilityRates      Json?
 }
 
 model SingleUseLineItem {

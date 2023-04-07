@@ -17,7 +17,7 @@ type Response = {
 };
 
 async function createAccount(req: NextApiRequestWithUser, res: NextApiResponse<Response>) {
-  const { name, email, USState } = req.body;
+  const { name, email } = req.body;
 
   const invitedUser = email !== req.user.email;
 
@@ -25,7 +25,6 @@ async function createAccount(req: NextApiRequestWithUser, res: NextApiResponse<R
     data: {
       name,
       accountContactEmail: email,
-      USState,
       org: {
         connect: {
           id: req.user.orgId

@@ -105,7 +105,6 @@ export default function EditAccount({ org }: Props) {
   if (!org) return <PageLoader />;
 
   const accountName = org.accounts.find(account => account.id === router.query.id)?.name;
-  const USState = org.accounts.find(account => account.id === router.query.id)?.USState;
 
   return (
     <>
@@ -120,7 +119,7 @@ export default function EditAccount({ org }: Props) {
             </Link>
           }
         >
-          <AccountEditForm onSubmit={updateAccount} onCancel={() => router.push('/accounts')} initialValues={{ name: accountName, USState }} />
+          <AccountEditForm onSubmit={updateAccount} onCancel={() => router.push('/accounts')} initialValues={{ name: accountName }} />
         </FormPageTemplate>
       </main>
     </>

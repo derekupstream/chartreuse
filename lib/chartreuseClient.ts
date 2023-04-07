@@ -11,7 +11,6 @@ import * as http from './http';
 export type AccountSetupFields = {
   name: string;
   email: string;
-  USState: string;
 };
 
 export type ProjectInput = {
@@ -20,6 +19,7 @@ export type ProjectInput = {
   metadata: any;
   accountId: string;
   orgId: string;
+  USState: AccountSetupFields;
 };
 
 export type InviteMemberInput = {

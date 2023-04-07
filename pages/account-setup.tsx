@@ -12,7 +12,6 @@ import PageLoader from 'components/page-loader';
 import { verifyIdToken } from 'lib/auth/firebaseAdmin';
 import type { AccountSetupFields } from 'lib/chartreuseClient';
 import chartreuseClient from 'lib/chartreuseClient';
-import * as http from 'lib/http';
 import prisma from 'lib/prisma';
 
 export const getServerSideProps: GetServerSideProps = async context => {
