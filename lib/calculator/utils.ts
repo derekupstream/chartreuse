@@ -24,11 +24,17 @@ export function getChangeSummaryRow(baseline: number, forecast: number): ChangeS
 
 export function getChangeSummaryRowRounded(baseline: number, forecast: number, decimals = 0): ChangeSummary {
   const { change, changePercent } = getChangeSummaryRow(baseline, forecast);
+  const changeRounded = round(change, decimals);
+  let changePercentRounded = round(changePercent, decimals);
+  // round the change in case it is something like baseline: 0.01 and forecast: 0.1 which would show a crazy change but the UI would round them both to 0
+  if (changeRounded === 0) {
+    changePercentRounded = 0;
+  }
   return {
     baseline: round(baseline, decimals),
     forecast: round(forecast, decimals),
-    change: round(change, decimals),
-    changePercent: round(changePercent, decimals)
+    change: changeRounded,
+    changePercent: changePercentRounded
   };
 }
 

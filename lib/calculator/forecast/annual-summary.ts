@@ -9,7 +9,6 @@ export function getAnnualSummary(project: ProjectInventory) {
   const financeResults = getFinancialResults(project);
   const environmentalResults = getEnvironmentalResults(project);
   const singleUseProductForecast = getSingleUseProductForecast(project);
-
   return {
     dollarCost: financeResults.annualCostChanges,
     singleUseProductCount: singleUseProductForecast.summary.annualUnits,

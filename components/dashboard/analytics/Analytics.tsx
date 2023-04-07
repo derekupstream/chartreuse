@@ -39,7 +39,8 @@ export interface PageProps {
   isUpstreamView?: boolean;
   user: User & { org: Org };
   data?: AllProjectsSummary;
-  allProjects?: { id: string; name: string }[];
+  allAccounts?: { id: string; name: string }[];
+  allProjects?: { id: string; accountId: string; name: string }[];
 }
 
 const SummaryCardWithGraph = ({ label, units, value, formatter = defaultFormatter }: { label: string; units?: string; value: SummaryValues; formatter?: (val: number) => string | ReactNode }) => {
@@ -157,7 +158,7 @@ const columns = [
 ];
 
 const defaultFormatter = (val: number) => {
-  return val ? val.toLocaleString() : <span style={{ color: 'grey', fontSize: '12px' }}>N/A</span>;
+  return typeof val === 'number' ? val === 0 ? 0 : val.toLocaleString() : <span style={{ color: 'grey', fontSize: '12px' }}>N/A</span>;
 };
 
 const ReductionValue = ({ value, formatter = defaultFormatter }: { value: { change: number; changePercent?: number }; formatter?: (val: number) => string | ReactNode }) => {
@@ -177,7 +178,7 @@ const ReductionValue = ({ value, formatter = defaultFormatter }: { value: { chan
   );
 };
 
-export default function AnalyticsPage({ user, data, allProjects, isUpstreamView }: PageProps) {
+export default function AnalyticsPage({ user, data, allAccounts, allProjects, isUpstreamView }: PageProps) {
   const router = useRouter();
 
   // for printing
@@ -189,13 +190,33 @@ export default function AnalyticsPage({ user, data, allProjects, isUpstreamView 
 
   const selectedProjects = typeof router.query.projects === 'string' ? router.query.projects.split(',') : [];
 
-  const options: SelectProps['options'] = allProjects?.map(project => ({
-    label: project.name,
-    value: project.id
-  }));
+  const options: SelectProps['options'] = [
+    {
+      label: 'Filter by Account',
+      options: allAccounts?.map(account => ({
+        label: account.name,
+        value: account.id
+      }))
+    },
+    {
+      label: 'Filter by Project',
+      options: allProjects?.map(project => ({
+        label: project.name,
+        value: project.id
+      }))
+    }
+  ];
 
   function handleChange(value: string[]) {
-    const updatedPath = router.asPath.split('?')[0] + (value.length ? `?projects=${value.join(',')}` : '');
+    const accountIds = value.filter(id => allAccounts?.some(project => project.id === id));
+    const projectIds = value.filter(id => allProjects?.some(project => project.id === id));
+    let updatedPath = router.asPath.split('?')[0];
+    if (accountIds.length) {
+      updatedPath += `?accounts=${accountIds.join(',')}`;
+    }
+    if (projectIds.length) {
+      updatedPath += `${updatedPath.includes('?') ? '&' : '?'}projects=${projectIds.join(',')}`;
+    }
     router.replace(updatedPath);
   }
 

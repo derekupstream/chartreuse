@@ -1,11 +1,11 @@
+import sortBy from 'lodash/sortBy';
+import uniqBy from 'lodash/uniqBy';
 import type { GetServerSideProps } from 'next';
-import useSWR from 'swr';
 
 import type { PageProps } from 'components/dashboard/analytics';
 import Analytics from 'components/dashboard/analytics';
 import Template from 'layouts/dashboardLayout';
 import { getAllProjections } from 'lib/calculator/getProjections';
-import chartreuseClient from 'lib/chartreuseClient';
 import { getUserFromContext } from 'lib/middleware';
 import prisma from 'lib/prisma';
 
@@ -17,6 +17,7 @@ export const getServerSideProps: GetServerSideProps<PageProps> = async context =
     };
   }
 
+  const accountIds = (context.query.accounts as string | undefined)?.split(',');
   const projectIds = (context.query.projects as string | undefined)?.split(',');
   const projects = await prisma.project.findMany({
     where: {
@@ -28,20 +29,42 @@ export const getServerSideProps: GetServerSideProps<PageProps> = async context =
       org: true
     }
   });
-  const filteredProjects = projectIds ? projects.filter(p => projectIds.includes(p.id)) : projects;
+  const filteredProjects = projects.filter(p => {
+    if (accountIds || projectIds) {
+      return accountIds?.includes(p.accountId) || projectIds?.includes(p.id);
+    }
+    return true;
+  });
+
   const data = await getAllProjections(filteredProjects);
+
+  const allAccounts = sortBy(
+    uniqBy(
+      projects.map(p => ({ id: p.accountId, name: p.account.name })),
+      'id'
+    ),
+    'name'
+  );
+  const allProjects = sortBy(
+    projects
+      .map(p => ({ id: p.id, accountId: p.accountId, name: `${p.account.name}: ${p.name}` }))
+      // remove projects included already in the account filter
+      .filter(p => (accountIds ? !accountIds.includes(p.accountId) : true)),
+    'name'
+  );
 
   return {
     props: {
-      allProjects: projects.map(p => ({ id: p.id, name: `${p.org.name} - ${p.account.name}: ${p.name}` })),
+      allAccounts,
+      allProjects,
       data,
       user
     }
   };
 };
 
-const AnalyticsPage = ({ allProjects, data, user }: PageProps) => {
-  return <Analytics allProjects={allProjects} data={data} user={user} />;
+const AnalyticsPage = ({ allAccounts, allProjects, data, user }: PageProps) => {
+  return <Analytics allAccounts={allAccounts} allProjects={allProjects} data={data} user={user} />;
 };
 
 AnalyticsPage.getLayout = (page: React.ReactNode, pageProps: any) => {
