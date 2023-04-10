@@ -1,4 +1,5 @@
-import type { Prisma, Project } from '@prisma/client';
+import { Prisma } from '@prisma/client';
+import type { Project } from '@prisma/client';
 import type { NextApiRequest, NextApiResponse } from 'next';
 
 import type { ProjectMetadata } from 'components/projects/[id]/edit';
@@ -28,7 +29,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     }
   } else if (req.method === 'PUT') {
     try {
-      const { name, metadata, accountId, USState, orgId } = req.body;
+      const { name, metadata, accountId, USState, orgId, currency, utilityRates } = req.body;
+
+      if (USState) {
+        if (utilityRates) {
+          throw new Error('Cannot set both US state and utility rates');
+        }
+      } else if (utilityRates) {
+        if (USState) {
+          throw new Error('Cannot set both US state and utility rates');
+        }
+        if (!utilityRates.water || !utilityRates.electric || !utilityRates.gas) {
+          throw new Error('Must set water, electric, and gas rates');
+        }
+      } else {
+        throw new Error('Must set either US state or utility rates');
+      }
 
       const project = await prisma.project.update<Prisma.ProjectUpdateArgs>({
         where: {
@@ -38,6 +54,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           name,
           metadata: metadata as ProjectMetadata,
           USState,
+          currency,
+          utilityRates: utilityRates || Prisma.JsonNull,
           account: {
             connect: {
               id: accountId

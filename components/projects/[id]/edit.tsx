@@ -1,8 +1,10 @@
 import type { Project } from '@prisma/client';
-import { Button, Input, Typography, Slider, message } from 'antd';
-import { Form, Select } from 'antd';
+import { Input, Typography, Slider, message } from 'antd';
+import { InputNumber, Form, Select } from 'antd';
+import { Button, Radio } from 'antd';
 import type { Store } from 'antd/lib/form/interface';
 import { useRouter } from 'next/router';
+import { useState } from 'react';
 import styled from 'styled-components';
 
 import type { DashboardUser } from 'components/dashboard';
@@ -10,7 +12,58 @@ import { STATES } from 'lib/calculator/constants/utilities';
 import type { ProjectInput } from 'lib/chartreuseClient';
 import chartreuseClient from 'lib/chartreuseClient';
 
+import currencyOptions from './components/currencyList';
 import * as S from './styles';
+
+// component and config for currency select is from the example at https://codesandbox.io/s/currency-wrapper-antd-input-3ynzo?file=/src/index.js
+// referenced at https://ant.design/components/input-number
+const locale = 'en-us';
+
+const USDollarOption = currencyOptions[0];
+
+const currencyFormatter =
+  (selectedCurrOpt: string) =>
+  (value = 0) => {
+    return new Intl.NumberFormat(locale, {
+      style: 'currency',
+      currency: selectedCurrOpt
+    }).format(value);
+  };
+
+const currencyParser = (val = ''): number => {
+  try {
+    // for when the input gets clears
+    if (typeof val === 'string' && !val.length) {
+      val = '0.0';
+    }
+
+    // detecting and parsing between comma and dot
+    const group = new Intl.NumberFormat(locale).format(1111).replace(/1/g, '');
+    const decimal = new Intl.NumberFormat(locale).format(1.1).replace(/1/g, '');
+    let reversedVal = val.replace(new RegExp('\\' + group, 'g'), '');
+    reversedVal = reversedVal.replace(new RegExp('\\' + decimal, 'g'), '.');
+    //  => 1232.21 €
+
+    // removing everything except the digits and dot
+    reversedVal = reversedVal.replace(/[^0-9.]/g, '');
+    //  => 1232.21
+
+    // appending digits properly
+    const digitsAfterDecimalCount = (reversedVal.split('.')[1] || []).length;
+    const needsDigitsAppended = digitsAfterDecimalCount > 2;
+
+    let result = parseFloat(reversedVal);
+    if (needsDigitsAppended) {
+      // Note: Javascript returns a number when multiplying a string by a number, but TS does not understand this
+      result = (reversedVal as unknown as number) * Math.pow(10, digitsAfterDecimalCount - 2);
+    }
+
+    return Number.isNaN(result) ? 0 : result;
+  } catch (error) {
+    console.error(error);
+    return 0;
+  }
+};
 
 const Wrapper = styled(S.Wrapper)`
   display: flex;
@@ -44,18 +97,30 @@ export type ProjectMetadata = {
 export default function ProjectForm({ user, project, successPath }: { user: DashboardUser; project?: Project; successPath: (id: string) => string }) {
   const router = useRouter();
 
+  const [showCustomUtilities, setShowCustomUtilities] = useState(project ? !project?.USState : false);
+
+  function toggleCustomUtilities(value: boolean) {
+    setShowCustomUtilities(value);
+  }
   const urlRedirect = typeof router.query.redirect === 'string' ? router.query.redirect : null;
 
-  async function saveProject({ name, accountId, USState, ...metadata }: Store) {
+  async function saveProject({ name, accountId, currency = null, USState = null, utilityRates = null, ...metadata }: Store) {
     const params: ProjectInput = {
       id: project?.id,
       name,
       metadata,
       accountId,
       USState,
-      // @ts-ignore
+      currency,
+      utilityRates,
       orgId: user.org.id
     };
+
+    if (showCustomUtilities) {
+      params.USState = null;
+    } else {
+      params.utilityRates = null;
+    }
 
     const req = project ? chartreuseClient.updateProject(params) : chartreuseClient.createProject(params);
 
@@ -64,28 +129,37 @@ export default function ProjectForm({ user, project, successPath }: { user: Dash
         router.push(urlRedirect || successPath(res.project.id));
       })
       .catch(err => {
-        message.error((err as Error)?.message);
+        message.error((err as Error)?.message || err.error);
       });
   }
+
+  console.log(
+    'currency',
+    currencyOptions.filter(o => o.label === 'US Dollar')
+  );
+  // make some inputs vertical so that nested layout for custom utilities can be horizontal: https://stackoverflow.com/questions/64451233/how-to-set-the-layout-horizontal-inside-for-few-form-item-while-keeping-for
+  const verticalLayout = { labelCol: { span: 24 } };
 
   return (
     <Wrapper>
       <Typography.Title level={1}>Setup your project</Typography.Title>
       <S.SetupForm
-        layout='vertical'
+        layout='horizontal'
         initialValues={{
           accountId: user.org.accounts[0].id,
           customers: 0,
           dineInVsTakeOut: 0,
-          USState: 'California',
+          currency: USDollarOption.value,
           ...((project?.metadata as any) || {}),
           ...(project || {})
         }}
         onFinish={saveProject as any}
       >
         <Form.Item
+          {...verticalLayout}
           label='Project Name'
           name='name'
+          labelCol={{ span: 24 }}
           rules={[
             {
               required: true,
@@ -97,6 +171,7 @@ export default function ProjectForm({ user, project, successPath }: { user: Dash
         </Form.Item>
 
         <Form.Item
+          {...verticalLayout}
           label='Project Type'
           name='type'
           rules={[
@@ -118,6 +193,7 @@ export default function ProjectForm({ user, project, successPath }: { user: Dash
         </Form.Item>
 
         <Form.Item
+          {...verticalLayout}
           label='Account'
           name='accountId'
           rules={[
@@ -138,17 +214,57 @@ export default function ProjectForm({ user, project, successPath }: { user: Dash
           </Select>
         </Form.Item>
 
-        <Form.Item label='Account US State' name='USState'>
-          <Select showSearch style={{ width: '100%' }}>
-            {STATES.map(state => (
-              <Select.Option key={state.name} value={state.name}>
-                {state.name}
-              </Select.Option>
-            ))}
-          </Select>
+        <Form.Item
+          label='Utility Rates'
+          {...verticalLayout}
+          style={{
+            marginBottom: '0'
+          }}
+        >
+          <Radio.Group style={{ width: '100%' }} onChange={e => toggleCustomUtilities(e.target.value)} value={showCustomUtilities}>
+            <Radio style={{ width: '40%' }} value={false}>
+              Select by US State
+            </Radio>
+            <Radio value={true}>Enter custom rates</Radio>
+          </Radio.Group>
+          <br />
+          <br />
+          {!showCustomUtilities && (
+            <Form.Item label='' name='USState'>
+              <Select showSearch style={{ width: '100%' }} placeholder='Select a state'>
+                {STATES.map(state => (
+                  <Select.Option key={state.name} value={state.name}>
+                    {state.name}
+                  </Select.Option>
+                ))}
+              </Select>
+            </Form.Item>
+          )}
+          {showCustomUtilities && (
+            <>
+              {/* <Form.Item label='Currency' name='currency' labelCol={{ span: 6 }}>
+                <Select showSearch style={{ width: 120 }}>
+                  {currencyOptions.map(opt => (
+                    <Select.Option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </Select.Option>
+                  ))}
+                </Select>
+              </Form.Item> */}
+              <Form.Item label='Electric' name={['utilityRates', 'electric']} labelCol={{ span: 5 }}>
+                <InputNumber min={0} precision={2} step={0.1} formatter={currencyFormatter(USDollarOption.value)} parser={currencyParser} />
+              </Form.Item>
+              <Form.Item label='Gas' name={['utilityRates', 'gas']} labelCol={{ span: 5 }}>
+                <InputNumber min={0} precision={2} step={0.1} formatter={currencyFormatter(USDollarOption.value)} parser={currencyParser} />
+              </Form.Item>
+              <Form.Item label='Water' name={['utilityRates', 'water']} labelCol={{ span: 5 }}>
+                <InputNumber min={0} precision={2} step={0.1} formatter={currencyFormatter(USDollarOption.value)} parser={currencyParser} />
+              </Form.Item>
+            </>
+          )}
         </Form.Item>
 
-        <Form.Item label='On average, how many customers do you serve daily?' name='customers'>
+        <Form.Item {...verticalLayout} label='On average, how many customers do you serve daily?' name='customers'>
           <Slider
             marks={{
               50: 50,
@@ -159,19 +275,21 @@ export default function ProjectForm({ user, project, successPath }: { user: Dash
             min={50}
             max={1000}
             step={50}
+            style={{ marginTop: 0 }}
           />
         </Form.Item>
 
-        <Form.Item label='What percent of your daily volume is dine-in vs. take-out?' name='dineInVsTakeOut'>
+        <Form.Item {...verticalLayout} label='What percent of your daily volume is dine-in vs. take-out?' name='dineInVsTakeOut'>
           <Slider
             marks={{
               0: 'Dine-in',
               100: { style: { width: '100px' }, label: 'Take-out' }
             }}
+            style={{ marginTop: 0 }}
           />
         </Form.Item>
 
-        <Form.Item label='Where is the food primarily prepared?' name='whereIsFoodPrepared'>
+        <Form.Item {...verticalLayout} label='Where is the food primarily prepared?' name='whereIsFoodPrepared'>
           <S.RadioGroup
             style={{ width: '100%' }}
             options={WhereFoodIsPrepared.map(wfp => ({
@@ -182,7 +300,7 @@ export default function ProjectForm({ user, project, successPath }: { user: Dash
           />
         </Form.Item>
 
-        <Form.Item label='What type of dishwashing capacity best describes your operation?' name='dishwashingType'>
+        <Form.Item {...verticalLayout} label='What type of dishwashing capacity best describes your operation?' name='dishwashingType'>
           <Select placeholder='Select dishwashing type'>
             {dishwashingTypes.map(type => {
               return (

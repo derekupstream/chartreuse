@@ -7,7 +7,7 @@ import type { LaborCostCategory } from '../calculator/constants/labor-categories
 import type { OtherExpenseCategory } from '../calculator/constants/other-expenses';
 import { PRODUCT_CATEGORIES } from '../calculator/constants/product-categories';
 import type { USState } from '../calculator/constants/utilities';
-import { getUtilitiesByState } from '../calculator/constants/utilities';
+import { getProjectUtilities } from '../calculator/constants/utilities';
 
 import { getSingleUseProducts } from './getSingleUseProducts';
 import type { SingleUseProduct } from './types/products';
@@ -37,8 +37,7 @@ export async function getProjectInventory(projectId: string): Promise<ProjectInv
   }
 
   // get utility rates
-  const state = project.USState as USState;
-  const utilityRates = getUtilitiesByState(state);
+  const utilityRates = getProjectUtilities(project);
 
   // map db model types to frontend types
   const products = await getSingleUseProducts({ orgId: project.orgId });
@@ -53,7 +52,7 @@ export async function getProjectInventory(projectId: string): Promise<ProjectInv
     otherExpenses,
     reusableItems: project.reusableItems,
     singleUseItems,
-    state,
+    state: project.USState as USState,
     utilityRates,
     wasteHauling
   };

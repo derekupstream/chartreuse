@@ -4,8 +4,8 @@ import nc from 'next-connect';
 
 import type { DishwasherStats } from 'lib/calculator/calculations/dishwasher';
 import { getDishwasherStats } from 'lib/calculator/calculations/dishwasher';
-import type { UtilityRates, USState } from 'lib/calculator/constants/utilities';
-import { getUtilitiesByState } from 'lib/calculator/constants/utilities';
+import type { UtilityRates } from 'lib/calculator/constants/utilities';
+import { getProjectUtilities } from 'lib/calculator/constants/utilities';
 import type { NextApiRequestWithUser } from 'lib/middleware';
 import { onError, onNoMatch, getUser } from 'lib/middleware';
 import { validateProject } from 'lib/middleware/validateProject';
@@ -19,36 +19,35 @@ handler.use(getUser).use(validateProject).get(getDishwashers).post(createDishwas
 export interface Response {
   accountId: string;
   dishwashers: { dishwasher: PrismaDishwasher; stats: DishwasherStats }[];
-  state: string;
+  state: string | null;
   rates: UtilityRates;
 }
 
 async function getDishwashers(req: NextApiRequestWithUser, res: NextApiResponse<Response>) {
   const projectId = req.query.projectId as string;
+  const project = await prisma.project.findUniqueOrThrow({
+    where: {
+      id: projectId
+    }
+  });
   const dishwashers = await prisma.dishwasher.findMany({
     where: {
       projectId
-    },
-    include: {
-      project: true
     }
   });
 
-  console.log(dishwashers[0]);
+  const accountId = project.accountId;
+  const rates = getProjectUtilities(project);
 
   if (dishwashers.length === 0) {
-    res.status(200).end();
+    res.status(200).json({ accountId, dishwashers: [], state: project.USState, rates });
   } else {
-    const accountId = dishwashers[0].project.accountId;
-    const state = dishwashers[0].project.USState as USState;
-    const rates = getUtilitiesByState(state);
-    console.log({ state });
-    const dishwasherDTOs = dishwashers.map(({ project, ...dishwasherOnly }) => ({
-      dishwasher: dishwasherOnly,
-      stats: getDishwasherStats({ state, dishwasher: dishwasherOnly })
+    const dishwasherDTOs = dishwashers.map(dishwasher => ({
+      dishwasher,
+      stats: getDishwasherStats({ rates, dishwasher })
     }));
 
-    res.status(200).json({ accountId, dishwashers: dishwasherDTOs, state, rates });
+    res.status(200).json({ accountId, dishwashers: dishwasherDTOs, state: project.USState, rates });
   }
 }
 

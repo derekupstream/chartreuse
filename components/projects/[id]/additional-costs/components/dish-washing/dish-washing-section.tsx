@@ -81,31 +81,31 @@ const DishWashingSection = () => {
   if (isLoading) {
     return <ContentLoader />;
   }
-
+  console.log(data);
   const utilities = {
-    title: 'Utility Rates for ' + data?.state,
+    title: `Utility rates ${data?.state ? ` for ${data.state}` : ''}`,
     content: (
       <>
         <Typography.Paragraph style={{ display: 'flex', justifyContent: 'space-between' }}>
           <span style={{ paddingRight: '1em' }}>
             Electric <span style={{ color: 'grey' }}>($/kWh)</span>:
           </span>
-          <span>${data?.rates?.electric}</span>
+          <span>${data?.rates?.electric.toFixed(2)}</span>
         </Typography.Paragraph>
         <Typography.Paragraph style={{ display: 'flex', justifyContent: 'space-between' }}>
           <span style={{ paddingRight: '1em' }}>
             Gas <span style={{ color: 'grey' }}>($/therm)</span>:
           </span>
-          <span>${data?.rates?.gas}</span>
+          <span>${data?.rates?.gas.toFixed(2)}</span>
         </Typography.Paragraph>
         <Typography.Paragraph style={{ display: 'flex', justifyContent: 'space-between' }}>
           <span style={{ paddingRight: '1em' }}>
             Water <span style={{ color: 'grey' }}>($/thousand gallons)</span>:
           </span>
-          <span>${data?.rates?.water}</span>
+          <span>${data?.rates?.water.toFixed(2)}</span>
         </Typography.Paragraph>
         <Typography.Link style={{ fontSize: 12 }} underline type='secondary' href={`/projects/${route.query.id}/edit?redirect=${route.asPath}`}>
-          Edit utility rates for this project
+          Edit Utility Rates for this project
         </Typography.Link>
       </>
     )
@@ -125,7 +125,7 @@ const DishWashingSection = () => {
         Use this section to help calculate dishwashing energy and water costs. Energy and water rates are based on your{' '}
         <Popover content={utilities.content} title={utilities.title} trigger='hover'>
           <Typography.Link underline href={`/projects/${route.query.id}/edit?redirect=${route.asPath}`}>
-            state average
+            {data?.state ? 'state average' : 'custom rates'}
           </Typography.Link>
         </Popover>
         .

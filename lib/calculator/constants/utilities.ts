@@ -61,7 +61,7 @@ export type USState = (typeof STATES)[number]['name'];
 
 export type UtilityRates = { gas: number; electric: number; water: number };
 
-export function getUtilitiesByState(state: USState): UtilityRates {
+function getUtilitiesByState(state: USState): UtilityRates {
   const localRates = STATES.find(s => s.name === state);
   if (!localRates) {
     throw new Error(`No utilities rates for state ${state}`);
@@ -70,4 +70,13 @@ export function getUtilitiesByState(state: USState): UtilityRates {
     ...localRates,
     water: WATER_NATIONAL_AVERAGE
   };
+}
+
+export function getProjectUtilities(project: { USState?: string | null; utilityRates?: any | null }): UtilityRates {
+  if (project.USState) {
+    return getUtilitiesByState(project.USState as USState);
+  } else if (project.utilityRates?.electric && project.utilityRates?.gas && project.utilityRates?.water) {
+    return project.utilityRates;
+  }
+  throw new Error('Project does not have a state or utility rates');
 }

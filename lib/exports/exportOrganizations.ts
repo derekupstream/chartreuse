@@ -7,8 +7,7 @@ import type { Frequency } from 'lib/calculator/constants/frequency';
 import { getannualOccurrence } from 'lib/calculator/constants/frequency';
 import { LABOR_CATEGORIES } from 'lib/calculator/constants/labor-categories';
 import { OTHER_EXPENSES } from 'lib/calculator/constants/other-expenses';
-import type { USState } from 'lib/calculator/constants/utilities';
-import { getUtilitiesByState } from 'lib/calculator/constants/utilities';
+import { getProjectUtilities } from 'lib/calculator/constants/utilities';
 import { getAllProjections } from 'lib/calculator/getProjections';
 import type { AllProjectsSummary as _AllProjectsSummary, ProjectionsResponse } from 'lib/calculator/getProjections';
 import { round } from 'lib/calculator/utils';
@@ -152,7 +151,7 @@ function addProjectsSheet(workbook: ExcelJS.Workbook, data: AllProjectsSummary) 
 
   const rows = data.projects.map(project => {
     const metadata = project.metadata as any;
-    const utilityRates = getUtilitiesByState(project.account.USState as USState);
+    const utilityRates = getProjectUtilities(project);
     return {
       title: project.name,
       Savings_baseline: project.projections.financialResults.annualCostChanges.baseline,
@@ -341,7 +340,8 @@ function addDishwasherSheet(workbook: ExcelJS.Workbook, data: AllProjectsSummary
     data.projects
       .filter(project => project.dishwashers.length > 0)
       .map(project => {
-        const stats = getDishwasherStats({ dishwasher: project.dishwashers[0], state: project.account.USState as USState });
+        const rates = getProjectUtilities(project);
+        const stats = getDishwasherStats({ dishwasher: project.dishwashers[0], rates });
         const rows: SheetRow[] = [
           {
             type: 'Electric Usage (kWh)',

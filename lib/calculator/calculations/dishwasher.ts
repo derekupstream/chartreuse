@@ -2,12 +2,11 @@ import type { Dishwasher as PrismaDishwasher } from '@prisma/client';
 
 import { getUtilityGasEmissions } from 'lib/calculator/calculations/environmental-results';
 import { dishwasherUtilityUsage, dishwasherAnnualCostBreakdown } from 'lib/calculator/calculations/financial-results';
-import type { USState } from 'lib/calculator/constants/utilities';
-import { getUtilitiesByState } from 'lib/calculator/constants/utilities';
+import type { UtilityRates } from 'lib/calculator/constants/utilities';
 import type { DishWasher } from 'lib/inventory/types/projects';
 
 import type { ChangeSummary } from '../utils';
-import { getChangeSummaryRow, getChangeSummaryRowRounded, round } from '../utils';
+import { getChangeSummaryRow } from '../utils';
 
 export type DishwasherStats = {
   electricUsage: ChangeSummary;
@@ -20,8 +19,7 @@ export type DishwasherStats = {
   waterCost: ChangeSummary;
 };
 
-export function getDishwasherStats({ state, dishwasher }: { state: USState; dishwasher: PrismaDishwasher }): DishwasherStats {
-  const rates = getUtilitiesByState(state);
+export function getDishwasherStats({ rates, dishwasher }: { rates: UtilityRates; dishwasher: PrismaDishwasher }): DishwasherStats {
   const baseline = { operatingDays: dishwasher.operatingDays, racksPerDay: dishwasher.racksPerDay };
   const forecast = { operatingDays: dishwasher.newOperatingDays, racksPerDay: dishwasher.newRacksPerDay };
   const baselineUsage = dishwasherUtilityUsage(dishwasher as DishWasher, baseline);

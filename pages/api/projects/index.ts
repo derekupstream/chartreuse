@@ -3,25 +3,42 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import nc from 'next-connect';
 
 import type { ProjectMetadata } from 'components/projects/[id]/edit';
+import type { ProjectInput } from 'lib/chartreuseClient';
 import type { NextApiRequestWithUser } from 'lib/middleware/getUser';
 import getUser from 'lib/middleware/getUser';
 import onError from 'lib/middleware/onError';
 import onNoMatch from 'lib/middleware/onNoMatch';
 import prisma from 'lib/prisma';
 import { trackEvent } from 'lib/tracking';
-
 const handler = nc<NextApiRequest, NextApiResponse>({ onError, onNoMatch });
 
 handler.use(getUser).get(getProjects).post(createProject);
 
 async function createProject(req: NextApiRequestWithUser, res: NextApiResponse<{ project: Project }>) {
-  const { name, metadata, accountId, USState } = req.body;
+  const { name, metadata, accountId, USState, currency, utilityRates } = req.body as ProjectInput;
+
+  if (USState) {
+    if (utilityRates) {
+      throw new Error('Cannot set both US state and utility rates');
+    }
+  } else if (utilityRates) {
+    if (USState) {
+      throw new Error('Cannot set both US state and utility rates');
+    }
+    if (!utilityRates.water || !utilityRates.electric || !utilityRates.gas) {
+      throw new Error('Must set water, electric, and gas rates');
+    }
+  } else {
+    throw new Error('Must set either US state or utility rates');
+  }
 
   const project = await prisma.project.create({
     data: {
       name,
       metadata: metadata as ProjectMetadata,
-      USState,
+      USState: USState || undefined,
+      currency,
+      utilityRates: utilityRates || undefined,
       account: {
         connect: {
           id: accountId

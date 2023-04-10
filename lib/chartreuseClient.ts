@@ -19,7 +19,13 @@ export type ProjectInput = {
   metadata: any;
   accountId: string;
   orgId: string;
-  USState: AccountSetupFields;
+  USState: string | null;
+  currency: string | null;
+  utilityRates: {
+    water: number;
+    gas: number;
+    electric: number;
+  } | null;
 };
 
 export type InviteMemberInput = {
