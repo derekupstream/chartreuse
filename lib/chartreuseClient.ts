@@ -5,6 +5,7 @@ import type { InventoryInput } from 'lib/inventory/saveInventoryRecords';
 import type { ProjectInventory } from 'lib/inventory/types/projects';
 import type { ReusableLineItem, SingleUseLineItem } from 'lib/inventory/types/projects';
 import type { MailChimpEvent } from 'lib/mailchimp/sendEvent';
+import type { UserProfile } from 'pages/api/profile/[id]';
 
 import * as http from './http';
 
@@ -69,6 +70,10 @@ class Client {
 
   updateAccount(account: { id: string; name: string }) {
     return http.PUT('/api/account/' + account.id, account);
+  }
+
+  getLoggedInUser() {
+    return http.GET<UserProfile | null>('/api/user');
   }
 
   updateProfile(profile: { id: string; name: string }) {

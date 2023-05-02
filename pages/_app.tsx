@@ -9,6 +9,7 @@ import { createGlobalStyle } from 'styled-components';
 import { ErrorBoundary } from 'components/common/errors/ErrorBoundary';
 import { analytics } from 'lib/analytics/mixpanel.browser';
 import { AuthProvider } from 'lib/auth/auth.browser';
+import chartreuseClient from 'lib/chartreuseClient';
 
 import 'styles/antd.less';
 import 'styles/print.less';
@@ -50,6 +51,13 @@ function MyApp({ Component, pageProps }: Props) {
       router.events.off('routeChangeComplete', handleRouteChange);
     };
   }, [router.events]);
+
+  useEffect(() => {
+    chartreuseClient.getLoggedInUser().then(user => {
+      console.log('get user', user);
+      // Set google analytics for user id and organization name
+    });
+  }, []);
 
   return (
     <>
