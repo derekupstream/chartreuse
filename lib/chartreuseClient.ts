@@ -73,7 +73,7 @@ class Client {
   }
 
   getLoggedInUser() {
-    return http.GET<UserProfile | null>('/api/user');
+    return http.GET<{ user?: UserProfile }>('/api/user');
   }
 
   updateProfile(profile: { id: string; name: string }) {

@@ -11,6 +11,8 @@ import { analytics } from 'lib/analytics/mixpanel.browser';
 import { AuthProvider } from 'lib/auth/auth.browser';
 import chartreuseClient from 'lib/chartreuseClient';
 
+import * as gtag from '../lib/ga';
+
 import 'styles/antd.less';
 import 'styles/print.less';
 import '@antv/xflow/dist/index.css';
@@ -53,11 +55,23 @@ function MyApp({ Component, pageProps }: Props) {
   }, [router.events]);
 
   useEffect(() => {
-    chartreuseClient.getLoggedInUser().then(user => {
-      console.log('get user', user);
-      // Set google analytics for user id and organization name
+    chartreuseClient.getLoggedInUser().then(({ user }) => {
+      if (user && user.org) {
+        gtag.setOrgName(user.org.name);
+        gtag.setUserId(user.id);
+      }
     });
   }, []);
+
+  useEffect(() => {
+    const handleRouteChange = (url: URL) => {
+      gtag.pageview(url);
+    };
+    router.events.on('routeChangeComplete', handleRouteChange);
+    return () => {
+      router.events.off('routeChangeComplete', handleRouteChange);
+    };
+  }, [router.events]);
 
   return (
     <>
