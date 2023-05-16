@@ -49,3 +49,5 @@ async function deleteUser(req: NextApiRequest, res: NextApiResponse) {
 
   res.status(200).end();
 }
+
+export default handler;
