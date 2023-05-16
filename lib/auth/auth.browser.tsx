@@ -1,5 +1,5 @@
 import type { UserCredential } from 'firebase/auth';
-import { onIdTokenChanged, signOut, signInWithEmailAndPassword, signInWithPopup, createUserWithEmailAndPassword } from 'firebase/auth';
+import { onIdTokenChanged, signOut, signInWithEmailAndPassword, signInWithPopup, createUserWithEmailAndPassword, setPersistence, browserSessionPersistence } from 'firebase/auth';
 import { setCookie, destroyCookie } from 'nookies';
 import { createContext, useEffect, useState, useCallback } from 'react';
 
@@ -15,17 +15,17 @@ export type Credentials = {
 
 type AuthContextType = {
   user: User | null;
-  login: (credentials: Credentials) => Promise<UserCredential | null>;
-  loginWithProvider: (provider: FirebaseAuthProvider) => Promise<UserCredential | null>;
-  signup: (credentials: Credentials) => Promise<UserCredential | null>;
+  login: (credentials: Credentials, persist: boolean) => Promise<UserCredential | null>;
+  loginWithProvider: (provider: FirebaseAuthProvider, persist: boolean) => Promise<UserCredential | null>;
+  signup: (credentials: Credentials, persist: boolean) => Promise<UserCredential | null>;
   signout: () => Promise<void>;
 };
 
 export const AuthContext = createContext<AuthContextType>({
   user: null,
-  login: (credentials: Credentials) => Promise.resolve(null),
-  loginWithProvider: (provider: FirebaseAuthProvider) => Promise.resolve(null),
-  signup: (credentials: Credentials) => Promise.resolve(null),
+  login: () => Promise.resolve(null),
+  loginWithProvider: () => Promise.resolve(null),
+  signup: () => Promise.resolve(null),
   signout: () => Promise.resolve()
 });
 
@@ -61,15 +61,24 @@ export const AuthProvider: React.FC<{ children: any }> = ({ children }) => {
     return () => clearInterval(handle);
   }, []);
 
-  const login = useCallback(({ email, password }: Credentials) => {
+  const login = useCallback(async ({ email, password }: Credentials, persist: boolean) => {
+    if (!persist) {
+      await setPersistence(auth, browserSessionPersistence);
+    }
     return signInWithEmailAndPassword(auth, email, password);
   }, []);
 
-  const loginWithProvider = useCallback((provider: FirebaseAuthProvider) => {
+  const loginWithProvider = useCallback(async (provider: FirebaseAuthProvider, persist: boolean) => {
+    if (!persist) {
+      await setPersistence(auth, browserSessionPersistence);
+    }
     return signInWithPopup(auth, provider);
   }, []);
 
-  const signup = useCallback(({ email, password }: Credentials) => {
+  const signup = useCallback(async ({ email, password }: Credentials, persist: boolean) => {
+    if (!persist) {
+      await setPersistence(auth, browserSessionPersistence);
+    }
     return createUserWithEmailAndPassword(auth, email, password);
   }, []);
 

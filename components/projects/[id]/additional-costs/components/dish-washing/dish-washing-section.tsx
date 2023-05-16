@@ -81,7 +81,7 @@ const DishWashingSection = () => {
   if (isLoading) {
     return <ContentLoader />;
   }
-  console.log(data);
+
   const utilities = {
     title: `Utility rates ${data?.state ? ` for ${data.state}` : ''}`,
     content: (

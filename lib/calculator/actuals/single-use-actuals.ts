@@ -139,7 +139,7 @@ function getBiggestChange(singleUseItems: ProjectInventory['singleUseItems'], va
     };
     return Math.abs(results[a]?.change) > Math.abs(results[b].change) ? a : b;
   }, categoriesWithChange[0]);
-  console.log('BIGEST CHANGE', results[category]);
+
   return results[category];
 }
 

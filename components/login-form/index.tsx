@@ -1,5 +1,5 @@
 import { GoogleOutlined } from '@ant-design/icons';
-import { Form, Input, Button, Typography, Divider, Space } from 'antd';
+import { Checkbox, Form, Input, Button, Typography, Divider, Space } from 'antd';
 import Link from 'next/link';
 
 import type { FirebaseAuthProvider } from 'lib/auth/firebaseClient';
@@ -7,15 +7,23 @@ import { googleProvider } from 'lib/auth/firebaseClient';
 
 import * as S from './styles';
 
+export type FormValues = {
+  email: string;
+  password: string;
+  rememberMe: boolean;
+};
+
 type Props = {
-  onSubmit: (values: unknown) => void;
-  onSubmitWithProvider: (provider: FirebaseAuthProvider) => void;
+  onSubmit: (values: FormValues) => void;
+  onSubmitWithProvider: (provider: FirebaseAuthProvider, rememberMe: boolean) => void;
 };
 
 export default function LoginForm({ onSubmit, onSubmitWithProvider }: Props) {
+  const [form] = Form.useForm<FormValues>();
+  const rememberMe = Form.useWatch('rememberMe', form);
   return (
     <S.Wrapper>
-      <S.LoginForm name='login' layout='vertical' onFinish={onSubmit}>
+      <S.LoginForm form={form} name='login' layout='vertical' onFinish={onSubmit as VoidFunction}>
         <Form.Item
           label='Email'
           name='email'
@@ -42,23 +50,28 @@ export default function LoginForm({ onSubmit, onSubmitWithProvider }: Props) {
             Sign in
           </Button>
         </Form.Item>
+        <Space direction='vertical' size='large' style={{ width: '100%' }}>
+          <Divider>
+            <Typography.Text strong>OR</Typography.Text>
+          </Divider>
+          <Button onClick={() => onSubmitWithProvider(googleProvider, rememberMe)} type='default' block>
+            <GoogleOutlined /> Sign in with Google
+          </Button>
+
+          <Form.Item name='rememberMe' valuePropName='checked'>
+            <Checkbox>Remember me</Checkbox>
+          </Form.Item>
+
+          <Typography.Text>
+            <Space>
+              Don&apos;t have an account yet?
+              <Link href='/signup' legacyBehavior>
+                <Typography.Link underline>Sign up</Typography.Link>
+              </Link>
+            </Space>
+          </Typography.Text>
+        </Space>
       </S.LoginForm>
-      <Space direction='vertical' size='large' style={{ width: '100%' }}>
-        <Divider>
-          <Typography.Text strong>OR</Typography.Text>
-        </Divider>
-        <Button onClick={() => onSubmitWithProvider(googleProvider)} type='default' block>
-          <GoogleOutlined /> Sign in with Google
-        </Button>
-        <Typography.Text>
-          <Space>
-            Don&apos;t have an account yet?
-            <Link href='/signup' legacyBehavior>
-              <Typography.Link underline>Sign up</Typography.Link>
-            </Link>
-          </Space>
-        </Typography.Text>
-      </Space>
     </S.Wrapper>
   );
 }

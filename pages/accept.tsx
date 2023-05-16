@@ -6,6 +6,7 @@ import FormPageTemplate from 'components/form-page-template';
 import Header from 'components/header';
 import MessagePage from 'components/message-page';
 import PageLoader from 'components/page-loader';
+import type { FormValues } from 'components/signup-form';
 import SignupForm from 'components/signup-form';
 import type { Credentials } from 'hooks/useAuth';
 import { useAuth } from 'hooks/useAuth';
@@ -79,18 +80,18 @@ export default function Accept({ user, email, org, error }: Props) {
   const { signup, loginWithProvider } = useAuth();
   const router = useRouter();
 
-  const handleSignup = async ({ email, password }: Credentials) => {
+  const handleSignup = async ({ email, password, rememberMe }: FormValues) => {
     try {
-      await signup({ email, password });
+      await signup({ email, password }, rememberMe);
       router.push(`/invite-profile-setup?inviteId=${router?.query.inviteId}`);
     } catch (error: any) {
       message.error(error.message);
     }
   };
 
-  const handleLoginWithProvider = async (provider: FirebaseAuthProvider) => {
+  const handleLoginWithProvider = async (provider: FirebaseAuthProvider, rememberMe: boolean) => {
     try {
-      await loginWithProvider(provider);
+      await loginWithProvider(provider, rememberMe);
       router.push(`/invite-profile-setup?inviteId=${router?.query.inviteId}`);
     } catch (error: any) {
       message.error(error.message);
@@ -111,7 +112,7 @@ export default function Accept({ user, email, org, error }: Props) {
 
       <main>
         <FormPageTemplate title='Welcome to Chart Reuse' subtitle={`${user?.name}, ${user?.title} at ${org?.name} has invited you to create a customer account on Chart Reuse.`}>
-          <SignupForm onSubmit={handleSignup as (values: unknown) => void} onSubmitWithProvider={handleLoginWithProvider} initialValues={{ email }} />
+          <SignupForm onSubmit={handleSignup} onSubmitWithProvider={handleLoginWithProvider} initialValues={{ email }} />
         </FormPageTemplate>
       </main>
     </>

@@ -17,7 +17,7 @@ type Response = {
 
 async function returnUser(req: NextApiRequest, res: NextApiResponse<Response>) {
   if (!req.cookies.token) {
-    return res.status(204).json({});
+    return res.status(204).end();
   }
   const token = await verifyIdToken(req.cookies.token as string);
   const user = await prisma.user.findUnique({

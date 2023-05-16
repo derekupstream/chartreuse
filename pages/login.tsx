@@ -4,8 +4,8 @@ import { useEffect } from 'react';
 
 import FormPageTemplate from 'components/form-page-template';
 import Header from 'components/header';
+import type { FormValues } from 'components/login-form';
 import LoginForm from 'components/login-form';
-import type { Credentials } from 'hooks/useAuth';
 import { useAuth } from 'hooks/useAuth';
 import type { FirebaseAuthProvider } from 'lib/auth/firebaseClient';
 
@@ -20,18 +20,18 @@ export default function Login() {
     }
   }, [user]);
 
-  const handleLogin = async ({ email, password }: Credentials) => {
+  const handleLogin = async ({ email, password, rememberMe }: FormValues) => {
     try {
-      await login({ email, password });
+      await login({ email, password }, rememberMe);
       router.push('/');
     } catch (error: any) {
       message.error(error.message);
     }
   };
 
-  const handleLoginWithProvider = async (provider: FirebaseAuthProvider) => {
+  const handleLoginWithProvider = async (provider: FirebaseAuthProvider, rememberMe: boolean) => {
     try {
-      await loginWithProvider(provider);
+      await loginWithProvider(provider, rememberMe);
       router.push('/projects');
     } catch (error: any) {
       message.error(error.message);

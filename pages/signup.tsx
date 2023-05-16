@@ -3,8 +3,8 @@ import { useRouter } from 'next/router';
 
 import FormPageTemplate from 'components/form-page-template';
 import Header from 'components/header';
+import type { FormValues } from 'components/signup-form';
 import SignupForm from 'components/signup-form';
-import type { Credentials } from 'hooks/useAuth';
 import { useAuth } from 'hooks/useAuth';
 import type { FirebaseAuthProvider } from 'lib/auth/firebaseClient';
 
@@ -12,18 +12,18 @@ export default function Signup() {
   const { signup, loginWithProvider } = useAuth();
   const router = useRouter();
 
-  const handleSignup = async ({ email, password }: Credentials) => {
+  const handleSignup = async ({ email, password, rememberMe }: FormValues) => {
     try {
-      await signup({ email, password });
+      await signup({ email, password }, rememberMe);
       router.push('/email-verification');
     } catch (error: any) {
       message.error(error.message);
     }
   };
 
-  const handleLoginWithProvider = async (provider: FirebaseAuthProvider) => {
+  const handleLoginWithProvider = async (provider: FirebaseAuthProvider, rememberMe: boolean) => {
     try {
-      await loginWithProvider(provider);
+      await loginWithProvider(provider, rememberMe);
       router.push('/email-verification');
     } catch (error: any) {
       message.error(error.message);
