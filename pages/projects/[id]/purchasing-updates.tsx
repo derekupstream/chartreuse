@@ -1,7 +1,7 @@
 import type { GetServerSideProps } from 'next';
 
 import { PurchasingUpdates } from 'components/projects/[id]/purchasing-updates/purchasing-updates';
-import ProjectLayout from 'layouts/projectLayout';
+import { ProjectStepsLayout } from 'layouts/projectStepsLayout';
 import type { ProjectContext } from 'lib/middleware';
 import { getProjectContext } from 'lib/middleware';
 
@@ -12,9 +12,9 @@ export const getServerSideProps: GetServerSideProps = async context => {
 
 function PurchasingUpdatesPage({ project, user }: ProjectContext) {
   return (
-    <ProjectLayout currentStepIndex={4} project={project} title={`${project.name} - Reusable Items`} user={user}>
+    <ProjectStepsLayout currentStepIndex={4} project={project} title={`${project.name} - Reusable Items`} user={user}>
       <PurchasingUpdates project={project} />
-    </ProjectLayout>
+    </ProjectStepsLayout>
   );
 }
 

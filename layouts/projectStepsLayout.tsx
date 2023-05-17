@@ -34,7 +34,7 @@ export function BackToProjectsButton () {
   </Link>
 }
 
-export default function ProjectLayout({ children, project, currentStepIndex, ...pageProps }: React.PropsWithChildren<Props>) {
+export function ProjectStepsLayout({ children, project, currentStepIndex, ...pageProps }: React.PropsWithChildren<Props>) {
   const router = useRouter();
 
   return (

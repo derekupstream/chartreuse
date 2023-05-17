@@ -29,7 +29,7 @@ async function createProject(req: NextApiRequestWithUser, res: NextApiResponse<{
       throw new Error('Must set water, electric, and gas rates');
     }
   } else {
-    throw new Error('Must set either US state or utility rates');
+    throw new Error('Please enter utility rates');
   }
 
   const project = await prisma.project.create({

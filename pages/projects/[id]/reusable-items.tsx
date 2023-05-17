@@ -2,7 +2,7 @@ import type { GetServerSideProps } from 'next';
 import { useEffect } from 'react';
 
 import ReusablesPurchasing from 'components/projects/[id]/reusable-purchasing';
-import ProjectLayout from 'layouts/projectLayout';
+import { ProjectStepsLayout } from 'layouts/projectStepsLayout';
 import chartreuseClient from 'lib/chartreuseClient';
 import type { ProjectContext } from 'lib/middleware';
 import { getProjectContext } from 'lib/middleware';
@@ -18,9 +18,9 @@ function ReusablesPurchasingPage({ project, user }: ProjectContext) {
   }, []);
 
   return (
-    <ProjectLayout currentStepIndex={1} project={project} title={`${project.name} - Reusable Items`} user={user}>
+    <ProjectStepsLayout currentStepIndex={1} project={project} title={`${project.name} - Reusable Items`} user={user}>
       <ReusablesPurchasing />
-    </ProjectLayout>
+    </ProjectStepsLayout>
   );
 }
 

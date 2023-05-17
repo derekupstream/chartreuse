@@ -1,19 +1,16 @@
 import type { Project } from '@prisma/client';
-import { Input, Typography, Slider, message } from 'antd';
+import { Input, Typography, Slider } from 'antd';
 import { InputNumber, Form, Select } from 'antd';
 import { Button, Radio } from 'antd';
 import type { Store } from 'antd/lib/form/interface';
-import { useRouter } from 'next/router';
 import { useState } from 'react';
-import styled from 'styled-components';
 
 import type { DashboardUser } from 'components/dashboard';
 import { STATES } from 'lib/calculator/constants/utilities';
 import type { ProjectInput } from 'lib/chartreuseClient';
-import chartreuseClient from 'lib/chartreuseClient';
 
-import currencyOptions from './components/currencyList';
-import * as S from './styles';
+import currencyOptions from '../../components/currencyList';
+import * as S from '../../styles';
 
 // component and config for currency select is from the example at https://codesandbox.io/s/currency-wrapper-antd-input-3ynzo?file=/src/index.js
 // referenced at https://ant.design/components/input-number
@@ -65,13 +62,6 @@ const currencyParser = (val = ''): number => {
   }
 };
 
-const Wrapper = styled(S.Wrapper)`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-`;
-
 const ProjectTypes = [
   'Cafe/Cafeteria',
   'Kitchenette/Employee Breakroom',
@@ -85,7 +75,12 @@ const ProjectTypes = [
 ] as const;
 
 const WhereFoodIsPrepared = ['On-Site', 'Off-Site', 'Both'] as const;
-const dishwashingTypes = ['Mechanized Dishwasher (owned)', 'Mechanized Dishwasher (leased)', 'Wash by hand (3 sink system)', 'Combination'];
+const dishwashingTypes = [
+  'Mechanized Dishwasher (owned)',
+  'Mechanized Dishwasher (leased)',
+  'Wash by hand (3 sink system)',
+  'Combination'
+];
 
 export type ProjectMetadata = {
   type: (typeof ProjectTypes)[number];
@@ -94,17 +89,31 @@ export type ProjectMetadata = {
   whereIsFoodPrepared: (typeof WhereFoodIsPrepared)[number];
 };
 
-export default function ProjectForm({ user, project, successPath }: { user: DashboardUser; project?: Project; successPath: (id: string) => string }) {
-  const router = useRouter();
+type Props = { org: DashboardUser['org']; project?: Project; onComplete: (values: ProjectInput) => void };
+
+export function ProjectForm({ org, project, onComplete }: Props) {
+  // disable save button if there are no updates or there are errors
+  const [form] = Form.useForm();
+  const [disabledSave, setDisabledSave] = useState(true);
+  function handleFormChange() {
+    const hasErrors = form.getFieldsError().some(({ errors }) => errors.length);
+    setDisabledSave(hasErrors);
+  }
 
   const [showCustomUtilities, setShowCustomUtilities] = useState(project ? !project?.USState : false);
 
   function toggleCustomUtilities(value: boolean) {
     setShowCustomUtilities(value);
   }
-  const urlRedirect = typeof router.query.redirect === 'string' ? router.query.redirect : null;
 
-  async function saveProject({ name, accountId, currency = null, USState = null, utilityRates = null, ...metadata }: Store) {
+  async function saveProject({
+    name,
+    accountId,
+    currency = null,
+    USState = null,
+    utilityRates = null,
+    ...metadata
+  }: Store) {
     const params: ProjectInput = {
       id: project?.id,
       name,
@@ -113,7 +122,7 @@ export default function ProjectForm({ user, project, successPath }: { user: Dash
       USState,
       currency,
       utilityRates,
-      orgId: user.org.id
+      orgId: org.id
     };
 
     if (showCustomUtilities) {
@@ -122,31 +131,24 @@ export default function ProjectForm({ user, project, successPath }: { user: Dash
       params.utilityRates = null;
     }
 
-    const req = project ? chartreuseClient.updateProject(params) : chartreuseClient.createProject(params);
-
-    req
-      .then(res => {
-        router.push(urlRedirect || successPath(res.project.id));
-      })
-      .catch(err => {
-        message.error((err as Error)?.message || err.error);
-      });
+    onComplete(params);
   }
 
-  console.log(
-    'currency',
-    currencyOptions.filter(o => o.label === 'US Dollar')
-  );
   // make some inputs vertical so that nested layout for custom utilities can be horizontal: https://stackoverflow.com/questions/64451233/how-to-set-the-layout-horizontal-inside-for-few-form-item-while-keeping-for
   const verticalLayout = { labelCol: { span: 24 } };
 
   return (
-    <Wrapper>
-      <Typography.Title level={1}>Setup your project</Typography.Title>
-      <S.SetupForm
+    <>
+      <div style={{ textAlign: 'center' }}>
+        <Typography.Title level={1}>Setup your project</Typography.Title>
+      </div>
+      <Typography.Title level={4}>Project Info</Typography.Title>
+      <Form
+        form={form}
+        onFieldsChange={handleFormChange}
         layout='horizontal'
         initialValues={{
-          accountId: user.org.accounts[0].id,
+          accountId: org.accounts[0].id,
           customers: 0,
           dineInVsTakeOut: 0,
           currency: USDollarOption.value,
@@ -204,7 +206,7 @@ export default function ProjectForm({ user, project, successPath }: { user: Dash
           ]}
         >
           <Select placeholder='Account to create project on'>
-            {user.org.accounts.map(account => {
+            {org.accounts.map(account => {
               return (
                 <Select.Option key={account.id} value={account.id}>
                   {account.name}
@@ -216,12 +218,17 @@ export default function ProjectForm({ user, project, successPath }: { user: Dash
 
         <Form.Item
           label='Utility Rates'
+          required
           {...verticalLayout}
           style={{
             marginBottom: '0'
           }}
         >
-          <Radio.Group style={{ width: '100%' }} onChange={e => toggleCustomUtilities(e.target.value)} value={showCustomUtilities}>
+          <Radio.Group
+            style={{ width: '100%' }}
+            onChange={e => toggleCustomUtilities(e.target.value)}
+            value={showCustomUtilities}
+          >
             <Radio style={{ width: '40%' }} value={false}>
               Select by US State
             </Radio>
@@ -252,17 +259,37 @@ export default function ProjectForm({ user, project, successPath }: { user: Dash
                 </Select>
               </Form.Item> */}
               <Form.Item label='Electric' name={['utilityRates', 'electric']} labelCol={{ span: 5 }}>
-                <InputNumber min={0} precision={2} step={0.1} formatter={currencyFormatter(USDollarOption.value)} parser={currencyParser} />
+                <InputNumber
+                  min={0}
+                  precision={2}
+                  step={0.1}
+                  formatter={currencyFormatter(USDollarOption.value)}
+                  parser={currencyParser}
+                />
               </Form.Item>
               <Form.Item label='Gas' name={['utilityRates', 'gas']} labelCol={{ span: 5 }}>
-                <InputNumber min={0} precision={2} step={0.1} formatter={currencyFormatter(USDollarOption.value)} parser={currencyParser} />
+                <InputNumber
+                  min={0}
+                  precision={2}
+                  step={0.1}
+                  formatter={currencyFormatter(USDollarOption.value)}
+                  parser={currencyParser}
+                />
               </Form.Item>
               <Form.Item label='Water' name={['utilityRates', 'water']} labelCol={{ span: 5 }}>
-                <InputNumber min={0} precision={2} step={0.1} formatter={currencyFormatter(USDollarOption.value)} parser={currencyParser} />
+                <InputNumber
+                  min={0}
+                  precision={2}
+                  step={0.1}
+                  formatter={currencyFormatter(USDollarOption.value)}
+                  parser={currencyParser}
+                />
               </Form.Item>
             </>
           )}
         </Form.Item>
+
+        <Typography.Title level={4}>Traffic patterns</Typography.Title>
 
         <Form.Item {...verticalLayout} label='On average, how many customers do you serve daily?' name='customers'>
           <Slider
@@ -279,7 +306,11 @@ export default function ProjectForm({ user, project, successPath }: { user: Dash
           />
         </Form.Item>
 
-        <Form.Item {...verticalLayout} label='What percent of your daily volume is dine-in vs. take-out?' name='dineInVsTakeOut'>
+        <Form.Item
+          {...verticalLayout}
+          label='What percent of your daily volume is dine-in vs. take-out?'
+          name='dineInVsTakeOut'
+        >
           <Slider
             marks={{
               0: 'Dine-in',
@@ -300,7 +331,13 @@ export default function ProjectForm({ user, project, successPath }: { user: Dash
           />
         </Form.Item>
 
-        <Form.Item {...verticalLayout} label='What type of dishwashing capacity best describes your operation?' name='dishwashingType'>
+        <Typography.Title level={4}>Dishwashing</Typography.Title>
+
+        <Form.Item
+          {...verticalLayout}
+          label='What type of dishwashing capacity best describes your operation?'
+          name='dishwashingType'
+        >
           <Select placeholder='Select dishwashing type'>
             {dishwashingTypes.map(type => {
               return (
@@ -313,11 +350,11 @@ export default function ProjectForm({ user, project, successPath }: { user: Dash
         </Form.Item>
 
         <Form.Item>
-          <Button type='primary' htmlType='submit' block>
+          <Button disabled={disabledSave} type='primary' htmlType='submit' block>
             {project ? 'Update Project' : 'Add project'}
           </Button>
         </Form.Item>
-      </S.SetupForm>
-    </Wrapper>
+      </Form>
+    </>
   );
 }

@@ -1,4 +1,4 @@
-import { Card, Form, Radio, Row, Typography } from 'antd';
+import { Card, Radio, Row, Typography } from 'antd';
 import styled from 'styled-components';
 
 export const Wrapper = styled.div`
@@ -12,7 +12,11 @@ export const Wrapper = styled.div`
   }
 `;
 
-export const SetupForm = styled(Form)`
+export const ProjectSetupWrapper = styled(Wrapper)`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   width: 460px;
 `;
 
@@ -50,27 +54,6 @@ const COLORS: { [type in Props['theme']]: string } = {
   baseline: '#767382',
   forecast: '#5D798E'
 };
-
-// const InfoCard = styled.div<Props>`
-//   border-top: 8px solid ${props => COLORS[props.theme as Props['theme']]};
-//   background-color: white;
-//   border-radius: 8px;
-//   padding: 8px 16px;
-//   font-weight: normal;
-//   text-align: left;
-//   box-shadow: 0px 0px 12px rgba(0, 0, 0, 0.08);
-//   thead {
-//     font-weight: normal;
-//   }
-//   tbody {
-//     font-weight: 700;
-//   }
-//   td {
-//     font-size: 11px;
-//     line-height: 16px;
-//     padding-right: 20px;
-//   }
-// `
 
 export const InfoRow = styled(props => <Row gutter={[30, 30]} {...props} />)`
   margin-bottom: 30px;

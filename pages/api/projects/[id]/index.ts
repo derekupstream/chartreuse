@@ -1,80 +1,78 @@
 import { Prisma } from '@prisma/client';
 import type { Project } from '@prisma/client';
-import type { NextApiRequest, NextApiResponse } from 'next';
+import type { Org, User } from '@prisma/client';
+import type { NextApiResponse } from 'next';
 
 import type { ProjectMetadata } from 'components/projects/[id]/edit';
+import { handlerWithUser } from 'lib/middleware';
+import type { NextApiRequestWithUser } from 'lib/middleware';
 import prisma from 'lib/prisma';
+
+const handler = handlerWithUser();
+
+export type UserProfile = User & { org: Org };
+
+handler.put(updateProject).delete(deleteProject);
 
 type Response = {
   project?: Project;
-  error?: string;
 };
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse<Response>) {
-  const { id } = req.query;
-
-  if (!id) return res.status(400).json({ error: 'Missing id' });
-
-  if (req.method === 'DELETE') {
-    try {
-      const project = await prisma.project.delete<Prisma.ProjectDeleteArgs>({
-        where: {
-          id: req.query.id as string
-        }
-      });
-
-      return res.status(200).json({ project });
-    } catch (error: any) {
-      return res.status(500).json({ error: error.message });
+async function deleteProject(req: NextApiRequestWithUser, res: NextApiResponse<Response>) {
+  const project = await prisma.project.delete<Prisma.ProjectDeleteArgs>({
+    where: {
+      id: req.query.id as string
     }
-  } else if (req.method === 'PUT') {
-    try {
-      const { name, metadata, accountId, USState, orgId, currency, utilityRates } = req.body;
+  });
 
-      if (USState) {
-        if (utilityRates) {
-          throw new Error('Cannot set both US state and utility rates');
-        }
-      } else if (utilityRates) {
-        if (USState) {
-          throw new Error('Cannot set both US state and utility rates');
-        }
-        if (!utilityRates.water || !utilityRates.electric || !utilityRates.gas) {
-          throw new Error('Must set water, electric, and gas rates');
-        }
-      } else {
-        throw new Error('Must set either US state or utility rates');
-      }
+  return res.status(200).json({ project });
+}
 
-      const project = await prisma.project.update<Prisma.ProjectUpdateArgs>({
-        where: {
-          id: req.query.id as string
-        },
-        data: {
-          name,
-          metadata: metadata as ProjectMetadata,
-          USState,
-          currency,
-          utilityRates: utilityRates || Prisma.JsonNull,
-          account: {
-            connect: {
-              id: accountId
-            }
-          },
-          org: {
-            connect: {
-              id: orgId
-            }
-          }
-        }
-      });
+async function updateProject(req: NextApiRequestWithUser, res: NextApiResponse<Response>) {
+  const { name, metadata, accountId, USState, orgId, currency, utilityRates, budget, singleUseReductionPercentage } =
+    req.body;
 
-      return res.status(200).json({ project });
-    } catch (error: any) {
-      return res.status(500).json({ error: error.message });
+  if (USState) {
+    if (utilityRates) {
+      throw new Error('Cannot set both US state and utility rates');
     }
+  } else if (utilityRates) {
+    if (USState) {
+      throw new Error('Cannot set both US state and utility rates');
+    }
+    if (!utilityRates.water || !utilityRates.electric || !utilityRates.gas) {
+      throw new Error('Must set water, electric, and gas rates');
+    }
+  } else {
+    throw new Error('Please enter utility rates');
   }
 
-  // Handle any other HTTP method
-  return res.status(405).json({ error: 'Method not allowed' });
+  const project = await prisma.project.update<Prisma.ProjectUpdateArgs>({
+    where: {
+      id: req.query.id as string
+    },
+    data: {
+      name,
+      metadata: metadata as ProjectMetadata,
+      USState,
+      currency,
+      utilityRates: utilityRates || Prisma.JsonNull,
+      budget,
+      singleUseReductionPercentage,
+      account: {
+        connect: {
+          id: accountId
+        }
+      },
+      org: {
+        connect: {
+          id: orgId
+        }
+      }
+    }
+  });
+
+  return res.status(200).json({ project });
 }
+
+export default handler;

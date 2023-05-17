@@ -1,7 +1,7 @@
 import type { GetServerSideProps } from 'next';
 
 import AdditionalCosts from 'components/projects/[id]/additional-costs';
-import ProjectLayout from 'layouts/projectLayout';
+import { ProjectStepsLayout } from 'layouts/projectStepsLayout';
 import type { ProjectContext } from 'lib/middleware';
 import { getProjectContext } from 'lib/middleware';
 
@@ -12,9 +12,9 @@ export const getServerSideProps: GetServerSideProps = async context => {
 
 function AdditionalCostsPage({ project, user }: ProjectContext) {
   return (
-    <ProjectLayout currentStepIndex={2} project={project} title={`${project.name} - Additional Costs`} user={user}>
+    <ProjectStepsLayout currentStepIndex={2} project={project} title={`${project.name} - Additional Costs`} user={user}>
       <AdditionalCosts project={project} />
-    </ProjectLayout>
+    </ProjectStepsLayout>
   );
 }
 

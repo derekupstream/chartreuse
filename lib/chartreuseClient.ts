@@ -1,6 +1,5 @@
 import type { Project } from '@prisma/client';
 
-import type { AllProjectsSummary } from 'lib/calculator/getProjections';
 import type { InventoryInput } from 'lib/inventory/saveInventoryRecords';
 import type { ProjectInventory } from 'lib/inventory/types/projects';
 import type { ReusableLineItem, SingleUseLineItem } from 'lib/inventory/types/projects';
@@ -22,6 +21,8 @@ export type ProjectInput = {
   orgId: string;
   USState: string | null;
   currency: string | null;
+  budget?: number;
+
   utilityRates: {
     water: number;
     gas: number;

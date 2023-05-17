@@ -1,7 +1,7 @@
 import type { GetServerSideProps } from 'next';
 
 import Projections from 'components/projects/[id]/projections';
-import ProjectLayout from 'layouts/projectLayout';
+import { ProjectStepsLayout } from 'layouts/projectStepsLayout';
 import type { ProjectContext } from 'lib/middleware';
 import { getProjectContext } from 'lib/middleware';
 
@@ -12,9 +12,9 @@ export const getServerSideProps: GetServerSideProps = async context => {
 
 function ProjectionsPage({ project, user }: ProjectContext) {
   return (
-    <ProjectLayout currentStepIndex={3} project={project} title={`${project.name} - Projections`} user={user}>
+    <ProjectStepsLayout currentStepIndex={3} project={project} title={`${project.name} - Projections`} user={user}>
       <Projections project={project} />
-    </ProjectLayout>
+    </ProjectStepsLayout>
   );
 }
 

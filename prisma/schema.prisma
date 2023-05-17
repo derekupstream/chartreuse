@@ -76,24 +76,26 @@ model Invite {
 }
 
 model Project {
-  id                String              @id @default(uuid()) @db.Uuid
-  name              String
-  metadata          Json?
-  createdAt         DateTime            @default(now())
-  updatedAt         DateTime            @updatedAt
-  org               Org                 @relation(fields: [orgId], references: [id], onDelete: Cascade)
-  orgId             String              @db.Uuid
-  account           Account             @relation(fields: [accountId], references: [id], onDelete: Cascade)
-  accountId         String              @db.Uuid
-  singleUseItems    SingleUseLineItem[]
-  reusableItems     ReusableLineItem[]
-  otherExpenses     OtherExpense[]
-  laborCosts        LaborCost[]
-  wasteHaulingCosts WasteHaulingCost[]
-  dishwashers       Dishwasher[]
-  USState           String?
-  utilityRates      Json?
-  currency          String?             @default("USD")
+  id                           String              @id @default(uuid()) @db.Uuid
+  name                         String
+  metadata                     Json?
+  createdAt                    DateTime            @default(now())
+  updatedAt                    DateTime            @updatedAt
+  org                          Org                 @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId                        String              @db.Uuid
+  account                      Account             @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  accountId                    String              @db.Uuid
+  singleUseItems               SingleUseLineItem[]
+  reusableItems                ReusableLineItem[]
+  otherExpenses                OtherExpense[]
+  laborCosts                   LaborCost[]
+  wasteHaulingCosts            WasteHaulingCost[]
+  dishwashers                  Dishwasher[]
+  USState                      String?
+  utilityRates                 Json?
+  currency                     String?             @default("USD")
+  singleUseReductionPercentage Int?
+  budget                       Int?
 }
 
 model SingleUseLineItem {
