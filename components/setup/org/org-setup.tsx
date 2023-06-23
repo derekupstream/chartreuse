@@ -1,51 +1,24 @@
 import { RightOutlined } from '@ant-design/icons';
 import { Divider, Form, Input, Button, Select } from 'antd';
-import { useEffect } from 'react';
 
-import { useAuth } from 'hooks/useAuth';
+import * as S from './org-setup.styles';
 
-import * as S from './styles';
+export type OrgSetupFields = {
+  orgName: string;
+  numberOfClientAccounts: number;
+};
 
 type Props = {
   onSubmit: (values: unknown) => void;
   isLoading?: boolean;
 };
 
-export default function OrgSetupForm({ onSubmit, isLoading }: Props) {
-  const { user } = useAuth();
-  const [form] = Form.useForm();
-
-  useEffect(() => {
-    form.setFieldsValue({
-      name: user?.displayName
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user]);
+export function OrgSetupForm({ onSubmit, isLoading }: Props) {
+  const [form] = Form.useForm<OrgSetupFields>();
 
   return (
     <S.Wrapper>
       <S.OrgSetupForm form={form} name='orgAccount' layout='vertical' onFinish={onSubmit}>
-        <Form.Item
-          label='Your name'
-          name='name'
-          rules={[
-            {
-              required: true,
-              message: 'Please input your name!'
-            }
-          ]}
-        >
-          <Input placeholder='Your name' />
-        </Form.Item>
-
-        <Form.Item label='Your job title' name='title' rules={[{ required: true, message: 'Please input your title!' }]}>
-          <Input placeholder='Your job title' />
-        </Form.Item>
-
-        <Form.Item label='Your contact phone number' name='phone'>
-          <Input placeholder='(720) 555-1234' />
-        </Form.Item>
-
         <Form.Item
           label='Organization name'
           name='orgName'
@@ -56,7 +29,7 @@ export default function OrgSetupForm({ onSubmit, isLoading }: Props) {
             }
           ]}
         >
-          <Input placeholder='Organization name' />
+          <Input autoFocus placeholder='Organization name' />
         </Form.Item>
 
         <Form.Item label='Number of client accounts' name='numberOfClientAccounts'>

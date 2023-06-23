@@ -118,7 +118,7 @@ export default function InviteMember({ org, user }: Props) {
 
   return (
     <>
-      <Header title='Org Account' />
+      <Header title='Invite a member' />
 
       <main>
         <FormPageTemplate
@@ -132,7 +132,12 @@ export default function InviteMember({ org, user }: Props) {
             ) : undefined
           }
         >
-          <InviteForm onSubmit={handleAccountSetupCreation as (values: unknown) => void} isLoading={createInvite.isLoading} accounts={org.accounts} isOrgAdmin={!user.accountId} />
+          <InviteForm
+            onSubmit={handleAccountSetupCreation as (values: unknown) => void}
+            isLoading={createInvite.isLoading}
+            accounts={org.accounts}
+            isOrgAdmin={!user.accountId}
+          />
         </FormPageTemplate>
       </main>
     </>

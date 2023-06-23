@@ -9,18 +9,23 @@ export type LoggedinProps = {
   user: DashboardUser;
 };
 
-export const checkLogin = async (context: GetServerSidePropsContext): Promise<{ redirect?: any; props: { user?: DashboardUser } }> => {
+export const checkLogin = async (
+  context: GetServerSidePropsContext
+): Promise<{ redirect?: any; props: { user?: DashboardUser } }> => {
   try {
-    const { firebaseToken, user } = await getUserFromContext(context, UserDataToInclude);
+    const { firebaseToken, user, verifiedEmail } = await getUserFromContext(context, UserDataToInclude);
 
     if (!user) {
       if (firebaseToken) {
-        console.log('Firebase token found but user does not exist. Redirect to verification page', { email: firebaseToken.email });
+        console.log('Firebase token found but user does not exist. Redirect to /setup', {
+          email: firebaseToken.email,
+          verifiedEmail
+        });
         return {
           props: {},
           redirect: {
             permanent: false,
-            destination: '/email-verification'
+            destination: '/setup'
           }
         };
       }

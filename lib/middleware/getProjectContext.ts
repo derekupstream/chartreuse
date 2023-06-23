@@ -51,7 +51,7 @@ export const getProjectContext: GetServerSideProps = async context => {
       return {
         redirect: {
           permanent: false,
-          destination: '/org-setup'
+          destination: '/setup/trial'
         }
       };
     }
@@ -92,7 +92,7 @@ export const getProjectContext: GetServerSideProps = async context => {
     return {
       redirect: {
         permanent: false,
-        destination: '/login'
+        destination: '/projects'
       }
     };
   }

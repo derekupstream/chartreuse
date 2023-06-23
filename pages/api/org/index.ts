@@ -1,46 +1,53 @@
-import type { User, Prisma } from '@prisma/client';
-import { Role } from '@prisma/client';
-import type { NextApiRequest, NextApiResponse } from 'next';
+import type { NextApiResponse } from 'next';
 
-import { defaultHandler } from 'lib/middleware/handler';
+import { sendEventOnce } from 'lib/mailchimp/sendEvent';
+import type { NextApiRequestWithUser } from 'lib/middleware';
+import { handlerWithUser } from 'lib/middleware/handler';
 import prisma from 'lib/prisma';
+import { updateStripeCustomer } from 'lib/stripe/updateStripeCustomer';
 import { trackEvent } from 'lib/tracking';
 
-const handler = defaultHandler();
+const handler = handlerWithUser();
 
-type Response = {
-  user?: User;
-  error?: string;
+export type RequestBody = {
+  numberOfClientAccounts: number;
+  orgName: string;
 };
 
 handler.post(createOrg);
 
-async function createOrg(req: NextApiRequest, res: NextApiResponse<Response>) {
-  const { id, name, email, title, orgName, numberOfClientAccounts, phone } = req.body;
+async function createOrg(req: NextApiRequestWithUser, res: NextApiResponse) {
+  const { orgName, numberOfClientAccounts } = req.body as RequestBody;
 
-  const user = await prisma.user.create<Prisma.UserCreateArgs>({
+  // an empty org should have vbeen created when user starts a free trial
+  const org = await prisma.org.update({
+    where: {
+      id: req.user.orgId
+    },
     data: {
-      id,
-      name,
-      email,
-      title,
-      phone,
-      role: Role.ORG_ADMIN,
-      org: {
-        create: {
-          name: orgName,
-          metadata: { numberOfClientAccounts }
-        }
-      }
+      name: orgName,
+      metadata: { numberOfClientAccounts }
     }
   });
 
+  if (org.stripeCustomerId) {
+    await updateStripeCustomer({
+      customerId: org.stripeCustomerId,
+      name: orgName
+    });
+  }
+
   await trackEvent({
     type: 'signup',
-    userId: id
+    userId: req.user.id
+  });
+  // send event to mailchimp
+  await sendEventOnce('signed_up', {
+    userId: req.user.id,
+    email: req.user.email
   });
 
-  return res.status(200).json({ user });
+  return res.status(200).end();
 }
 
 export default handler;

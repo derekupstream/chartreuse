@@ -3,7 +3,7 @@ import { initializeApp } from 'firebase/app';
 import type { AuthProvider, User } from 'firebase/auth';
 import { GoogleAuthProvider, getAuth } from 'firebase/auth';
 
-export type { User };
+export type FirebaseUser = User;
 export type FirebaseAuthProvider = AuthProvider;
 
 export const googleProvider = new GoogleAuthProvider();

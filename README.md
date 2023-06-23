@@ -24,3 +24,22 @@ yarn test
 ## Migrations
 
 Migrations are managed by Prisma - refer to Prisma's migration documentation to run them.
+
+## Stripe
+
+### Sign-up Flow:
+
+1. Login to Firebase: a new user creates a Firebase session by entering their email on the Sign up page.
+2. Register with Stripe  
+   2a. On the second page, we create a Stripe customer account and persist user and organization records to Postgres.  
+   2b. All users are immediately given a free 30-day trial subscription which has a placeholder product with $0 price.
+3. Upstream visits the customer's profile in Stripe and adds a new product to their subscription. They then send a link to the customer to check out.
+4. Once the customer visits the app again, their trial period will be ended and their first paid period will begin.
+
+When we have actual product tiers, the flow for step 3 may change: 3. Upgrade and pay for a subscription  
+ 4a. Users visit /subscription and enter their payment information.  
+ 4b. In Stripe, the new payment method is applied to the subscription, the trial is ended, and they are charged immediately.
+
+### Links:
+
+How coupons work with subscriptions: https://stripe.com/docs/billing/subscriptions/coupons

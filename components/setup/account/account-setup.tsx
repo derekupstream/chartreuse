@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 
 import { useAuth } from 'hooks/useAuth';
 
-import * as S from './styles';
+import * as S from './account-setup.styles';
 
 type Props = {
   onSubmit: (values: unknown) => void;
@@ -13,7 +13,7 @@ type Props = {
 };
 
 export default function AccountSetupForm({ onSubmit, isLoading }: Props) {
-  const { user } = useAuth();
+  const { firebaseUser } = useAuth();
   const [form] = Form.useForm();
   const [useOrgEmail, setUseOrgEmail] = useState<boolean>(true);
 
@@ -23,18 +23,18 @@ export default function AccountSetupForm({ onSubmit, isLoading }: Props) {
     if (checked) {
       form.setFieldsValue({
         useOrgEmail: checked,
-        email: user?.email || ''
+        email: firebaseUser?.email || ''
       });
     }
   };
 
   useEffect(() => {
-    if (user) {
+    if (firebaseUser) {
       form.setFieldsValue({
-        email: user.email
+        email: firebaseUser.email
       });
     }
-  }, [user]);
+  }, [firebaseUser]);
 
   return (
     <S.Wrapper>
@@ -49,7 +49,7 @@ export default function AccountSetupForm({ onSubmit, isLoading }: Props) {
             }
           ]}
         >
-          <Input placeholder='Company name' />
+          <Input autoFocus placeholder='Company name' />
         </Form.Item>
 
         <Form.Item
@@ -67,7 +67,7 @@ export default function AccountSetupForm({ onSubmit, isLoading }: Props) {
             }
           ]}
         >
-          <Input defaultValue={user?.email || ''} type='email' placeholder='Your email' disabled={useOrgEmail} />
+          <Input defaultValue={''} type='email' placeholder='Your email' disabled={useOrgEmail} />
         </Form.Item>
 
         <div className='ant-form-item'>

@@ -1,4 +1,3 @@
-
 import { DownOutlined } from '@ant-design/icons';
 import { Layout, Menu } from 'antd';
 import { Button, Dropdown, message, Typography, Divider } from 'antd';
@@ -14,6 +13,7 @@ import type { DashboardUser } from 'components/dashboard';
 import * as S from 'components/dashboard/styles';
 import Header from 'components/header';
 import { useAuth } from 'hooks/useAuth';
+import { useSubscription } from 'hooks/useSubscription';
 import { analytics } from 'lib/analytics/mixpanel.browser';
 import Logo from 'public/images/chartreuse-logo-icon.png';
 
@@ -34,7 +34,8 @@ const menuLinks: MenuProps['items'] = [
   { key: 'projects', label: <Link href='/projects'>Projects</Link> },
   { key: 'org-analytics', label: <Link href='/org-analytics'>Analytics</Link> },
   { key: 'accounts', label: <Link href='/accounts'>Accounts</Link> },
-  { key: 'members', label: <Link href='/members'>Members</Link> }
+  { key: 'members', label: <Link href='/members'>Members</Link> },
+  { key: 'subscription', label: <Link href='/subscription'>Subscription</Link> }
 ];
 
 const upstreamLinks: MenuProps['items'] = [
@@ -46,6 +47,7 @@ const DashboardTemplate: React.FC<DashboardProps> = ({ user, selectedMenuItem, t
   const { signout } = useAuth();
   const router = useRouter();
   const [keys, setKeys] = useState<string[]>([]);
+  const { trialEndDateRelative } = useSubscription();
 
   useEffect(() => {
     analytics.identify(user.id, {
@@ -54,7 +56,10 @@ const DashboardTemplate: React.FC<DashboardProps> = ({ user, selectedMenuItem, t
     });
   }, [user.id]);
 
-  if (!menuLinks.some(link => link?.key === selectedMenuItem) && !upstreamLinks.some(link => link?.key === selectedMenuItem)) {
+  if (
+    !menuLinks.some(link => link?.key === selectedMenuItem) &&
+    !upstreamLinks.some(link => link?.key === selectedMenuItem)
+  ) {
     throw new Error('Menu link key not found: ' + selectedMenuItem);
   }
 
@@ -116,7 +121,27 @@ const DashboardTemplate: React.FC<DashboardProps> = ({ user, selectedMenuItem, t
           <S.LogoAndMenuWrapper>
             <Image src={Logo} alt='Chareuse logo' objectFit='contain' />
             <Menu items={menuLinks} mode='horizontal' disabledOverflow selectedKeys={keys} onClick={handleMenuClick} />
-            {user.org.isUpstream && <Menu items={extendedLinks} mode='horizontal' disabledOverflow selectedKeys={keys} onClick={handleMenuClick} />}
+            {trialEndDateRelative && (
+              <S.FreeTrialBanner>
+                <S.FreeTrialBannerContent>
+                  <Typography.Text type='secondary'>Your trial expires in {trialEndDateRelative}</Typography.Text>
+                  <Link href={`/subscription`} passHref>
+                    <Button type='primary' ghost>
+                      Upgrade now
+                    </Button>
+                  </Link>
+                </S.FreeTrialBannerContent>
+              </S.FreeTrialBanner>
+            )}
+            {user.org.isUpstream && (
+              <Menu
+                items={extendedLinks}
+                mode='horizontal'
+                disabledOverflow
+                selectedKeys={keys}
+                onClick={handleMenuClick}
+              />
+            )}
           </S.LogoAndMenuWrapper>
           <S.OrgAndUserWrapper>
             <Typography.Text type='secondary'>{user.org.name}</Typography.Text>

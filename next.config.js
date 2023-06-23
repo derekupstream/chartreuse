@@ -23,7 +23,7 @@ const config = {
     styledComponents: true
   },
   reactStrictMode: true,
-  webpack(_config, { isServer }) {
+  webpack(_config) {
     _config.module.rules.push({
       test: /\.svg$/,
       use: ['@svgr/webpack']
@@ -37,9 +37,23 @@ const config = {
         destination: '/projects',
         permanent: false
       },
+      // cant get this to work, to exclude /projects/new
+      // {
+      //   // redirect to the first project setup page
+      //   source: '/projects/:projectId((?!new).+)',
+      //   destination: '/projects/:projectId/single-use-items',
+      //   permanent: false
+      // },
       {
-        source: '/projects/:projectId',
-        destination: '/projects/:projectId/single-use-items',
+        // redirect to the first setup page
+        source: '/setup',
+        destination: '/setup/trial',
+        permanent: false
+      },
+      {
+        // temporary redirect to be backwards-compatible with firebase
+        source: '/org-setup',
+        destination: '/setup/trial',
         permanent: false
       }
     ];

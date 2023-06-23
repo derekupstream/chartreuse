@@ -1,7 +1,14 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 
-export function onError(err: any, req: NextApiRequest, res: NextApiResponse, next: () => void) {
-  console.error('Server error', err.stack || err);
+import type { NextApiRequestWithUser } from 'lib/middleware';
+export function onError(err: any, req: NextApiRequestWithUser | NextApiRequest, res: NextApiResponse) {
+  console.error('Server error', {
+    error: err.stack || err,
+    url: req.url,
+    userId: (req as NextApiRequestWithUser).user?.id,
+    body: req.body
+  });
+
   const errorMessage = err.message || 'Something went wrong!';
   res.status(500).json({ message: errorMessage });
 }

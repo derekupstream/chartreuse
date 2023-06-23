@@ -3,9 +3,34 @@ import styled from 'styled-components';
 
 export const LogoAndMenuWrapper = styled.div`
   display: flex;
+  flex-grow: 1;
 
   > ul {
     margin-left: 20px;
+  }
+`;
+
+export const FreeTrialBanner = styled.div`
+  flex-grow: 1;
+  display: flex;
+  justify-content: center;
+`;
+
+export const FreeTrialBannerContent = styled.div`
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  display: none;
+  > span {
+    display: none;
+  }
+  @media (min-width: 900px) {
+    display: flex;
+  }
+  @media (min-width: 1200px) {
+    > span {
+      display: block;
+    }
   }
 `;
 

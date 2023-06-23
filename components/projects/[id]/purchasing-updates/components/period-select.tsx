@@ -1,5 +1,5 @@
 import { Form, Select } from 'antd';
-import * as date from 'date-fns';
+import { format, endOfYear, startOfYear, subYears, subQuarters, startOfQuarter, endOfQuarter } from 'date-fns';
 
 import type { DateRange } from 'lib/calculator/types';
 
@@ -32,17 +32,17 @@ const periodOptions: PeriodOption[] = [
 // a function that converts a period value to a date range
 export function convertPeriodToDates(period: PeriodValue | undefined): DateRange {
   const today = new Date();
-  const start = date.startOfQuarter(today);
-  const end = date.endOfQuarter(today);
+  const start = startOfQuarter(today);
+  const end = endOfQuarter(today);
   switch (period) {
     case 'this_quarter':
       return { start, end };
     case 'last_quarter':
-      return { start: date.subQuarters(start, 1), end: date.subQuarters(end, 1) };
+      return { start: subQuarters(start, 1), end: subQuarters(end, 1) };
     case 'this_year':
-      return { start: date.startOfYear(today), end: date.endOfYear(today) };
+      return { start: startOfYear(today), end: endOfYear(today) };
     case 'last_year':
-      return { start: date.subYears(date.startOfYear(today), 1), end: date.subYears(date.endOfYear(today), 1) };
+      return { start: subYears(startOfYear(today), 1), end: subYears(endOfYear(today), 1) };
     default:
       return {};
   }
@@ -51,7 +51,7 @@ export function convertPeriodToDates(period: PeriodValue | undefined): DateRange
 export function getFriendlyPeriod(period: PeriodValue | undefined): string {
   const dates = convertPeriodToDates(period);
   if (dates.start && dates.end) {
-    return `${date.format(dates.start, 'MMM yyyy')} - ${date.format(dates.end, 'MMM yyyy')}`;
+    return `${format(dates.start, 'MMM yyyy')} - ${format(dates.end, 'MMM yyyy')}`;
   }
   return 'All time';
 }

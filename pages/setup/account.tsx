@@ -5,10 +5,10 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import nookies from 'nookies';
 
-import AccountSetupForm from 'components/account-setup-form';
 import FormPageTemplate from 'components/form-page-template';
 import Header from 'components/header';
 import PageLoader from 'components/page-loader';
+import AccountSetupForm from 'components/setup/account/account-setup';
 import { verifyIdToken } from 'lib/auth/firebaseAdmin';
 import type { AccountSetupFields } from 'lib/chartreuseClient';
 import chartreuseClient from 'lib/chartreuseClient';
@@ -32,7 +32,7 @@ export const getServerSideProps: GetServerSideProps = async context => {
       return {
         redirect: {
           permanent: false,
-          destination: '/org-setup'
+          destination: '/setup'
         }
       };
     }
@@ -91,7 +91,7 @@ export default function AccountSetup({ org, user }: Props) {
 
   return (
     <>
-      <Header title='Org Account' />
+      <Header title='Account Setup' />
 
       <main>
         <FormPageTemplate

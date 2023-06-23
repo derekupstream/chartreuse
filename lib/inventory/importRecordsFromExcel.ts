@@ -30,7 +30,7 @@ function convertWorkbookToInventoryInput(workbook: ExcelJS.Workbook): InventoryI
   sheet.eachRow((row, rowIndex) => {
     // first row is table headers
     if (rowIndex === 1 && row.values.length) {
-      for (let i = 7; i < row.values.length; i = i + 3) {
+      for (let i = 7; i < (row.values as ExcelJS.CellValue[]).length; i = i + 3) {
         // depending on the cell format, the value may be a string or a Date object
         const dateString = (row.values as (string | Date)[])[i];
         if (typeof dateString === 'string' && !isValidDateString(dateString)) {

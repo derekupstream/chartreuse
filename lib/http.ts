@@ -26,7 +26,11 @@ export function DELETE<T>(requestURL: string, data: Params = {}): Promise<T> {
   }).then(transformResponse);
 }
 
-export function POST<T>(requestURL: string, data: Params = {}, { noHeaders }: { noHeaders?: boolean } = {}): Promise<T> {
+export function POST<T>(
+  requestURL: string,
+  data: Params = {},
+  { noHeaders }: { noHeaders?: boolean } = {}
+): Promise<T> {
   return fetch(requestURL, {
     body: JSON.stringify(data),
     method: 'POST',
@@ -67,8 +71,8 @@ export function uploadFile(requestURL: string, file: File): Promise<any> {
 
 function transformResponse(response: Response) {
   if (response.status >= 400) {
-    const contentType = response.headers.get('content-type') as string;
-    if (contentType.includes('application/json')) {
+    const contentType = response.headers.get('content-type') as string | undefined;
+    if (contentType?.includes('application/json')) {
       return response.json().then(json => Promise.reject(json));
     }
     return response.text().then(text => Promise.reject({ status: response.status, error: text }));

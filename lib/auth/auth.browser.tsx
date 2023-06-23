@@ -1,12 +1,20 @@
 import type { UserCredential } from 'firebase/auth';
-import { onIdTokenChanged, signOut, signInWithEmailAndPassword, signInWithPopup, createUserWithEmailAndPassword, setPersistence, browserSessionPersistence } from 'firebase/auth';
+import {
+  onIdTokenChanged,
+  signOut,
+  signInWithEmailAndPassword,
+  signInWithPopup,
+  createUserWithEmailAndPassword,
+  setPersistence,
+  browserSessionPersistence
+} from 'firebase/auth';
 import { setCookie, destroyCookie } from 'nookies';
 import { createContext, useEffect, useState, useCallback } from 'react';
 
-import type { FirebaseAuthProvider, User } from './firebaseClient';
+import type { FirebaseAuthProvider, FirebaseUser } from './firebaseClient';
 import { auth } from './firebaseClient';
 
-export type { User };
+export type { FirebaseUser };
 
 export type Credentials = {
   email: string;
@@ -14,7 +22,7 @@ export type Credentials = {
 };
 
 type AuthContextType = {
-  user: User | null;
+  firebaseUser: FirebaseUser | null;
   login: (credentials: Credentials, persist: boolean) => Promise<UserCredential | null>;
   loginWithProvider: (provider: FirebaseAuthProvider, persist: boolean) => Promise<UserCredential | null>;
   signup: (credentials: Credentials, persist: boolean) => Promise<UserCredential | null>;
@@ -22,7 +30,7 @@ type AuthContextType = {
 };
 
 export const AuthContext = createContext<AuthContextType>({
-  user: null,
+  firebaseUser: null,
   login: () => Promise.resolve(null),
   loginWithProvider: () => Promise.resolve(null),
   signup: () => Promise.resolve(null),
@@ -30,18 +38,20 @@ export const AuthContext = createContext<AuthContextType>({
 });
 
 export const AuthProvider: React.FC<{ children: any }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
 
   useEffect(() => {
-    const unsubscribe = onIdTokenChanged(auth, async (user: User | null) => {
-      if (!user) {
-        setUser(null);
+    const unsubscribe = onIdTokenChanged(auth, async (_firebaseUser: FirebaseUser | null) => {
+      if (!_firebaseUser) {
+        console.log('Log user out');
+        setFirebaseUser(null);
         destroyCookie(null, 'token');
         return;
       }
+      console.log('Log user in');
 
-      setUser(user);
-      const token = await user.getIdToken();
+      setFirebaseUser(_firebaseUser);
+      const token = await _firebaseUser.getIdToken();
       setCookie(null, 'token', token, {
         path: '/'
       });
@@ -84,10 +94,14 @@ export const AuthProvider: React.FC<{ children: any }> = ({ children }) => {
 
   const signout = useCallback(() => {
     return signOut(auth).then(() => {
-      setUser(null);
+      setFirebaseUser(null);
       destroyCookie(null, 'token');
     });
   }, []);
 
-  return <AuthContext.Provider value={{ user, login, loginWithProvider, signup, signout }}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={{ firebaseUser, login, loginWithProvider, signup, signout }}>
+      {children}
+    </AuthContext.Provider>
+  );
 };

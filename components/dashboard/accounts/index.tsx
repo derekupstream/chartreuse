@@ -63,7 +63,9 @@ export default function Accounts({ user }: LoggedinProps) {
                     Are you sure you want to delete the account &quot;
                     {record.name}&quot;?
                   </Typography.Title>
-                  <Typography.Text>You will lose any Account Admins, and Projects associated with {record.name}.</Typography.Text>
+                  <Typography.Text>
+                    You will lose any Account Admins, and Projects associated with {record.name}.
+                  </Typography.Text>
                 </Space>
               }
               onConfirm={() => handleAccountDeletion(record.key)}
@@ -86,7 +88,7 @@ export default function Accounts({ user }: LoggedinProps) {
   });
 
   const handleAddAcount = () => {
-    router.push('/account-setup?dashboard=1');
+    router.push('/setup/account?dashboard=1');
   };
 
   return (
@@ -98,7 +100,11 @@ export default function Accounts({ user }: LoggedinProps) {
         </Button>
       </S.SpaceBetween>
       {data.length > 0 && <Table columns={columns} dataSource={data} pagination={false} />}
-      {data.length === 0 && <Typography.Text>You have no active accounts in your organization. Click ‘+ Add account’ above to get started.</Typography.Text>}
+      {data.length === 0 && (
+        <Typography.Text>
+          You have no active accounts in your organization. Click ‘+ Add account’ above to get started.
+        </Typography.Text>
+      )}
     </Space>
   );
 }

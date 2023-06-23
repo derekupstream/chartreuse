@@ -80,7 +80,7 @@ type Props = {
 
 export default function InviteProfile({ org, account, error }: Props) {
   const router = useRouter();
-  const { user } = useAuth();
+  const { firebaseUser } = useAuth();
 
   const createInviteProfile = useMutation((data: CreateProfileInput) => {
     return chartreuseClient.createProfile(data);
@@ -88,13 +88,13 @@ export default function InviteProfile({ org, account, error }: Props) {
 
   const handleInviteProfileCreation = useCallback(
     async ({ name, title, phone }: InviteProfileFields) => {
-      if (!user || !org) {
+      if (!firebaseUser || !org) {
         throw new Error('No user or org authed');
       }
       createInviteProfile.mutate(
         {
-          id: user.uid,
-          email: user.email || '',
+          id: firebaseUser.uid,
+          email: firebaseUser.email || '',
           orgId: org.id,
           accountId: account?.id,
           inviteId: router?.query.inviteId as string,
@@ -112,14 +112,14 @@ export default function InviteProfile({ org, account, error }: Props) {
         }
       );
     },
-    [account?.id, createInviteProfile, org?.id, router, user?.email, user?.uid]
+    [account?.id, createInviteProfile, org?.id, router, firebaseUser?.email, firebaseUser?.uid]
   );
 
   if (error) {
     return <MessagePage title='Oops!' message={error} />;
   }
 
-  if (!user || !org) {
+  if (!firebaseUser || !org) {
     return <PageLoader />;
   }
 
@@ -128,8 +128,14 @@ export default function InviteProfile({ org, account, error }: Props) {
       <Header title='Setup Profile' />
 
       <main>
-        <FormPageTemplate title='Setup your Profile' subtitle={`Setup your profile to accept the invite to join ${org?.name} at Chart Reuse.`}>
-          <InviteProfileForm onSubmit={handleInviteProfileCreation as (values: unknown) => void} isLoading={createInviteProfile.isLoading} />
+        <FormPageTemplate
+          title='Setup your Profile'
+          subtitle={`Setup your profile to accept the invite to join ${org?.name} at Chart Reuse.`}
+        >
+          <InviteProfileForm
+            onSubmit={handleInviteProfileCreation as (values: unknown) => void}
+            isLoading={createInviteProfile.isLoading}
+          />
         </FormPageTemplate>
       </main>
     </>

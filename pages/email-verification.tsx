@@ -10,39 +10,53 @@ import PageLoader from 'components/page-loader';
 import { useAuth } from 'hooks/useAuth';
 
 export default function EmailVerification() {
-  const { user } = useAuth();
+  const { firebaseUser } = useAuth();
   const router = useRouter();
 
   const origin = typeof window !== 'undefined' && window.location.origin ? window.location.origin : '';
 
   useEffect(() => {
+    let interval: NodeJS.Timer | undefined;
+
     const verifyEmail = async () => {
       destroyCookie(null, 'emailVerified');
 
-      if (user?.emailVerified) {
-        setCookie(null, 'emailVerified', 'true');
-        router.push('/org-setup');
+      if (firebaseUser?.emailVerified) {
+        console.log('Email verified! send user to /setup');
+        setCookie(null, 'emailVerified', 'true', { expires: 0 });
+        router.push('/setup');
       } else {
         try {
-          console.log('Sending email verification email', { email: user?.email });
-          if (user) {
-            await sendEmailVerification(user, {
-              url: `${origin}/org-setup`
+          console.log('Sending email verification email', { email: firebaseUser?.email });
+          if (firebaseUser) {
+            await sendEmailVerification(firebaseUser, {
+              url: `${origin}/setup`
             });
+            interval = setInterval(async () => {
+              if (firebaseUser.emailVerified) {
+                console.log('Email verified! send user to /setup');
+                setCookie(null, 'emailVerified', 'true', { expires: 0 });
+                clearInterval(interval);
+                router.push('/setup');
+              }
+              await firebaseUser.reload();
+            }, 2000);
           }
-          setCookie(null, 'emailVerified', 'true');
+          //setCookie(null, 'emailVerified', 'true', { expires: 0 });
         } catch (error: any) {
           message.error(error.message);
         }
       }
+      return () => {
+        clearInterval(interval);
+      };
     };
-
-    if (user) {
+    if (firebaseUser) {
       verifyEmail();
     }
-  }, [origin, router, user]);
+  }, [origin, router, firebaseUser]);
 
-  if (!user) return <PageLoader />;
+  if (!firebaseUser) return <PageLoader />;
 
   return (
     <>

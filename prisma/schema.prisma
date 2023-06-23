@@ -34,16 +34,18 @@ model UserEvent {
 }
 
 model Org {
-  id         String    @id @default(uuid()) @db.Uuid
-  name       String
-  metadata   Json?
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
-  isUpstream Boolean   @default(false)
-  users      User[]
-  accounts   Account[]
-  projects   Project[]
-  Invite     Invite[]
+  id                   String    @id @default(uuid()) @db.Uuid
+  name                 String
+  metadata             Json?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+  isUpstream           Boolean   @default(false)
+  users                User[]
+  accounts             Account[]
+  projects             Project[]
+  invites              Invite[]
+  stripeCustomerId     String?
+  stripeSubscriptionId String?
 }
 
 model Account {

@@ -10,15 +10,15 @@ import { useAuth } from 'hooks/useAuth';
 import type { FirebaseAuthProvider } from 'lib/auth/firebaseClient';
 
 export default function Login() {
-  const { login, loginWithProvider, user } = useAuth();
+  const { login, loginWithProvider, firebaseUser } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
     // this may occur when the user is logged in already, but the cookie needed to be refreshed on the frontend
-    if (user) {
+    if (firebaseUser) {
       router.push('/');
     }
-  }, [user]);
+  }, [firebaseUser]);
 
   const handleLogin = async ({ email, password, rememberMe }: FormValues) => {
     try {
@@ -43,8 +43,14 @@ export default function Login() {
       <Header title='Sign in' />
 
       <main>
-        <FormPageTemplate title='Welcome to Chart Reuse' subtitle='Sign in with your email and password, or use your Google account.'>
-          <LoginForm onSubmit={handleLogin as (values: unknown) => void} onSubmitWithProvider={handleLoginWithProvider} />
+        <FormPageTemplate
+          title='Welcome to Chart Reuse'
+          subtitle='Sign in with your email and password, or use your Google account.'
+        >
+          <LoginForm
+            onSubmit={handleLogin as (values: unknown) => void}
+            onSubmitWithProvider={handleLoginWithProvider}
+          />
         </FormPageTemplate>
       </main>
     </>

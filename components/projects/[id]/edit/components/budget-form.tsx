@@ -42,8 +42,6 @@ export function BudgetForm({ project, onComplete, onSkip }: Props) {
           <InputNumber
             prefix='$'
             formatter={value => {
-              console.log('VALUE', value);
-              console.log(`${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ','));
               return `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
             }}
             parser={value => value!.replace(/\$\s?|(,*)/g, '')}

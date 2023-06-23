@@ -1,25 +1,33 @@
 import { message } from 'antd';
 import type { GetServerSideProps } from 'next';
 import { useRouter } from 'next/router';
-import nookies from 'nookies';
 import { useCallback } from 'react';
 import { useMutation } from 'react-query';
 
 import FormPageTemplate from 'components/form-page-template';
 import Header from 'components/header';
-import OrgSetupForm from 'components/org-setup-form';
-import { useAuth } from 'hooks/useAuth';
+import type { OrgSetupFields } from 'components/setup/org/org-setup';
+import { OrgSetupForm } from 'components/setup/org/org-setup';
 import chartreuseClient from 'lib/chartreuseClient';
+import { getUserFromContext } from 'lib/middleware';
 
 export const getServerSideProps: GetServerSideProps = async context => {
-  const { emailVerified } = nookies.get(context);
-
-  if (!emailVerified) {
-    console.log('Redirect to verify email');
+  const { firebaseToken, user } = await getUserFromContext(context);
+  if (!firebaseToken) {
+    console.log('Redirect from org setup to login');
     return {
       redirect: {
         permanent: false,
-        destination: '/email-verification'
+        destination: '/login'
+      }
+    };
+  }
+  if (!user) {
+    console.log('Redirect from org setup to trial setup');
+    return {
+      redirect: {
+        permanent: false,
+        destination: '/trial'
       }
     };
   }
@@ -27,37 +35,23 @@ export const getServerSideProps: GetServerSideProps = async context => {
   return { props: { emailVerified: true } };
 };
 
-type OrgSetupFields = {
-  title: string;
-  name: string;
-  phone: string;
-  orgName: string;
-  numberOfClientAccounts: string;
-};
-
 export default function OrgSetup() {
   const router = useRouter();
-  const { user } = useAuth();
 
-  const createOrgSetup = useMutation((data: any) => {
-    return chartreuseClient.createOrganization(data);
+  const updateOrganization = useMutation((data: any) => {
+    return chartreuseClient.updateOrganization(data);
   });
 
   const handleOrgSetupCreation = useCallback(
-    ({ title, name, phone, orgName, numberOfClientAccounts }: OrgSetupFields) => {
-      createOrgSetup.mutate(
+    ({ orgName, numberOfClientAccounts }: OrgSetupFields) => {
+      updateOrganization.mutate(
         {
-          id: user?.uid,
-          title,
-          email: user?.email,
-          name,
-          phone,
           orgName,
           numberOfClientAccounts
         },
         {
           onSuccess: () => {
-            router.push('/account-setup');
+            router.push('/setup/account');
           },
           onError: err => {
             message.error((err as Error)?.message);
@@ -65,19 +59,22 @@ export default function OrgSetup() {
         }
       );
     },
-    [createOrgSetup, router, user?.uid, user?.email]
+    [updateOrganization, router]
   );
 
   return (
     <>
-      <Header title='Org Account' />
+      <Header title='Organization Setup' />
 
       <main>
         <FormPageTemplate
           title='Setup your Organization'
           subtitle='Next, let’s setup your Organization. An Organization could be a company that has multiple customers with multiple locations, or just a single business with a single location.'
         >
-          <OrgSetupForm onSubmit={handleOrgSetupCreation as (values: unknown) => void} isLoading={createOrgSetup.isLoading} />
+          <OrgSetupForm
+            onSubmit={handleOrgSetupCreation as (values: unknown) => void}
+            isLoading={updateOrganization.isLoading}
+          />
         </FormPageTemplate>
       </main>
     </>
