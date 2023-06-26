@@ -62,7 +62,7 @@ export function useUpdateSubscription() {
 }
 
 export function useCancelSubscription() {
-  return _useDELETE<SubscriptionResponse>('/api/stripe/subscription');
+  return _useDELETE('/api/stripe/subscription');
 }
 
 export function useCreatePaymentMethod() {
@@ -71,9 +71,12 @@ export function useCreatePaymentMethod() {
 
 export const members = {
   useDeleteMember() {
-    return useSWRMutation('/api/user/delete', (key, { arg: member }) => {
-      const resource = member.isInvite ? 'invite' : 'profile';
-      return http.DELETE(`/api/${resource}/${member.key}`);
-    });
+    return useSWRMutation<unknown, Error, string, { isInvite: boolean; key: string }>(
+      '/api/user/delete',
+      (key, { arg: member }) => {
+        const resource = member.isInvite ? 'invite' : 'profile';
+        return http.DELETE(`/api/${resource}/${member.key}`);
+      }
+    );
   }
 };
