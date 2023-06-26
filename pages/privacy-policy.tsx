@@ -3,8 +3,8 @@ import Image from 'next/legacy/image';
 import Link from 'next/link';
 import styled from 'styled-components';
 
-import Container from 'components/container';
-import Header from 'components/header';
+import Container from 'components/common/Container';
+import { Header } from 'components/common/Header';
 import Logo from 'public/images/chart-reuse-logo-black.png';
 
 const LogoWrapper = styled(Link)`

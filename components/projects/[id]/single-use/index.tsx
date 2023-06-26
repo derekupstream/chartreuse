@@ -1,26 +1,26 @@
 import { PlusOutlined } from '@ant-design/icons';
 import type { Project } from '@prisma/client';
-import { Button, Divider, Drawer, Typography, Spin, Row, Col, Popconfirm, message, Card } from 'antd';
+import { Button, Divider, Drawer, Typography, Row, Col, Popconfirm, message } from 'antd';
 import { useState } from 'react';
 import { useEffect } from 'react';
 import styled from 'styled-components';
 
-import ContentLoader from 'components/common/content-loader';
-import type { DashboardUser } from 'components/dashboard';
-import useLoadingState from 'hooks/useLoadingState';
+import ContentLoader from 'components/common/ContentLoader';
+import { useLoadingState } from 'hooks/useLoadingState';
+import type { DashboardUser } from 'interfaces';
 import { getannualOccurrence } from 'lib/calculator/constants/frequency';
 import { PRODUCT_CATEGORIES } from 'lib/calculator/constants/product-categories';
 import chartreuseClient from 'lib/chartreuseClient';
-import { DELETE, GET } from 'lib/http';
+import { GET } from 'lib/http';
 import type { SingleUseProduct } from 'lib/inventory/types/products';
 import type { SingleUseLineItem } from 'lib/inventory/types/projects';
 
-import { EmptyState } from '../components/empty-state';
-import { useFooterState } from '../components/footer';
+import { EmptyState } from '../components/EmptyState';
+import { useFooterState } from '../components/Footer';
 import * as S from '../styles';
 
-import { CATEGORY_ICONS } from './category-icons';
-import SingleUseForm from './single-use-form';
+import { CATEGORY_ICONS } from './CategoryIcons';
+import SingleUseForm from './SingleUseForm';
 
 type ServerSideProps = {
   project: Project;

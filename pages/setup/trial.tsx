@@ -4,11 +4,11 @@ import { useRouter } from 'next/router';
 import nookies from 'nookies';
 import { useCallback } from 'react';
 
-import FormPageTemplate from 'components/form-page-template';
-import Header from 'components/header';
-import type { TrialSetupFields } from 'components/setup/trial/trial-setup';
-import { TrialSetupForm } from 'components/setup/trial/trial-setup';
+import { Header } from 'components/common/Header';
+import type { TrialSetupFields } from 'components/setup/trial/TrialSetup';
+import { TrialSetupForm } from 'components/setup/trial/TrialSetup';
 import { useAuth } from 'hooks/useAuth';
+import { FormPageTemplate } from 'layouts/FormPageLayout';
 import { useCreateTrial } from 'lib/api';
 import { getUserFromContext } from 'lib/middleware';
 

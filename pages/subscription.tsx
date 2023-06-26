@@ -1,10 +1,10 @@
 import type { GetServerSideProps } from 'next';
 
-import Subscription from 'components/dashboard/subscription';
-import { ComingSoon } from 'components/dashboard/subscription/comingSoon';
+import Subscription from 'components/subscription';
+import { ComingSoon } from 'components/subscription/ComingSoon';
 import { useSubscription } from 'hooks/useSubscription';
-import BaseLayout from 'layouts/baseLayout';
-import Template from 'layouts/dashboardLayout';
+import { BaseLayout } from 'layouts/BaseLayout';
+import { DashboardLayout as Template } from 'layouts/DashboardLayout/DashboardLayout';
 import { checkLogin } from 'lib/middleware';
 import type { PageProps } from 'pages/_app';
 

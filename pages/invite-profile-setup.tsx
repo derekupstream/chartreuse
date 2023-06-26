@@ -4,12 +4,12 @@ import { useRouter } from 'next/router';
 import { useCallback } from 'react';
 import { useMutation } from 'react-query';
 
-import FormPageTemplate from 'components/form-page-template';
-import Header from 'components/header';
-import InviteProfileForm from 'components/invite-profile-form';
-import MessagePage from 'components/message-page';
-import PageLoader from 'components/page-loader';
+import { Header } from 'components/common/Header';
+import { PageLoader } from 'components/common/PageLoader';
+import { InviteProfileForm } from 'components/invite-profile-setup/InviteProfileForm';
 import { useAuth } from 'hooks/useAuth';
+import { FormPageTemplate } from 'layouts/FormPageLayout';
+import MessagePage from 'layouts/MessagePageLayout';
 import type { CreateProfileInput } from 'lib/chartreuseClient';
 import chartreuseClient from 'lib/chartreuseClient';
 import prisma from 'lib/prisma';

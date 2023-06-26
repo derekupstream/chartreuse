@@ -1,9 +1,9 @@
 import type { Project } from '@prisma/client';
 import type { GetServerSideProps } from 'next';
 
-import type { DashboardUser } from 'components/dashboard';
 import { ProjectSetup } from 'components/projects/[id]/edit';
-import Template from 'layouts/dashboardLayout';
+import type { DashboardUser } from 'interfaces';
+import { DashboardLayout as Template } from 'layouts/DashboardLayout/DashboardLayout';
 import { getProjectContext } from 'lib/middleware';
 
 export const getServerSideProps: GetServerSideProps = async context => {

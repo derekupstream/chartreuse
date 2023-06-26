@@ -5,10 +5,10 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import nookies from 'nookies';
 
-import FormPageTemplate from 'components/form-page-template';
-import Header from 'components/header';
-import PageLoader from 'components/page-loader';
-import AccountSetupForm from 'components/setup/account/account-setup';
+import { Header } from 'components/common/Header';
+import { PageLoader } from 'components/common/PageLoader';
+import AccountSetupForm from 'components/setup/account/AccountSetup';
+import { FormPageTemplate } from 'layouts/FormPageLayout';
 import { verifyIdToken } from 'lib/auth/firebaseAdmin';
 import type { AccountSetupFields } from 'lib/chartreuseClient';
 import chartreuseClient from 'lib/chartreuseClient';

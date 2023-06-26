@@ -1,8 +1,8 @@
 import type { GetServerSideProps } from 'next';
 
-import type { PageProps as MembersProps } from 'components/dashboard/members';
-import Members from 'components/dashboard/members';
-import Template from 'layouts/dashboardLayout';
+import type { PageProps as MembersProps } from 'components/members';
+import Members from 'components/members';
+import { DashboardLayout as Template } from 'layouts/DashboardLayout/DashboardLayout';
 import { checkLogin } from 'lib/middleware';
 import prisma from 'lib/prisma';
 import type { PageProps } from 'pages/_app';

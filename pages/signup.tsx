@@ -1,11 +1,11 @@
 import { message } from 'antd';
 import { useRouter } from 'next/router';
 
-import FormPageTemplate from 'components/form-page-template';
-import Header from 'components/header';
-import type { FormValues } from 'components/signup-form';
-import SignupForm from 'components/signup-form';
+import { Header } from 'components/common/Header';
+import type { FormValues } from 'components/signup/SignupForm';
+import { SignupForm } from 'components/signup/SignupForm';
 import { useAuth } from 'hooks/useAuth';
+import { FormPageTemplate } from 'layouts/FormPageLayout';
 import type { FirebaseAuthProvider } from 'lib/auth/firebaseClient';
 
 export default function Signup() {

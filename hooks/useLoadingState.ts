@@ -10,7 +10,7 @@ interface LoadedState extends ErrorState {
   isLoading: false;
 }
 
-export default function useLoadingState<T>(initialState: Partial<T> = {}) {
+export function useLoadingState<T>(initialState: Partial<T> = {}) {
   return useReducer(
     (state: T & (LoadingState | LoadedState), newState: Partial<T & (LoadingState | LoadedState)>) => ({
       ...state,

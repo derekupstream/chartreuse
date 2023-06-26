@@ -2,9 +2,9 @@ import sortBy from 'lodash/sortBy';
 import uniqBy from 'lodash/uniqBy';
 import type { GetServerSideProps } from 'next';
 
-import type { PageProps } from 'components/dashboard/analytics';
-import Analytics from 'components/dashboard/analytics';
-import Template from 'layouts/dashboardLayout';
+import type { PageProps } from 'components/analytics/Analytics';
+import Analytics from 'components/analytics/Analytics';
+import { DashboardLayout as Template } from 'layouts/DashboardLayout/DashboardLayout';
 import { getAllProjections } from 'lib/calculator/getProjections';
 import { getUserFromContext } from 'lib/middleware';
 import prisma from 'lib/prisma';

@@ -1,8 +1,8 @@
 import type { GetServerSideProps } from 'next';
 
 import { ProjectSetup } from 'components/projects/[id]/edit';
-import type { DashboardProps } from 'layouts/dashboardLayout';
-import Template from 'layouts/dashboardLayout';
+import type { DashboardProps } from 'layouts/DashboardLayout/DashboardLayout';
+import { DashboardLayout as Template } from 'layouts/DashboardLayout/DashboardLayout';
 import { checkLogin } from 'lib/middleware';
 
 export const getServerSideProps: GetServerSideProps = async context => {

@@ -36,6 +36,7 @@
       "error",
       "always"
     ],
+    "import/no-default-export": "warn",
     "import/order": [
       "error",
       {
@@ -55,6 +56,7 @@
         ]
       }
     ],
+    "import/prefer-default-export": "off",
     "jsx-quotes": [
       "error",
       "prefer-single"

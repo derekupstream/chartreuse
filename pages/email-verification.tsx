@@ -4,10 +4,10 @@ import { useRouter } from 'next/router';
 import { destroyCookie, setCookie } from 'nookies';
 import { useEffect } from 'react';
 
-import Header from 'components/header';
-import MessagePage from 'components/message-page';
-import PageLoader from 'components/page-loader';
+import { Header } from 'components/common/Header';
+import { PageLoader } from 'components/common/PageLoader';
 import { useAuth } from 'hooks/useAuth';
+import MessagePage from 'layouts/MessagePageLayout';
 
 export default function EmailVerification() {
   const { firebaseUser } = useAuth();

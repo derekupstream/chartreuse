@@ -1,7 +1,7 @@
 import type { GetServerSideProps } from 'next';
 
-import { PurchasingUpdates } from 'components/projects/[id]/purchasing-updates/purchasing-updates';
-import { ProjectStepsLayout } from 'layouts/projectStepsLayout';
+import { PurchasingUpdates } from 'components/projects/[id]/purchasing-updates/PurchasingUpdates';
+import { ProjectStepsLayout } from 'layouts/ProjectStepsLayout';
 import type { ProjectContext } from 'lib/middleware';
 import { getProjectContext } from 'lib/middleware';
 

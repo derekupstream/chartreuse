@@ -4,13 +4,11 @@ import type { GetServerSideProps } from 'next';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import nookies from 'nookies';
-import { useCallback } from 'react';
-import { useMutation } from 'react-query';
 
-import FormPageTemplate from 'components/form-page-template';
-import Header from 'components/header';
-import MemberEditForm from 'components/member-edit-form';
-import PageLoader from 'components/page-loader';
+import { Header } from 'components/common/Header';
+import { PageLoader } from 'components/common/PageLoader';
+import { MemberEditForm } from 'components/edit-member-profile/MemberEditForm';
+import { FormPageTemplate } from 'layouts/FormPageLayout';
 import { verifyIdToken } from 'lib/auth/firebaseAdmin';
 import chartreuseClient from 'lib/chartreuseClient';
 import prisma from 'lib/prisma';

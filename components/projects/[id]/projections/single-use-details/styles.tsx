@@ -1,7 +1,7 @@
 import { Typography } from 'antd';
 import styled, { css } from 'styled-components';
 
-import _Card from '../components/card';
+import _Card from '../components/Card';
 
 export const Card = styled(_Card)`
   margin: 0 29px 29px 0;

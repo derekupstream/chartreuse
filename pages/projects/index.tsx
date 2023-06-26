@@ -1,7 +1,7 @@
 import type { GetServerSideProps } from 'next';
 
-import Projects from 'components/dashboard/projects';
-import Template from 'layouts/dashboardLayout';
+import { ProjectsDashboard } from 'components/projects/ProjectsDashboard';
+import { DashboardLayout as Template } from 'layouts/DashboardLayout/DashboardLayout';
 import { checkLogin } from 'lib/middleware';
 import type { PageProps } from 'pages/_app';
 
@@ -10,7 +10,7 @@ export const getServerSideProps: GetServerSideProps = async context => {
 };
 
 const ProjectsPage = () => {
-  return <Projects />;
+  return <ProjectsDashboard />;
 };
 
 ProjectsPage.getLayout = (page: React.ReactNode, pageProps: PageProps) => {

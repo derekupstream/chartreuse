@@ -1,6 +1,6 @@
 import type { GetServerSidePropsContext } from 'next';
 
-import type { DashboardUser } from 'components/dashboard';
+import type { DashboardUser } from 'interfaces';
 
 import { UserDataToInclude } from './getProjectContext';
 import { getUserFromContext } from './getUserFromContext';

@@ -2,11 +2,11 @@ import { message } from 'antd';
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
 
-import FormPageTemplate from 'components/form-page-template';
-import Header from 'components/header';
-import type { FormValues } from 'components/login-form';
-import LoginForm from 'components/login-form';
+import { Header } from 'components/common/Header';
+import type { FormValues } from 'components/login/LoginForm';
+import { LoginForm } from 'components/login/LoginForm';
 import { useAuth } from 'hooks/useAuth';
+import { FormPageTemplate } from 'layouts/FormPageLayout';
 import type { FirebaseAuthProvider } from 'lib/auth/firebaseClient';
 
 export default function Login() {

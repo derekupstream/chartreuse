@@ -4,8 +4,8 @@ import { getActuals } from 'lib/calculator/getActuals';
 import type { DateRange } from 'lib/calculator/types';
 import type { ProjectInventory } from 'lib/inventory/types/projects';
 
-import BarChart from '../../projections/components/chart-bar';
-import Card from '../../projections/components/kpi-card';
+import BarChart from '../../projections/components/ChartBar';
+import Card from '../../projections/components/KPICard';
 import { CardTitle } from '../../projections/components/styles';
 import { Row } from '../../projections/single-use-details/styles';
 

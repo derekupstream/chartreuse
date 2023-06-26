@@ -5,15 +5,15 @@ import { useRouter } from 'next/router';
 import { useState } from 'react';
 import styled from 'styled-components';
 
-import type { DashboardUser } from 'components/dashboard';
-import * as S from 'components/dashboard/styles';
-import { BackToProjectsButton } from 'layouts/projectStepsLayout';
+import type { DashboardUser } from 'interfaces';
+import { BackToProjectsButton } from 'layouts/ProjectStepsLayout';
+import * as S from 'layouts/styles';
 import chartreuseClient from 'lib/chartreuseClient';
 import type { ProjectInput } from 'lib/chartreuseClient';
 
-import type { FormValues as BudgetFormValues } from './components/budget-form';
-import { BudgetForm } from './components/budget-form';
-import { ProjectForm } from './components/project-form';
+import type { FormValues as BudgetFormValues } from './components/BudgetForm';
+import { BudgetForm } from './components/BudgetForm';
+import { ProjectForm } from './components/ProjectForm';
 
 const CALCULATOR_STEPS = [{ title: 'Project Setup' }, { title: 'Budgets + Targets' }];
 

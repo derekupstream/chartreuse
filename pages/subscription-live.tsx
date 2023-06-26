@@ -1,7 +1,7 @@
 import type { GetServerSideProps } from 'next';
 
-import Subscription from 'components/dashboard/subscription';
-import Template from 'layouts/dashboardLayout';
+import Subscription from 'components/subscription';
+import { DashboardLayout as Template } from 'layouts/DashboardLayout/DashboardLayout';
 import { checkLogin } from 'lib/middleware';
 import type { PageProps } from 'pages/_app';
 

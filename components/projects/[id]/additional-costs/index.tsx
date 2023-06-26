@@ -2,13 +2,13 @@ import type { Project } from '@prisma/client';
 import { Typography } from 'antd';
 import { useEffect } from 'react';
 
-import { useFooterState } from '../components/footer';
+import { useFooterState } from '../components/Footer';
 import { Wrapper } from '../styles';
 
-import DishWashingSection from './components/dish-washing/dish-washing-section';
-import LaborSection from './components/labor/labor-section';
-import OtherExpenseSection from './components/other-expenses/other-expenses-section';
-import WasteHaulingSection from './components/waste-hauling/waste-hauling-section';
+import DishWashingSection from './components/dish-washing/DishWashingSection';
+import LaborSection from './components/labor/LaborSection';
+import OtherExpenseSection from './components/other-expenses/OtherExpensesSection';
+import WasteHaulingSection from './components/waste-hauling/WasteHaulingSection';
 
 type ServerSideProps = {
   project: Project;

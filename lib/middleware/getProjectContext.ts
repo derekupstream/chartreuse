@@ -2,7 +2,7 @@ import type { Project } from '@prisma/client';
 import type { GetServerSideProps } from 'next';
 import nookies from 'nookies';
 
-import type { DashboardUser } from 'components/dashboard';
+import type { DashboardUser } from 'interfaces';
 import { verifyIdToken } from 'lib/auth/firebaseAdmin';
 import prisma from 'lib/prisma';
 

@@ -4,10 +4,10 @@ import { useRouter } from 'next/router';
 import { useCallback } from 'react';
 import { useMutation } from 'react-query';
 
-import FormPageTemplate from 'components/form-page-template';
-import Header from 'components/header';
-import type { OrgSetupFields } from 'components/setup/org/org-setup';
-import { OrgSetupForm } from 'components/setup/org/org-setup';
+import { Header } from 'components/common/Header';
+import type { OrgSetupFields } from 'components/setup/org/OrgSetup';
+import { OrgSetupForm } from 'components/setup/org/OrgSetup';
+import { FormPageTemplate } from 'layouts/FormPageLayout';
 import chartreuseClient from 'lib/chartreuseClient';
 import { getUserFromContext } from 'lib/middleware';
 

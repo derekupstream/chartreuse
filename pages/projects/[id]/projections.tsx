@@ -1,7 +1,7 @@
 import type { GetServerSideProps } from 'next';
 
 import Projections from 'components/projects/[id]/projections';
-import { ProjectStepsLayout } from 'layouts/projectStepsLayout';
+import { ProjectStepsLayout } from 'layouts/ProjectStepsLayout';
 import type { ProjectContext } from 'lib/middleware';
 import { getProjectContext } from 'lib/middleware';
 

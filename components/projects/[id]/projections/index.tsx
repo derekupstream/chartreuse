@@ -2,20 +2,20 @@ import { Col, Row, Menu, Typography } from 'antd';
 import { useEffect, useRef, useState } from 'react';
 import styled from 'styled-components';
 
-import ContentLoader from 'components/common/content-loader';
-import { PrintButton } from 'components/print/print-button';
-import { PrintHeader } from 'components/print/print-header';
+import ContentLoader from 'components/common/ContentLoader';
+import { PrintButton } from 'components/common/print/PrintButton';
+import { PrintHeader } from 'components/common/print/PrintHeader';
 import { useSimpleQuery } from 'hooks/useSimpleQuery';
 import type { ProjectionsResponse } from 'lib/calculator/getProjections';
 import type { ProjectContext } from 'lib/middleware/getProjectContext';
 
-import { useFooterState } from '../components/footer';
+import { useFooterState } from '../components/Footer';
 import { Wrapper } from '../styles';
 
-import EnvironmentalSummary from './environmental/summary';
-import FinancialSummary from './financial/summary';
-import ProjectImpacts from './project-impacts/project-impacts';
-import SingleUseDetails from './single-use-details/single-use-details';
+import EnvironmentalSummary from './environmental/Summary';
+import FinancialSummary from './financial/Summary';
+import ProjectImpacts from './project-impacts/ProjectImpacts';
+import SingleUseDetails from './single-use-details/SingleUseDetails';
 
 const StyledCol = styled(Col)`
   @media print {

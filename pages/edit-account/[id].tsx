@@ -6,13 +6,12 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import nookies from 'nookies';
 
-import AccountEditForm from 'components/account-edit-form';
-import FormPageTemplate from 'components/form-page-template';
-import Header from 'components/header';
-import PageLoader from 'components/page-loader';
+import { Header } from 'components/common/Header';
+import { PageLoader } from 'components/common/PageLoader';
+import { AccountEditForm } from 'components/edit-account';
+import { FormPageTemplate } from 'layouts/FormPageLayout';
 import { verifyIdToken } from 'lib/auth/firebaseAdmin';
 import chartreuseClient from 'lib/chartreuseClient';
-import * as http from 'lib/http';
 import prisma from 'lib/prisma';
 
 export const getServerSideProps: GetServerSideProps = async context => {

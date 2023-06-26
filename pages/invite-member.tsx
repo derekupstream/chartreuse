@@ -7,10 +7,10 @@ import nookies from 'nookies';
 import { useCallback } from 'react';
 import { useMutation } from 'react-query';
 
-import FormPageTemplate from 'components/form-page-template';
-import Header from 'components/header';
-import InviteForm from 'components/invite-form';
-import PageLoader from 'components/page-loader';
+import { Header } from 'components/common/Header';
+import { PageLoader } from 'components/common/PageLoader';
+import { InviteMemberForm } from 'components/invite-member/InviteMemberForm';
+import { FormPageTemplate } from 'layouts/FormPageLayout';
 import { verifyIdToken } from 'lib/auth/firebaseAdmin';
 import type { InviteMemberInput } from 'lib/chartreuseClient';
 import chartreuseClient from 'lib/chartreuseClient';
@@ -132,7 +132,7 @@ export default function InviteMember({ org, user }: Props) {
             ) : undefined
           }
         >
-          <InviteForm
+          <InviteMemberForm
             onSubmit={handleAccountSetupCreation as (values: unknown) => void}
             isLoading={createInvite.isLoading}
             accounts={org.accounts}

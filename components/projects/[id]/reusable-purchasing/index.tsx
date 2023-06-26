@@ -4,21 +4,21 @@ import { useRouter } from 'next/router';
 import { useState, useEffect } from 'react';
 import styled from 'styled-components';
 
-import ContentLoader from 'components/common/content-loader';
+import ContentLoader from 'components/common/ContentLoader';
 import { PRODUCT_CATEGORIES } from 'lib/calculator/constants/product-categories';
 import { formatToDollar } from 'lib/calculator/utils';
 import chartreuseClient from 'lib/chartreuseClient';
 import * as http from 'lib/http';
 import type { ReusableLineItem } from 'lib/inventory/types/projects';
 
-import { EmptyState } from '../components/empty-state';
-import { useFooterState } from '../components/footer';
-import { CATEGORY_ICONS } from '../single-use/category-icons';
+import { EmptyState } from '../components/EmptyState';
+import { useFooterState } from '../components/Footer';
+import { CATEGORY_ICONS } from '../single-use/CategoryIcons';
 import * as S from '../styles';
 
 import ItemRow from './components/ItemRow';
-import ReusablePurchasingFirstStepForm from './reusable-purchasing-first-step-form';
-import ReusablePurchasingSecondStepForm from './reusable-purchasing-second-step-form';
+import ReusablePurchasingFirstStepForm from './ReusablePurchasingFirstStepForm.tsx';
+import ReusablePurchasingSecondStepForm from './ReusablePurchasingSecondStepForm';
 
 const SmallText = styled(Typography.Text)`
   font-size: 0.9rem;

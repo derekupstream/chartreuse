@@ -2,14 +2,13 @@ import { message } from 'antd';
 import type { GetServerSideProps } from 'next';
 import { useRouter } from 'next/router';
 
-import FormPageTemplate from 'components/form-page-template';
-import Header from 'components/header';
-import MessagePage from 'components/message-page';
-import PageLoader from 'components/page-loader';
-import type { FormValues } from 'components/signup-form';
-import SignupForm from 'components/signup-form';
-import type { Credentials } from 'hooks/useAuth';
+import { Header } from 'components/common/Header';
+import { PageLoader } from 'components/common/PageLoader';
+import type { FormValues } from 'components/signup/SignupForm';
+import { SignupForm } from 'components/signup/SignupForm';
 import { useAuth } from 'hooks/useAuth';
+import { FormPageTemplate } from 'layouts/FormPageLayout';
+import MessagePage from 'layouts/MessagePageLayout';
 import type { FirebaseAuthProvider } from 'lib/auth/firebaseClient';
 import prisma from 'lib/prisma';
 
