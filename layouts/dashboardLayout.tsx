@@ -17,10 +17,8 @@ const DashboardTemplate: React.FC<DashboardProps> = ({ children, ...props }) => 
     <BaseLayout {...props}>
       <S.ContentContainer>
         <S.Content>
-          <ErrorBoundary>
-            {children}
-          </ErrorBoundary>
-          </S.Content>
+          <ErrorBoundary>{children}</ErrorBoundary>
+        </S.Content>
       </S.ContentContainer>
       <HaveQuestions />
     </BaseLayout>

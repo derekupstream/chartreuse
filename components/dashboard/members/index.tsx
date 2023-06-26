@@ -6,6 +6,8 @@ import { useRouter } from 'next/router';
 import { useCallback } from 'react';
 import { useMutation } from 'react-query';
 
+import { members } from 'lib/api';
+
 import * as S from '../styles';
 
 interface Member {
@@ -27,27 +29,17 @@ export interface PageProps {
 export default function Members({ accounts, users, invites }: PageProps) {
   const router = useRouter();
 
-  const deleteAccount = useMutation((member: Member) => {
-    const resource = member.isInvite ? 'invite' : 'profile';
-    return fetch(`/api/${resource}/${member.key}`, {
-      method: 'DELETE',
-      headers: {
-        'content-type': 'application/json'
-      }
-    });
-  });
+  const deleteAccount = members.useDeleteMember();
 
   const handleAccountDeletion = useCallback(
-    (member: Member) => {
-      deleteAccount.mutate(member, {
-        onSuccess: () => {
-          message.success(member.isInvite ? 'Invitation cancelled' : 'Account deleted');
-          router.replace(router.asPath);
-        },
-        onError: err => {
-          message.error((err as Error)?.message);
-        }
-      });
+    async (member: Member) => {
+      try {
+        await deleteAccount.trigger(member);
+        message.success(member.isInvite ? 'Invitation cancelled' : 'Account deleted');
+        router.replace(router.asPath);
+      } catch (error) {
+        message.error((error as Error)?.message);
+      }
     },
     [deleteAccount, router]
   );
@@ -101,19 +93,20 @@ export default function Members({ accounts, users, invites }: PageProps) {
       render: (_, member) => {
         return (
           <Space size='middle'>
-            {!member.isInvite && <Button onClick={() => router.push(`/edit-member-profile/${member.key}`)} icon={<EditOutlined />} />}
+            {!member.isInvite && <Button href={`/edit-member-profile/${member.key}`} icon={<EditOutlined />} />}
             <Popconfirm
               title={
                 <Space direction='vertical' size='small'>
                   <Typography.Title level={4}>
-                    Are you sure you want to delete the {member.isInvite ? 'invitation to' : 'member'} &quot;{member.email}&quot;?
+                    Are you sure you want to delete the {member.isInvite ? 'invitation to' : 'member'} &quot;
+                    {member.email}&quot;?
                   </Typography.Title>
                   <Typography.Text>This action cannot be undone</Typography.Text>
                 </Space>
               }
               onConfirm={() => handleAccountDeletion(member)}
             >
-              <Button icon={<DeleteOutlined />} loading={deleteAccount.isLoading && deleteAccount.variables?.key === member.key} />
+              <Button icon={<DeleteOutlined />} loading={deleteAccount.isMutating} />
             </Popconfirm>
           </Space>
         );

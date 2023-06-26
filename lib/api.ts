@@ -68,3 +68,12 @@ export function useCancelSubscription() {
 export function useCreatePaymentMethod() {
   return _usePOST<{ customerId: string; paymentMethodId: string }>('/api/stripe/payment-method');
 }
+
+export const members = {
+  useDeleteMember() {
+    return useSWRMutation('/api/user/delete', (key, { arg: member }) => {
+      const resource = member.isInvite ? 'invite' : 'profile';
+      return http.DELETE(`/api/${resource}/${member.key}`);
+    });
+  }
+};

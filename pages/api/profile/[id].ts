@@ -24,16 +24,11 @@ async function updateUser(req: NextApiRequest, res: NextApiResponse<Response>) {
       email: req.body.email,
       title: req.body.title,
       phone: req.body.phone,
-      account: req.body.accountId
-        ? {
-            connect: {
-              id: req.body.accountId
-            }
-          }
-        : undefined
+      accountId: req.body.accountId || null
     },
     include: {
-      org: true
+      org: true,
+      account: true
     }
   });
 

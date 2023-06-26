@@ -20,6 +20,7 @@ export default function MemberEditForm({ onSubmit, onCancel, isLoading, initialV
       <S.MemberEditForm initialValues={initialValues} name='memberEdit' layout='vertical' onFinish={onSubmit}>
         <Form.Item label='Choose account to assign member' name='accountId'>
           <Select placeholder='Account name'>
+            <Select.Option value=''>-- Access All Accounts --</Select.Option>
             {accounts.map(account => {
               return (
                 <Select.Option key={account.id} value={account.id}>
