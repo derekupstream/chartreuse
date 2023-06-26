@@ -63,7 +63,11 @@ export default function SelectQuantityStep({
     <Form form={form} layout='vertical' onFieldsChange={handleFormChange} onFinish={_onSubmit}>
       <Typography.Title level={4}>{productName}</Typography.Title>
 
-      <Form.Item label='Purchasing Frequency' name='frequency' rules={[{ required: true, message: 'Please select a frequency' }]}>
+      <Form.Item
+        label='Purchasing Frequency'
+        name='frequency'
+        rules={[{ required: true, message: 'Please select a frequency' }]}
+      >
         <Radio.Group value={input?.frequency}>
           <Radio.Button value='Daily'>Daily</Radio.Button>
           <Radio.Button value='Weekly'>Weekly</Radio.Button>

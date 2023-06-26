@@ -140,14 +140,20 @@ export default function ReusablePurchasing() {
       <div style={{ display: 'flex', justifyContent: 'space-between' }}>
         <Typography.Title level={1}>Reusables purchasing</Typography.Title>
         {hasItems && (
-          <Button type='primary' onClick={addItem} icon={<PlusOutlined />} style={{ paddingRight: '4em', paddingLeft: '4em' }}>
+          <Button
+            type='primary'
+            onClick={addItem}
+            icon={<PlusOutlined />}
+            style={{ paddingRight: '4em', paddingLeft: '4em' }}
+          >
             Add reusable item
           </Button>
         )}
       </div>
       <Typography.Title level={5}>
-        Enter reusable items to replace single-use items as appropriate. It is possible to eliminate a single-use item without a purchase of a reusable ware. For example, if you have three sizes of
-        single-use plastic forks, you may only move to one size/type of durable fork.
+        Enter reusable items to replace single-use items as appropriate. It is possible to eliminate a single-use item
+        without a purchase of a reusable ware. For example, if you have three sizes of single-use plastic forks, you may
+        only move to one size/type of durable fork.
         <br />
         <br />
         If you are replacing single-use condiments, there are two things to consider:
@@ -163,7 +169,13 @@ export default function ReusablePurchasing() {
         <ContentLoader />
       ) : (
         <>
-          {!hasItems && <EmptyState label='Add a reusable item' message={`You have no reusable items yet. Click '+ Add a reusable item' above to get started.`} onClick={addItem} />}
+          {!hasItems && (
+            <EmptyState
+              label='Add a reusable item'
+              message={`You have no reusable items yet. Click '+ Add a reusable item' above to get started.`}
+              onClick={addItem}
+            />
+          )}
           {PRODUCT_CATEGORIES.map((category, index) => {
             const getItemsWithSameId = (item: ReusableLineItem) => item.categoryId === category.id.toString();
             const item = lineItems.find(getItemsWithSameId);
@@ -177,7 +189,12 @@ export default function ReusablePurchasing() {
                   </S.TitleRow>
                   <Divider />
                   {lineItems.filter(getItemsWithSameId).map(item => (
-                    <ItemRow key={item.annualRepurchasePercentage} item={item} onEdit={editItem} onDelete={getLineItems} />
+                    <ItemRow
+                      key={item.annualRepurchasePercentage}
+                      item={item}
+                      onEdit={editItem}
+                      onDelete={getLineItems}
+                    />
                   ))}
                 </div>
               )
@@ -192,7 +209,13 @@ export default function ReusablePurchasing() {
             contentWrapperStyle={{ width: '600px' }}
           >
             {formStep === 1 && <ReusablePurchasingFirstStepForm input={formValues} onPressNext={onSubmitFirstStep} />}
-            {formStep === 2 && <ReusablePurchasingSecondStepForm input={formValues!} onPressPrevious={onPressPrevious} onPressSubmit={onSubmitForecast} />}
+            {formStep === 2 && (
+              <ReusablePurchasingSecondStepForm
+                input={formValues!}
+                onPressPrevious={onPressPrevious}
+                onPressSubmit={onSubmitForecast}
+              />
+            )}
           </Drawer>
         </>
       )}

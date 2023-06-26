@@ -66,7 +66,9 @@ function csvRowToSingleUseProduct(csvProduct: CSVRow): SingleUseProduct {
   }
   const material2 = MATERIALS.find(material => material.name === csvProduct['Secondary Material (Lining/Wrapper)']);
   if (csvProduct['Secondary Material (Lining/Wrapper)'] && !material2) {
-    throw new Error('Could not determine 2nd material for CSV row: ' + csvProduct['Secondary Material (Lining/Wrapper)']);
+    throw new Error(
+      'Could not determine 2nd material for CSV row: ' + csvProduct['Secondary Material (Lining/Wrapper)']
+    );
   }
   const productId = csvProduct['Product ID'];
   const unitsPerCase = csvToNumber(csvProduct['Case Count (Units per Case)']);
@@ -76,7 +78,8 @@ function csvRowToSingleUseProduct(csvProduct: CSVRow): SingleUseProduct {
   const netCaseWeight = grossCaseWeight - boxWeight;
   const itemWeight = netCaseWeight / unitsPerCase;
   const secondaryMaterialWeightPerUnit = csvToNumber(csvProduct['Second Material Weight per Unit (lbs)']);
-  const primaryMaterialWeightPerUnit = secondaryMaterialWeightPerUnit > 0 ? itemWeight - secondaryMaterialWeightPerUnit : itemWeight;
+  const primaryMaterialWeightPerUnit =
+    secondaryMaterialWeightPerUnit > 0 ? itemWeight - secondaryMaterialWeightPerUnit : itemWeight;
 
   return {
     id: productId,

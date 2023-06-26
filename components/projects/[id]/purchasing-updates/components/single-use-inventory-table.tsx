@@ -74,7 +74,13 @@ const recordColumns: TableColumnsType<SingleUseLineItemRecord> = [
     render: (record: SingleUseLineItemRecord) => {
       return (
         <>
-          <Typography.Text>{!record.entryDate.includes('Z') ? <em>({record.entryDate})</em> : formatDateShort(new Date(record.entryDate))}</Typography.Text>
+          <Typography.Text>
+            {!record.entryDate.includes('Z') ? (
+              <em>({record.entryDate})</em>
+            ) : (
+              formatDateShort(new Date(record.entryDate))
+            )}
+          </Typography.Text>
         </>
       );
     }
@@ -100,7 +106,14 @@ function expandedRowRender(item: SingleUseLineItemPopulated) {
           </Typography.Paragraph>
         )}
       </div>
-      <Table<SingleUseLineItemRecord> style={{ width: 410 }} dataSource={records} columns={recordColumns} pagination={false} showHeader={false} rowKey='id' />
+      <Table<SingleUseLineItemRecord>
+        style={{ width: 410 }}
+        dataSource={records}
+        columns={recordColumns}
+        pagination={false}
+        showHeader={false}
+        rowKey='id'
+      />
     </ExpandedRow>
   );
 }
@@ -173,7 +186,9 @@ const columns: TableColumnsType<SingleUseLineItemPopulated> = [
     render: (item: SingleUseLineItemPopulated) => {
       return (
         <>
-          <Typography.Text>{item.records[0] ? formatDateShort(new Date(item.records[0].entryDate)) : <em>({item.frequency})</em>}</Typography.Text>
+          <Typography.Text>
+            {item.records[0] ? formatDateShort(new Date(item.records[0].entryDate)) : <em>({item.frequency})</em>}
+          </Typography.Text>
         </>
       );
     }
@@ -187,7 +202,12 @@ export function SingleUseInventoryTable({ items }: { items: SingleUseLineItemPop
         <Typography.Title level={3}>Single Use Items</Typography.Title>
       </TitleRow>
       <br />
-      <Table<SingleUseLineItemPopulated> dataSource={items} columns={columns} expandable={{ expandedRowRender, expandRowByClick: true }} rowKey='id' />
+      <Table<SingleUseLineItemPopulated>
+        dataSource={items}
+        columns={columns}
+        expandable={{ expandedRowRender, expandRowByClick: true }}
+        rowKey='id'
+      />
     </StyledCard>
   );
 }

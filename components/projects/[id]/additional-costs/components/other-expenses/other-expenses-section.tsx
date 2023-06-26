@@ -77,7 +77,12 @@ const OtherExpenseSection = () => {
       <SectionContainer>
         <SectionTitle>Other cost impacts</SectionTitle>
         {!!data?.otherExpenses?.length && (
-          <Button onClick={onAddExpense} icon={<PlusOutlined />} type='primary' style={{ paddingRight: '4em', paddingLeft: '4em' }}>
+          <Button
+            onClick={onAddExpense}
+            icon={<PlusOutlined />}
+            type='primary'
+            style={{ paddingRight: '4em', paddingLeft: '4em' }}
+          >
             Add cost impact
           </Button>
         )}
@@ -98,7 +103,12 @@ const OtherExpenseSection = () => {
                 Edit
               </a>
               <Typography.Text style={{ opacity: '.25' }}> | </Typography.Text>
-              <Popconfirm title='Are you sure to delete this item?' onConfirm={() => onConfirmDelete(additionalCost.id)} okText='Yes' cancelText='No'>
+              <Popconfirm
+                title='Are you sure to delete this item?'
+                onConfirm={() => onConfirmDelete(additionalCost.id)}
+                okText='Yes'
+                cancelText='No'
+              >
                 <a href='#'>Delete</a>
               </Popconfirm>
             </Col>
@@ -125,13 +135,26 @@ const OtherExpenseSection = () => {
         ))
       ) : (
         <AddBlock>
-          <Button onClick={onAddExpense} icon={<PlusOutlined />} type='primary' style={{ paddingRight: '4em', paddingLeft: '4em' }}>
+          <Button
+            onClick={onAddExpense}
+            icon={<PlusOutlined />}
+            type='primary'
+            style={{ paddingRight: '4em', paddingLeft: '4em' }}
+          >
             Add cost impact
           </Button>
-          <Placeholder>You have no additional expense entries yet. Click &apos;+ Add cost impact&apos; above to get started.</Placeholder>
+          <Placeholder>
+            You have no additional expense entries yet. Click &apos;+ Add cost impact&apos; above to get started.
+          </Placeholder>
         </AddBlock>
       )}
-      <Drawer title={activeOtherExpense ? 'Update cost impact' : 'Add cost impact'} onClose={onCloseDrawer} visible={isDrawerVisible} contentWrapperStyle={contentWrapperStyle} destroyOnClose>
+      <Drawer
+        title={activeOtherExpense ? 'Update cost impact' : 'Add cost impact'}
+        onClose={onCloseDrawer}
+        visible={isDrawerVisible}
+        contentWrapperStyle={contentWrapperStyle}
+        destroyOnClose
+      >
         <OtherExpensesFormDrawer input={activeOtherExpense} onClose={onSubmit} />
       </Drawer>
     </Container>

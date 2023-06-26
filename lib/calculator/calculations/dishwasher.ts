@@ -19,7 +19,13 @@ export type DishwasherStats = {
   waterCost: ChangeSummary;
 };
 
-export function getDishwasherStats({ rates, dishwasher }: { rates: UtilityRates; dishwasher: PrismaDishwasher }): DishwasherStats {
+export function getDishwasherStats({
+  rates,
+  dishwasher
+}: {
+  rates: UtilityRates;
+  dishwasher: PrismaDishwasher;
+}): DishwasherStats {
   const baseline = { operatingDays: dishwasher.operatingDays, racksPerDay: dishwasher.racksPerDay };
   const forecast = { operatingDays: dishwasher.newOperatingDays, racksPerDay: dishwasher.newRacksPerDay };
   const baselineUsage = dishwasherUtilityUsage(dishwasher as DishWasher, baseline);

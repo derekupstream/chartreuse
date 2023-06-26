@@ -97,7 +97,12 @@ export function UploadButton({ projectId, showClear = false, onUpload }: Props) 
     <div style={{ display: 'flex', gap: '1em' }}>
       {showClear && (
         <Tooltip title='Remove all Actuals data'>
-          <Popconfirm title='Are you sure to delete all existing Actuals data?' onConfirm={deleteData} okText='Yes' cancelText='No'>
+          <Popconfirm
+            title='Are you sure to delete all existing Actuals data?'
+            onConfirm={deleteData}
+            okText='Yes'
+            cancelText='No'
+          >
             <Button type='text'>
               <DeleteOutlined /> Delete
             </Button>
@@ -114,7 +119,13 @@ export function UploadButton({ projectId, showClear = false, onUpload }: Props) 
         onCancel={hideModal}
         footer={null}
       >
-        <Dragger {...uploadButtonProps}>{Boolean(fileState.result || fileState.error) ? <InventoryFilePreview state={fileState} /> : <EmptyFileState />}</Dragger>
+        <Dragger {...uploadButtonProps}>
+          {Boolean(fileState.result || fileState.error) ? (
+            <InventoryFilePreview state={fileState} />
+          ) : (
+            <EmptyFileState />
+          )}
+        </Dragger>
         {/* {Boolean(fileState.result || fileState.error) && (
           <div className='ant-upload ant-upload-drag' style={{ cursor: 'default', padding: '16px 0', background: 'transparent', marginTop: '.5em' }}>
             <InventoryFilePreview state={fileState} />

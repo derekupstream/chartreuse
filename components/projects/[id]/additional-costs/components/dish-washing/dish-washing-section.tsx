@@ -104,7 +104,12 @@ const DishWashingSection = () => {
           </span>
           <span>${data?.rates?.water.toFixed(2)}</span>
         </Typography.Paragraph>
-        <Typography.Link style={{ fontSize: 12 }} underline type='secondary' href={`/projects/${route.query.id}/edit?redirect=${route.asPath}`}>
+        <Typography.Link
+          style={{ fontSize: 12 }}
+          underline
+          type='secondary'
+          href={`/projects/${route.query.id}/edit?redirect=${route.asPath}`}
+        >
           Edit Utility Rates for this project
         </Typography.Link>
       </>
@@ -116,7 +121,12 @@ const DishWashingSection = () => {
       <SectionContainer>
         <SectionTitle>Dishwashing</SectionTitle>
         {!!data?.dishwashers?.length && (
-          <Button onClick={onClickCreate} icon={<PlusOutlined />} type='primary' style={{ paddingRight: '4em', paddingLeft: '4em' }}>
+          <Button
+            onClick={onClickCreate}
+            icon={<PlusOutlined />}
+            type='primary'
+            style={{ paddingRight: '4em', paddingLeft: '4em' }}
+          >
             Add dishwasher
           </Button>
         )}
@@ -137,7 +147,8 @@ const DishWashingSection = () => {
             <Subtitle style={{ margin: 0 }}>{dishwasher.type}</Subtitle>
             <Options>
               {dishwasher.temperature ? dishwasher.temperature + ' Temperature, ' : ''}
-              {dishwasher.energyStarCertified ? 'Energy star certified' : null} {dishwasher.boosterWaterHeaterFuelType} Fuel
+              {dishwasher.energyStarCertified ? 'Energy star certified' : null} {dishwasher.boosterWaterHeaterFuelType}{' '}
+              Fuel
             </Options>
             <br />
             <br />
@@ -151,7 +162,12 @@ const DishWashingSection = () => {
               Edit
             </a>
             <Typography.Text style={{ opacity: '.25' }}> | </Typography.Text>
-            <Popconfirm title='Are you sure to delete this item?' onConfirm={onConfirmDelete} okText='Yes' cancelText='No'>
+            <Popconfirm
+              title='Are you sure to delete this item?'
+              onConfirm={onConfirmDelete}
+              okText='Yes'
+              cancelText='No'
+            >
               <a href='#'>Delete</a>
             </Popconfirm>
           </Col>
@@ -222,10 +238,17 @@ const DishWashingSection = () => {
       {(!data || data?.dishwashers?.length === 0) && (
         <>
           <AddBlock>
-            <Button onClick={onClickCreate} icon={<PlusOutlined />} type='primary' style={{ paddingRight: '4em', paddingLeft: '4em' }}>
+            <Button
+              onClick={onClickCreate}
+              icon={<PlusOutlined />}
+              type='primary'
+              style={{ paddingRight: '4em', paddingLeft: '4em' }}
+            >
               Add dishwasher
             </Button>
-            <Placeholder>You have no dishwashing entries yet. Click &apos;+ Add dishwashing&apos; above to get started.</Placeholder>
+            <Placeholder>
+              You have no dishwashing entries yet. Click &apos;+ Add dishwashing&apos; above to get started.
+            </Placeholder>
           </AddBlock>
         </>
       )}

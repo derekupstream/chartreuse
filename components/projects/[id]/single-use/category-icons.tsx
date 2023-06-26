@@ -6,4 +6,10 @@ import CondimentsIcon from 'public/images/flaticon/svg/016-sauce.svg';
 import BeverageIcon from 'public/images/flaticon/svg/019-soda.svg';
 
 // indices should line up with PRODUCT_CATEGORIES const
-export const CATEGORY_ICONS = [<BeverageIcon key={0} />, <FoodwareIcon key={1} />, <UtensilsIcon key={2} />, <CondimentsIcon key={3} />, <NapkinsIcon key={4} />] as const;
+export const CATEGORY_ICONS = [
+  <BeverageIcon key={0} />,
+  <FoodwareIcon key={1} />,
+  <UtensilsIcon key={2} />,
+  <CondimentsIcon key={3} />,
+  <NapkinsIcon key={4} />
+] as const;

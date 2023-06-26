@@ -14,7 +14,10 @@ interface ActualsFilters {
   categoryId?: string;
 }
 
-export function getSingleUseProductActuals(project: ProjectInventory, filters: ActualsFilters): SingleUseProductActuals {
+export function getSingleUseProductActuals(
+  project: ProjectInventory,
+  filters: ActualsFilters
+): SingleUseProductActuals {
   // filter by date range
   const singleUseItems = project.singleUseItems.map(item => {
     // sort records by earliest date first
@@ -23,7 +26,10 @@ export function getSingleUseProductActuals(project: ProjectInventory, filters: A
     if (filters.dateRange) {
       const records = item.records.filter(record => {
         const dateDate = new Date(record.entryDate);
-        const outOfDateRange = filters.dateRange && ((filters.dateRange.start && dateDate < filters.dateRange.start) || (filters.dateRange.end && dateDate > filters.dateRange?.end));
+        const outOfDateRange =
+          filters.dateRange &&
+          ((filters.dateRange.start && dateDate < filters.dateRange.start) ||
+            (filters.dateRange.end && dateDate > filters.dateRange?.end));
         return !outOfDateRange;
       });
       return {
@@ -84,7 +90,10 @@ interface TotalsForDate {
 }
 
 // aggregate purchases by date
-function getPurchaseEvents(singleUseItems: ProjectInventory['singleUseItems'], filters: { categoryId?: string }): SingleUseProductActuals['purchases'] {
+function getPurchaseEvents(
+  singleUseItems: ProjectInventory['singleUseItems'],
+  filters: { categoryId?: string }
+): SingleUseProductActuals['purchases'] {
   const totals: { [key: string]: TotalsForDate } = {};
   singleUseItems.forEach(item => {
     item.records.forEach(record => {

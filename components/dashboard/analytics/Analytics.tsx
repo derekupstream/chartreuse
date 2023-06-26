@@ -43,7 +43,17 @@ export interface PageProps {
   allProjects?: { id: string; accountId: string; name: string }[];
 }
 
-const SummaryCardWithGraph = ({ label, units, value, formatter = defaultFormatter }: { label: string; units?: string; value: SummaryValues; formatter?: (val: number) => string | ReactNode }) => {
+const SummaryCardWithGraph = ({
+  label,
+  units,
+  value,
+  formatter = defaultFormatter
+}: {
+  label: string;
+  units?: string;
+  value: SummaryValues;
+  formatter?: (val: number) => string | ReactNode;
+}) => {
   const graphData = {
     baseline: value.baseline,
     forecast: value.forecast
@@ -80,7 +90,9 @@ const columns = [
           <Typography.Title level={4} style={{ margin: 0 }}>
             {record.name}
           </Typography.Title>
-          <Typography.Paragraph style={{ color: 'grey', marginTop: 0, marginBottom: '1em' }}>{record.account.name}</Typography.Paragraph>
+          <Typography.Paragraph style={{ color: 'grey', marginTop: 0, marginBottom: '1em' }}>
+            {record.account.name}
+          </Typography.Paragraph>
           <Typography.Text style={{ fontWeight: 500, lineHeight: 2 }}>
             Estimated Savings
             <br />
@@ -158,10 +170,24 @@ const columns = [
 ];
 
 const defaultFormatter = (val: number) => {
-  return typeof val === 'number' ? val === 0 ? 0 : val.toLocaleString() : <span style={{ color: 'grey', fontSize: '12px' }}>N/A</span>;
+  return typeof val === 'number' ? (
+    val === 0 ? (
+      0
+    ) : (
+      val.toLocaleString()
+    )
+  ) : (
+    <span style={{ color: 'grey', fontSize: '12px' }}>N/A</span>
+  );
 };
 
-const ReductionValue = ({ value, formatter = defaultFormatter }: { value: { change: number; changePercent?: number }; formatter?: (val: number) => string | ReactNode }) => {
+const ReductionValue = ({
+  value,
+  formatter = defaultFormatter
+}: {
+  value: { change: number; changePercent?: number };
+  formatter?: (val: number) => string | ReactNode;
+}) => {
   const change = value.change * -1;
   const changePercent = value.changePercent ? value.changePercent * -1 : 0;
   return (
@@ -247,7 +273,9 @@ export default function AnalyticsPage({ user, data, allAccounts, allProjects, is
     <div ref={printRef}>
       <PrintHeader orgName={user.org.name} />
       <S2.SpaceBetween>
-        <Typography.Title className='dont-print-me'>{isUpstreamView ? 'Upstream Analytics' : `${user.org.name}'s Analytics`}</Typography.Title>
+        <Typography.Title className='dont-print-me'>
+          {isUpstreamView ? 'Upstream Analytics' : `${user.org.name}'s Analytics`}
+        </Typography.Title>
 
         <div style={{ display: 'flex', gap: '1em' }} className='dont-print-me'>
           <PrintButton printRef={printRef} pdfTitle={`${user.org.name} Projects Overview - Chart Reuse`} />
@@ -265,7 +293,14 @@ export default function AnalyticsPage({ user, data, allAccounts, allProjects, is
         </Typography.Title>
         <Form layout='horizontal' style={{ minWidth: 350, maxWidth: '49%' }}>
           <Form.Item label='Filter projects'>
-            <Select allowClear mode='multiple' defaultValue={selectedProjects} placeholder='Select Projects' onChange={handleChange} options={options} />
+            <Select
+              allowClear
+              mode='multiple'
+              defaultValue={selectedProjects}
+              placeholder='Select Projects'
+              onChange={handleChange}
+              options={options}
+            />
           </Form.Item>
         </Form>
       </S2.SpaceBetween>
@@ -306,8 +341,20 @@ export default function AnalyticsPage({ user, data, allAccounts, allProjects, is
       <Spacer vertical={spacing} />
 
       <Card>
-        <Table<ProjectSummary> className='dont-print-me' dataSource={rows} columns={columns} rowKey='id' pagination={{ hideOnSinglePage: true }} />
-        <Table<ProjectSummary> className='print-only' dataSource={rows} columns={columns} rowKey='id' pagination={{ hideOnSinglePage: true, pageSize: rows.length }} />
+        <Table<ProjectSummary>
+          className='dont-print-me'
+          dataSource={rows}
+          columns={columns}
+          rowKey='id'
+          pagination={{ hideOnSinglePage: true }}
+        />
+        <Table<ProjectSummary>
+          className='print-only'
+          dataSource={rows}
+          columns={columns}
+          rowKey='id'
+          pagination={{ hideOnSinglePage: true, pageSize: rows.length }}
+        />
       </Card>
     </div>
   );

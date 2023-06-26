@@ -21,26 +21,45 @@ const StyledFormItem = styled(Form.Item)`
   }
 `;
 
-const PRODUCT_FEATURES = [{ title: 'Category' }, { title: 'Product type' }, { title: 'Material' }, { title: 'Size' }, { title: 'Product description' }] as const;
+const PRODUCT_FEATURES = [
+  { title: 'Category' },
+  { title: 'Product type' },
+  { title: 'Material' },
+  { title: 'Size' },
+  { title: 'Product description' }
+] as const;
 
 type FeatureOptions = Record<(typeof PRODUCT_FEATURES)[number]['title'], { name: string; id: string | number }[]>;
-type SelectedFeatureOptions = Record<(typeof PRODUCT_FEATURES)[number]['title'] | 'productId', string | number | undefined | null>;
+type SelectedFeatureOptions = Record<
+  (typeof PRODUCT_FEATURES)[number]['title'] | 'productId',
+  string | number | undefined | null
+>;
 
 function getFormValues(features: SelectedFeatureOptions, products: SingleUseProduct[]) {
   const categories = PRODUCT_CATEGORIES.filter(category => products.some(p => p.category === category.id));
   let remainingProducts = features.Category ? products.filter(product => product.category === features.Category) : [];
 
-  const types = PRODUCT_TYPES.filter(type => remainingProducts.some(product => product.type === type.id)).sort((a, b) => a.name.localeCompare(b.name));
+  const types = PRODUCT_TYPES.filter(type => remainingProducts.some(product => product.type === type.id)).sort((a, b) =>
+    a.name.localeCompare(b.name)
+  );
   if (typeof features['Product type'] !== 'number' && types.length === 1) {
     features['Product type'] = types[0].id;
   }
-  remainingProducts = typeof features['Product type'] === 'number' ? remainingProducts.filter(product => product.type === features['Product type']) : [];
+  remainingProducts =
+    typeof features['Product type'] === 'number'
+      ? remainingProducts.filter(product => product.type === features['Product type'])
+      : [];
 
-  const materials = MATERIALS.filter(material => remainingProducts.some(product => product.primaryMaterial === material.id));
+  const materials = MATERIALS.filter(material =>
+    remainingProducts.some(product => product.primaryMaterial === material.id)
+  );
   if (typeof features.Material !== 'number' && materials.length === 1) {
     features.Material = materials[0].id;
   }
-  remainingProducts = typeof features.Material === 'number' ? remainingProducts.filter(product => product.primaryMaterial === features.Material) : [];
+  remainingProducts =
+    typeof features.Material === 'number'
+      ? remainingProducts.filter(product => product.primaryMaterial === features.Material)
+      : [];
 
   const sizes = remainingProducts
     .map(product => ({ name: product.size, id: product.size }))
@@ -57,7 +76,9 @@ function getFormValues(features: SelectedFeatureOptions, products: SingleUseProd
   if (features.Size && remainingProducts.length > 1) {
     descriptions = remainingProducts.map(product => ({ name: product.description, id: product.description }));
   }
-  remainingProducts = features['Product description'] ? remainingProducts.filter(product => product.description === features['Product description']) : remainingProducts;
+  remainingProducts = features['Product description']
+    ? remainingProducts.filter(product => product.description === features['Product description'])
+    : remainingProducts;
 
   const productId = remainingProducts.length === 1 ? remainingProducts[0].id : null;
 
@@ -83,7 +104,15 @@ const featureDefaults = {
   Size: null
 };
 
-export default function SelectProductStep({ input, onSubmit, products }: { input?: Partial<SingleUseLineItem>; onSubmit: (productId: string) => void; products: SingleUseProduct[] }) {
+export default function SelectProductStep({
+  input,
+  onSubmit,
+  products
+}: {
+  input?: Partial<SingleUseLineItem>;
+  onSubmit: (productId: string) => void;
+  products: SingleUseProduct[];
+}) {
   // get default values if they exist
   const { productId, features, remainingOptions } = getFormValues(featureDefaults, products);
 
@@ -167,14 +196,21 @@ export default function SelectProductStep({ input, onSubmit, products }: { input
   return (
     <Form layout='vertical'>
       <p>
-        Select a product from our single-use product database. If a close match doesn&apos;t exist in the system, please contact Upstream at{' '}
+        Select a product from our single-use product database. If a close match doesn&apos;t exist in the system, please
+        contact Upstream at{' '}
         <a style={{ textDecoration: 'underline' }} href='mailto:chartreuse@upstreamsolutions.org'>
           chartreuse@upstreamsolutions.org
         </a>
         .
       </p>
       {PRODUCT_FEATURES.map(option => (
-        <FeatureSelect value={selected[option.title]} key={option.title} items={options[option.title]} feature={option.title} onSelect={onSelect} />
+        <FeatureSelect
+          value={selected[option.title]}
+          key={option.title}
+          items={options[option.title]}
+          feature={option.title}
+          onSelect={onSelect}
+        />
       ))}
       <S.BoxEnd>
         <div></div>

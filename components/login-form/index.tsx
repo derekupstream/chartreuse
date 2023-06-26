@@ -41,7 +41,11 @@ export default function LoginForm({ onSubmit, onSubmitWithProvider }: Props) {
           <Input type='email' placeholder='Your email' />
         </Form.Item>
 
-        <Form.Item label='Password' name='password' rules={[{ required: true, message: 'Please input your password!' }]}>
+        <Form.Item
+          label='Password'
+          name='password'
+          rules={[{ required: true, message: 'Please input your password!' }]}
+        >
           <Input.Password placeholder='Your password' />
         </Form.Item>
 

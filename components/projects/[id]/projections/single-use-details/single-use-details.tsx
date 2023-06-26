@@ -129,15 +129,29 @@ const SingleUseDetails: React.FC<Props> = ({ data }) => {
         <CardTitle>Your estimated annual savings</CardTitle>
         <Body>
           <Section>
-            <KPIContent changePercent={data.annualSummary.dollarCost.changePercent * -1} changeStr={`${changeValue(data.annualSummary.dollarCost.change * -1, { preUnit: '$' }).toLocaleString()}`} />
+            <KPIContent
+              changePercent={data.annualSummary.dollarCost.changePercent * -1}
+              changeStr={`${changeValue(data.annualSummary.dollarCost.change * -1, { preUnit: '$' }).toLocaleString()}`}
+            />
             {/* <ChartTitle>Annual Spending changes</ChartTitle> */}
-            <BarChart data={savingsData} formatter={(data: any) => `${data.label}: $${data.value.toLocaleString()}`} seriesField='label' />
+            <BarChart
+              data={savingsData}
+              formatter={(data: any) => `${data.label}: $${data.value.toLocaleString()}`}
+              seriesField='label'
+            />
           </Section>
 
           <Section>
-            <KPIContent changePercent={data.annualSummary.singleUseProductCount.changePercent * -1} changeStr={changeValue(data.annualSummary.singleUseProductCount.change * -1) + ' units'} />
+            <KPIContent
+              changePercent={data.annualSummary.singleUseProductCount.changePercent * -1}
+              changeStr={changeValue(data.annualSummary.singleUseProductCount.change * -1) + ' units'}
+            />
             {/* <ChartTitle>Annual single-use total changes</ChartTitle> */}
-            <BarChart data={singleUseData} formatter={(data: any) => `${data.label}: ${data.value.toLocaleString()} pieces`} seriesField='label' />
+            <BarChart
+              data={singleUseData}
+              formatter={(data: any) => `${data.label}: ${data.value.toLocaleString()} pieces`}
+              seriesField='label'
+            />
           </Section>
         </Body>
       </Card>
@@ -214,7 +228,17 @@ function formatNumber(value: number, changeType: ChangeType) {
   return value.toLocaleString();
 }
 
-function SingleUseItemsTable({ className, changeType, dataSource, disablePagination }: { className: string; changeType: ChangeType; dataSource: TableData[]; disablePagination?: boolean }) {
+function SingleUseItemsTable({
+  className,
+  changeType,
+  dataSource,
+  disablePagination
+}: {
+  className: string;
+  changeType: ChangeType;
+  dataSource: TableData[];
+  disablePagination?: boolean;
+}) {
   return (
     <Table<TableData>
       className={className}

@@ -49,7 +49,9 @@ export function getSingleUseProductForecast(inventory: ProjectInventory): Single
 }
 
 // for each single use item, calculate difference in annual cost
-export function getSingleUseProductSummary(singleUseItems: ProjectInventory['singleUseItems']): SingleUseProductResults['summary'] {
+export function getSingleUseProductSummary(
+  singleUseItems: ProjectInventory['singleUseItems']
+): SingleUseProductResults['summary'] {
   const baseline = singleUseItems.reduce<PurchasingSummaryColumn>(
     (column, item) => {
       const { caseCost, casesPurchased, frequency, product } = item;
@@ -116,7 +118,12 @@ function annualSingleUseCaseCount(item: { casesPurchased: number; frequency: Fre
   return item.casesPurchased * frequencyVal;
 }
 
-export function annualSingleUseWeight(casesPurchased: number, annualOccurrence: number, unitsPerCase: number, weightPerUnit: number) {
+export function annualSingleUseWeight(
+  casesPurchased: number,
+  annualOccurrence: number,
+  unitsPerCase: number,
+  weightPerUnit: number
+) {
   const annualUnits = casesPurchased * unitsPerCase * annualOccurrence;
   return annualUnits * weightPerUnit;
 }
@@ -152,8 +159,18 @@ function getDetailedLineItemResults(singleUseItems: ProjectInventory['singleUseI
     });
     const annualOccurrence = getannualOccurrence(lineItem.frequency);
     const product = lineItem.product;
-    const annualWeight = annualSingleUseWeight(lineItem.casesPurchased, annualOccurrence, product.unitsPerCase, product.primaryMaterialWeightPerUnit);
-    const forecastAnnualWeight = annualSingleUseWeight(lineItem.newCasesPurchased, annualOccurrence, product.unitsPerCase, product.primaryMaterialWeightPerUnit);
+    const annualWeight = annualSingleUseWeight(
+      lineItem.casesPurchased,
+      annualOccurrence,
+      product.unitsPerCase,
+      product.primaryMaterialWeightPerUnit
+    );
+    const forecastAnnualWeight = annualSingleUseWeight(
+      lineItem.newCasesPurchased,
+      annualOccurrence,
+      product.unitsPerCase,
+      product.primaryMaterialWeightPerUnit
+    );
 
     const { primaryGas, secondaryGas, shippingBoxGas, total: gasEmissions } = singleUseItemGasEmissions(lineItem);
 
@@ -190,7 +207,9 @@ interface CombinedLineItemResultsWithTitle extends CombinedLineItemResults {
   title: string;
 }
 
-function getResultsByType(singleUseItems: ProjectInventory['singleUseItems']): SingleUseProductResults['resultsByType'] {
+function getResultsByType(
+  singleUseItems: ProjectInventory['singleUseItems']
+): SingleUseProductResults['resultsByType'] {
   const detailedResults = getDetailedLineItemResults(singleUseItems);
 
   const itemsByCategory = PRODUCT_CATEGORIES.map(category => {
@@ -283,7 +302,10 @@ function combineLineItemResults(title: string, items: SingleUseDetailedResult[])
   );
 }
 
-function combineResultsByCategory(items: { title: string; items: SingleUseDetailedResult[] }[]): { totals: CombinedLineItemResults; rows: CombinedLineItemResultsWithTitle[] } {
+function combineResultsByCategory(items: { title: string; items: SingleUseDetailedResult[] }[]): {
+  totals: CombinedLineItemResults;
+  rows: CombinedLineItemResultsWithTitle[];
+} {
   const rows = items.map(item => combineLineItemResults(item.title, item.items));
 
   const totals = rows.reduce((totals, row) => {
@@ -305,7 +327,13 @@ function combineResultsByCategory(items: { title: string; items: SingleUseDetail
   }, emptyCombinedResults);
 
   const nonEmptyRows = rows.filter(
-    row => row.cost.baseline !== 0 || row.cost.forecast !== 0 || row.weight.baseline !== 0 || row.weight.forecast !== 0 || row.gasEmissions.baseline !== 0 || row.gasEmissions.forecast !== 0
+    row =>
+      row.cost.baseline !== 0 ||
+      row.cost.forecast !== 0 ||
+      row.weight.baseline !== 0 ||
+      row.weight.forecast !== 0 ||
+      row.gasEmissions.baseline !== 0 ||
+      row.gasEmissions.forecast !== 0
   );
 
   return {

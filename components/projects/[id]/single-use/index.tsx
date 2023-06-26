@@ -120,7 +120,15 @@ const InfoCard = ({ item }: { item: SingleUseItemRecord }) => {
   );
 };
 
-const ItemRow = ({ item, onEdit, onDelete }: { item: SingleUseItemRecord; onEdit: (item: SingleUseItemRecord) => void; onDelete: () => void }) => {
+const ItemRow = ({
+  item,
+  onEdit,
+  onDelete
+}: {
+  item: SingleUseItemRecord;
+  onEdit: (item: SingleUseItemRecord) => void;
+  onDelete: () => void;
+}) => {
   function confirm() {
     chartreuseClient
       .deleteSingleUseItem(item.lineItem.projectId, item.lineItem.id)
@@ -268,7 +276,9 @@ export default function SingleUse({ project }: ServerSideProps) {
 
   async function getLineItems() {
     try {
-      const { lineItems } = await GET<{ lineItems: SingleUseLineItem[] }>(`/api/projects/${project.id}/single-use-items`);
+      const { lineItems } = await GET<{ lineItems: SingleUseLineItem[] }>(
+        `/api/projects/${project.id}/single-use-items`
+      );
       setLineItems({ data: lineItems, isLoading: false });
     } catch (error) {
       //
@@ -318,17 +328,31 @@ export default function SingleUse({ project }: ServerSideProps) {
       <div style={{ display: 'flex', justifyContent: 'space-between' }}>
         <Typography.Title level={1}>Single-use purchasing</Typography.Title>
         {hasItems && (
-          <Button type='primary' onClick={addItem} icon={<PlusOutlined />} style={{ paddingRight: '4em', paddingLeft: '4em' }}>
+          <Button
+            type='primary'
+            onClick={addItem}
+            icon={<PlusOutlined />}
+            style={{ paddingRight: '4em', paddingLeft: '4em' }}
+          >
             Add a single-use item
           </Button>
         )}
       </div>
-      <Typography.Title level={5}>Create a baseline of single-use items you purchase regularly. Forecast what you could save by reducing or eliminating these items.</Typography.Title>
+      <Typography.Title level={5}>
+        Create a baseline of single-use items you purchase regularly. Forecast what you could save by reducing or
+        eliminating these items.
+      </Typography.Title>
       {lineItems.isLoading || products.isLoading ? (
         <ContentLoader />
       ) : (
         <>
-          {!hasItems && <EmptyState label='Add a single-use item' message={`You have no single-use items yet. Click '+ Add a single-use item' above to get started.`} onClick={addItem} />}
+          {!hasItems && (
+            <EmptyState
+              label='Add a single-use item'
+              message={`You have no single-use items yet. Click '+ Add a single-use item' above to get started.`}
+              onClick={addItem}
+            />
+          )}
           {PRODUCT_CATEGORIES.map(
             (category, index) =>
               items[category.id] && (
@@ -355,7 +379,14 @@ export default function SingleUse({ project }: ServerSideProps) {
         contentWrapperStyle={{ width: '600px' }}
         destroyOnClose={true}
       >
-        <SingleUseForm formStep={formStep} setFormStep={setFormStep} lineItem={lineItem} projectId={project.id} products={products.data} onSubmit={onSubmitNewProduct} />
+        <SingleUseForm
+          formStep={formStep}
+          setFormStep={setFormStep}
+          lineItem={lineItem}
+          projectId={project.id}
+          products={products.data}
+          onSubmit={onSubmitNewProduct}
+        />
       </Drawer>
     </S.Wrapper>
   );

@@ -35,8 +35,14 @@ export default function Signup() {
       <Header title='Sign up' />
 
       <main>
-        <FormPageTemplate title='Welcome to Chart Reuse' subtitle='First, create a user account with your email, or use your Google account.'>
-          <SignupForm onSubmit={handleSignup as (values: unknown) => void} onSubmitWithProvider={handleLoginWithProvider} />
+        <FormPageTemplate
+          title='Welcome to Chart Reuse'
+          subtitle='First, create a user account with your email, or use your Google account.'
+        >
+          <SignupForm
+            onSubmit={handleSignup as (values: unknown) => void}
+            onSubmitWithProvider={handleLoginWithProvider}
+          />
         </FormPageTemplate>
       </main>
     </>

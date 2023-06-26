@@ -27,7 +27,9 @@ export function PurchasingUpdates({ project }: { project: ProjectContext['projec
     data: inventory,
     mutate: refreshInventory,
     isValidating: isLoading
-  } = useSWR(`/api/projects/${project.id}/inventory`, () => chartreuseClient.getProjectInventory(project.id), { revalidateOnFocus: false });
+  } = useSWR(`/api/projects/${project.id}/inventory`, () => chartreuseClient.getProjectInventory(project.id), {
+    revalidateOnFocus: false
+  });
   const [clickedDownload, setClickedDownload] = useState(false);
 
   // for printing
@@ -60,13 +62,16 @@ export function PurchasingUpdates({ project }: { project: ProjectContext['projec
       <div style={{ display: 'flex', justifyContent: 'space-between' }}>
         <Typography.Title level={1}>Purchasing updates</Typography.Title>
         <div style={{ display: 'flex', gap: '1em' }} className='dont-print-me'>
-          {!isLoading && !showEmptyState && <PrintButton printRef={printRef} pdfTitle={`${project.name} Purchasing Updates - Chart Reuse`} />}
+          {!isLoading && !showEmptyState && (
+            <PrintButton printRef={printRef} pdfTitle={`${project.name} Purchasing Updates - Chart Reuse`} />
+          )}
           {!isLoading && !showEmptyState && <UploadButton projectId={project.id} onUpload={onUpload} />}
         </div>
       </div>
       <Typography.Title level={5} className='dont-print-me'>
-        Next: Track your purchasing history of single-use items. You can go back as far in your purchasing history as you’d like. You can use this section to compare your purchasing trends over time,
-        and see if you’re on track with your forecasted goals.
+        Next: Track your purchasing history of single-use items. You can go back as far in your purchasing history as
+        you’d like. You can use this section to compare your purchasing trends over time, and see if you’re on track
+        with your forecasted goals.
       </Typography.Title>
 
       <br />
@@ -76,11 +81,17 @@ export function PurchasingUpdates({ project }: { project: ProjectContext['projec
           <Placeholder>Add Single Use items in Step 2 to enter purchasing updates.</Placeholder>
         </AddBlock>
       )}
-      {!isLoading && showEmptyState && hasInventory && <EmptyState projectId={project.id} onClickDownload={clickDownload} />}
+      {!isLoading && showEmptyState && hasInventory && (
+        <EmptyState projectId={project.id} onClickDownload={clickDownload} />
+      )}
       {!isLoading && !showEmptyState && inventory && hasRecordsToShow && (
         <>
           <SectionContainer>
-            <SingleUseActuals inventory={inventory} friendlyPeriod={friendlyPeriod} periodSelect={<PeriodSelect onChange={setSelectedPeriod} />} />
+            <SingleUseActuals
+              inventory={inventory}
+              friendlyPeriod={friendlyPeriod}
+              periodSelect={<PeriodSelect onChange={setSelectedPeriod} />}
+            />
           </SectionContainer>
           {/* <SectionContainer>
             <div className="page-break" />

@@ -73,8 +73,16 @@ function calculateAnnualCostChanges(project: ProjectInventory): AnnualCostChange
   let utilitiesBaseline = 0;
   let utilitiesforecast = 0;
   for (const dishwasher of project.dishwashers) {
-    utilitiesBaseline += dishwasherAnnualCost(dishwasher, { operatingDays: dishwasher.operatingDays, racksPerDay: dishwasher.racksPerDay }, project.utilityRates);
-    utilitiesforecast += dishwasherAnnualCost(dishwasher, { operatingDays: dishwasher.newOperatingDays, racksPerDay: dishwasher.newRacksPerDay }, project.utilityRates);
+    utilitiesBaseline += dishwasherAnnualCost(
+      dishwasher,
+      { operatingDays: dishwasher.operatingDays, racksPerDay: dishwasher.racksPerDay },
+      project.utilityRates
+    );
+    utilitiesforecast += dishwasherAnnualCost(
+      dishwasher,
+      { operatingDays: dishwasher.newOperatingDays, racksPerDay: dishwasher.newRacksPerDay },
+      project.utilityRates
+    );
   }
   const utilitiesChange = utilitiesforecast - utilitiesBaseline;
 
@@ -83,7 +91,12 @@ function calculateAnnualCostChanges(project: ProjectInventory): AnnualCostChange
   const wasteHaulingChange = wasteHaulingForecast - wasteHaulingBaseline;
 
   const baseline = singleUseProductSummary.annualCost.baseline + utilitiesBaseline + wasteHaulingBaseline;
-  const forecast = additionalCostsTotal + reusableProductCosts + singleUseProductSummary.annualCost.forecast + utilitiesforecast + wasteHaulingForecast;
+  const forecast =
+    additionalCostsTotal +
+    reusableProductCosts +
+    singleUseProductSummary.annualCost.forecast +
+    utilitiesforecast +
+    wasteHaulingForecast;
 
   return {
     additionalCosts: additionalCostsTotal,
@@ -101,7 +114,11 @@ function getAdditionalCosts({ otherExpenses, laborCosts }: ProjectInventory) {
   return otherExpenses.map(({ cost, frequency }) => ({ cost, frequency })).concat(laborCosts);
 }
 
-export function dishwasherAnnualCostBreakdown(dishwasher: DishWasherStatic, options: DishWasherOptions, rates: ProjectInventory['utilityRates']) {
+export function dishwasherAnnualCostBreakdown(
+  dishwasher: DishWasherStatic,
+  options: DishWasherOptions,
+  rates: ProjectInventory['utilityRates']
+) {
   const { electricUsage, gasUsage, waterUsage } = dishwasherUtilityUsage(dishwasher, options);
 
   const electric = electricUsage * rates.electric;
@@ -111,7 +128,11 @@ export function dishwasherAnnualCostBreakdown(dishwasher: DishWasherStatic, opti
   return { electric, gas, water };
 }
 
-function dishwasherAnnualCost(dishwasher: DishWasherStatic, options: DishWasherOptions, rates: ProjectInventory['utilityRates']) {
+function dishwasherAnnualCost(
+  dishwasher: DishWasherStatic,
+  options: DishWasherOptions,
+  rates: ProjectInventory['utilityRates']
+) {
   const { electric, gas, water } = dishwasherAnnualCostBreakdown(dishwasher, options, rates);
   return round(electric + gas + water, 2);
 }
@@ -119,7 +140,11 @@ function dishwasherAnnualCost(dishwasher: DishWasherStatic, options: DishWasherO
 // Hidden: dishwasher calulcations: C85, C86
 export function dishwasherUtilityUsage(dishwasher: DishWasherStatic, options: DishWasherOptions) {
   const washerProfile = ANNUAL_DISHWASHER_CONSUMPTION.find(conf => {
-    return dishwasher.temperature === conf.temperature && dishwasher.type === conf.type && dishwasher.energyStarCertified === conf.energyStar;
+    return (
+      dishwasher.temperature === conf.temperature &&
+      dishwasher.type === conf.type &&
+      dishwasher.energyStarCertified === conf.energyStar
+    );
   });
 
   if (!washerProfile) {

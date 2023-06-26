@@ -93,7 +93,10 @@ export async function trackEvent(event: UserEvent & { userId: string }) {
         from: 'Chart Reuse <noreply@chartreuse.eco>',
         to: process.env.NOTIFICATIONS_EMAIL,
         subject: `New Event: ${template.subject}`,
-        html: `${template.body({ userEmail: user?.email, orgName: user.org.name }, event)}<br /><p>Sent from <a href="${WEB_HOST}">app.chartreuse.eco</a></p>`
+        html: `${template.body(
+          { userEmail: user?.email, orgName: user.org.name },
+          event
+        )}<br /><p>Sent from <a href="${WEB_HOST}">app.chartreuse.eco</a></p>`
       });
       console.log(`Sent user event email for event to ${process.env.NOTIFICATIONS_EMAIL}: ` + event.type);
     }

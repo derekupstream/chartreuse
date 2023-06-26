@@ -27,10 +27,17 @@ const ReusablePurchasingSecondStepForm: FC<Props> = props => {
 
   return (
     <div>
-      <p>You will occasionally need to replenish reusable stock due to loss, damage, or breakage. Estimate the number of cases you will need to re-purchase.</p>
+      <p>
+        You will occasionally need to replenish reusable stock due to loss, damage, or breakage. Estimate the number of
+        cases you will need to re-purchase.
+      </p>
       <Typography.Title level={3}>{input.productName}</Typography.Title>
       <Form form={form} layout='vertical' onFinish={onPressSubmit}>
-        <Form.Item label='Cases Repurchased Annually' name='casesAnnually' rules={[{ required: true, message: 'This field is required' }]}>
+        <Form.Item
+          label='Cases Repurchased Annually'
+          name='casesAnnually'
+          rules={[{ required: true, message: 'This field is required' }]}
+        >
           <Input type='number' autoFocus />
         </Form.Item>
 

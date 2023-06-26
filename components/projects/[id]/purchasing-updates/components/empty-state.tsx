@@ -6,7 +6,9 @@ export function EmptyState({ projectId, onClickDownload }: { projectId: string; 
   return (
     <AddBlock>
       <DownloadButton projectId={projectId} onClick={onClickDownload} />
-      <Placeholder>Download your Single Use item inventory to begin. Add records to the spreadsheet and upload it back here.</Placeholder>
+      <Placeholder>
+        Download your Single Use item inventory to begin. Add records to the spreadsheet and upload it back here.
+      </Placeholder>
     </AddBlock>
   );
 }

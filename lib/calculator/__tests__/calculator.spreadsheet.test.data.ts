@@ -1,6 +1,12 @@
 import { getSingleUseProducts } from 'lib/inventory/assets/upstream/getSingleUseProducts';
 import type { ProjectInventory } from 'lib/inventory/types/projects';
-import type { OtherExpense, DishWasher, ReusableLineItem, SingleUseLineItem, WasteHaulingService } from 'lib/inventory/types/projects';
+import type {
+  OtherExpense,
+  DishWasher,
+  ReusableLineItem,
+  SingleUseLineItem,
+  WasteHaulingService
+} from 'lib/inventory/types/projects';
 
 const projectId = 'aaa';
 
@@ -67,7 +73,17 @@ export const singleUseItems: SingleUseLineItem[] = [
   }
 ];
 
-const reusableItems: ReusableLineItem[] = [{ categoryId: '1', projectId, productName: 'Cup', caseCost: 23, casesPurchased: 2, unitsPerCase: 10, annualRepurchasePercentage: 0.23 }];
+const reusableItems: ReusableLineItem[] = [
+  {
+    categoryId: '1',
+    projectId,
+    productName: 'Cup',
+    caseCost: 23,
+    casesPurchased: 2,
+    unitsPerCase: 10,
+    annualRepurchasePercentage: 0.23
+  }
+];
 
 const otherExpenses: OtherExpense[] = [
   { projectId, cost: 80, frequency: 'Daily', categoryId: '3' },

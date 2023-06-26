@@ -12,9 +12,17 @@ import { CreateOtherExpenseValidator } from 'lib/validators';
 
 const handler = nc<NextApiRequest, NextApiResponse>({ onError, onNoMatch });
 
-handler.use(getUser).use(validateProject).get(getAdditionalCosts).post(createAdditionalCost).delete(deleteAdditionalCost);
+handler
+  .use(getUser)
+  .use(validateProject)
+  .get(getAdditionalCosts)
+  .post(createAdditionalCost)
+  .delete(deleteAdditionalCost);
 
-async function getAdditionalCosts(req: NextApiRequestWithUser, res: NextApiResponse<{ otherExpenses: OtherExpense[] }>) {
+async function getAdditionalCosts(
+  req: NextApiRequestWithUser,
+  res: NextApiResponse<{ otherExpenses: OtherExpense[] }>
+) {
   const projectId = req.query.projectId as string;
   const otherExpenses = await prisma.otherExpense.findMany<Prisma.OtherExpenseFindManyArgs>({
     where: {
@@ -24,7 +32,10 @@ async function getAdditionalCosts(req: NextApiRequestWithUser, res: NextApiRespo
   res.status(200).json({ otherExpenses });
 }
 
-async function createAdditionalCost(req: NextApiRequestWithUser, res: NextApiResponse<{ additionalCost: OtherExpense }>) {
+async function createAdditionalCost(
+  req: NextApiRequestWithUser,
+  res: NextApiResponse<{ additionalCost: OtherExpense }>
+) {
   const data: Prisma.OtherExpenseCreateArgs['data'] = {
     projectId: req.body.projectId,
     cost: req.body.cost,

@@ -37,7 +37,7 @@ export function useSubscription() {
     subscriptionColor: subscriptionStatus && subscriptionColors[subscriptionStatus]
   };
 
-  console.log('Account subscription', subscription);
+  // console.log('Account subscription', subscription);
 
   return subscription;
 }

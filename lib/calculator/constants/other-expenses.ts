@@ -30,7 +30,8 @@ export const OTHER_EXPENSES = [
   {
     id: '5',
     name: 'Other',
-    description: 'Please use this for costs that do not fit into the other categories and add details in the description field.'
+    description:
+      'Please use this for costs that do not fit into the other categories and add details in the description field.'
   }
 ] as const;
 

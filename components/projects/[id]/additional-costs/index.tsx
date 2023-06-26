@@ -24,8 +24,9 @@ export default function AdditionalCosts({ project }: ServerSideProps) {
     <Wrapper>
       <Typography.Title level={1}>Additional Costs</Typography.Title>
       <Typography.Title level={5}>
-        You may incur additional one-time or ongoing expenses or savings from transitioning your operations. For example, storage, dishwashing equipment and labor, and reduced trash hauling services
-        can impact your bottom line. This section will help you accurately capture and estimate those additional impacts.
+        You may incur additional one-time or ongoing expenses or savings from transitioning your operations. For
+        example, storage, dishwashing equipment and labor, and reduced trash hauling services can impact your bottom
+        line. This section will help you accurately capture and estimate those additional impacts.
       </Typography.Title>
       <br />
       <LaborSection />

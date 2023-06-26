@@ -10,7 +10,10 @@ import { requiredRule } from 'utils/forms';
 import { OptionSelection } from '../../../styles';
 
 const wasteStreamOptions = WASTE_STREAMS.map(w => ({ value: w, label: w }));
-const serviceTypeOptions = SERVICE_TYPES.map(s => ({ value: s.type, label: <Tooltip title={s.description}>{s.type}</Tooltip> }));
+const serviceTypeOptions = SERVICE_TYPES.map(s => ({
+  value: s.type,
+  label: <Tooltip title={s.description}>{s.type}</Tooltip>
+}));
 
 type Props = {
   input: WasteHaulingService | null;

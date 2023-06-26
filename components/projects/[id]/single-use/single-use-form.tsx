@@ -18,7 +18,14 @@ type SingleUseProps = {
   products: SingleUseProduct[];
 };
 
-export default function SingleUseForm({ lineItem, onSubmit, projectId, products, formStep, setFormStep }: SingleUseProps) {
+export default function SingleUseForm({
+  lineItem,
+  onSubmit,
+  projectId,
+  products,
+  formStep,
+  setFormStep
+}: SingleUseProps) {
   const [lineItemInput, setLineItemInput] = useState<Partial<SingleUseLineItem>>({
     projectId,
     ...(lineItem ? lineItem : {})
@@ -67,8 +74,23 @@ export default function SingleUseForm({ lineItem, onSubmit, projectId, products,
   return (
     <>
       {formStep === 1 && <SingleUseProductForm input={lineItemInput} products={products} onSubmit={enterProduct} />}
-      {formStep === 2 && <SingleUseBaselineForm input={lineItemInput} productName={product?.description} goBack={goBack} onSubmit={enterQuantity} />}
-      {formStep === 3 && <SingleUseForecastForm input={lineItemInput} productName={product?.description} frequency={lineItemInput.frequency} goBack={goBack} onSubmit={enterForecast} />}
+      {formStep === 2 && (
+        <SingleUseBaselineForm
+          input={lineItemInput}
+          productName={product?.description}
+          goBack={goBack}
+          onSubmit={enterQuantity}
+        />
+      )}
+      {formStep === 3 && (
+        <SingleUseForecastForm
+          input={lineItemInput}
+          productName={product?.description}
+          frequency={lineItemInput.frequency}
+          goBack={goBack}
+          onSubmit={enterForecast}
+        />
+      )}
     </>
   );
 }

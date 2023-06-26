@@ -35,10 +35,22 @@ export const BOOSTER_WATER_HEATER = {
 };
 
 // See Hidden: Dishwasher calculations: C42, C43, D42, D43
-BUILDING_WATER_HEATER.electricEnergyUsage = calculateEnergyUsage(BUILDING_WATER_HEATER.tempIncrease, BUILDING_WATER_HEATER.electricEfficiency);
-BUILDING_WATER_HEATER.gasEnergyUsage = calculateEnergyUsage(BUILDING_WATER_HEATER.tempIncrease, BUILDING_WATER_HEATER.gasEfficiency);
-BOOSTER_WATER_HEATER.electricEnergyUsage = calculateEnergyUsage(BOOSTER_WATER_HEATER.tempIncrease, BOOSTER_WATER_HEATER.electricEfficiency);
-BOOSTER_WATER_HEATER.gasEnergyUsage = calculateEnergyUsage(BOOSTER_WATER_HEATER.tempIncrease, BOOSTER_WATER_HEATER.gasEfficiency);
+BUILDING_WATER_HEATER.electricEnergyUsage = calculateEnergyUsage(
+  BUILDING_WATER_HEATER.tempIncrease,
+  BUILDING_WATER_HEATER.electricEfficiency
+);
+BUILDING_WATER_HEATER.gasEnergyUsage = calculateEnergyUsage(
+  BUILDING_WATER_HEATER.tempIncrease,
+  BUILDING_WATER_HEATER.gasEfficiency
+);
+BOOSTER_WATER_HEATER.electricEnergyUsage = calculateEnergyUsage(
+  BOOSTER_WATER_HEATER.tempIncrease,
+  BOOSTER_WATER_HEATER.electricEfficiency
+);
+BOOSTER_WATER_HEATER.gasEnergyUsage = calculateEnergyUsage(
+  BOOSTER_WATER_HEATER.tempIncrease,
+  BOOSTER_WATER_HEATER.gasEfficiency
+);
 
 function calculateEnergyUsage(tempIncrease: number, electricEfficiency: number) {
   return (tempIncrease * SPECIFIC_HEAT_OF_WATER * DENSITY_OF_WATER) / electricEfficiency / BTU_TO_KWH;

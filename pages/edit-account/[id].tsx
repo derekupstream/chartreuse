@@ -119,7 +119,11 @@ export default function EditAccount({ org }: Props) {
             </Link>
           }
         >
-          <AccountEditForm onSubmit={updateAccount} onCancel={() => router.push('/accounts')} initialValues={{ name: accountName }} />
+          <AccountEditForm
+            onSubmit={updateAccount}
+            onCancel={() => router.push('/accounts')}
+            initialValues={{ name: accountName }}
+          />
         </FormPageTemplate>
       </main>
     </>

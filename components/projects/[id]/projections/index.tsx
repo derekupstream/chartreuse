@@ -56,9 +56,14 @@ const Projections = ({ project }: { project: ProjectContext['project'] }) => {
         <PrintButton printRef={printRef} pdfTitle={`${project.name} Savings Projections - Chart Reuse`} />
       </div>
       <Typography.Title level={5}>
-        These graphs - showing the financial and environmental impacts of reducing single-use items - can help you make the case for reuse and make data driven decisions on how to move forward. You
-        can also print a PDF for sharing and distribution. (calculated by{' '}
-        <a href='https://www.epa.gov/warm/basic-information-about-waste-reduction-model-warm' target='_blank' rel='noreferrer'>
+        These graphs - showing the financial and environmental impacts of reducing single-use items - can help you make
+        the case for reuse and make data driven decisions on how to move forward. You can also print a PDF for sharing
+        and distribution. (calculated by{' '}
+        <a
+          href='https://www.epa.gov/warm/basic-information-about-waste-reduction-model-warm'
+          target='_blank'
+          rel='noreferrer'
+        >
           EPA WARM
         </a>{' '}
         model)

@@ -5,7 +5,10 @@ import styled from 'styled-components';
 import type { WasteHaulingService } from 'lib/inventory/types/projects';
 import { requiredRule } from 'utils/forms';
 
-const categoryOptions = ['Garbage', 'Recycling', 'Organics', 'Additional Changes'].map((c, i) => ({ value: i.toString(), label: c }));
+const categoryOptions = ['Garbage', 'Recycling', 'Organics', 'Additional Changes'].map((c, i) => ({
+  value: i.toString(),
+  label: c
+}));
 const serviceTypeOptions = ['Cart', 'Bin', 'Rolloff bin', 'Additional charges'].map(c => ({ value: c, label: c }));
 
 type Props = {

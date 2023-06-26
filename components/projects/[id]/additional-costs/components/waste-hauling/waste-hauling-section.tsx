@@ -96,7 +96,12 @@ const WasteHaulingSection = () => {
       <SectionContainer>
         <SectionTitle>Waste Hauling</SectionTitle>
         {!!data?.wasteHaulingCosts?.length && (
-          <Button onClick={onAddExpense} icon={<PlusOutlined />} type='primary' style={{ paddingRight: '4em', paddingLeft: '4em' }}>
+          <Button
+            onClick={onAddExpense}
+            icon={<PlusOutlined />}
+            type='primary'
+            style={{ paddingRight: '4em', paddingLeft: '4em' }}
+          >
             Add waste hauling cost
           </Button>
         )}
@@ -117,7 +122,12 @@ const WasteHaulingSection = () => {
                 Edit
               </a>
               <Typography.Text style={{ opacity: '.25' }}> | </Typography.Text>
-              <Popconfirm title='Are you sure to delete this item?' onConfirm={() => onConfirmDelete(wasteHauling.id)} okText='Yes' cancelText='No'>
+              <Popconfirm
+                title='Are you sure to delete this item?'
+                onConfirm={() => onConfirmDelete(wasteHauling.id)}
+                okText='Yes'
+                cancelText='No'
+              >
                 <a href='#'>Delete</a>
               </Popconfirm>
             </Col>
@@ -167,10 +177,17 @@ const WasteHaulingSection = () => {
         ))
       ) : (
         <AddBlock>
-          <Button onClick={onAddExpense} icon={<PlusOutlined />} type='primary' style={{ paddingRight: '4em', paddingLeft: '4em' }}>
+          <Button
+            onClick={onAddExpense}
+            icon={<PlusOutlined />}
+            type='primary'
+            style={{ paddingRight: '4em', paddingLeft: '4em' }}
+          >
             Add waste hauling cost
           </Button>
-          <Placeholder>You have no waste hauling entries yet. Click &apos;+ Add waste hauling cost&apos; above to get started.</Placeholder>
+          <Placeholder>
+            You have no waste hauling entries yet. Click &apos;+ Add waste hauling cost&apos; above to get started.
+          </Placeholder>
         </AddBlock>
       )}
       <Drawer

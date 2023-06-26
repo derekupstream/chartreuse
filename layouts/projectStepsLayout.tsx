@@ -1,7 +1,7 @@
 import { ArrowLeftOutlined } from '@ant-design/icons';
 import type { Project } from '@prisma/client';
 import { Button, Space, Steps, Typography } from 'antd';
-import Link from 'next/link'
+import Link from 'next/link';
 import { useRouter } from 'next/router';
 import styled from 'styled-components';
 
@@ -25,16 +25,23 @@ type Props = {
   user: DashboardUser;
 };
 
-export function BackToProjectsButton () {
-  return <Link href='/projects' passHref legacyBehavior>
-    <Button type='text' href='/projects'>
-      <ArrowLeftOutlined />
-      Back to projects
-    </Button>
-  </Link>
+export function BackToProjectsButton() {
+  return (
+    <Link href='/projects' passHref legacyBehavior>
+      <Button type='text' href='/projects'>
+        <ArrowLeftOutlined />
+        Back to projects
+      </Button>
+    </Link>
+  );
 }
 
-export function ProjectStepsLayout({ children, project, currentStepIndex, ...pageProps }: React.PropsWithChildren<Props>) {
+export function ProjectStepsLayout({
+  children,
+  project,
+  currentStepIndex,
+  ...pageProps
+}: React.PropsWithChildren<Props>) {
   const router = useRouter();
 
   return (
@@ -58,9 +65,7 @@ export function ProjectStepsLayout({ children, project, currentStepIndex, ...pag
                 ))}
               </S.Steps>
             </Space>
-            <ErrorBoundary>
-              {children}
-            </ErrorBoundary>
+            <ErrorBoundary>{children}</ErrorBoundary>
           </S.Content>
         </S.ContentContainer>
         <CalculatorFooter />

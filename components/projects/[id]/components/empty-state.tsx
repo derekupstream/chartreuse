@@ -31,10 +31,23 @@ const AddBlock = styled.div`
   border-radius: 8px;
 `;
 
-export function EmptyState({ onClick, label, message }: { onClick: () => void; label: string; message: string | JSX.Element }) {
+export function EmptyState({
+  onClick,
+  label,
+  message
+}: {
+  onClick: () => void;
+  label: string;
+  message: string | JSX.Element;
+}) {
   return (
     <AddBlock>
-      <Button onClick={onClick} icon={<PlusOutlined />} type='primary' style={{ paddingRight: '4em', paddingLeft: '4em' }}>
+      <Button
+        onClick={onClick}
+        icon={<PlusOutlined />}
+        type='primary'
+        style={{ paddingRight: '4em', paddingLeft: '4em' }}
+      >
         {label}
       </Button>
       <Placeholder>{message}</Placeholder>

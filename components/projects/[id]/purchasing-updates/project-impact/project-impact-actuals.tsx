@@ -40,25 +40,41 @@ export function ProjectImpact({ inventory, dateRange }: { inventory: ProjectInve
         <Col xs={24} lg={12}>
           <Card changeStr='25%' title='Your annual savings'>
             <br />
-            <BarChart data={savingsData} formatter={(data: any) => `${data.label}: $${data.value.toLocaleString()}`} seriesField='label' />
+            <BarChart
+              data={savingsData}
+              formatter={(data: any) => `${data.label}: $${data.value.toLocaleString()}`}
+              seriesField='label'
+            />
           </Card>
         </Col>
         <Col xs={24} lg={12}>
           <Card changeStr='25%' style={{ marginRight: 0 }} title='Your single-use purchasing'>
             <br />
-            <BarChart data={singleUseData} formatter={(data: any) => `${data.label}: $${data.value.toLocaleString()}`} seriesField='label' />
+            <BarChart
+              data={singleUseData}
+              formatter={(data: any) => `${data.label}: $${data.value.toLocaleString()}`}
+              seriesField='label'
+            />
           </Card>
         </Col>
         <Col xs={24} lg={12}>
           <Card changeStr='25%' style={{ marginRight: 0 }} title='Your waste reductions'>
             <br />
-            <BarChart data={wasteData} formatter={(data: any) => `${data.label}: $${data.value.toLocaleString()}`} seriesField='label' />
+            <BarChart
+              data={wasteData}
+              formatter={(data: any) => `${data.label}: $${data.value.toLocaleString()}`}
+              seriesField='label'
+            />
           </Card>
         </Col>
         <Col xs={24} lg={12}>
           <Card changeStr='25%' style={{ marginRight: 0 }} title='Your GHG reductions'>
             <br />
-            <BarChart data={ghgData} formatter={(data: any) => `${data.label}: $${data.value.toLocaleString()}`} seriesField='label' />
+            <BarChart
+              data={ghgData}
+              formatter={(data: any) => `${data.label}: $${data.value.toLocaleString()}`}
+              seriesField='label'
+            />
           </Card>
         </Col>
       </AntdRow>

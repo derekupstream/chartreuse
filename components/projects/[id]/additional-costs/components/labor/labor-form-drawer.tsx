@@ -59,7 +59,11 @@ const LaborFormDrawer: React.FC<Props> = ({ input, onClose }) => {
       <FormItem label='Frequency' name='frequency' rules={requiredRule}>
         <OptionSelection name='frequecy' options={frequencyOptions} optionType='button' />
       </FormItem>
-      <FormItem label='Labor cost or savings' name='cost' extra='To enter a labor savings, format your number as a negative value. Ex. “-500”'>
+      <FormItem
+        label='Labor cost or savings'
+        name='cost'
+        extra='To enter a labor savings, format your number as a negative value. Ex. “-500”'
+      >
         <Input type='number' prefix='$ ' name='cost' />
       </FormItem>
       <FormItem label='Description' name='description' rules={requiredRule}>

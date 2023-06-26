@@ -30,7 +30,17 @@ interface SelectOption<T extends string = string> {
 
 const categoryOptions: SelectOption[] = [...PRODUCT_CATEGORIES].map(cat => ({ label: cat.name, value: cat.id }));
 
-export function SingleUseActuals({ inventory, dateRange, friendlyPeriod, periodSelect }: { inventory: ProjectInventory; friendlyPeriod: string; dateRange?: DateRange; periodSelect: JSX.Element }) {
+export function SingleUseActuals({
+  inventory,
+  dateRange,
+  friendlyPeriod,
+  periodSelect
+}: {
+  inventory: ProjectInventory;
+  friendlyPeriod: string;
+  dateRange?: DateRange;
+  periodSelect: JSX.Element;
+}) {
   const [selectedCategoryId, setSelectedCategory] = useState<string | undefined>(undefined);
   const [useUnits, setUseUnits] = useState(true);
 
@@ -122,7 +132,9 @@ export function SingleUseActuals({ inventory, dateRange, friendlyPeriod, periodS
             changePercent={actuals.singleUseProducts.biggestChangeCategory?.changePercent}
             changeStr={
               actuals.singleUseProducts.biggestChangeCategory
-                ? `${categoryName(actuals.singleUseProducts.biggestChangeCategory.id)}: ${changeValue(actuals.singleUseProducts.biggestChangeCategory.change).toLocaleString()} units`
+                ? `${categoryName(actuals.singleUseProducts.biggestChangeCategory.id)}: ${changeValue(
+                    actuals.singleUseProducts.biggestChangeCategory.change
+                  ).toLocaleString()} units`
                 : 'N/A'
             }
           />
@@ -134,9 +146,12 @@ export function SingleUseActuals({ inventory, dateRange, friendlyPeriod, periodS
             changePercent={actuals.singleUseProducts.biggestSavingsCategory?.changePercent}
             changeStr={
               actuals.singleUseProducts.biggestSavingsCategory
-                ? `${categoryName(actuals.singleUseProducts.biggestSavingsCategory.id)}: ${changeValue(actuals.singleUseProducts.biggestSavingsCategory.change, {
-                    preUnit: '$'
-                  }).toLocaleString()} `
+                ? `${categoryName(actuals.singleUseProducts.biggestSavingsCategory.id)}: ${changeValue(
+                    actuals.singleUseProducts.biggestSavingsCategory.change,
+                    {
+                      preUnit: '$'
+                    }
+                  ).toLocaleString()} `
                 : 'N/A'
             }
           />

@@ -78,14 +78,20 @@ const LaborSection = () => {
       <SectionContainer>
         <SectionTitle>Labor</SectionTitle>
         {!!data?.laborCosts?.length && (
-          <Button type='primary' onClick={onClickAddExpense} icon={<PlusOutlined />} style={{ paddingRight: '4em', paddingLeft: '4em' }}>
+          <Button
+            type='primary'
+            onClick={onClickAddExpense}
+            icon={<PlusOutlined />}
+            style={{ paddingRight: '4em', paddingLeft: '4em' }}
+          >
             Add labor
           </Button>
         )}
       </SectionContainer>
       <Typography.Title level={5}>
-        Use this section to quantify labor impacts from changing operations. For example, estimate time / cost saved by procurement staff and janitorial staff from moving materials off the floor to
-        necessary bins or enclosures. Also, estimate additional staff hours needed to support washing needs.
+        Use this section to quantify labor impacts from changing operations. For example, estimate time / cost saved by
+        procurement staff and janitorial staff from moving materials off the floor to necessary bins or enclosures.
+        Also, estimate additional staff hours needed to support washing needs.
       </Typography.Title>
       <Divider />
       {data?.laborCosts?.length ? (
@@ -103,7 +109,12 @@ const LaborSection = () => {
                 Edit
               </a>
               <Typography.Text style={{ opacity: '.25' }}> | </Typography.Text>
-              <Popconfirm title='Are you sure to delete this item?' onConfirm={() => onConfirmDelete(labor.id)} okText='Yes' cancelText='No'>
+              <Popconfirm
+                title='Are you sure to delete this item?'
+                onConfirm={() => onConfirmDelete(labor.id)}
+                okText='Yes'
+                cancelText='No'
+              >
                 <a href='#'>Delete</a>
               </Popconfirm>
             </Col>
@@ -134,13 +145,24 @@ const LaborSection = () => {
         ))
       ) : (
         <AddBlock>
-          <Button onClick={onClickAddExpense} icon={<PlusOutlined />} type='primary' style={{ paddingRight: '4em', paddingLeft: '4em' }}>
+          <Button
+            onClick={onClickAddExpense}
+            icon={<PlusOutlined />}
+            type='primary'
+            style={{ paddingRight: '4em', paddingLeft: '4em' }}
+          >
             Add labor
           </Button>
           <Placeholder>You have no labor entries yet. Click &apos;+ Add labor&apos; above to get started.</Placeholder>
         </AddBlock>
       )}
-      <Drawer title={activeLabor ? 'Update labor' : 'Add labor'} onClose={onCloseDrawer} visible={isDrawerVisible} contentWrapperStyle={contentWrapperStyle} destroyOnClose>
+      <Drawer
+        title={activeLabor ? 'Update labor' : 'Add labor'}
+        onClose={onCloseDrawer}
+        visible={isDrawerVisible}
+        contentWrapperStyle={contentWrapperStyle}
+        destroyOnClose
+      >
         <LaborFormDrawer input={activeLabor} onClose={onSubmit} />
       </Drawer>
     </Container>

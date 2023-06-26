@@ -56,8 +56,14 @@ export default function SelectQuantityForecastStep({
         type='info'
         message={
           <>
-            <Typography.Paragraph>Set your project goals by forecasting estimated savings realized by reducing, or eliminating purchase of single-use item(s).</Typography.Paragraph>
-            <Typography.Text>Later, post reuse implementation, users go back in to report actuals to see how progress compares to originally set goals.</Typography.Text>
+            <Typography.Paragraph>
+              Set your project goals by forecasting estimated savings realized by reducing, or eliminating purchase of
+              single-use item(s).
+            </Typography.Paragraph>
+            <Typography.Text>
+              Later, post reuse implementation, users go back in to report actuals to see how progress compares to
+              originally set goals.
+            </Typography.Text>
           </>
         }
       />
@@ -65,11 +71,19 @@ export default function SelectQuantityForecastStep({
 
       <Typography.Title level={4}>{productName}</Typography.Title>
 
-      <Form.Item name='newCasesPurchased' label={`New cases purchased ${frequency?.toLowerCase()}`} rules={[{ message: 'This field is required', required: true }]}>
+      <Form.Item
+        name='newCasesPurchased'
+        label={`New cases purchased ${frequency?.toLowerCase()}`}
+        rules={[{ message: 'This field is required', required: true }]}
+      >
         <Input placeholder={`Current amount: ${input?.casesPurchased?.toString()}`} type='number' autoFocus />
       </Form.Item>
 
-      <Form.Item name='newCaseCost' label='Cost per case' rules={[{ message: 'This field is required', required: true }]}>
+      <Form.Item
+        name='newCaseCost'
+        label='Cost per case'
+        rules={[{ message: 'This field is required', required: true }]}
+      >
         <Input type='number' prefix='$' />
       </Form.Item>
 

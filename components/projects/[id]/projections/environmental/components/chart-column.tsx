@@ -1,7 +1,10 @@
 import type { BarConfig } from '@ant-design/plots';
 import dynamic from 'next/dynamic';
 import type { ComponentType } from 'react';
-const Column: ComponentType<BarConfig> = dynamic(() => import('@ant-design/plots/es/components/column').then(mod => mod as any), { ssr: false });
+const Column: ComponentType<BarConfig> = dynamic(
+  () => import('@ant-design/plots/es/components/column').then(mod => mod as any),
+  { ssr: false }
+);
 
 const ChartColumn: React.FC = () => {
   const data = [

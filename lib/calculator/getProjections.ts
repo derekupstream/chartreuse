@@ -55,7 +55,9 @@ export interface AllProjectsSummary {
 const defaultSummary = () => ({ baseline: 0, forecast: 0, forecasts: [] });
 
 export async function getAllProjections(_projects: ProjectData[]): Promise<AllProjectsSummary> {
-  const projects: ProjectSummary[] = await Promise.all(_projects.map(p => getProjections(p.id).then(r => ({ ...p, projections: r }))));
+  const projects: ProjectSummary[] = await Promise.all(
+    _projects.map(p => getProjections(p.id).then(r => ({ ...p, projections: r })))
+  );
 
   const summary = projects.reduce<AllProjectsSummary['summary']>(
     (acc, curr) => {

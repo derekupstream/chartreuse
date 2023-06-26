@@ -3,9 +3,20 @@ import Image from 'next/image';
 
 import Logo from 'public/images/chart-reuse-logo-black.png';
 
-export function PrintHeader({ accountName, orgName, projectName }: { accountName?: string; orgName: string; projectName?: string }) {
+export function PrintHeader({
+  accountName,
+  orgName,
+  projectName
+}: {
+  accountName?: string;
+  orgName: string;
+  projectName?: string;
+}) {
   return (
-    <div className='print-only-flex' style={{ marginBottom: '10mm', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+    <div
+      className='print-only-flex'
+      style={{ marginBottom: '10mm', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
+    >
       <Typography.Title level={3} style={{ margin: 0 }}>
         {projectName && accountName && (
           <>

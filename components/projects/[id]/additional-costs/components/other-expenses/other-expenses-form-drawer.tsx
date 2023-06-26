@@ -5,7 +5,11 @@ import { useEffect } from 'react';
 import React from 'react';
 
 import { useSimpleMutation } from 'hooks/useSimpleQuery';
-import { OTHER_EXPENSES, OTHER_EXPENSES_CATEGORIES, OTHER_EXPENSES_FREQUENCIES } from 'lib/calculator/constants/other-expenses';
+import {
+  OTHER_EXPENSES,
+  OTHER_EXPENSES_CATEGORIES,
+  OTHER_EXPENSES_FREQUENCIES
+} from 'lib/calculator/constants/other-expenses';
 import { requiredRule } from 'utils/forms';
 
 import { OptionSelection } from '../../../styles';

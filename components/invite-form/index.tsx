@@ -17,7 +17,12 @@ export default function InviteForm({ onSubmit, isLoading, accounts, isOrgAdmin }
   return (
     <S.Wrapper>
       <S.InviteForm name='inviteForm' layout='vertical' onFinish={onSubmit}>
-        <Form.Item label='Choose account to assign member' name='accountId' initialValue={isOrgAdmin ? '' : accounts[0].id} hidden={!isOrgAdmin}>
+        <Form.Item
+          label='Choose account to assign member'
+          name='accountId'
+          initialValue={isOrgAdmin ? '' : accounts[0].id}
+          hidden={!isOrgAdmin}
+        >
           <Select placeholder='Account name'>
             <Select.Option value=''>-- Access All Accounts --</Select.Option>
             {accounts.map(account => {

@@ -63,7 +63,9 @@ export const getServerSideProps: GetServerSideProps<PageProps> = async context =
 };
 
 const AnalyticsPage = ({ user, data, allAccounts, allProjects }: PageProps) => {
-  return <Analytics allAccounts={allAccounts} allProjects={allProjects} data={data} user={user} isUpstreamView={true} />;
+  return (
+    <Analytics allAccounts={allAccounts} allProjects={allProjects} data={data} user={user} isUpstreamView={true} />
+  );
 };
 
 AnalyticsPage.getLayout = (page: React.ReactNode, pageProps: any) => {

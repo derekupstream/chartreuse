@@ -94,7 +94,9 @@ export default function Organizations({ orgs }: PageProps) {
               <Popconfirm
                 title={
                   <Space direction='vertical' size='small'>
-                    <Typography.Title level={4}>Are you sure you want to delete &quot;{org.name}&quot;?</Typography.Title>
+                    <Typography.Title level={4}>
+                      Are you sure you want to delete &quot;{org.name}&quot;?
+                    </Typography.Title>
                     <Typography.Text>This action cannot be undone</Typography.Text>
                   </Space>
                 }

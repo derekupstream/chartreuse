@@ -46,27 +46,58 @@ const ProjectImpacts: React.FC<Props> = ({ data }) => {
       <Divider />
       <Row gutter={[30, 24]}>
         <StyledCol xs={24} lg={12}>
-          <Card title='Your estimated annual savings' changePercent={data.dollarCost.changePercent * -1} changeStr={`${changeValue(data.dollarCost.change * -1, { preUnit: '$' }).toLocaleString()}`}>
+          <Card
+            title='Your estimated annual savings'
+            changePercent={data.dollarCost.changePercent * -1}
+            changeStr={`${changeValue(data.dollarCost.change * -1, { preUnit: '$' }).toLocaleString()}`}
+          >
             <br />
-            <BarChart data={savingsData} formatter={(data: any) => `${data.label}: $${data.value.toLocaleString()}`} seriesField='label' />
+            <BarChart
+              data={savingsData}
+              formatter={(data: any) => `${data.label}: $${data.value.toLocaleString()}`}
+              seriesField='label'
+            />
           </Card>
         </StyledCol>
         <StyledCol xs={24} lg={12}>
-          <Card title='Reductions in single-use purchasing' changePercent={data.singleUseProductCount.changePercent * -1} changeStr={changeValue(data.singleUseProductCount.change * -1) + ' units'}>
+          <Card
+            title='Reductions in single-use purchasing'
+            changePercent={data.singleUseProductCount.changePercent * -1}
+            changeStr={changeValue(data.singleUseProductCount.change * -1) + ' units'}
+          >
             <br />
-            <BarChart data={singleUseData} formatter={(data: any) => `${data.label}: ${data.value.toLocaleString()} pieces`} seriesField='label' />
+            <BarChart
+              data={singleUseData}
+              formatter={(data: any) => `${data.label}: ${data.value.toLocaleString()} pieces`}
+              seriesField='label'
+            />
           </Card>
         </StyledCol>
         <StyledCol xs={24} lg={12}>
-          <Card title='Your waste reductions' changePercent={data.wasteWeight.changePercent * -1} changeStr={changeValue(data.wasteWeight.change * -1) + ' lbs'}>
+          <Card
+            title='Your waste reductions'
+            changePercent={data.wasteWeight.changePercent * -1}
+            changeStr={changeValue(data.wasteWeight.change * -1) + ' lbs'}
+          >
             <br />
-            <BarChart data={wasteData} formatter={(data: any) => `${data.label}: ${data.value.toLocaleString()} lbs`} seriesField='label' />
+            <BarChart
+              data={wasteData}
+              formatter={(data: any) => `${data.label}: ${data.value.toLocaleString()} lbs`}
+              seriesField='label'
+            />
           </Card>
         </StyledCol>
         <StyledCol xs={24} lg={12}>
-          <Card title='Your GHG reductions' changeStr={changeValue(data.greenhouseGasEmissions.total.change * -1) + ' MTC02e'}>
+          <Card
+            title='Your GHG reductions'
+            changeStr={changeValue(data.greenhouseGasEmissions.total.change * -1) + ' MTC02e'}
+          >
             <br />
-            <BarChart data={ghgData} formatter={(data: any) => `${data.label}: ${data.value.toLocaleString()} MTC02e`} seriesField='label' />
+            <BarChart
+              data={ghgData}
+              formatter={(data: any) => `${data.label}: ${data.value.toLocaleString()} MTC02e`}
+              seriesField='label'
+            />
           </Card>
         </StyledCol>
       </Row>

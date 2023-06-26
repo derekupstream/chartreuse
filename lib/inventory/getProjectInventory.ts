@@ -1,4 +1,10 @@
-import type { LaborCost, OtherExpense, SingleUseLineItem, SingleUseLineItemRecord, WasteHaulingCost } from '@prisma/client';
+import type {
+  LaborCost,
+  OtherExpense,
+  SingleUseLineItem,
+  SingleUseLineItemRecord,
+  WasteHaulingCost
+} from '@prisma/client';
 
 import prisma from 'lib/prisma';
 

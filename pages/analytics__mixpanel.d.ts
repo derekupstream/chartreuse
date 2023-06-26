@@ -18,7 +18,12 @@ declare module '@analytics/mixpanel' {
    *   token: 'abcdef123'
    * })
    */
-  function mixpanelPlugin(pluginConfig: { token: string; options?: any; pageEvent?: string; customScriptSrc?: string }): AnalyticsPlugin;
+  function mixpanelPlugin(pluginConfig: {
+    token: string;
+    options?: any;
+    pageEvent?: string;
+    customScriptSrc?: string;
+  }): AnalyticsPlugin;
 
   export default mixpanelPlugin;
 }

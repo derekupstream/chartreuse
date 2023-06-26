@@ -96,7 +96,11 @@ const EnvironmentalSummary: React.FC<Props> = ({ data }) => {
             <TitleWithTooltip title='Your total annual waste changes' />
 
             <BigNumberWrapper>
-              <BigNumber value={`${changeValue(formatWeight(data.annualWasteChanges.total.change))} ${units === 'pounds' ? 'lbs.' : 'tons'}`} />
+              <BigNumber
+                value={`${changeValue(formatWeight(data.annualWasteChanges.total.change))} ${
+                  units === 'pounds' ? 'lbs.' : 'tons'
+                }`}
+              />
             </BigNumberWrapper>
 
             <ChartTitle>Annual waste changes</ChartTitle>

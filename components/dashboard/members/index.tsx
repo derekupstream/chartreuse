@@ -4,7 +4,6 @@ import { Button, Space, Table, Tag, Typography, Popconfirm, message } from 'antd
 import type { ColumnType } from 'antd/lib/table/interface';
 import { useRouter } from 'next/router';
 import { useCallback } from 'react';
-import { useMutation } from 'react-query';
 
 import { members } from 'lib/api';
 

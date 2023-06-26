@@ -1,4 +1,14 @@
-import type { Project, Org, Account, Dishwasher, OtherExpense, LaborCost, ReusableLineItem, SingleUseLineItem, WasteHaulingCost } from '@prisma/client';
+import type {
+  Project,
+  Org,
+  Account,
+  Dishwasher,
+  OtherExpense,
+  LaborCost,
+  ReusableLineItem,
+  SingleUseLineItem,
+  WasteHaulingCost
+} from '@prisma/client';
 import ExcelJS from 'exceljs';
 
 import { getDishwasherStats } from 'lib/calculator/calculations/dishwasher';
