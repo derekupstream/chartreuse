@@ -67,8 +67,9 @@ export function ProjectSetup({
     try {
       const req = values.id ? chartreuseClient.updateProject(values) : chartreuseClient.createProject(values);
       const result = await req;
-      setIndex(1);
+      // setIndex(1);
       setProject(result.project);
+      onComplete(result.project.id);
     } catch (error) {
       message.error((error as Error)?.message || (error as any).error);
     }
@@ -96,7 +97,7 @@ export function ProjectSetup({
           <BackToProjectsButton />
         </div>
         <Wrapper>
-          <S.Steps
+          {/* <S.Steps
             current={currentStepIndex}
             onChange={
               project
@@ -108,7 +109,7 @@ export function ProjectSetup({
             items={CALCULATOR_STEPS.map((step, i) => ({
               title: step.title
             }))}
-          />
+          /> */}
           <div style={{ marginTop: 50 }}>
             {currentStepIndex === 0 && <ProjectForm org={user.org} project={project} onComplete={saveProject} />}
             {currentStepIndex === 1 && project && (
