@@ -13,6 +13,7 @@ import { createContext, useEffect, useState, useCallback } from 'react';
 
 import type { FirebaseAuthProvider, FirebaseUser } from './firebaseClient';
 import { auth } from './firebaseClient';
+import { isBlacklistedEmail, assertEmailIsNotBlacklisted } from './userEmailBlacklist';
 
 export type { FirebaseUser };
 
@@ -42,7 +43,8 @@ export const AuthProvider: React.FC<{ children: any }> = ({ children }) => {
 
   useEffect(() => {
     const unsubscribe = onIdTokenChanged(auth, async (_firebaseUser: FirebaseUser | null) => {
-      if (!_firebaseUser) {
+      const emailIsBlacklisted = _firebaseUser?.email && isBlacklistedEmail(_firebaseUser.email);
+      if (!_firebaseUser || emailIsBlacklisted) {
         console.log('Log user out');
         setFirebaseUser(null);
         destroyCookie(null, 'token');
@@ -72,6 +74,7 @@ export const AuthProvider: React.FC<{ children: any }> = ({ children }) => {
   }, []);
 
   const login = useCallback(async ({ email, password }: Credentials, persist: boolean) => {
+    assertEmailIsNotBlacklisted(email);
     if (!persist) {
       await setPersistence(auth, browserSessionPersistence);
     }
@@ -86,6 +89,7 @@ export const AuthProvider: React.FC<{ children: any }> = ({ children }) => {
   }, []);
 
   const signup = useCallback(async ({ email, password }: Credentials, persist: boolean) => {
+    assertEmailIsNotBlacklisted(email);
     if (!persist) {
       await setPersistence(auth, browserSessionPersistence);
     }
