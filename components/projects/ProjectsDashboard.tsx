@@ -18,7 +18,7 @@ interface PopulatedProject extends Project {
   account: Account;
 }
 
-export const ProjectsDashboard = () => {
+export const ProjectsDashboard = ({ orgId }: { orgId: string }) => {
   const queryClient = useQueryClient();
   const router = useRouter();
   const { subscriptionStatus } = useSubscription();
@@ -48,7 +48,10 @@ export const ProjectsDashboard = () => {
     });
   };
 
-  const projectLimitReached = data?.projects.length && subscriptionStatus !== 'Active';
+  // temporary hack to allow Post-Landfill Action Network to have more projects
+  const projectLimit = orgId === '8793767e-ed9c-4adf-bb45-ba1c45378288' ? 4 : 1;
+
+  const projectLimitReached = data?.projects && subscriptionStatus !== 'Active' && data.projects.length >= projectLimit;
 
   function onClickAddProject() {
     if (projectLimitReached) {
@@ -73,7 +76,7 @@ export const ProjectsDashboard = () => {
           title={
             <Space direction='vertical' size='small'>
               <Typography.Title level={5}>Upgrade to add more projects</Typography.Title>
-              <Typography.Text>Free trials are limited to 1 project per account</Typography.Text>
+              <Typography.Text>Free trials are limited to {projectLimit} project per account</Typography.Text>
             </Space>
           }
           disabled={!projectLimitReached}
