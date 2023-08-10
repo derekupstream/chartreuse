@@ -37,6 +37,8 @@ export function TrialSetupForm({ onSubmit, isLoading }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [firebaseUser]);
 
+  const hideLicenseAgreement = firebaseUser?.email?.includes('@flysfo.com');
+
   return (
     <S.Wrapper>
       <S.OrgSetupForm form={form} name='orgAccount' layout='vertical' onFinish={onSubmit}>
@@ -79,27 +81,29 @@ export function TrialSetupForm({ onSubmit, isLoading }: Props) {
           </Button>
         </Form.Item>
 
-        <Form.Item
-          rules={[
-            {
-              required: true,
-              transform: value => value || undefined, // Those two lines
-              type: 'boolean', // Do the magic
-              message: 'Please agree the terms and conditions.'
-            }
-          ]}
-          name='terms'
-          valuePropName='checked'
-          style={{ textAlign: 'left' }}
-        >
-          <Checkbox style={{ fontSize: 13 }}>
-            I have read and agree to the{' '}
-            <a href='https://www.chartreuse.eco/chart-reuse-license-agreement' target='_blank'>
-              Software License Agreement
-            </a>
-            .
-          </Checkbox>
-        </Form.Item>
+        {!hideLicenseAgreement && (
+          <Form.Item
+            rules={[
+              {
+                required: true,
+                transform: value => value || undefined, // Those two lines
+                type: 'boolean', // Do the magic
+                message: 'Please agree the terms and conditions.'
+              }
+            ]}
+            name='terms'
+            valuePropName='checked'
+            style={{ textAlign: 'left' }}
+          >
+            <Checkbox style={{ fontSize: 13 }}>
+              I have read and agree to the{' '}
+              <a href='https://www.chartreuse.eco/chart-reuse-license-agreement' target='_blank'>
+                Software License Agreement
+              </a>
+              .
+            </Checkbox>
+          </Form.Item>
+        )}
       </S.OrgSetupForm>
     </S.Wrapper>
   );
