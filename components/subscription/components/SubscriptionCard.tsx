@@ -9,33 +9,51 @@ import * as S from 'layouts/styles';
 import { useCancelSubscription, useUpdateSubscription, useGetSubscriptionProduct } from 'lib/api';
 import type { ProductTier, ProductTierSettings } from 'lib/stripe/config';
 
+import { CancelModal } from './CancelModal';
+
+export interface SubscriptionCardProps {
+  isModalVisible: boolean;
+  modalView: 'cancel' | 'feedback';
+  confirmLoading: boolean;
+  onConfirmCancel: () => void;
+  onCancel: () => void;
+}
+
 export function SubscriptionCard() {
   const stripePromise = getStripe();
+
   const [sidebarView, setSidebarView] = useState<'cancel' | 'update' | null>(null);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [modalView, setModalView] = useState<'cancel' | 'feedback'>('cancel');
+  const [loading, setLoading] = useState(false);
+
   const { subscription, refresh, monthlyRate } = useSubscription();
   const { trigger } = useCancelSubscription();
   const { trigger: updateSubscription } = useUpdateSubscription();
 
-  async function cancelSubscription() {
-    try {
-      await trigger();
-      await refresh();
-      message.success('Your subscription was cancelled successfully.');
-    } catch (error) {
-      message.error((error as Error).message || 'Something went wrong, please try again.');
-    }
-  }
-
-  function showDrawer() {
-    setSidebarView('update');
-  }
+  // function showDrawer() {
+  //   setSidebarView('update');
+  // }
 
   function closeDrawer() {
     setSidebarView(null);
   }
 
   function showCancelForm() {
-    setSidebarView('cancel');
+    setModalView('cancel');
+    setIsModalVisible(true);
+  }
+
+  const handleCancel = () => {
+    setLoading(true);
+    setTimeout(() => {
+      setIsModalVisible(false);
+      setLoading(false);
+    }, 2000);
+  };
+
+  function closeModal(): void {
+    setIsModalVisible(false);
   }
 
   async function submitSubscriptionForm(fields: { price: ProductTierSettings['stripePrice'] }) {
@@ -70,11 +88,24 @@ export function SubscriptionCard() {
               <List bordered size='small' dataSource={featureList} renderItem={item => <List.Item>{item}</List.Item>} />
             </>
           )} */}
+
+          <br />
+          <br />
+          <Typography.Text underline type='secondary' style={{ cursor: 'pointer' }} onClick={showCancelForm}>
+            Cancel Subscription
+          </Typography.Text>
         </S.ProjectInfo>
         {/* <S.Actions>
           <Button icon={<EditOutlined />} type='text' onClick={showDrawer} />
         </S.Actions> */}
       </Card>
+      <CancelModal
+        isModalVisible={isModalVisible}
+        modalView={modalView}
+        onConfirmCancel={handleCancel}
+        confirmLoading={loading}
+        onCancel={closeModal}
+      />
       <Drawer
         title={sidebarView === 'update' ? 'Update your subscription' : 'Cancel subscription'}
         placement='right'
@@ -93,7 +124,6 @@ export function SubscriptionCard() {
           }}
         >
           {sidebarView === 'update' && <SubscriptionForm onCancel={showCancelForm} onSubmit={submitSubscriptionForm} />}
-          {sidebarView === 'cancel' && <CancelForm onSubmit={cancelSubscription} />}
         </Elements>
       </Drawer>
     </>
@@ -164,22 +194,6 @@ export function SubscriptionTierForm({
         {buttonText || 'Update plan'}
       </Button>
       <Divider />
-    </>
-  );
-}
-
-function CancelForm({ onSubmit }: { onSubmit: VoidFunction }) {
-  return (
-    <>
-      <Space direction='vertical' size='small'>
-        <Typography.Title level={4}>Are you sure you want to cancel your subscription?</Typography.Title>
-        <Typography.Text>
-          Paid subscriptions will have access until the end of the current billing period.
-        </Typography.Text>
-        <Button danger onClick={onSubmit}>
-          Yes, cancel my subscription
-        </Button>
-      </Space>
     </>
   );
 }
