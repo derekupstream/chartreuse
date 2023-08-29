@@ -1,4 +1,4 @@
-export const trialPeriodDays = 30;
+export const trialPeriodDays = 60;
 
 export type ProductTier = 'trial' | 'tier_1' | 'tier_2' | 'tier_3';
 export type ProductTierSettings = {
