@@ -79,7 +79,7 @@ function MyApp({ Component, pageProps }: Props) {
   return (
     <SubscriptionCheck>
       <Head>
-        <title>Welcome to Chart Reuse by Upstream</title>
+        <title>Welcome to Chart-Reuse by Upstream</title>
         <link rel='icon' href='/favicon.png' key='favicon' />
       </Head>
       <QueryClientProvider client={queryClient}>

@@ -6,7 +6,7 @@ export {};
 const orgId = 'a2c6a7d5-d6aa-4172-8d7f-a775a5ba18b4';
 const email = 'mattwad+upstream2@gmail.com';
 const inviterEmail = 'samantha@upstreamsolutions.org';
-const webHost = 'https://app.chartreuse.eco';
+const webHost = 'https://app.chart-reuse.eco';
 
 (async () => {
   try {
@@ -50,9 +50,9 @@ const webHost = 'https://app.chartreuse.eco';
     });
 
     await sendEmail({
-      from: 'Chart Reuse <hello@chartreuse.eco>',
+      from: 'Chart-Reuse <hello@chart-reuse.eco>',
       to: email,
-      subject: `Invite from ${inviter.name} to join Chart Reuse`,
+      subject: `Invite from ${inviter.name} to join Chart-Reuse`,
       template: 'invite',
       'v:inviterName': inviter.name,
       'v:inviterJobTitle': inviter.title,

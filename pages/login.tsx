@@ -44,7 +44,7 @@ export default function Login() {
 
       <main>
         <FormPageTemplate
-          title='Welcome to Chart Reuse'
+          title='Welcome to Chart-Reuse'
           subtitle='Sign in with your email and password, or use your Google account.'
         >
           <LoginForm

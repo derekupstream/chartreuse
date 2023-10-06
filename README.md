@@ -1,6 +1,6 @@
-# Chart Reuse by Upstream
+# Chart-Reuse by Upstream
 
-Chart Reuse is an app by Upstream Solutions for calculating the cost savings of switching from disposable food products to reusable products.
+Chart-Reuse is an app by Upstream Solutions for calculating the cost savings of switching from disposable food products to reusable products.
 
 This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app). It uses [Prisma](prisma.io/) as its ORM for a Postgres database hosted on Heroku. The app itself is deployed to [Vercel](https://vercel.com/upstreamsolutions). The UI elements are built with [Ant Design](https://ant.design/).
 

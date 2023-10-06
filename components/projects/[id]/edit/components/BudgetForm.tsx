@@ -23,7 +23,7 @@ export function BudgetForm({ project, onComplete, onSkip }: Props) {
         <Typography.Title level={1}>Set up your project budget and single-use reduction targets</Typography.Title>
       </div>
       <Typography.Paragraph>
-        Chart Reuse can help you track your ongoing spending against your annual project budget and track single-use
+        Chart-Reuse can help you track your ongoing spending against your annual project budget and track single-use
         targets. You can add or adjust these at any time.
       </Typography.Paragraph>
       <Form

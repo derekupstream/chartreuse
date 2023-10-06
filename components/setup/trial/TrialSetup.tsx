@@ -97,7 +97,7 @@ export function TrialSetupForm({ onSubmit, isLoading }: Props) {
           >
             <Checkbox style={{ fontSize: 13 }}>
               I have read and agree to the{' '}
-              <a href='https://www.chartreuse.eco/chart-reuse-license-agreement' target='_blank'>
+              <a href='https://www.chart-reuse.eco/chart-reuse-license-agreement' target='_blank'>
                 Software License Agreement
               </a>
               .

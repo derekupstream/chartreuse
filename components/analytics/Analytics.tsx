@@ -20,14 +20,14 @@ import { requestDownload } from 'lib/files';
 
 import * as S2 from '../../layouts/styles';
 
-const StyledCol = styled(Col)`
+const StyledCol = styled(Col as any)`
   @media print {
     flex: 0 0 50% !important;
     max-width: 50% !important;
   }
 `;
 
-const KPIValue = styled(Typography.Title)`
+const KPIValue = styled(Typography.Title as any)`
   margin: 0 !important;
   font-size: 30px !important;
   @media print {
@@ -250,7 +250,7 @@ export default function AnalyticsPage({ user, data, allAccounts, allProjects, is
     const orgId = data?.projects?.[0]?.orgId;
     return requestDownload({
       api: `/api/org/${orgId}/export`,
-      title: `Chart Reuse Export`
+      title: `Chart-Reuse Export`
     });
   }
 
@@ -278,7 +278,7 @@ export default function AnalyticsPage({ user, data, allAccounts, allProjects, is
         </Typography.Title>
 
         <div style={{ display: 'flex', gap: '1em' }} className='dont-print-me'>
-          <PrintButton printRef={printRef} pdfTitle={`${user.org.name} Projects Overview - Chart Reuse`} />
+          <PrintButton printRef={printRef} pdfTitle={`${user.org.name} Projects Overview - Chart-Reuse`} />
           <Button onClick={() => exportData()}>
             <DownloadOutlined /> Export Data
           </Button>

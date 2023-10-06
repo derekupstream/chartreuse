@@ -7,13 +7,13 @@ import Container from 'components/common/Container';
 import { Header } from 'components/common/Header';
 import Logo from 'public/images/chart-reuse-logo-black.png';
 
-const LogoWrapper = styled(Link)`
+const LogoWrapper = styled(Link as any)`
   display: block;
   text-align: center;
   width: 100%;
 `;
 
-const StyledContainer = styled(Container)`
+const StyledContainer = styled(Container as any)`
   padding: 4rem 0;
 `;
 
@@ -23,7 +23,7 @@ export default function PrivacyPolicy() {
       <Header title='Privacy Policy' />
       <StyledContainer>
         <LogoWrapper href='/'>
-          <Image src={Logo} width={384} height={99} alt='Chart Reuse' />
+          <Image src={Logo} width={384} height={99} alt='Chart-Reuse' />
         </LogoWrapper>
         <h1>Privacy Policy</h1>
         <p>Last updated: January 12, 2022</p>
@@ -65,7 +65,7 @@ export default function PrivacyPolicy() {
           <li>
             <p>
               <strong>Application</strong> means the software program provided by the Company downloaded by You on any
-              electronic device, named Chart Reuse
+              electronic device, named Chart-Reuse
             </p>
           </li>
           <li>
@@ -341,8 +341,8 @@ export default function PrivacyPolicy() {
           <li>
             <p>
               By visiting this page on our website:{' '}
-              <a href='https://www.chartreuse.eco/' rel='external nofollow noopener noreferrer' target='_blank'>
-                https://www.chartreuse.eco/
+              <a href='https://www.chart-reuse.eco/' rel='external nofollow noopener noreferrer' target='_blank'>
+                https://www.chart-reuse.eco/
               </a>
             </p>
           </li>

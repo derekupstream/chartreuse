@@ -16,7 +16,7 @@ const MessagePage: React.FC<Props> = ({ title, message }) => {
   return (
     <Container>
       <S.Wrapper>
-        <Image src={Logo} width={384} height={99} alt='Chart Reuse' />
+        <Image src={Logo} width={384} height={99} alt='Chart-Reuse' />
         <Space direction='vertical'>
           <Typography.Title>{title}</Typography.Title>
           <Typography.Text strong>{message}</Typography.Text>

@@ -5,7 +5,7 @@ type Props = {
   title: string;
 };
 
-const siteName = 'Chart Reuse by Upstream';
+const siteName = 'Chart-Reuse by Upstream';
 
 export const Header: React.FC<Props> = ({ title, children }) => {
   return (

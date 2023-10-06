@@ -63,7 +63,7 @@ export function PurchasingUpdates({ project }: { project: ProjectContext['projec
         <Typography.Title level={1}>Purchasing updates</Typography.Title>
         <div style={{ display: 'flex', gap: '1em' }} className='dont-print-me'>
           {!isLoading && !showEmptyState && (
-            <PrintButton printRef={printRef} pdfTitle={`${project.name} Purchasing Updates - Chart Reuse`} />
+            <PrintButton printRef={printRef} pdfTitle={`${project.name} Purchasing Updates - Chart-Reuse`} />
           )}
           {!isLoading && !showEmptyState && <UploadButton projectId={project.id} onUpload={onUpload} />}
         </div>

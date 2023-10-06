@@ -4,7 +4,7 @@ import type { MixpanelProfile } from './analytics/mixpanel.node';
 import { sendEvent, identify } from './analytics/mixpanel.node';
 import { sendEmail } from './mailgun';
 
-const WEB_HOST = process.env.NODE_ENV === 'production' ? 'https://app.chartreuse.eco' : 'http://localhost:3000';
+const WEB_HOST = process.env.NODE_ENV === 'production' ? 'https://app.chart-reuse.eco' : 'http://localhost:3000';
 
 const IDENTITY_EVENTS: UserEventType[] = ['signup', 'join_org'];
 
@@ -90,13 +90,13 @@ export async function trackEvent(event: UserEvent & { userId: string }) {
     });
     if (process.env.NOTIFICATIONS_EMAIL) {
       await sendEmail({
-        from: 'Chart Reuse <noreply@chartreuse.eco>',
+        from: 'Chart-Reuse <noreply@chart-reuse.eco>',
         to: process.env.NOTIFICATIONS_EMAIL,
         subject: `New Event: ${template.subject}`,
         html: `${template.body(
           { userEmail: user?.email, orgName: user.org.name },
           event
-        )}<br /><p>Sent from <a href="${WEB_HOST}">app.chartreuse.eco</a></p>`
+        )}<br /><p>Sent from <a href="${WEB_HOST}">app.chart-reuse.eco</a></p>`
       });
       console.log(`Sent user event email for event to ${process.env.NOTIFICATIONS_EMAIL}: ` + event.type);
     }

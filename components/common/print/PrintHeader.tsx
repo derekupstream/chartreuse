@@ -28,7 +28,7 @@ export function PrintHeader({
         )}
         {!projectName && !accountName && orgName}
       </Typography.Title>
-      <Image src={Logo} width={230} height={60} alt='Chart Reuse' />
+      <Image src={Logo} width={230} height={60} alt='Chart-Reuse' />
     </div>
   );
 }

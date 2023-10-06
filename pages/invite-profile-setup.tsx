@@ -130,7 +130,7 @@ export default function InviteProfile({ org, account, error }: Props) {
       <main>
         <FormPageTemplate
           title='Setup your Profile'
-          subtitle={`Setup your profile to accept the invite to join ${org?.name} at Chart Reuse.`}
+          subtitle={`Setup your profile to accept the invite to join ${org?.name} at Chart-Reuse.`}
         >
           <InviteProfileForm
             onSubmit={handleInviteProfileCreation as (values: unknown) => void}

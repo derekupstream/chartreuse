@@ -15,7 +15,7 @@ export function DownloadButton({ projectId, onClick, label = 'Download', size = 
   function exportData() {
     requestDownload({
       api: `/api/projects/${projectId}/inventory/download`,
-      title: `Chart Reuse Inventory`
+      title: `Chart-Reuse Inventory`
     });
     onClick?.();
   }

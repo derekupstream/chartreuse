@@ -1,7 +1,7 @@
 import { Typography } from 'antd';
 import styled from 'styled-components';
 
-const Container = styled(Typography.Text)`
+const Container = styled(Typography.Text as any)`
   display: flex;
   gap: 10px;
   justify-content: flex-end;
@@ -19,15 +19,15 @@ export const HaveQuestions = () => {
   return (
     <Container type='secondary'>
       <span>
-        <a href='https://chartreuse.eco' target='_blank' rel='noreferrer'>
-          Chart Reuse
+        <a href='https://chart-reuse.eco' target='_blank' rel='noreferrer'>
+          Chart-Reuse
         </a>
       </span>
       <span style={{ opacity: '30%' }}>|</span>
       <span>
         Have questions? Email{' '}
-        <a style={{ textDecoration: 'underline' }} href='mailto:chartreuse@upstreamsolutions.org'>
-          chartreuse@upstreamsolutions.org
+        <a style={{ textDecoration: 'underline' }} href='mailto:chart-reuse@upstreamsolutions.org'>
+          chart-reuse@upstreamsolutions.org
         </a>
       </span>
     </Container>

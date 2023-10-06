@@ -47,9 +47,9 @@ async function sendInvite(req: NextApiRequestWithUser, res: NextApiResponse<Resp
   });
 
   await sendEmail({
-    from: 'Chart Reuse <hello@chartreuse.eco>',
+    from: 'Chart-Reuse <hello@chart-reuse.eco>',
     to: email,
-    subject: `Invite from ${req.user.name} to join Chart Reuse`,
+    subject: `Invite from ${req.user.name} to join Chart-Reuse`,
     template: 'invite',
     'v:inviterName': req.user.name,
     'v:inviterJobTitle': req.user.title,

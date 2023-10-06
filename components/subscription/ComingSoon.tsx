@@ -38,7 +38,7 @@ export function ComingSoon({ subscriptionStatus }: { subscriptionStatus: Subscri
               <Alert
                 style={{ display: 'inline-block' }}
                 type='error'
-                message={`Your Free Trial has expired. Please contact chartreuse@upstreamsolutions.org to continue using Chartreuse.`}
+                message={`Your Free Trial has expired. Please contact chart-reuse@upstreamsolutions.org to continue using Chart-Reuse.`}
               />
             </div>
           )}
@@ -47,7 +47,7 @@ export function ComingSoon({ subscriptionStatus }: { subscriptionStatus: Subscri
               <Alert
                 style={{ display: 'inline-block' }}
                 type='error'
-                message={`Your subscription has been canceled. Please contact chartreuse@upstreamsolutions.org to continue using Chartreuse.`}
+                message={`Your subscription has been canceled. Please contact chart-reuse@upstreamsolutions.org to continue using Chart-Reuse.`}
               />
             </div>
           )}
@@ -79,7 +79,7 @@ export function ComingSoon({ subscriptionStatus }: { subscriptionStatus: Subscri
             footer={
               <Typography.Title level={5} style={{ margin: '1em 0' }}>
                 Need more info? Email{' '}
-                <a href='mailto:chartreuse@upstreamsolutions.org'>chartreuse@upstreamsolutions.org</a> to schedule a
+                <a href='mailto:chart-reuse@upstreamsolutions.org'>chart-reuse@upstreamsolutions.org</a> to schedule a
                 consultation.
               </Typography.Title>
             }

@@ -111,8 +111,8 @@ export default function Accept({ user, email, org, error }: Props) {
 
       <main>
         <FormPageTemplate
-          title='Welcome to Chart Reuse'
-          subtitle={`${user?.name}, ${user?.title} at ${org?.name} has invited you to create a customer account on Chart Reuse.`}
+          title='Welcome to Chart-Reuse'
+          subtitle={`${user?.name}, ${user?.title} at ${org?.name} has invited you to create a customer account on Chart-Reuse.`}
         >
           <SignupForm
             onSubmit={handleSignup}

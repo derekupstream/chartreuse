@@ -77,7 +77,7 @@ export default function TrialSetup() {
       <main>
         <FormPageTemplate
           title='Start for free'
-          subtitle='Try one project in Chart Reuse for 30 days, risk free.  No credit card required. Upgrade at anytime!'
+          subtitle='Try one project in Chart-Reuse for 30 days, risk free.  No credit card required. Upgrade at anytime!'
         >
           <TrialSetupForm onSubmit={createTrial as (values: unknown) => void} isLoading={isMutating} />
         </FormPageTemplate>

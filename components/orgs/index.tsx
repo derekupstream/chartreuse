@@ -34,7 +34,7 @@ export default function Organizations({ orgs }: PageProps) {
   function exportData(org: OrgSummary) {
     return requestDownload({
       api: `/api/org/${org.id}/export`,
-      title: `Chart Reuse Export: ${org.name}`
+      title: `Chart-Reuse Export: ${org.name}`
     });
   }
 
@@ -116,7 +116,7 @@ export default function Organizations({ orgs }: PageProps) {
   function exportUsers() {
     requestDownload({
       api: '/api/admin/export?type=users',
-      title: `Chart Reuse Export: All Users`
+      title: `Chart-Reuse Export: All Users`
     });
   }
 

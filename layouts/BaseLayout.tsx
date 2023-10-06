@@ -87,7 +87,7 @@ export const BaseLayout: React.FC<DashboardProps> = ({ user, selectedMenuItem, t
     {
       key: 'accounts',
       label: (
-        <a href='mailto:chartreuse@upstreamsolutions.org' target='_blank' rel='noreferrer'>
+        <a href='mailto:chart-reuse@upstreamsolutions.org' target='_blank' rel='noreferrer'>
           Help
         </a>
       )

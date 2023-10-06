@@ -36,7 +36,7 @@ export default function Signup() {
 
       <main>
         <FormPageTemplate
-          title='Welcome to Chart Reuse'
+          title='Welcome to Chart-Reuse'
           subtitle='First, create a user account with your email, or use your Google account.'
         >
           <SignupForm

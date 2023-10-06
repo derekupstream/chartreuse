@@ -74,7 +74,7 @@ function addInstructionsSheet(workbook: ExcelJS.Workbook) {
   firstColumn.width = 120;
 
   // Add first row
-  const row = sheet.addRow(['Chart Reuse by Upstream - Purchase Updates']);
+  const row = sheet.addRow(['Chart-Reuse by Upstream - Purchase Updates']);
   row.height = 36;
   const firstCell = row.getCell(1);
   firstCell.alignment = { vertical: 'middle' };

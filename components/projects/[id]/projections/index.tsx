@@ -53,7 +53,7 @@ const Projections = ({ project }: { project: ProjectContext['project'] }) => {
       <PrintHeader accountName={project.account.name} orgName={project.org.name} projectName={project.name} />
       <div style={{ display: 'flex', justifyContent: 'space-between' }}>
         <Typography.Title level={1}>Savings projections</Typography.Title>
-        <PrintButton printRef={printRef} pdfTitle={`${project.name} Savings Projections - Chart Reuse`} />
+        <PrintButton printRef={printRef} pdfTitle={`${project.name} Savings Projections - Chart-Reuse`} />
       </div>
       <Typography.Title level={5}>
         These graphs - showing the financial and environmental impacts of reducing single-use items - can help you make

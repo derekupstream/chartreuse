@@ -1,4 +1,5 @@
 import { Button, Divider, Form, Typography } from 'antd';
+import type { RadioChangeEvent } from 'antd';
 import { useState, useEffect, useCallback } from 'react';
 import styled from 'styled-components';
 
@@ -198,8 +199,8 @@ export default function SelectProductStep({
       <p>
         Select a product from our single-use product database. If a close match doesn&apos;t exist in the system, please
         contact Upstream at{' '}
-        <a style={{ textDecoration: 'underline' }} href='mailto:chartreuse@upstreamsolutions.org'>
-          chartreuse@upstreamsolutions.org
+        <a style={{ textDecoration: 'underline' }} href='mailto:chart-reuse@upstreamsolutions.org'>
+          chart-reuse@upstreamsolutions.org
         </a>
         .
       </p>
@@ -239,7 +240,7 @@ function FeatureSelect({ value, feature, items, onSelect }: SelectionProps) {
           label: item.name,
           value: item.id
         }))}
-        onChange={e => onSelect(e.target.value, feature)}
+        onChange={(e: RadioChangeEvent) => onSelect(parseInt(e.target.value), feature)}
         optionType='button'
       />
     </StyledFormItem>

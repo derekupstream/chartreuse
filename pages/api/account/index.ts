@@ -64,9 +64,9 @@ async function createAccount(req: NextApiRequestWithUser, res: NextApiResponse<R
   if (invitedUser) {
     const invite = ((account as any).invites || []).find((i: Invite) => i.email === email);
     await sendEmail({
-      from: 'Chart Reuse <hello@chartreuse.eco>',
+      from: 'Chart-Reuse <hello@chart-reuse.eco>',
       to: email,
-      subject: `Invite from ${invite.sentBy.name} to join Chart Reuse`,
+      subject: `Invite from ${invite.sentBy.name} to join Chart-Reuse`,
       template: 'invite',
       'v:inviterName': invite.sentBy.name,
       'v:inviterJobTitle': invite.sentBy.title,
