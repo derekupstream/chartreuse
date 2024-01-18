@@ -128,7 +128,6 @@ export default function SelectProductStep({
     },
     [products, setSelected, setOptions]
   );
-  console.log('select a product', { products, options, remainingOptions, selected });
 
   function onSelect(value: string | number, feature: string) {
     if (feature === 'Category') {
@@ -241,7 +240,7 @@ function FeatureSelect({ value, feature, items, onSelect }: SelectionProps) {
           label: item.name,
           value: item.id
         }))}
-        onChange={(e: RadioChangeEvent) => onSelect(parseInt(e.target.value), feature)}
+        onChange={e => onSelect(e.target.value, feature)}
         optionType='button'
       />
     </StyledFormItem>
