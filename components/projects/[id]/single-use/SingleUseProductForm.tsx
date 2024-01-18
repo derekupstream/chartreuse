@@ -126,8 +126,9 @@ export default function SelectProductStep({
       setSelected({ ...features, productId });
       setOptions(remainingOptions);
     },
-    [products]
+    [products, setSelected, setOptions]
   );
+  console.log('select a product', { products, options, remainingOptions, selected });
 
   function onSelect(value: string | number, feature: string) {
     if (feature === 'Category') {
