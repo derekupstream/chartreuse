@@ -21,7 +21,7 @@ interface PopulatedProject extends Project {
 export const ProjectsDashboard = ({ orgId }: { orgId: string }) => {
   const queryClient = useQueryClient();
   const router = useRouter();
-  const { subscriptionStatus } = useSubscription();
+  //const { subscriptionStatus } = useSubscription();
   const { data, isLoading, error } = useQuery('projects', () => {
     return GET<{ projects: PopulatedProject[] }>('/api/projects');
   });
@@ -49,9 +49,10 @@ export const ProjectsDashboard = ({ orgId }: { orgId: string }) => {
   };
 
   // temporary hack to allow Post-Landfill Action Network to have more projects
-  const projectLimit = orgId === '8793767e-ed9c-4adf-bb45-ba1c45378288' ? 4 : 1;
+  // const projectLimit = orgId === '8793767e-ed9c-4adf-bb45-ba1c45378288' ? 4 : 1;
 
-  const projectLimitReached = data?.projects && subscriptionStatus !== 'Active' && data.projects.length >= projectLimit;
+  // disable the project limit per Derek
+  const projectLimitReached = false; // data?.projects && subscriptionStatus !== 'Active' && data.projects.length >= projectLimit;
 
   function onClickAddProject() {
     if (projectLimitReached) {
@@ -72,7 +73,7 @@ export const ProjectsDashboard = ({ orgId }: { orgId: string }) => {
     <Space direction='vertical' size='large' style={{ width: '100%' }}>
       <S.SpaceBetween>
         <Typography.Title>Projects</Typography.Title>
-        <Popconfirm
+        {/* <Popconfirm
           title={
             <Space direction='vertical' size='small'>
               <Typography.Title level={5}>Upgrade to add more projects</Typography.Title>
@@ -84,8 +85,8 @@ export const ProjectsDashboard = ({ orgId }: { orgId: string }) => {
           placement='left'
           onConfirm={upgradeAccount}
           okText='Upgrade'
-        >
-          {/* <Popconfirm
+        > */}
+        {/* <Popconfirm
             title={
               <Space direction='vertical' size='small'>
                 <Typography.Title level={5}>Free project limit reached</Typography.Title>
@@ -99,11 +100,11 @@ export const ProjectsDashboard = ({ orgId }: { orgId: string }) => {
             placement='left'
             onConfirm={addProject}
           > */}
-          <Button type='primary' onClick={onClickAddProject} icon={<PlusOutlined />}>
-            Add project
-          </Button>
-          {/* </Popconfirm> */}
-        </Popconfirm>
+        <Button type='primary' onClick={onClickAddProject} icon={<PlusOutlined />}>
+          Add project
+        </Button>
+        {/* </Popconfirm> */}
+        {/* </Popconfirm> */}
       </S.SpaceBetween>
       {isLoading && <ContentLoader />}
       {!isLoading && data?.projects?.length === 0 && (
