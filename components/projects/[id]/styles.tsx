@@ -55,7 +55,7 @@ const COLORS: { [type in Props['theme']]: string } = {
   forecast: '#5D798E'
 };
 
-export const InfoRow = styled(props => <Row gutter={[30, 30]} {...props} />)`
+export const InfoRow = styled((props: any) => <Row gutter={[30, 30]} {...props} />)`
   margin-bottom: 30px;
 `;
 
