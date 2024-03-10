@@ -1,6 +1,7 @@
 import type { GetServerSidePropsContext } from 'next';
 
 import type { DashboardUser } from 'interfaces';
+import { serializeJSON } from 'lib/objects';
 
 import { UserDataToInclude } from './getProjectContext';
 import { getUserFromContext } from './getUserFromContext';
@@ -46,9 +47,9 @@ export const checkLogin = async (
     }
 
     return {
-      props: {
-        user
-      }
+      props: serializeJSON({
+        user: user
+      })
     };
   } catch (error: any) {
     console.error('Error checking user auth. Redirect to login', error);

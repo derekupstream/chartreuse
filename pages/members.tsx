@@ -4,6 +4,7 @@ import type { PageProps as MembersProps } from 'components/members';
 import Members from 'components/members';
 import { DashboardLayout as Template } from 'layouts/DashboardLayout/DashboardLayout';
 import { checkLogin } from 'lib/middleware';
+import { serializeJSON } from 'lib/objects';
 import prisma from 'lib/prisma';
 import type { PageProps } from 'pages/_app';
 
@@ -25,12 +26,12 @@ export const getServerSideProps: GetServerSideProps<MembersProps> = async contex
       }
     });
     return {
-      props: {
+      props: serializeJSON({
         user: response.props.user,
         accounts: response.props.user.org.accounts,
         users,
         invites
-      }
+      })
     };
   } else {
     return response;

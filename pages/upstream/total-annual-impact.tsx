@@ -7,6 +7,7 @@ import Analytics from 'components/analytics/Analytics';
 import { DashboardLayout as Template } from 'layouts/DashboardLayout/DashboardLayout';
 import { getAllProjections } from 'lib/calculator/getProjections';
 import { getUserFromContext } from 'lib/middleware';
+import { serializeJSON } from 'lib/objects';
 import prisma from 'lib/prisma';
 
 export const getServerSideProps: GetServerSideProps<PageProps> = async context => {
@@ -53,12 +54,12 @@ export const getServerSideProps: GetServerSideProps<PageProps> = async context =
   );
 
   return {
-    props: {
+    props: serializeJSON({
       allAccounts,
       allProjects,
       data,
       user
-    }
+    })
   };
 };
 

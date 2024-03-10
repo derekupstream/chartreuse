@@ -1,28 +1,11 @@
 const withLess = require('next-with-less');
 
-/**
- * Remove undefined values so Next.js doesn't complain during serialization
- */
-const removeUndefined = obj => {
-  const newObj = {};
-  Object.keys(obj).forEach(key => {
-    if (obj[key] === Object(obj[key])) newObj[key] = removeUndefined(obj[key]);
-    else if (obj[key] !== undefined) newObj[key] = obj[key];
-  });
-  return newObj;
-};
-const next = require('next/dist/lib/is-serializable-props');
-// eslint-disable-next-line prefer-destructuring
-const isSerializableProps = next.isSerializableProps;
-next.isSerializableProps = function _isSerializableProps(page, method, input) {
-  return isSerializableProps(page, method, removeUndefined(input));
-};
-
 const config = {
   compiler: {
     styledComponents: true
   },
   reactStrictMode: true,
+  transpilePackages: [ "antd", "@ant-design", "rc-util", "rc-pagination", "rc-picker", "rc-notification", "rc-tooltip", "rc-tree", "rc-table" ],
   webpack(_config) {
     _config.module.rules.push({
       test: /\.svg$/,

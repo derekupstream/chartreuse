@@ -12,6 +12,7 @@ import { FormPageTemplate } from 'layouts/FormPageLayout';
 import { verifyIdToken } from 'lib/auth/firebaseAdmin';
 import type { AccountSetupFields } from 'lib/chartreuseClient';
 import chartreuseClient from 'lib/chartreuseClient';
+import { serializeJSON } from 'lib/objects';
 import prisma from 'lib/prisma';
 
 export const getServerSideProps: GetServerSideProps = async context => {
@@ -38,12 +39,10 @@ export const getServerSideProps: GetServerSideProps = async context => {
     }
 
     return {
-      props: JSON.parse(
-        JSON.stringify({
-          user: user,
-          org: user.org
-        })
-      )
+      props: serializeJSON({
+        user: user,
+        org: user.org
+      })
     };
   } catch (error: any) {
     return {

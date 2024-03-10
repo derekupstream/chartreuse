@@ -10,6 +10,7 @@ import { useAuth } from 'hooks/useAuth';
 import { FormPageTemplate } from 'layouts/FormPageLayout';
 import MessagePage from 'layouts/MessagePageLayout';
 import type { FirebaseAuthProvider } from 'lib/auth/firebaseClient';
+import { serializeJSON } from 'lib/objects';
 import prisma from 'lib/prisma';
 
 export const getServerSideProps: GetServerSideProps = async context => {
@@ -50,13 +51,11 @@ export const getServerSideProps: GetServerSideProps = async context => {
     }
 
     return {
-      props: JSON.parse(
-        JSON.stringify({
-          user: invite.sentBy,
-          org: invite.org,
-          email: invite.email
-        })
-      )
+      props: serializeJSON({
+        user: invite.sentBy,
+        org: invite.org,
+        email: invite.email
+      })
     };
   } catch (error: any) {
     return { props: { user: null, org: null, error: error.message } };

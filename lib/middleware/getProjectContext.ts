@@ -4,6 +4,7 @@ import nookies from 'nookies';
 
 import type { DashboardUser } from 'interfaces';
 import { verifyIdToken } from 'lib/auth/firebaseAdmin';
+import { serializeJSON } from 'lib/objects';
 import prisma from 'lib/prisma';
 
 export type ProjectContext = {
@@ -85,7 +86,7 @@ export const getProjectContext: GetServerSideProps = async context => {
     };
 
     return {
-      props: projectContext
+      props: serializeJSON(projectContext)
     };
   } catch (error: any) {
     console.error('Error getting project context', error);

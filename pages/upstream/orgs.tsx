@@ -5,6 +5,7 @@ import Organizations from 'components/orgs';
 import type { DashboardUser } from 'interfaces';
 import { DashboardLayout as Template } from 'layouts/DashboardLayout/DashboardLayout';
 import { checkIsUpstream, checkLogin } from 'lib/middleware';
+import { serializeJSON } from 'lib/objects';
 import prisma from 'lib/prisma';
 import type { PageProps } from 'pages/_app';
 
@@ -39,10 +40,10 @@ export const getServerSideProps: GetServerSideProps<{ user: DashboardUser; orgs:
       }
     });
     return {
-      props: {
+      props: serializeJSON({
         user: response.props?.user,
         orgs
-      }
+      })
     };
   } else {
     return {

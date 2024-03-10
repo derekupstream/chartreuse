@@ -12,6 +12,7 @@ import { FormPageTemplate } from 'layouts/FormPageLayout';
 import MessagePage from 'layouts/MessagePageLayout';
 import type { CreateProfileInput } from 'lib/chartreuseClient';
 import chartreuseClient from 'lib/chartreuseClient';
+import { serializeJSON } from 'lib/objects';
 import prisma from 'lib/prisma';
 
 export const getServerSideProps: GetServerSideProps = async context => {
@@ -50,10 +51,10 @@ export const getServerSideProps: GetServerSideProps = async context => {
     }
 
     return {
-      props: {
+      props: serializeJSON({
         org: invite.org,
         account: invite.account
-      }
+      })
     };
   } catch (error: any) {
     return { props: { error: error.message } };
