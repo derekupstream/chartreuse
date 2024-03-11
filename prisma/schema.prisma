@@ -139,8 +139,9 @@ model ReusableLineItem {
   caseCost                   Float
   casesPurchased             Int
   unitsPerCase               Int      @default(0)
-  categoryId                 String
-  productName                String
+  categoryId                 String?
+  productId                  String?
+  productName                String?
   projectId                  String   @db.Uuid
   project                    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
 }

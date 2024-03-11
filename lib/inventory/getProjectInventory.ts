@@ -56,6 +56,7 @@ export async function getProjectInventory(projectId: string): Promise<ProjectInv
     dishwashers: project.dishwashers as DishWasher[],
     laborCosts,
     otherExpenses,
+    // @ts-ignore
     reusableItems: project.reusableItems,
     singleUseItems,
     state: project.USState as USState,

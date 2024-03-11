@@ -252,7 +252,7 @@ function addReusablesSheet(workbook: ExcelJS.Workbook, data: AllProjectsSummary)
   const rows: SheetRow[] = data.projects
     .map(project =>
       project.reusableItems.map(item => ({
-        title: item.productName,
+        title: item.productName || 'N/A',
         project: project.name,
         account: project.account.name,
         org: project.org.name,
