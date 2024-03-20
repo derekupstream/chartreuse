@@ -1,0 +1,82 @@
+import prisma from 'lib/prisma';
+
+export async function duplicateProject(projectId: string) {
+  // find the project to duplicate
+  const { createdAt, id, name, ...project } = await prisma.project.findUniqueOrThrow({
+    where: {
+      id: projectId
+    },
+    include: {
+      otherExpenses: true,
+      laborCosts: true,
+      singleUseItems: {
+        include: {
+          records: true
+        }
+      },
+      reusableItems: true,
+      dishwashers: true,
+      wasteHaulingCosts: true
+    }
+  });
+
+  // create a new project with the same name and description
+  const newProject = await prisma.project.create({
+    data: {
+      ...project,
+      name: name + ' (Copy)',
+      accountId: project.accountId,
+      metadata: project.metadata as any,
+      utilityRates: project.utilityRates as any,
+      orgId: project.orgId,
+      dishwashers: {
+        createMany: {
+          data: project.dishwashers.map(({ id, projectId, ...item }) => item)
+        }
+      },
+      laborCosts: {
+        createMany: {
+          data: project.laborCosts.map(({ id, projectId, ...item }) => item)
+        }
+      },
+      otherExpenses: {
+        createMany: {
+          data: project.otherExpenses.map(({ id, projectId, ...item }) => item)
+        }
+      },
+      reusableItems: {
+        createMany: {
+          data: project.reusableItems.map(({ id, projectId, ...item }) => item)
+        }
+      },
+      singleUseItems: {
+        createMany: {
+          data: project.singleUseItems.map(({ id, projectId, records, ...item }) => item)
+        }
+      },
+      wasteHaulingCosts: {
+        createMany: {
+          data: project.wasteHaulingCosts.map(({ id, projectId, ...item }) => item)
+        }
+      }
+    },
+    include: {
+      singleUseItems: true
+    }
+  });
+
+  // create new records for the single use items
+  await prisma.singleUseLineItemRecord.createMany({
+    data: newProject.singleUseItems.flatMap(item => {
+      const ogItem = project.singleUseItems.find(i => i.productId === item.productId);
+      if (!ogItem) return [];
+      return ogItem.records.map(record => ({
+        ...record,
+        singleUseItemId: item.id,
+        projectId: newProject.id
+      }));
+    })
+  });
+
+  return newProject;
+}

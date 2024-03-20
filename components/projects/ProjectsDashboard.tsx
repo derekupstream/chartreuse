@@ -1,5 +1,5 @@
 /* eslint-disable react/display-name */
-import { DeleteOutlined, PlusOutlined, EditOutlined } from '@ant-design/icons';
+import { CopyOutlined, DeleteOutlined, PlusOutlined, EditOutlined } from '@ant-design/icons';
 import { DollarOutlined } from '@ant-design/icons';
 import type { Project, Account } from '@prisma/client';
 import { Button, Card, Col, message, Popconfirm, Row, Space, Typography } from 'antd';
@@ -12,7 +12,7 @@ import ContentLoader from 'components/common/ContentLoader';
 import type { ProjectMetadata } from 'components/projects/[id]/edit';
 import { useSubscription } from 'hooks/useSubscription';
 import * as S from 'layouts/styles';
-import { DELETE, GET } from 'lib/http';
+import { DELETE, GET, POST } from 'lib/http';
 
 interface PopulatedProject extends Project {
   account: Account;
@@ -29,6 +29,9 @@ export const ProjectsDashboard = ({ orgId }: { orgId: string }) => {
   const deleteProject = useMutation((id: string) => {
     return DELETE(`/api/projects/${id}`);
   });
+  const copyProject = useMutation((id: string) => {
+    return POST(`/api/projects/${id}/duplicate`);
+  });
 
   useEffect(() => {
     if (error) {
@@ -40,6 +43,18 @@ export const ProjectsDashboard = ({ orgId }: { orgId: string }) => {
     deleteProject.mutate(projectId, {
       onSuccess: () => {
         message.success(`Project deleted`);
+        queryClient.invalidateQueries('projects');
+      },
+      onError: err => {
+        message.error((err as Error)?.message);
+      }
+    });
+  };
+
+  const handleProjectCopy = async (projectId: string) => {
+    copyProject.mutate(projectId, {
+      onSuccess: () => {
+        message.success(`Project duplicated`);
         queryClient.invalidateQueries('projects');
       },
       onError: err => {
@@ -120,7 +135,7 @@ export const ProjectsDashboard = ({ orgId }: { orgId: string }) => {
                   bodyStyle={{ height: '100%', display: 'flex', flexDirection: 'column' }}
                 >
                   <div style={{ flexGrow: 1 }}>
-                    <Typography.Title level={3} style={{ marginBottom: 0, paddingRight: 60 }}>
+                    <Typography.Title level={3} style={{ marginBottom: 0, paddingRight: 80 }}>
                       {project.name}
                     </Typography.Title>
                     <Typography.Title level={5} style={{ marginTop: 0 }}>
@@ -130,6 +145,14 @@ export const ProjectsDashboard = ({ orgId }: { orgId: string }) => {
                       <Link href={`/projects/${project.id}/edit`} passHref legacyBehavior>
                         <Button icon={<EditOutlined />} type='text' />
                       </Link>
+
+                      <Button
+                        onClick={() => handleProjectCopy(project.id)}
+                        icon={<CopyOutlined />}
+                        type='text'
+                        loading={copyProject.isLoading}
+                      />
+
                       <Popconfirm
                         title={
                           <Space direction='vertical' size='small'>
