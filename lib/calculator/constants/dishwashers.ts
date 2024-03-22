@@ -6,8 +6,8 @@ export const SPECIFIC_HEAT_OF_WATER = 1.0; // Btu/pound/degrees F
 export const DISHWASHER_TYPES = [
   { name: 'Under Counter' },
   { name: 'Stationary Single Tank Door' },
-  { name: 'Single Tank Conveyer' },
-  { name: 'Multi Tank Conveyer' }
+  { name: 'Single Tank Conveyor' },
+  { name: 'Multi Tank Conveyor' }
   //{ name: 'Pot, Pan, and Utensil' } - details are missing in the original spreadsheet
 ] as const;
 
@@ -158,7 +158,7 @@ export const ANNUAL_DISHWASHER_CONSUMPTION: ConsumptionItem[] = [
     }
   },
   {
-    type: 'Single Tank Conveyer',
+    type: 'Single Tank Conveyor',
     temperature: 'Low',
     energyStar: false,
     values: {
@@ -169,7 +169,7 @@ export const ANNUAL_DISHWASHER_CONSUMPTION: ConsumptionItem[] = [
     }
   },
   {
-    type: 'Single Tank Conveyer',
+    type: 'Single Tank Conveyor',
     temperature: 'Low',
     energyStar: true,
     values: {
@@ -180,7 +180,7 @@ export const ANNUAL_DISHWASHER_CONSUMPTION: ConsumptionItem[] = [
     }
   },
   {
-    type: 'Single Tank Conveyer',
+    type: 'Single Tank Conveyor',
     temperature: 'High',
     energyStar: false,
     values: {
@@ -191,7 +191,7 @@ export const ANNUAL_DISHWASHER_CONSUMPTION: ConsumptionItem[] = [
     }
   },
   {
-    type: 'Single Tank Conveyer',
+    type: 'Single Tank Conveyor',
     temperature: 'High',
     energyStar: true,
     values: {
@@ -202,7 +202,7 @@ export const ANNUAL_DISHWASHER_CONSUMPTION: ConsumptionItem[] = [
     }
   },
   {
-    type: 'Multi Tank Conveyer',
+    type: 'Multi Tank Conveyor',
     temperature: 'Low',
     energyStar: false,
     values: {
@@ -213,7 +213,7 @@ export const ANNUAL_DISHWASHER_CONSUMPTION: ConsumptionItem[] = [
     }
   },
   {
-    type: 'Multi Tank Conveyer',
+    type: 'Multi Tank Conveyor',
     temperature: 'Low',
     energyStar: true,
     values: {
@@ -224,7 +224,7 @@ export const ANNUAL_DISHWASHER_CONSUMPTION: ConsumptionItem[] = [
     }
   },
   {
-    type: 'Multi Tank Conveyer',
+    type: 'Multi Tank Conveyor',
     temperature: 'High',
     energyStar: false,
     values: {
@@ -235,7 +235,7 @@ export const ANNUAL_DISHWASHER_CONSUMPTION: ConsumptionItem[] = [
     }
   },
   {
-    type: 'Multi Tank Conveyer',
+    type: 'Multi Tank Conveyor',
     temperature: 'High',
     energyStar: true,
     values: {
