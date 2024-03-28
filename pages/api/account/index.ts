@@ -23,7 +23,7 @@ async function createAccount(req: NextApiRequestWithUser, res: NextApiResponse<R
 
   const account = await prisma.account.create({
     data: {
-      name,
+      name: name.trim(),
       accountContactEmail: email,
       org: {
         connect: {

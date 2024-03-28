@@ -13,7 +13,7 @@ async function duplicateProjectionsHandler(req: NextApiRequestWithUser, res: Nex
 
   if (typeof projectId !== 'string') throw new Error('No project id provided');
 
-  const newProject = await duplicateProject(projectId);
+  const newProject = await duplicateProject({ id: projectId });
   res.json(newProject);
 }
 

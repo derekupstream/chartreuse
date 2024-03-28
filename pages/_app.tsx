@@ -1,18 +1,15 @@
 import type { NextPage } from 'next';
 import type { AppProps } from 'next/app';
 import Head from 'next/head';
-import type { NextRouter } from 'next/router';
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
 import { QueryClient, QueryClientProvider } from 'react-query';
 import { createGlobalStyle } from 'styled-components';
 
-import { SubscriptionCheck } from 'components/_app/SubscriptionCheck';
 import { ErrorBoundary } from 'components/common/errors/ErrorBoundary';
 import { analytics } from 'lib/analytics/mixpanel.browser';
 import { AuthProvider } from 'lib/auth/auth.browser';
 import chartreuseClient from 'lib/chartreuseClient';
-import type { SubscriptionStatus } from 'lib/stripe/getCustomerSubscription';
 
 import * as gtag from '../lib/ga';
 
@@ -77,7 +74,7 @@ function MyApp({ Component, pageProps }: Props) {
   }, [router.events]);
 
   return (
-    <SubscriptionCheck>
+    <>
       <Head>
         <title>Welcome to Chart-Reuse by Upstream</title>
         <link rel='icon' href='/favicon.png' key='favicon' />
@@ -88,7 +85,7 @@ function MyApp({ Component, pageProps }: Props) {
           <ErrorBoundary>{getLayout(<Component {...pageProps} />, pageProps)}</ErrorBoundary>
         </AuthProvider>
       </QueryClientProvider>
-    </SubscriptionCheck>
+    </>
   );
 }
 export default MyApp;

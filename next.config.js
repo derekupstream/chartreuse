@@ -38,7 +38,13 @@ const config = {
         source: '/org-setup',
         destination: '/setup/trial',
         permanent: false
-      }
+      },
+      {
+        // redirect to the first setup page
+        source: '/shared/:slug',
+        destination: '/share/:slug',
+        permanent: true
+      },
     ];
   }
 };

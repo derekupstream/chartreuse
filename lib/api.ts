@@ -1,19 +1,15 @@
 import useSWR from 'swr';
 import useSWRMutation from 'swr/mutation';
 
+import type { ProjectionsResponse } from 'lib/calculator/getProjections';
 import type { SubscriptionResponse } from 'lib/stripe/getCustomerSubscription';
 import type { SubscriptionProduct } from 'lib/stripe/getSubscriptionProduct';
 import type { TrialRequestBody } from 'pages/api/stripe/create-subscription';
 
 import * as http from './http';
 
-function _useGET<T = unknown>(path: string, query: any = {}) {
-  // map optional query inputs into the url
-  const queryStr = Object.keys(query)
-    .filter(key => !!query[key])
-    .map(key => `${key}=${encodeURIComponent(query[key])}`)
-    .join('&');
-  const requestUrl = path + (queryStr ? '?' + queryStr : '');
+function _useGET<T = unknown>(path: string | undefined | null, query: any = {}) {
+  const requestUrl = path ? path + _getQueryString(query) : null;
   return useSWR<T>(requestUrl, http.GET);
 }
 
@@ -37,6 +33,15 @@ function _makePUT(url: string, { arg }: { arg: any }) {
 }
 function _makeDELETE(url: string, { arg }: { arg: any }) {
   return http.DELETE(url, arg);
+}
+
+function _getQueryString(query: any = {}) {
+  // map optional query inputs into the url
+  const queryStr = Object.keys(query)
+    .filter(key => !!query[key])
+    .map(key => `${key}=${encodeURIComponent(query[key])}`)
+    .join('&');
+  return queryStr ? `?${queryStr}` : '';
 }
 
 // API Hooks
@@ -78,5 +83,11 @@ export const members = {
         return http.DELETE(`/api/${resource}/${member.key}`);
       }
     );
+  }
+};
+
+export const projects = {
+  useGetProjections(projectId?: string) {
+    return _useGET<ProjectionsResponse>(projectId ? '/api/projects/' + projectId + '/projections' : null);
   }
 };

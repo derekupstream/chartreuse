@@ -52,7 +52,7 @@ async function updateProject(req: NextApiRequestWithUser, res: NextApiResponse<R
       id: req.query.id as string
     },
     data: {
-      name,
+      name: name.trim(),
       metadata: metadata as ProjectMetadata,
       USState,
       currency,

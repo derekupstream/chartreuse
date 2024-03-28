@@ -34,7 +34,7 @@ async function createProject(req: NextApiRequestWithUser, res: NextApiResponse<{
 
   const project = await prisma.project.create({
     data: {
-      name,
+      name: name.trim(),
       metadata: metadata as ProjectMetadata,
       USState: USState || undefined,
       currency,

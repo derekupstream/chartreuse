@@ -17,9 +17,10 @@ const StyledCol = styled(Col)`
 `;
 type Props = {
   data: ProjectionsResponse['annualSummary'];
+  showTitle?: boolean;
 };
 
-const ProjectImpacts: React.FC<Props> = ({ data }) => {
+const ProjectImpacts: React.FC<Props> = ({ data, showTitle }) => {
   const savingsData = [
     { label: 'Baseline', value: data.dollarCost.baseline },
     { label: 'Forecast', value: data.dollarCost.forecast }
@@ -42,8 +43,13 @@ const ProjectImpacts: React.FC<Props> = ({ data }) => {
 
   return (
     <SectionContainer>
-      <SectionHeader style={{ margin: 0 }}>Project Impacts</SectionHeader>
-      <Divider />
+      {showTitle && (
+        <>
+          <SectionHeader style={{ margin: 0 }}>Project Impacts</SectionHeader>
+          <Divider />
+        </>
+      )}
+
       <Row gutter={[30, 24]}>
         <StyledCol xs={24} lg={12}>
           <Card

@@ -25,7 +25,7 @@ async function createOrg(req: NextApiRequestWithUser, res: NextApiResponse) {
       id: req.user.orgId
     },
     data: {
-      name: orgName,
+      name: orgName.trim(),
       metadata: { numberOfClientAccounts }
     }
   });

@@ -9,6 +9,7 @@ import type { MenuClickEventHandler, MenuInfo, MenuItemType, SubMenuType } from 
 import { useState, useEffect } from 'react';
 import { createGlobalStyle } from 'styled-components';
 
+import { SubscriptionCheck } from 'components/_app/SubscriptionCheck';
 import { Header } from 'components/common/Header';
 import { useAuth } from 'hooks/useAuth';
 import { useSubscription } from 'hooks/useSubscription';
@@ -113,7 +114,7 @@ export const BaseLayout: React.FC<DashboardProps> = ({ user, selectedMenuItem, t
   ];
 
   return (
-    <>
+    <SubscriptionCheck>
       <Header title={title} />
       <GlobalStyles />
       <Layout style={{ display: 'flex', minHeight: '100vh' }}>
@@ -154,6 +155,6 @@ export const BaseLayout: React.FC<DashboardProps> = ({ user, selectedMenuItem, t
         </S.LayoutHeader>
         {children}
       </Layout>
-    </>
+    </SubscriptionCheck>
   );
 };

@@ -3,10 +3,10 @@ import { useEffect, useRef, useState } from 'react';
 import styled from 'styled-components';
 
 import ContentLoader from 'components/common/ContentLoader';
+import { ErrorPage } from 'components/common/errors/ErrorPage';
 import { PrintButton } from 'components/common/print/PrintButton';
 import { PrintHeader } from 'components/common/print/PrintHeader';
-import { useSimpleQuery } from 'hooks/useSimpleQuery';
-import type { ProjectionsResponse } from 'lib/calculator/getProjections';
+import { projects } from 'lib/api';
 import type { ProjectContext } from 'lib/middleware/getProjectContext';
 
 import { useFooterState } from '../components/Footer';
@@ -24,8 +24,7 @@ const StyledCol = styled(Col)`
   }
 `;
 const Projections = ({ project }: { project: ProjectContext['project'] }) => {
-  const url = `/api/projects/${project.id}/projections`;
-  const { data, isLoading } = useSimpleQuery<ProjectionsResponse>(url);
+  const { data, error, isLoading } = projects.useGetProjections(project.id);
   const [showSingleUse, setShowSingleUse] = useState(false);
 
   const { setFooterState } = useFooterState();
@@ -40,10 +39,18 @@ const Projections = ({ project }: { project: ProjectContext['project'] }) => {
   // for printing
   const printRef = useRef(null);
 
-  if (!data || isLoading) {
+  if (isLoading) {
     return (
       <Wrapper>
         <ContentLoader />
+      </Wrapper>
+    );
+  }
+
+  if (error || !data) {
+    return (
+      <Wrapper>
+        <ErrorPage />
       </Wrapper>
     );
   }
@@ -85,7 +92,7 @@ const Projections = ({ project }: { project: ProjectContext['project'] }) => {
         </Col>
         <StyledCol span={19}>
           <span className={!showSingleUse ? '' : 'print-only'}>
-            <ProjectImpacts data={data.annualSummary} />
+            <ProjectImpacts data={data.annualSummary} showTitle />
             <div className='page-break' />
             <FinancialSummary data={data.financialResults} />
             <div className='page-break' />

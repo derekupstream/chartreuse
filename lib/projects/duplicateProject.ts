@@ -1,8 +1,16 @@
 import prisma from 'lib/prisma';
 
-export async function duplicateProject(projectId: string) {
+export async function duplicateProject({
+  id: projectId,
+  targetOrgId: _targetOrgId,
+  skipCopySuffix
+}: {
+  id: string;
+  targetOrgId?: string;
+  skipCopySuffix?: boolean;
+}) {
   // find the project to duplicate
-  const { createdAt, id, name, ...project } = await prisma.project.findUniqueOrThrow({
+  const { createdAt, id, name, orgId, ...project } = await prisma.project.findUniqueOrThrow({
     where: {
       id: projectId
     },
@@ -19,16 +27,17 @@ export async function duplicateProject(projectId: string) {
       wasteHaulingCosts: true
     }
   });
+  const targetOrgId = _targetOrgId || orgId;
 
   // create a new project with the same name and description
   const newProject = await prisma.project.create({
     data: {
       ...project,
-      name: name + ' (Copy)',
+      name: name + (skipCopySuffix ? '' : ' (Copy)'),
       accountId: project.accountId,
       metadata: project.metadata as any,
       utilityRates: project.utilityRates as any,
-      orgId: project.orgId,
+      orgId: targetOrgId,
       dishwashers: {
         createMany: {
           data: project.dishwashers.map(({ id, projectId, ...item }) => item)
