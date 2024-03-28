@@ -43,6 +43,8 @@ export interface ReusableFormValues {
   productId: string | null;
 }
 
+const MISC_CATEGORY = -1;
+
 export default function ReusablePurchasing() {
   const [isDrawerVisible, setIsDrawerVisible] = useState<boolean>(false);
   const [formStep, setFormStep] = useState<number>(1);
@@ -140,7 +142,6 @@ export default function ReusablePurchasing() {
   }
 
   const hasItems = lineItems.length > 0;
-
   const items = useMemo(
     () =>
       lineItems.reduce<{
@@ -156,6 +157,8 @@ export default function ReusablePurchasing() {
           items[product.category].push(record);
         } else if (products.data.length) {
           console.error('Could not find product by product id:', item.productId);
+          items[MISC_CATEGORY] = items[MISC_CATEGORY] || [];
+          items[MISC_CATEGORY].push({ lineItem: item });
         }
         return items;
       }, {}),
@@ -217,6 +220,17 @@ export default function ReusablePurchasing() {
                   ))}
                 </div>
               )
+          )}
+          {items[MISC_CATEGORY] && (
+            <>
+              <S.TitleRow>
+                <Typography.Title level={3}>Uncategorized</Typography.Title>
+              </S.TitleRow>
+              <Divider />
+              {items[MISC_CATEGORY].map(item => (
+                <ItemRow key={item.lineItem.id} item={item} onEdit={editItem} onDelete={getLineItems} />
+              ))}
+            </>
           )}
           {lineItems.length > 0 && <SummaryRow lineItems={lineItems} />}
           <Drawer
