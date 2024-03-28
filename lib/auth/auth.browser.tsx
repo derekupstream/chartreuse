@@ -45,9 +45,14 @@ export const AuthProvider: React.FC<{ children: any }> = ({ children }) => {
     const unsubscribe = onIdTokenChanged(auth, async (_firebaseUser: FirebaseUser | null) => {
       const emailIsBlacklisted = _firebaseUser?.email && isBlacklistedEmail(_firebaseUser.email);
       if (!_firebaseUser || emailIsBlacklisted) {
-        console.log('Log user out');
         setFirebaseUser(null);
-        destroyCookie(null, 'token');
+        destroyCookie(null, 'token', {
+          path: '/' // setting path is required or this wont work
+        });
+        if (!isPublicUrl(window.location.href)) {
+          console.log('Send user to login');
+          window.location.href = '/login';
+        }
         return;
       }
       console.log('Log user in');
@@ -109,3 +114,7 @@ export const AuthProvider: React.FC<{ children: any }> = ({ children }) => {
     </AuthContext.Provider>
   );
 };
+
+function isPublicUrl(url: string) {
+  return ['login', 'share'].some(path => url.includes(path));
+}

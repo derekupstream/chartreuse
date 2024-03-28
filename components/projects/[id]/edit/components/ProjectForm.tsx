@@ -1,5 +1,5 @@
 import type { Project } from '@prisma/client';
-import { Input, Typography, Slider } from 'antd';
+import { Input, Typography, Slider, Alert } from 'antd';
 import { InputNumber, Form, Select } from 'antd';
 import { Button, Radio } from 'antd';
 import type { Store } from 'antd/lib/form/interface';
@@ -136,6 +136,10 @@ export function ProjectForm({ org, project, onComplete }: Props) {
 
   // make some inputs vertical so that nested layout for custom utilities can be horizontal: https://stackoverflow.com/questions/64451233/how-to-set-the-layout-horizontal-inside-for-few-form-item-while-keeping-for
   const verticalLayout = { labelCol: { span: 24 } };
+
+  if (org.accounts.length === 0) {
+    return <Alert message='You need to create an account before you can create a project' type='error' showIcon />;
+  }
 
   return (
     <>

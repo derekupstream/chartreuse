@@ -90,7 +90,7 @@ export default function SelectQuantityForecastStep({
       <S.BoxEnd>
         <Button onClick={_goBack}>{'Go Back'}</Button>
         <Button disabled={disabledSave} size='large' type='primary' htmlType='submit'>
-          {input?.id ? 'Save' : 'Add forecast'}
+          {input?.id ? 'Save' : 'Add item'}
         </Button>
       </S.BoxEnd>
     </Form>

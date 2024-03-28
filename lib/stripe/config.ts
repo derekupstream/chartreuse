@@ -11,7 +11,10 @@ export type ProductTierSettings = {
   revenue: string;
 };
 
-const nodeEnv = process.env.NODE_ENV as 'production' | 'development';
+// Rely on Vercel Env instead of NODE_ENV
+// let nodeEnv = process.env.NODE_ENV as 'production' | 'development';
+const vercelEnv = process.env.VERCEL_ENV as 'production' | 'preview' | 'development' | undefined;
+const nodeEnv = vercelEnv === 'production' ? 'production' : 'development';
 
 // special placeholder product that has 0.00 price. we need something just to create a free trial
 // TODO: should we just list products, search for one and generate a new one if it doesn't exist?

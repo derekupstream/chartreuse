@@ -1,14 +1,12 @@
 import { PlusOutlined } from '@ant-design/icons';
 import type { Project } from '@prisma/client';
-import { Button, Divider, Drawer, Typography, Row, Col, Popconfirm, message } from 'antd';
-import { useState } from 'react';
+import { Button, Divider, Drawer, Typography, message } from 'antd';
+import { useMemo, useState } from 'react';
 import { useEffect } from 'react';
-import styled from 'styled-components';
 
 import ContentLoader from 'components/common/ContentLoader';
 import { useLoadingState } from 'hooks/useLoadingState';
 import type { DashboardUser } from 'interfaces';
-import { getannualOccurrence } from 'lib/calculator/constants/frequency';
 import { PRODUCT_CATEGORIES } from 'lib/calculator/constants/product-categories';
 import chartreuseClient from 'lib/chartreuseClient';
 import { GET } from 'lib/http';
@@ -20,6 +18,9 @@ import { useFooterState } from '../components/Footer';
 import * as S from '../styles';
 
 import { CATEGORY_ICONS } from './CategoryIcons';
+import type { SingleUseItemRecord } from './components/ItemRow';
+import { ItemRow } from './components/ItemRow';
+import { SummaryRow } from './components/SummaryRow';
 import SingleUseForm from './SingleUseForm';
 
 type ServerSideProps = {
@@ -27,230 +28,7 @@ type ServerSideProps = {
   user: DashboardUser;
 };
 
-interface SingleUseItemRecord {
-  lineItem: SingleUseLineItem;
-  product: SingleUseProduct;
-}
-
-const SmallText = styled(Typography.Text)`
-  font-size: 0.9rem;
-`;
-
-const BaselineCard = ({ item }: { item: SingleUseItemRecord }) => {
-  const annualOccurrence = getannualOccurrence(item.lineItem.frequency);
-  const baselineTotal = annualOccurrence * item.lineItem.caseCost * item.lineItem.casesPurchased;
-
-  const { setFooterState } = useFooterState();
-  useEffect(() => {
-    setFooterState({ path: '/single-use-items', stepCompleted: true });
-  }, [setFooterState]);
-
-  return (
-    <S.InfoCard theme='baseline'>
-      <Row>
-        <Col span={16}>
-          <Typography.Title level={5}>Baseline</Typography.Title>
-        </Col>
-        <Col span={8}>
-          <Typography.Text>Total</Typography.Text>
-        </Col>
-      </Row>
-      <Row>
-        <Col span={16}>
-          <S.SmallText>Annual cost</S.SmallText>
-          <br />
-          <S.SmallerText>
-            (${item.lineItem.caseCost}/case x {annualOccurrence * item.lineItem.casesPurchased})
-          </S.SmallerText>
-        </Col>
-        <Col span={8}>
-          <Typography.Text>
-            <strong>${baselineTotal.toLocaleString()}</strong>
-          </Typography.Text>
-        </Col>
-      </Row>
-    </S.InfoCard>
-  );
-};
-
-const InfoCard = ({ item }: { item: SingleUseItemRecord }) => {
-  const annualOccurrence = getannualOccurrence(item.lineItem.frequency);
-  const baselineTotal = annualOccurrence * item.lineItem.caseCost * item.lineItem.casesPurchased;
-  const forecastTotal = annualOccurrence * item.lineItem.newCaseCost * item.lineItem.newCasesPurchased;
-  const change = forecastTotal - baselineTotal;
-  const isNegativeChange = change < 0;
-  return (
-    <S.InfoCard theme='forecast'>
-      <Row>
-        <Col span={10}>
-          <Typography.Title level={5}>Forecast</Typography.Title>
-        </Col>
-        <Col span={7}>
-          <S.SmallText>Total</S.SmallText>
-        </Col>
-        <Col span={7}>
-          <S.SmallText>Change</S.SmallText>
-        </Col>
-      </Row>
-      <Row>
-        <Col span={10}>
-          <S.SmallText>Annual cost</S.SmallText>
-        </Col>
-        <Col span={7}>
-          <Typography.Text>
-            <strong>${forecastTotal.toLocaleString()}</strong>
-          </Typography.Text>
-        </Col>
-        <Col span={7}>
-          <Typography.Text>
-            <strong>
-              {isNegativeChange ? '-' : '+'}${Math.abs(change).toLocaleString()}
-            </strong>
-          </Typography.Text>
-        </Col>
-      </Row>
-      <Row>
-        <Col span={24}>
-          <S.SmallerText>
-            (${item.lineItem.newCaseCost}/case x {annualOccurrence * item.lineItem.newCasesPurchased})
-          </S.SmallerText>
-        </Col>
-      </Row>
-    </S.InfoCard>
-  );
-};
-
-const ItemRow = ({
-  item,
-  onEdit,
-  onDelete
-}: {
-  item: SingleUseItemRecord;
-  onEdit: (item: SingleUseItemRecord) => void;
-  onDelete: () => void;
-}) => {
-  function confirm() {
-    chartreuseClient
-      .deleteSingleUseItem(item.lineItem.projectId, item.lineItem.id)
-      .then(() => {
-        message.success('Item removed');
-        onDelete();
-      })
-      .catch(error => {
-        if (error.error || error.message) {
-          message.error(error.error || error.message);
-        }
-      });
-  }
-
-  return (
-    <S.InfoRow>
-      <Col span={8}>
-        <Typography.Title level={5}>{item.product.description}</Typography.Title>
-        <a
-          href='#'
-          onClick={e => {
-            onEdit(item);
-            e.preventDefault();
-          }}
-        >
-          Edit
-        </a>
-        <Typography.Text style={{ opacity: '.25' }}> | </Typography.Text>
-        <Popconfirm title='Are you sure you want to delete this item?' onConfirm={confirm} okText='Yes' cancelText='No'>
-          <a href='#'>Delete</a>
-        </Popconfirm>
-      </Col>
-      <Col span={8}>
-        <BaselineCard item={item} />
-      </Col>
-      <Col span={8}>
-        <InfoCard item={item} />
-      </Col>
-    </S.InfoRow>
-  );
-};
-
-const SummaryRow = ({ lineItems }: { lineItems: SingleUseLineItem[] }) => {
-  const baselineProductCount = lineItems.filter(item => item.casesPurchased > 0).length;
-  const forecastProductCount = lineItems.filter(item => item.newCasesPurchased > 0).length;
-  const baselineCost = lineItems.reduce((total, item) => {
-    const annualOccurrence = getannualOccurrence(item.frequency);
-    const itemTotal = annualOccurrence * item.caseCost * item.casesPurchased;
-    return total + itemTotal;
-  }, 0);
-  const forecastCost = lineItems.reduce((total, item) => {
-    const annualOccurrence = getannualOccurrence(item.frequency);
-    const itemTotal = annualOccurrence * item.newCaseCost * item.newCasesPurchased;
-    return total + itemTotal;
-  }, 0);
-  const change = forecastCost - baselineCost;
-  const isChangeNegative = change < 0;
-  return (
-    <S.InfoCard style={{ boxShadow: 'none' }}>
-      <Row>
-        <Col span={8}>
-          <Typography.Title level={4}>Total annual single-use purchasing</Typography.Title>
-        </Col>
-        <Col span={8}>
-          <Row gutter={[0, 20]}>
-            <Col span={24}>
-              <SmallText>
-                <strong>Baseline</strong>
-              </SmallText>
-            </Col>
-            {/* next row */}
-            <Col span={16}>
-              <SmallText>Number of products</SmallText>
-            </Col>
-            <Col span={8}>
-              <SmallText>{baselineProductCount}</SmallText>
-            </Col>
-            {/* next row */}
-            <Col span={16}>
-              <SmallText>Annual cost</SmallText>
-            </Col>
-            <Col span={8}>
-              <SmallText>${baselineCost.toLocaleString()}</SmallText>
-            </Col>
-          </Row>
-        </Col>
-        <Col span={8}>
-          <Row gutter={[0, 20]}>
-            <Col span={12}>
-              <SmallText>
-                <strong>Forecast</strong>
-              </SmallText>
-            </Col>
-            <Col span={12}>
-              <SmallText>
-                <strong>Change</strong>
-              </SmallText>
-            </Col>
-            {/* next row */}
-            <Col span={12}>
-              <SmallText>{forecastProductCount}</SmallText>
-            </Col>
-            <Col span={12}>
-              <SmallText>{forecastProductCount - baselineProductCount}</SmallText>
-            </Col>
-            {/* next row */}
-            <Col span={12}>
-              <SmallText>${forecastCost.toLocaleString()}</SmallText>
-            </Col>
-            <Col span={12}>
-              <SmallText>
-                {isChangeNegative ? '-' : '+'}${Math.abs(change).toLocaleString()}
-              </SmallText>
-            </Col>
-          </Row>
-        </Col>
-      </Row>
-    </S.InfoCard>
-  );
-};
-
-export default function SingleUse({ project }: ServerSideProps) {
+export default function SingleUsePage({ project }: ServerSideProps) {
   const [formStep, setFormStep] = useState<number>(1);
   const [isDrawerVisible, setIsDrawerVisible] = useState<boolean>(false);
   const [lineItem, setLineItem] = useState<SingleUseLineItem | null>(null);
@@ -264,6 +42,11 @@ export default function SingleUse({ project }: ServerSideProps) {
     getLineItems();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const { setFooterState } = useFooterState();
+  useEffect(() => {
+    setFooterState({ path: '/single-use-items', stepCompleted: true });
+  }, [setFooterState]);
 
   async function getProducts() {
     try {
@@ -299,27 +82,41 @@ export default function SingleUse({ project }: ServerSideProps) {
     setIsDrawerVisible(false);
   }
 
-  function onSubmitNewProduct() {
-    closeDrawer();
-    getLineItems();
+  async function onSubmitNewProduct(item: SingleUseLineItem) {
+    try {
+      const body: SingleUseLineItem = {
+        ...item,
+        projectId: project.id
+      };
+      await chartreuseClient.addSingleUseLineItem(project.id, body);
+      await getLineItems();
+      message.success('Item saved successfully');
+      closeDrawer();
+    } catch (response) {
+      message.error((response as any).error || 'Failed to save item');
+    }
   }
 
-  const items = lineItems.data.reduce<{
-    [categoryId: string]: SingleUseItemRecord[];
-  }>((items, item) => {
-    const product = products.data.find(p => p.id === item.productId);
-    if (product) {
-      const record: SingleUseItemRecord = {
-        lineItem: item,
-        product
-      };
-      items[product.category] = items[product.category] || [];
-      items[product.category].push(record);
-    } else if (products.data.length) {
-      console.error('Could not find product by product id:', item.productId);
-    }
-    return items;
-  }, {});
+  const items = useMemo(
+    () =>
+      lineItems.data.reduce<{
+        [categoryId: string]: SingleUseItemRecord[];
+      }>((items, item) => {
+        const product = products.data.find(p => p.id === item.productId);
+        if (product) {
+          const record: SingleUseItemRecord = {
+            lineItem: item,
+            product
+          };
+          items[product.category] = items[product.category] || [];
+          items[product.category].push(record);
+        } else if (products.data.length) {
+          console.error('Could not find product by product id:', item.productId);
+        }
+        return items;
+      }, {}),
+    [lineItems.data, products.data]
+  );
 
   const hasItems = lineItems.data.length > 0;
 
@@ -375,7 +172,7 @@ export default function SingleUse({ project }: ServerSideProps) {
         title={formStep === 3 ? 'Add purchasing forecast' : 'Add a single-use item'}
         placement='right'
         onClose={closeDrawer}
-        visible={isDrawerVisible}
+        open={isDrawerVisible}
         contentWrapperStyle={{ width: '600px' }}
         destroyOnClose={true}
       >
@@ -383,7 +180,6 @@ export default function SingleUse({ project }: ServerSideProps) {
           formStep={formStep}
           setFormStep={setFormStep}
           lineItem={lineItem}
-          projectId={project.id}
           products={products.data}
           onSubmit={onSubmitNewProduct}
         />

@@ -5,9 +5,9 @@ import neatCsv from 'neat-csv';
 import { MATERIALS } from 'lib/calculator/constants/materials';
 import { PRODUCT_CATEGORIES } from 'lib/calculator/constants/product-categories';
 import { PRODUCT_TYPES } from 'lib/calculator/constants/product-types';
+import { csvToNumber } from 'lib/csv';
 
 import type { SingleUseProduct } from '../../types/products';
-import { csvToNumber } from '../../utils';
 
 const csvFile = process.cwd() + '/lib/inventory/assets/taco-bell/single-use-items.6.21.22.csv';
 

@@ -53,13 +53,13 @@ const CardComponent: React.FC<Props> = ({ children, style, ...props }) => {
 };
 
 export const KPIContent: React.FC<Props> = props => {
-  const { changePercent, changeStr, children } = props;
+  const { changePercent, changeStr } = props;
 
   return (
     <Header>
       {props.title && <CardTitle>{props.title}</CardTitle>}
       <div>
-        <Value>{changeStr}</Value> {changePercent && <PercentTag value={changePercent} />}
+        <Value>{changeStr}</Value> {changePercent ? <PercentTag value={changePercent} /> : null}
       </div>
     </Header>
   );

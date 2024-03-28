@@ -37,12 +37,12 @@ const EnvironmentalSummary: React.FC<Props> = ({ data }) => {
 
   const annualWasteData = [
     {
-      label: 'Single-Use Product Weight',
+      label: 'Landfilled Foodware Weight',
       value: formatWeight(data.annualWasteChanges.disposableProductWeight.baseline),
       wasteType: 'Baseline'
     },
     {
-      label: 'Single-Use Product Weight',
+      label: 'Landfilled Foodware Weight',
       value: formatWeight(data.annualWasteChanges.disposableProductWeight.forecast),
       wasteType: 'Forecast'
     },
@@ -60,12 +60,12 @@ const EnvironmentalSummary: React.FC<Props> = ({ data }) => {
 
   const ghgData = [
     {
-      label: 'Landfill waste (EPA WARM)',
+      label: 'Foodware emissions',
       value: data.annualGasEmissionChanges.landfillWaste.baseline,
       wasteType: 'Baseline'
     },
     {
-      label: 'Landfill waste (EPA WARM)',
+      label: 'Foodware emissions',
       value: data.annualGasEmissionChanges.landfillWaste.forecast,
       wasteType: 'Forecast'
     }
@@ -74,12 +74,12 @@ const EnvironmentalSummary: React.FC<Props> = ({ data }) => {
   if (data.annualGasEmissionChanges.dishwashing.change) {
     ghgData.push(
       {
-        label: 'Dishwashing',
+        label: 'Dishwashing emissions',
         value: data.annualGasEmissionChanges.dishwashing.baseline,
         wasteType: 'Baseline'
       },
       {
-        label: 'Dishwashing',
+        label: 'Dishwashing emissions',
         value: data.annualGasEmissionChanges.dishwashing.forecast,
         wasteType: 'Forecast'
       }
@@ -117,7 +117,7 @@ const EnvironmentalSummary: React.FC<Props> = ({ data }) => {
 
         <StyledCol xs={24} lg={12}>
           <Card style={{ height: '100%' }}>
-            <TitleWithTooltip title='Annual net GHG emissions changes' />
+            <TitleWithTooltip title='Your annual net GHG changes' />
 
             <BigNumberWrapper>
               <BigNumber value={`${changeValue(data.annualGasEmissionChanges.total.change)} MTCO2e`} />

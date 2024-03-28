@@ -1,9 +1,10 @@
 import { getProjectInventory } from '../inventory/getProjectInventory';
 
+import { getAnnualSummary } from './calculations/annual-summary';
 import { getEnvironmentalResults } from './calculations/environmental-results';
 import { getFinancialResults } from './calculations/financial-results';
-import { getAnnualSummary } from './forecast/annual-summary';
-import { getSingleUseProductForecast } from './forecast/single-use-forecast';
+import { getReusableResults } from './calculations/line-items-reusable';
+import { getSingleUseResults } from './calculations/line-items-single-use';
 
 export type ProjectionsResponse = Awaited<ReturnType<typeof getProjections>>;
 
@@ -13,13 +14,15 @@ export async function getProjections(projectId: string) {
   const annualSummary = getAnnualSummary(inventory);
   const environmentalResults = getEnvironmentalResults(inventory);
   const financialResults = getFinancialResults(inventory);
-  const singleUseProductForecast = getSingleUseProductForecast(inventory);
+  const singleUseResults = getSingleUseResults(inventory);
+  const reusableResults = getReusableResults(inventory);
 
   return {
     annualSummary,
     environmentalResults,
     financialResults,
-    singleUseProductForecast
+    singleUseResults,
+    reusableResults
   };
 }
 
@@ -67,9 +70,9 @@ export async function getAllProjections(_projects: ProjectData[]): Promise<AllPr
       acc.waste.baseline = acc.waste.baseline + curr.projections.annualSummary.wasteWeight.baseline;
       acc.waste.forecast = acc.waste.forecast + curr.projections.annualSummary.wasteWeight.forecast;
       acc.waste.forecasts.push(curr.projections.annualSummary.wasteWeight.forecast);
-      acc.singleUse.baseline = acc.singleUse.baseline + curr.projections.annualSummary.singleUseProductCount.baseline;
-      acc.singleUse.forecast = acc.singleUse.forecast + curr.projections.annualSummary.singleUseProductCount.forecast;
-      acc.singleUse.forecasts.push(curr.projections.annualSummary.singleUseProductCount.forecast);
+      acc.singleUse.baseline = acc.singleUse.baseline + curr.projections.singleUseResults.summary.annualCost.baseline;
+      acc.singleUse.forecast = acc.singleUse.forecast + curr.projections.singleUseResults.summary.annualCost.forecast;
+      acc.singleUse.forecasts.push(curr.projections.singleUseResults.summary.annualCost.forecast);
       acc.gas.baseline = acc.gas.baseline + curr.projections.annualSummary.greenhouseGasEmissions.total.baseline;
       acc.gas.forecast = acc.gas.forecast + curr.projections.annualSummary.greenhouseGasEmissions.total.forecast;
       acc.gas.forecasts.push(curr.projections.annualSummary.greenhouseGasEmissions.total.forecast);

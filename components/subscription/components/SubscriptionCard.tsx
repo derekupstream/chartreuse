@@ -157,7 +157,7 @@ export function SubscriptionTierForm({
   onSubmit: (fields: { price: ProductTierSettings['stripePrice'] }) => void;
 }) {
   const { data: product } = useGetSubscriptionProduct();
-  const tiers = product?.tiers;
+  const tiers = {} as any; //= product?.tiers;
   const [selectedTier, setSelectedTier] = useState<ProductTier>(currentTier);
 
   const selectedTierOptions = tiers?.[selectedTier];

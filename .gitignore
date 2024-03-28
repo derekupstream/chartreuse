@@ -21,7 +21,6 @@ public/__ENV.js
 # misc
 .DS_Store
 *.pem
-.vscode
 tsconfig.tsbuildinfo
 
 # debug

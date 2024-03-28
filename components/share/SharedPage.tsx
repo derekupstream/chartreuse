@@ -12,11 +12,13 @@ import type { ProjectionsResponse } from 'lib/calculator/getProjections';
 import Stadium from 'public/images/stadium.svg';
 
 import { useFooterState } from '../projects/[id]/components/Footer';
+import type { ProjectionsView } from '../projects/[id]/projections';
 import EnvironmentalSummary from '../projects/[id]/projections/environmental/Summary';
 import FinancialSummary from '../projects/[id]/projections/financial/Summary';
-import ProjectImpacts from '../projects/[id]/projections/project-impacts/ProjectImpacts';
-import SingleUseDetails from '../projects/[id]/projections/single-use-details/SingleUseDetails';
+import { LineItemDetails } from '../projects/[id]/projections/LineItemDetails/LineItemDetails';
+import ProjectImpacts from '../projects/[id]/projections/ProjectImpacts/ProjectImpacts';
 import { Wrapper } from '../projects/[id]/styles';
+
 const StyledCol = styled(Col)`
   @media print {
     flex: 0 0 100% !important;
@@ -54,7 +56,7 @@ export function SharedPage({
   projections: { slug: string; projections: ProjectionsResponse }[];
   pageTitle: string;
 }) {
-  const [showSingleUse, setShowSingleUse] = useState(false);
+  const [view, setView] = useState<ProjectionsView>('summary');
   const [data, setData] = useState(projections[0]);
   const [absoluteUrl, setAbsoluteUrl] = useState('');
   const router = useRouter();
@@ -68,7 +70,7 @@ export function SharedPage({
   const { setFooterState } = useFooterState();
 
   function onSelect(e: { key: string }) {
-    setShowSingleUse(e.key === '2' ? true : false);
+    setView(e.key as ProjectionsView);
   }
 
   function setBusinessSize(value: number) {
@@ -145,12 +147,13 @@ export function SharedPage({
           <Col span={5} className='dont-print-me'>
             <Menu
               style={{ width: '100%', marginBottom: 24 }}
-              selectedKeys={[showSingleUse ? '2' : '1']}
+              selectedKeys={[view]}
               onSelect={onSelect}
               mode={'vertical'}
               items={[
-                { key: '1', label: 'Summary' },
-                { key: '2', label: 'Single-use details' }
+                { key: 'summary', label: 'Summary' },
+                { key: 'single_use_details', label: 'Single-use details' },
+                { key: 'reusable_details', label: 'Reusable details' }
               ]}
             />
             <StyledCard>
@@ -208,7 +211,7 @@ export function SharedPage({
             </GreenStyledCard>
           </Col>
           <StyledCol span={19}>
-            <span className={!showSingleUse ? '' : 'print-only'}>
+            <span className={view === 'summary' ? '' : 'print-only'}>
               <ProjectImpacts data={data.projections.annualSummary} />
               <div className='page-break' />
               <FinancialSummary data={data.projections.financialResults} />
@@ -216,8 +219,11 @@ export function SharedPage({
               <EnvironmentalSummary data={data.projections.environmentalResults} />
             </span>
             <div className='page-break' />
-            <span className={showSingleUse ? '' : 'print-only'}>
-              <SingleUseDetails data={data.projections} />
+            <span className={view === 'single_use_details' ? '' : 'print-only'}>
+              <LineItemDetails variant='single_use' lineItemSummary={data.projections.singleUseResults} />
+            </span>
+            <span className={view === 'reusable_details' ? '' : 'print-only'}>
+              <LineItemDetails variant='reusable' lineItemSummary={data.projections.reusableResults} />
             </span>
           </StyledCol>
         </Row>

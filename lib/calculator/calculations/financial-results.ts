@@ -1,9 +1,9 @@
 import type { DishWasherStatic, DishWasherOptions, ProjectInventory } from '../../inventory/types/projects';
 import { ANNUAL_DISHWASHER_CONSUMPTION, BUILDING_WATER_HEATER, BOOSTER_WATER_HEATER } from '../constants/dishwashers';
-import { Frequency, getannualOccurrence } from '../constants/frequency';
+import { getannualOccurrence } from '../constants/frequency';
 import { getChangeSummaryRowRounded, round } from '../utils';
 
-import { getSingleUseProductSummary } from './single-use';
+import { getSingleUseProductSummary } from './line-items-single-use';
 
 interface FinancialResults {
   annualCostChanges: AnnualCostChanges;
@@ -148,7 +148,9 @@ export function dishwasherUtilityUsage(dishwasher: DishWasherStatic, options: Di
   });
 
   if (!washerProfile) {
-    throw new Error('Unidentified dishwasher configuration');
+    throw new Error(
+      'Unidentified dishwasher configuration: ' + dishwasher.type + ', ' + dishwasher.temperature + ' temp'
+    );
   }
 
   const operatingDaysPerYear = options.operatingDays;

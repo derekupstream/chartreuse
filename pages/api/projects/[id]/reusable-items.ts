@@ -7,7 +7,7 @@ import prisma from 'lib/prisma';
 
 const handler = projectHandler();
 
-handler.get(getItems).post(addItem).delete(deleteItem);
+handler.get(getItems).post(addOrUpdateItem).delete(deleteItem);
 
 async function getItems(req: NextApiRequestWithUser, res: NextApiResponse<{ lineItems?: ReusableLineItem[] }>) {
   const projectId = req.query.id as string;
@@ -23,7 +23,7 @@ async function getItems(req: NextApiRequestWithUser, res: NextApiResponse<{ line
   return res.status(200).json({ lineItems });
 }
 
-async function addItem(req: NextApiRequestWithUser, res: NextApiResponse) {
+async function addOrUpdateItem(req: NextApiRequestWithUser, res: NextApiResponse) {
   let lineItem: ReusableLineItem;
 
   if (req.body.id) {

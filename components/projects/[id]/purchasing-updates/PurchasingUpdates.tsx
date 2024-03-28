@@ -8,7 +8,7 @@ import { PrintHeader } from 'components/common/print/PrintHeader';
 import chartreuseClient from 'lib/chartreuseClient';
 import type { ProjectContext } from 'lib/middleware/getProjectContext';
 
-import { AddBlock, Placeholder } from '../additional-costs/components/ExpenseBlock';
+import { AddBlock, Placeholder } from '../AdditionalCosts/components/ExpenseBlock';
 import { useFooterState } from '../components/Footer';
 import { SectionContainer } from '../projections/components/styles';
 import { Wrapper } from '../styles';
@@ -17,7 +17,7 @@ import { EmptyState } from './components/EmptyState';
 import type { PeriodOption } from './components/PercentTag';
 import { PeriodSelect, getFriendlyPeriod } from './components/PercentTag';
 import { UploadButton } from './components/UploadButton';
-import { SingleUseActuals } from './single-use/SingleUseActuals';
+import { SingleUseActuals } from './SingleUse/SingleUseActuals';
 
 export function PurchasingUpdates({ project }: { project: ProjectContext['project'] }) {
   const { setFooterState } = useFooterState();

@@ -2,6 +2,7 @@ import { Col, message, Popconfirm, Row, Typography } from 'antd';
 import type { FC } from 'react';
 
 import { DELETE } from 'lib/http';
+import type { ReusableProduct } from 'lib/inventory/types/products';
 import type { ReusableLineItem } from 'lib/inventory/types/projects';
 
 import { InfoRow as StyledInfoRow } from '../../styles';
@@ -9,22 +10,27 @@ import { InfoRow as StyledInfoRow } from '../../styles';
 import Forecast from './Forecast';
 import InitialCosts from './InitialCosts';
 
+export type ReusableItemRecord = {
+  lineItem: ReusableLineItem;
+  product?: ReusableProduct;
+};
+
 interface Props {
-  item: ReusableLineItem;
+  item: ReusableItemRecord;
   onDelete(): void;
-  onEdit: (item: ReusableLineItem) => void;
+  onEdit: (item: ReusableItemRecord) => void;
 }
 
 interface deleteResponse {
   lineItem: ReusableLineItem;
 }
 
-const ItemRow: FC<Props> = ({ item, onEdit, onDelete }) => {
+export const ItemRow: FC<Props> = ({ item, onEdit, onDelete }) => {
   const onClickConfirm = async () => {
-    const url = `/api/projects/${item.projectId}/reusable-items`;
+    const url = `/api/projects/${item.lineItem.projectId}/reusable-items`;
     try {
-      const { lineItem } = await DELETE<deleteResponse>(url, { id: item.id });
-      message.success(`Item "${lineItem.productName}" removed`);
+      await DELETE<deleteResponse>(url, { id: item.lineItem.id });
+      message.success(`Item "${item.lineItem.productName}" removed`);
       onDelete();
     } catch (error: any) {
       if (error.error || error.message) {
@@ -36,7 +42,7 @@ const ItemRow: FC<Props> = ({ item, onEdit, onDelete }) => {
   return (
     <StyledInfoRow>
       <Col span={8}>
-        <Typography.Title level={5}>{item.productName}</Typography.Title>
+        <Typography.Title level={5}>{item.lineItem.productName || item.product?.description}</Typography.Title>
         <a
           href='#'
           onClick={e => {
@@ -52,13 +58,11 @@ const ItemRow: FC<Props> = ({ item, onEdit, onDelete }) => {
         </Popconfirm>
       </Col>
       <Col span={8}>
-        <InitialCosts item={item} />
+        <InitialCosts item={item.lineItem} />
       </Col>
       <Col span={8}>
-        <Forecast item={item} />
+        <Forecast item={item.lineItem} />
       </Col>
     </StyledInfoRow>
   );
 };
-
-export default ItemRow;

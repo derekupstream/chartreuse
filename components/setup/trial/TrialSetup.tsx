@@ -20,7 +20,7 @@ export type TrialSetupFields = {
 export function TrialSetupForm({ onSubmit, isLoading }: Props) {
   const { firebaseUser } = useAuth();
   const [form] = Form.useForm<TrialSetupFields>();
-
+  console.log(firebaseUser);
   useEffect(() => {
     form.setFieldsValue({
       email: firebaseUser?.email || ''

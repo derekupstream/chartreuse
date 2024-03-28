@@ -90,7 +90,7 @@ class Client {
     return http.PUT<{ project: Project }>(`/api/projects/${project.id}`, project);
   }
 
-  addReusableLineItem(projectId: string, lineItem: ReusableLineItem) {
+  addOrUpdateReusableLineItem(projectId: string, lineItem: ReusableLineItem) {
     return http.POST(`/api/projects/${projectId}/reusable-items`, lineItem);
   }
 

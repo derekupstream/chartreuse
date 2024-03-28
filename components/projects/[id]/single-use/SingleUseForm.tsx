@@ -11,29 +11,20 @@ import SingleUseProductForm from './SingleUseProductForm';
 
 type SingleUseProps = {
   lineItem: SingleUseLineItem | null;
-  onSubmit: () => void;
+  onSubmit: (values: SingleUseLineItem) => void;
   formStep: number;
   setFormStep: (step: number) => void;
-  projectId: string;
   products: SingleUseProduct[];
 };
 
-export default function SingleUseForm({
-  lineItem,
-  onSubmit,
-  projectId,
-  products,
-  formStep,
-  setFormStep
-}: SingleUseProps) {
+export default function SingleUseForm({ lineItem, onSubmit, products, formStep, setFormStep }: SingleUseProps) {
   const [lineItemInput, setLineItemInput] = useState<Partial<SingleUseLineItem>>({
-    projectId,
     ...(lineItem ? lineItem : {})
   });
 
   // reset the view whenever line item changes from parent scope
   useEffect(() => {
-    setLineItemInput({ ...lineItemInput });
+    setLineItemInput({ ...lineItem });
     setFormStep(1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lineItem]);
@@ -51,17 +42,7 @@ export default function SingleUseForm({
   function enterForecast(params: Partial<SingleUseLineItem>) {
     const finalItem = { ...lineItemInput, ...params } as SingleUseLineItem;
     setLineItemInput(finalItem);
-    saveLineItem(finalItem);
-  }
-
-  async function saveLineItem(item: SingleUseLineItem) {
-    try {
-      await chartreuseClient.addSingleUseLineItem(projectId, item);
-      message.success('Single-use item saved successfully');
-      onSubmit();
-    } catch (response) {
-      message.error((response as any).error);
-    }
+    onSubmit(finalItem);
   }
 
   function goBack(params: Partial<SingleUseLineItem> = {}) {

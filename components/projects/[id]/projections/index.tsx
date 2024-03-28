@@ -14,8 +14,8 @@ import { Wrapper } from '../styles';
 
 import EnvironmentalSummary from './environmental/Summary';
 import FinancialSummary from './financial/Summary';
-import ProjectImpacts from './project-impacts/ProjectImpacts';
-import SingleUseDetails from './single-use-details/SingleUseDetails';
+import { LineItemDetails } from './LineItemDetails/LineItemDetails';
+import ProjectImpacts from './ProjectImpacts/ProjectImpacts';
 
 const StyledCol = styled(Col)`
   @media print {
@@ -23,9 +23,12 @@ const StyledCol = styled(Col)`
     max-width: 100% !important;
   }
 `;
+
+export type ProjectionsView = 'summary' | 'single_use_details' | 'reusable_details';
+
 const Projections = ({ project }: { project: ProjectContext['project'] }) => {
+  const [view, setView] = useState<ProjectionsView>('summary');
   const { data, error, isLoading } = projects.useGetProjections(project.id);
-  const [showSingleUse, setShowSingleUse] = useState(false);
 
   const { setFooterState } = useFooterState();
   useEffect(() => {
@@ -33,7 +36,7 @@ const Projections = ({ project }: { project: ProjectContext['project'] }) => {
   }, [setFooterState]);
 
   function onSelect(e: { key: string }) {
-    setShowSingleUse(e.key === '2' ? true : false);
+    setView(e.key as ProjectionsView);
   }
 
   // for printing
@@ -65,15 +68,7 @@ const Projections = ({ project }: { project: ProjectContext['project'] }) => {
       <Typography.Title level={5}>
         These graphs - showing the financial and environmental impacts of reducing single-use items - can help you make
         the case for reuse and make data driven decisions on how to move forward. You can also print a PDF for sharing
-        and distribution. (calculated by{' '}
-        <a
-          href='https://www.epa.gov/warm/basic-information-about-waste-reduction-model-warm'
-          target='_blank'
-          rel='noreferrer'
-        >
-          EPA WARM
-        </a>{' '}
-        model)
+        and distribution.
         <br />
         <br />
       </Typography.Title>
@@ -81,26 +76,30 @@ const Projections = ({ project }: { project: ProjectContext['project'] }) => {
         <Col span={5} className='dont-print-me'>
           <Menu
             style={{ width: '100%' }}
-            selectedKeys={[showSingleUse ? '2' : '1']}
+            selectedKeys={[view]}
             onSelect={onSelect}
             mode={'vertical'}
             items={[
-              { key: '1', label: 'Summary' },
-              { key: '2', label: 'Single-use details' }
+              { key: 'summary', label: 'Summary' },
+              { key: 'single_use_details', label: 'Single-use details' },
+              { key: 'reusable_details', label: 'Reusable details' }
             ]}
           />
         </Col>
         <StyledCol span={19}>
-          <span className={!showSingleUse ? '' : 'print-only'}>
-            <ProjectImpacts data={data.annualSummary} showTitle />
+          <span className={view === 'summary' ? '' : 'print-only'}>
+            <ProjectImpacts data={data.annualSummary} />
             <div className='page-break' />
             <FinancialSummary data={data.financialResults} />
             <div className='page-break' />
             <EnvironmentalSummary data={data.environmentalResults} />
           </span>
           <div className='page-break' />
-          <span className={showSingleUse ? '' : 'print-only'}>
-            <SingleUseDetails data={data} />
+          <span className={view === 'single_use_details' ? '' : 'print-only'}>
+            <LineItemDetails showTitle variant='single_use' lineItemSummary={data.singleUseResults} />
+          </span>
+          <span className={view === 'reusable_details' ? '' : 'print-only'}>
+            <LineItemDetails showTitle variant='reusable' lineItemSummary={data.reusableResults} />
           </span>
         </StyledCol>
       </Row>

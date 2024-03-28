@@ -1,20 +1,21 @@
-import type { SingleUseProduct } from '../../inventory/types/products';
+import type { ReusableProduct, SingleUseProduct } from '../../inventory/types/products';
 import type {
   DishWasherStatic,
   DishWasherOptions,
   ProjectInventory,
-  SingleUseLineItemPopulated
+  SingleUseLineItemPopulated,
+  ReusableLineItemPopulatedWithProduct
 } from '../../inventory/types/projects';
 import { NATURAL_GAS_CO2_EMISSIONS_FACTOR, ELECTRIC_CO2_EMISSIONS_FACTOR } from '../constants/carbon-dioxide-emissions';
 import { POUND_TO_TONNE } from '../constants/conversions';
 import type { Frequency } from '../constants/frequency';
 import { getannualOccurrence } from '../constants/frequency';
-import { CORRUGATED_CARDBOARD, MATERIALS } from '../constants/materials';
+import { CORRUGATED_CARDBOARD, ALL_MATERIALS } from '../constants/materials';
 import type { ChangeSummary } from '../utils';
-import { getChangeSummaryRow, getChangeSummaryRowRounded, round } from '../utils';
+import { getChangeSummaryRow, getChangeSummaryRowRounded } from '../utils';
 
 import { dishwasherUtilityUsage } from './financial-results';
-import { annualSingleUseWeight } from './single-use';
+import { annualLineItemWeight } from './line-items';
 
 interface EnvironmentalResults {
   annualGasEmissionChanges: AnnualGasEmissionChanges;
@@ -49,15 +50,43 @@ export function getUtilityGasEmissions(
 }
 
 function getAnnualGasEmissionChanges(project: ProjectInventory): AnnualGasEmissionChanges {
-  const lineItems = project.singleUseItems.map(singleUseItemGasEmissions);
-  const landfillWaste = lineItems.reduce((sum, item) => {
+  const lineItems = project.singleUseItems.map(lineItem =>
+    getLineItemGasEmissions({ lineItem, frequency: lineItem.frequency })
+  );
+  const reusableLineItems = project.reusableItems
+    .filter(item => !!item.product)
+    .map(lineItem =>
+      getLineItemGasEmissions({
+        lineItem: {
+          ...(lineItem as ReusableLineItemPopulatedWithProduct),
+          // Do not include "one-time" emissions for reusables (aka baseline)
+          casesPurchased: 0
+        },
+        frequency: 'Annually'
+      })
+    );
+  const lineItemEmissions = [...lineItems, ...reusableLineItems].reduce((sum, item) => {
     return getChangeSummaryRow(sum.baseline + item.total.baseline, sum.forecast + item.total.forecast);
   }, getChangeSummaryRow(0, 0));
 
-  // calculate increased dishwasher emissions
+  const dishwashing = getDishwasherGasEmissions(project.dishwashers);
+
+  return {
+    landfillWaste: getChangeSummaryRowRounded(lineItemEmissions.baseline, lineItemEmissions.forecast, 2),
+    dishwashing,
+    total: getChangeSummaryRowRounded(
+      lineItemEmissions.baseline + dishwashing.baseline,
+      lineItemEmissions.forecast + dishwashing.forecast,
+      2
+    )
+  };
+}
+
+// calculate increased dishwasher emissions
+export function getDishwasherGasEmissions(dishwashers: ProjectInventory['dishwashers']): ChangeSummary {
   let ghgBaseline = 0;
   let ghgforecast = 0;
-  for (const dishwasher of project.dishwashers) {
+  for (const dishwasher of dishwashers) {
     const baseline = getUtilityGasEmissions(dishwasher, {
       operatingDays: dishwasher.operatingDays,
       racksPerDay: dishwasher.racksPerDay
@@ -69,17 +98,7 @@ function getAnnualGasEmissionChanges(project: ProjectInventory): AnnualGasEmissi
     });
     ghgforecast += POUND_TO_TONNE * (forecast.electric + forecast.gas);
   }
-  const dishwashing = getChangeSummaryRowRounded(ghgBaseline, ghgforecast, 2);
-
-  return {
-    landfillWaste: getChangeSummaryRowRounded(landfillWaste.baseline, landfillWaste.forecast, 2),
-    dishwashing,
-    total: getChangeSummaryRowRounded(
-      landfillWaste.baseline + dishwashing.baseline,
-      landfillWaste.forecast + dishwashing.forecast,
-      2
-    )
-  };
+  return getChangeSummaryRowRounded(ghgBaseline, ghgforecast, 2);
 }
 
 /**
@@ -90,8 +109,14 @@ function getAnnualGasEmissionChanges(project: ProjectInventory): AnnualGasEmissi
  * Reference: Sheet 5:Detailed Results
  *
  * */
-export function singleUseItemGasEmissions(item: SingleUseLineItemPopulated) {
-  const { casesPurchased, frequency, newCasesPurchased, unitsPerCase, product } = item;
+export function getLineItemGasEmissions({
+  frequency,
+  lineItem
+}: {
+  frequency: Frequency;
+  lineItem: Pick<SingleUseLineItemPopulated, 'casesPurchased' | 'newCasesPurchased' | 'unitsPerCase' | 'product'>;
+}) {
+  const { casesPurchased, newCasesPurchased, unitsPerCase, product } = lineItem;
 
   const annualOccurrence = getannualOccurrence(frequency);
 
@@ -167,12 +192,12 @@ function calculateMaterialGas(
   material: number,
   weightPerUnit: number
 ): ChangeSummary {
-  const epaWARMAssumption = MATERIALS.find(m => m.id === material);
+  const epaWARMAssumption = ALL_MATERIALS.find(m => m.id === material);
   if (!epaWARMAssumption) {
     throw new Error('Could not find EPA Warm assumption for material: ' + material);
   }
-  const annualWeight = annualSingleUseWeight(casesPurchased, annualOccurrence, unitsPerCase, weightPerUnit);
-  const forecastAnnualWeight = annualSingleUseWeight(newCasesPurchased, annualOccurrence, unitsPerCase, weightPerUnit);
+  const annualWeight = annualLineItemWeight(casesPurchased, annualOccurrence, unitsPerCase, weightPerUnit);
+  const forecastAnnualWeight = annualLineItemWeight(newCasesPurchased, annualOccurrence, unitsPerCase, weightPerUnit);
   // const changeInWeight = forecastAnnualWeight - annualWeight
   // let gasReduction = 0
   // if (changeInWeight !== 0) {
@@ -192,18 +217,37 @@ interface AnnualWasteResults {
 }
 
 function getAnnualWasteChanges(project: ProjectInventory): AnnualWasteResults {
-  const baselineItems = project.singleUseItems.map(item => ({
-    casesPurchased: item.casesPurchased,
-    product: item.product,
-    frequency: item.frequency
-  }));
+  const baselineItems = [
+    ...project.singleUseItems.map(item => ({
+      casesPurchased: item.casesPurchased,
+      product: item.product,
+      frequency: item.frequency
+    }))
+    // dont count 'baseline' of reusable items against this year's waste
+    // ...project.reusableItems
+    //   .filter(item => !!item.product)
+    //   .map(item => ({
+    //     casesPurchased: item.casesPurchased,
+    //     product: item.product as ReusableProduct,
+    //     frequency: 'Annually' as const
+    //   }))
+  ];
   const baseline = getAnnualWaste(baselineItems);
 
-  const forecastItems = project.singleUseItems.map(item => ({
-    casesPurchased: item.newCasesPurchased,
-    product: item.product,
-    frequency: item.frequency
-  }));
+  const forecastItems = [
+    ...project.singleUseItems.map(item => ({
+      casesPurchased: item.newCasesPurchased,
+      product: item.product,
+      frequency: item.frequency
+    })),
+    ...project.reusableItems
+      .filter(item => !!item.product)
+      .map(item => ({
+        casesPurchased: item.newCasesPurchased,
+        product: item.product as ReusableProduct,
+        frequency: 'Annually' as const
+      }))
+  ];
   const forecast = getAnnualWaste(forecastItems);
 
   const disposableProductWeight = getChangeSummaryRowRounded(baseline.productWeight, forecast.productWeight);
@@ -235,7 +279,7 @@ function getAnnualWaste(
     (sums, lineItem) => {
       const annualOccurrence = getannualOccurrence(lineItem.frequency);
       const product = lineItem.product;
-      const annualWeight = annualSingleUseWeight(
+      const annualWeight = annualLineItemWeight(
         lineItem.casesPurchased,
         annualOccurrence,
         product.unitsPerCase,

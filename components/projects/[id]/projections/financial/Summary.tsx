@@ -62,7 +62,7 @@ const FinancialSummary: React.FC<Props> = ({ data: financialResults }) => {
             <hr />
 
             <FooterData
-              title='Reusable purchasing'
+              title='Reusable item purchasing'
               value={formatToDollar(financialResults.oneTimeCosts.reusableProductCosts)}
             />
             <FooterData

@@ -1,6 +1,7 @@
 import type {
   LaborCost,
   OtherExpense,
+  ReusableLineItem,
   SingleUseLineItem,
   SingleUseLineItemRecord,
   WasteHaulingCost
@@ -15,9 +16,10 @@ import { PRODUCT_CATEGORIES } from '../calculator/constants/product-categories';
 import type { USState } from '../calculator/constants/utilities';
 import { getProjectUtilities } from '../calculator/constants/utilities';
 
+import { getReusableProducts } from './getReusableProducts';
 import { getSingleUseProducts } from './getSingleUseProducts';
-import type { SingleUseProduct } from './types/products';
-import type { DishWasher, ProjectInventory, WasteHaulingService } from './types/projects';
+import type { ReusableProduct, SingleUseProduct } from './types/products';
+import type { DishWasher, ProjectInventory, WasteHaulingService, ReusableLineItemPopulated } from './types/projects';
 
 export async function getProjectInventory(projectId: string): Promise<ProjectInventory> {
   const project = await prisma.project.findFirst({
@@ -47,8 +49,10 @@ export async function getProjectInventory(projectId: string): Promise<ProjectInv
 
   // map db model types to frontend types
   const products = await getSingleUseProducts({ orgId: project.orgId });
+  const reusableProducts = await getReusableProducts();
   const laborCosts = project.laborCosts.map(mapLaborCost);
   const otherExpenses = project.otherExpenses.map(mapAdditionalCost);
+  const reusableItems = project.reusableItems.map(item => mapReusableItem(item, reusableProducts));
   const singleUseItems = project.singleUseItems.map(item => mapSingleUseItem(item, products));
   const wasteHauling = project.wasteHaulingCosts.map(mapWasteHauling);
 
@@ -56,8 +60,7 @@ export async function getProjectInventory(projectId: string): Promise<ProjectInv
     dishwashers: project.dishwashers as DishWasher[],
     laborCosts,
     otherExpenses,
-    // @ts-ignore
-    reusableItems: project.reusableItems,
+    reusableItems,
     singleUseItems,
     state: project.USState as USState,
     utilityRates,
@@ -78,6 +81,25 @@ function mapAdditionalCost(expense: OtherExpense): ProjectInventory['otherExpens
     ...expense,
     categoryId: expense.categoryId as OtherExpenseCategory,
     frequency: expense.frequency as Frequency
+  };
+}
+
+function mapReusableItem(reusableItem: ReusableLineItem, products: ReusableProduct[]): ReusableLineItemPopulated {
+  const product = products.find(product => product.id === reusableItem.productId);
+  // if (!product) {
+  //   throw new Error('Product not found. Product Id: ' + reusableItem.productId);
+  // }
+
+  const category = PRODUCT_CATEGORIES.find(c => c.id === product?.category);
+  return {
+    ...reusableItem,
+    categoryName: category?.name ?? 'N/A',
+    newCaseCost: reusableItem.caseCost,
+    // frequency: 'Annually',
+    newCasesPurchased: reusableItem.casesPurchased * reusableItem.annualRepurchasePercentage,
+    // totalCost: reusableItem.casesPurchased * reusableItem.caseCost,
+    // totalUnits: reusableItem.casesPurchased * reusableItem.unitsPerCase,
+    product
   };
 }
 

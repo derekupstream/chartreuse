@@ -1,7 +1,7 @@
 import type { GetServerSideProps } from 'next';
 import { useEffect } from 'react';
 
-import ReusablesPurchasing from 'components/projects/[id]/reusable-purchasing';
+import ReusablesPurchasing from 'components/projects/[id]/reusable-purchasing/reusable-purchasing';
 import { ProjectStepsLayout } from 'layouts/ProjectStepsLayout';
 import chartreuseClient from 'lib/chartreuseClient';
 import type { ProjectContext } from 'lib/middleware';

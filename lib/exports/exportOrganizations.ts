@@ -21,8 +21,9 @@ import { getProjectUtilities } from 'lib/calculator/constants/utilities';
 import { getAllProjections } from 'lib/calculator/getProjections';
 import type { AllProjectsSummary as _AllProjectsSummary, ProjectionsResponse } from 'lib/calculator/getProjections';
 import { round } from 'lib/calculator/utils';
+import { getReusableProducts } from 'lib/inventory/getReusableProducts';
 import { getSingleUseProducts } from 'lib/inventory/getSingleUseProducts';
-import type { SingleUseProduct } from 'lib/inventory/types/products';
+import type { ReusableProduct, SingleUseProduct } from 'lib/inventory/types/products';
 import prisma from 'lib/prisma';
 
 // create our own version of ProjectData. Nicer would be to make teh types in lib/calculator generic
@@ -65,21 +66,22 @@ export async function getOrgExport(orgId: string) {
   });
   const data = await getAllProjections(projects);
   const products = await getSingleUseProducts({ orgId });
+  const reusableProducts = await getReusableProducts();
 
-  return getExportFile(data as AllProjectsSummary, products);
+  return getExportFile(data as AllProjectsSummary, products, reusableProducts);
 }
 
 const worksheetOptions: Partial<ExcelJS.AddWorksheetOptions> = {
   views: [{ state: 'frozen', xSplit: 1, ySplit: 1 }] // lock the first row
 };
 
-function getExportFile(data: AllProjectsSummary, products: SingleUseProduct[]) {
+function getExportFile(data: AllProjectsSummary, products: SingleUseProduct[], reusableProducts: ReusableProduct[]) {
   const workbook = new ExcelJS.Workbook();
 
   addSummarySheet(workbook, data);
   addProjectsSheet(workbook, data);
   addSingleUseSheet(workbook, data, products);
-  addReusablesSheet(workbook, data);
+  addReusablesSheet(workbook, data, reusableProducts);
   addAdditionalCostsSheet(workbook, data);
   addDishwasherSheet(workbook, data);
 
@@ -141,7 +143,7 @@ function addProjectsSheet(workbook: ExcelJS.Workbook, data: AllProjectsSummary) 
     { header: 'Project', key: 'title', width: 30 },
     { header: 'Account', key: 'account', width: 30 },
     { header: 'Organization', key: 'org', width: 30 },
-    ...['Savings', 'Single-Use', 'Waste', 'GHG']
+    ...['Savings', 'Single-Use unit', 'Waste', 'GHG']
       .map(title => [
         { header: `${title}: Baseline`, key: `${title}_baseline`, width: 20 },
         { header: `${title}: Forecast`, key: `${title}_forecast`, width: 20 },
@@ -167,9 +169,9 @@ function addProjectsSheet(workbook: ExcelJS.Workbook, data: AllProjectsSummary) 
       Savings_baseline: project.projections.financialResults.annualCostChanges.baseline,
       Savings_forecast: project.projections.financialResults.annualCostChanges.forecast,
       Savings_change: project.projections.financialResults.annualCostChanges.change,
-      'Single-Use_baseline': project.projections.singleUseProductForecast.summary.annualUnits.baseline,
-      'Single-Use_forecast': project.projections.singleUseProductForecast.summary.annualUnits.forecast,
-      'Single-Use_change': project.projections.singleUseProductForecast.summary.annualUnits.change,
+      'Single-Use_baseline': project.projections.singleUseResults.summary.annualUnits.baseline,
+      'Single-Use_forecast': project.projections.singleUseResults.summary.annualUnits.forecast,
+      'Single-Use_change': project.projections.singleUseResults.summary.annualUnits.change,
       Waste_baseline: project.projections.environmentalResults.annualWasteChanges.total.baseline,
       Waste_forecast: project.projections.environmentalResults.annualWasteChanges.total.forecast,
       Waste_change: project.projections.environmentalResults.annualWasteChanges.total.change,
@@ -193,13 +195,13 @@ function addProjectsSheet(workbook: ExcelJS.Workbook, data: AllProjectsSummary) 
   sheet.addRows(rows);
 }
 
+function getProduct<T extends SingleUseProduct>(products: T[], productId: string): { description: string } {
+  return products.find(product => product.id === productId) || { description: '' };
+}
+
 // Define Single-Use Worksheet
 function addSingleUseSheet(workbook: ExcelJS.Workbook, data: AllProjectsSummary, products: SingleUseProduct[]) {
   const sheet = workbook.addWorksheet('Single-Use Items', worksheetOptions);
-
-  function getProduct(item: { productId: string }): Partial<SingleUseProduct> {
-    return products.find(product => product.id === item.productId) || {};
-  }
 
   sheet.columns = [
     { header: 'Product description', key: 'title', width: 40 },
@@ -217,7 +219,7 @@ function addSingleUseSheet(workbook: ExcelJS.Workbook, data: AllProjectsSummary,
   const rows: SheetRow[] = data.projects
     .map(project =>
       project.singleUseItems.map(item => ({
-        title: getProduct(item).description || '',
+        title: getProduct(products, item.productId).description,
         project: project.name,
         account: project.account.name,
         org: project.org.name,
@@ -235,7 +237,7 @@ function addSingleUseSheet(workbook: ExcelJS.Workbook, data: AllProjectsSummary,
 }
 
 // Define Reusables Worksheet
-function addReusablesSheet(workbook: ExcelJS.Workbook, data: AllProjectsSummary) {
+function addReusablesSheet(workbook: ExcelJS.Workbook, data: AllProjectsSummary, products: ReusableProduct[]) {
   const sheet = workbook.addWorksheet('Reusable Items', worksheetOptions);
 
   sheet.columns = [
@@ -252,7 +254,7 @@ function addReusablesSheet(workbook: ExcelJS.Workbook, data: AllProjectsSummary)
   const rows: SheetRow[] = data.projects
     .map(project =>
       project.reusableItems.map(item => ({
-        title: item.productName || 'N/A',
+        title: item.productName || (item.productId && getProduct(products, item.productId).description) || '',
         project: project.name,
         account: project.account.name,
         org: project.org.name,

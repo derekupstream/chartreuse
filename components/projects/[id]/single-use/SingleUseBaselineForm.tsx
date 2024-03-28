@@ -77,7 +77,7 @@ export default function SelectQuantityStep({
       </Form.Item>
 
       <Form.Item name='casesPurchased' label='Cases Purchased' rules={[{ required: true }]}>
-        <Input type='number' />
+        <Input type='number' autoFocus />
       </Form.Item>
 
       <Form.Item name='unitsPerCase' label='Units per case' rules={[{ required: true }]}>

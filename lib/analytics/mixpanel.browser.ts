@@ -16,7 +16,7 @@ export const analytics = Analytics({
         mixpanelPlugin({
           token: mixpanelToken,
           options: {
-            debug: process.env.NODE_ENV === 'development'
+            debug: process.env.VERCEL_ENV !== 'production'
           },
           pageEvent: 'Page View'
         })

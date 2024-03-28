@@ -4,7 +4,7 @@
   "private": true,
   "proxy": "<http://localhost:4242>",
   "scripts": {
-    "dev": "NODE_OPTIONS='--inspect' next dev",
+    "dev": "next dev",
     "build:production": "yarn prisma migrate deploy && yarn prisma generate && next build",
     "build": "yarn prisma generate && next build",
     "start": "next start",

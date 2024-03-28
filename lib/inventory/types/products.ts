@@ -13,3 +13,5 @@ export interface SingleUseProduct {
   type: number;
   size: string;
 }
+
+export type ReusableProduct = SingleUseProduct;

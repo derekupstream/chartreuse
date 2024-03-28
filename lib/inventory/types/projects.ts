@@ -5,7 +5,7 @@ import type { OtherExpenseCategory } from 'lib/calculator/constants/other-expens
 import type { USState } from 'lib/calculator/constants/utilities';
 import type { ServiceType, WasteStream } from 'lib/calculator/constants/waste-hauling';
 
-import type { SingleUseProduct } from './products';
+import type { ReusableProduct, SingleUseProduct } from './products';
 
 /**
  *
@@ -16,7 +16,7 @@ export interface ProjectInventory {
   state: USState;
   laborCosts: LaborCost[];
   otherExpenses: OtherExpense[];
-  reusableItems: ReusableLineItem[];
+  reusableItems: ReusableLineItemPopulated[];
   singleUseItems: SingleUseLineItemPopulated[];
   dishwashers: DishWasher[];
   utilityRates: {
@@ -39,7 +39,6 @@ export interface Project {
 // single-use products are recurring
 export interface SingleUseLineItem {
   id: string;
-  categoryName: string;
   caseCost: number;
   casesPurchased: number;
   projectId: string;
@@ -61,6 +60,7 @@ export interface SingleUseLineItemRecord {
 }
 
 export interface SingleUseLineItemPopulated extends SingleUseLineItem {
+  categoryName: string;
   createdAt: Date;
   totalCost: number;
   totalUnits: number;
@@ -71,13 +71,28 @@ export interface SingleUseLineItemPopulated extends SingleUseLineItem {
 // recurring products are purchased once except for lost or broken items that need repurchase
 export interface ReusableLineItem {
   id?: string | null;
-  categoryId: string;
+  categoryId: string | null;
+  productId: string | null;
   annualRepurchasePercentage: number;
   caseCost: number;
   casesPurchased: number;
   projectId: string;
-  productName: string;
+  productName: string | null;
   unitsPerCase: number;
+}
+
+export interface ReusableLineItemPopulated extends ReusableLineItem {
+  categoryName: string;
+  newCasesPurchased: number;
+  newCaseCost: number; // TODO: remove newCaseCost from single-use (and also from here)?
+  // createdAt: Date;
+  // totalCost: number;
+  // totalUnits: number;
+  product?: ReusableProduct;
+}
+
+export interface ReusableLineItemPopulatedWithProduct extends Omit<ReusableLineItemPopulated, 'product'> {
+  product: ReusableProduct;
 }
 
 export interface OtherExpense {

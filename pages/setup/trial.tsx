@@ -40,7 +40,7 @@ export const getServerSideProps: GetServerSideProps = async context => {
 export default function TrialSetup() {
   const router = useRouter();
   const { firebaseUser } = useAuth();
-  console.log(firebaseUser);
+
   const { trigger, isMutating } = useCreateTrial();
 
   const createTrial = useCallback(

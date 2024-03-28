@@ -17,7 +17,7 @@ export async function createSubscription({ email, orgId, customerName }: CreateT
       orgId
     }
   });
-  console.log('customer', customer);
+  // console.log('customer', customer);
   const product = await stripe.products.retrieve(trialProductId);
   const subscription = await stripe.subscriptions.create({
     metadata: {
