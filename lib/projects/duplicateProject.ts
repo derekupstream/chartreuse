@@ -2,10 +2,12 @@ import prisma from 'lib/prisma';
 
 export async function duplicateProject({
   id: projectId,
+  targetAccountId: _targetAccountId,
   targetOrgId: _targetOrgId,
   skipCopySuffix
 }: {
   id: string;
+  targetAccountId?: string;
   targetOrgId?: string;
   skipCopySuffix?: boolean;
 }) {
@@ -27,6 +29,7 @@ export async function duplicateProject({
       wasteHaulingCosts: true
     }
   });
+  const targetAccountId = _targetAccountId || project.accountId;
   const targetOrgId = _targetOrgId || orgId;
 
   // create a new project with the same name and description
@@ -34,7 +37,7 @@ export async function duplicateProject({
     data: {
       ...project,
       name: name + (skipCopySuffix ? '' : ' (Copy)'),
-      accountId: project.accountId,
+      accountId: targetAccountId,
       metadata: project.metadata as any,
       utilityRates: project.utilityRates as any,
       orgId: targetOrgId,

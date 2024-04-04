@@ -3,7 +3,7 @@ import type { GetServerSideProps } from 'next';
 import { SharedPage } from 'components/share/SharedPage';
 import { SharedPageLayout } from 'layouts/SharedPageLayout';
 import { serializeJSON } from 'lib/objects';
-import { getSharedPage } from 'lib/share/getSharedPage';
+import { getSharedProjections } from 'lib/share/getSharedProjections';
 import { isTruthy } from 'lib/types';
 
 /**
@@ -12,11 +12,11 @@ import { isTruthy } from 'lib/types';
  * The first use case is for Pepsi, where we will pull in data from 3 separate projects
  */
 
-type ServerSideProps = Awaited<ReturnType<typeof getSharedPage>>;
+type ServerSideProps = Awaited<ReturnType<typeof getSharedProjections>>;
 
 export const getServerSideProps: GetServerSideProps = async context => {
   try {
-    const props = await getSharedPage(context.query.slug as string);
+    const props = await getSharedProjections(context.query.slug as string);
     // console.log(props.projects);
     return {
       props: serializeJSON(props)

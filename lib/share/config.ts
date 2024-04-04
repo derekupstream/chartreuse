@@ -1,42 +1,26 @@
+import { TEMPLATES } from '../projects/templates/config';
+
 const DEV_PAGES = [
   {
     slug: 'yolo',
     orgName: 'YOLO',
+    orgId: '73c6307a-a88c-44bf-bb40-5e72547055ac',
     title: 'YOLO!',
-    data: [
-      { slug: '1', project: 'Test' },
-      { slug: '2', project: 'Test (Copy)' },
-      { slug: '3', project: 'Test (Copy) (Copy)' }
-    ]
+    templates: TEMPLATES.matt_dev
   }
 ] as const;
 
-const mattStagingId = '9bfcc839-ac34-4364-8e73-48212856da3b';
-const upstreamId = '79cb54a3-8b75-4841-93d4-a23fd1c07553';
+const upstreamOrgId = '79cb54a3-8b75-4841-93d4-a23fd1c07553';
 
 const PRODUCTION_PAGES = [
   {
-    slug: 'upstream',
-    orgId: upstreamId,
-    title: 'Upstream',
-    data: [
-      { slug: 'small', project: 'Demonstration Project' },
-      { slug: 'medium', project: 'Water savings test' },
-      { slug: 'large', project: 'Large National Corporation' }
-    ]
-  },
-  {
     slug: 'pepsi',
     title: 'Pepsi',
-    orgId: upstreamId,
-    data: [
-      { slug: 'small', project: 'Small Restaurant (150 daily customers)' },
-      { slug: 'medium', project: 'Mid-sized Restaurant (400 daily customers)' },
-      { slug: 'large', project: 'Large Franchise Restaurant (600 daily customers)' }
-    ]
+    orgId: upstreamOrgId,
+    templates: TEMPLATES.pepsi
   }
 ] as const;
 
 // for testing remotely
-export const pages = PRODUCTION_PAGES;
-// export const pages = process.env.NODE_ENV === 'production' ? PRODUCTION_PAGES : DEV_PAGES;
+// export const pages = PRODUCTION_PAGES;
+export const pages = process.env.NODE_ENV === 'production' ? PRODUCTION_PAGES : DEV_PAGES;

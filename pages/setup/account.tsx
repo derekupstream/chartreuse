@@ -12,6 +12,7 @@ import { FormPageTemplate } from 'layouts/FormPageLayout';
 import { verifyIdToken } from 'lib/auth/firebaseAdmin';
 import type { AccountSetupFields } from 'lib/chartreuseClient';
 import chartreuseClient from 'lib/chartreuseClient';
+import { readSelectedTemplateCookie } from 'lib/cookies';
 import { serializeJSON } from 'lib/objects';
 import prisma from 'lib/prisma';
 
@@ -68,6 +69,7 @@ export default function AccountSetup({ org, user }: Props) {
   const fromDashboard = !!parseInt(router.query.dashboard as string, 10);
 
   function handleAccountSetupCreation(params: AccountSetupFields) {
+    const sharedTemplate = readSelectedTemplateCookie();
     chartreuseClient
       .createAccount(params)
       .then(({ invitedUser }) => {
@@ -76,6 +78,8 @@ export default function AccountSetup({ org, user }: Props) {
           router.push('/accounts');
         } else if (fromDashboard) {
           router.push('/projects');
+        } else if (sharedTemplate) {
+          router.push(`/projects/select-template?project=${sharedTemplate.projectId}`);
         } else {
           // send user to first step of the calculator
           router.push('/projects/new');

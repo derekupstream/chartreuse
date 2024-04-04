@@ -12,6 +12,12 @@ export const Wrapper = styled.div`
   }
 `;
 
+// adds some margin on mobile
+export const ResponsiveWrapper = styled(Wrapper)`
+  max-width: 1148px;
+  padding: 0 24px;
+`;
+
 export const ProjectSetupWrapper = styled(Wrapper)`
   display: flex;
   flex-direction: column;

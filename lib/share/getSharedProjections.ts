@@ -1,9 +1,16 @@
 import { getProjections } from 'lib/calculator/getProjections';
+import type { ProjectionsResponse } from 'lib/calculator/getProjections';
 import prisma from 'lib/prisma';
 
 import { pages } from './config';
 
-export async function getSharedPage(slug: string) {
+export type ProjectProjection = {
+  slug: string;
+  projections: ProjectionsResponse;
+  templateParams: { projectId: string; slug: string };
+};
+
+export async function getSharedProjections(slug: string) {
   const pageConfig = pages.find(p => p.slug === slug);
   if (!pageConfig) throw new Error('No shared page config found for slug: ' + slug);
 
@@ -23,15 +30,15 @@ export async function getSharedPage(slug: string) {
   });
 
   // For now, dont fail if we dont find one of the projects
-  const projects = pageConfig.data.map(({ project, slug }) => ({
+  const projects = pageConfig.templates.map(({ projectId, slug }) => ({
     slug,
-    project: org.projects.find(p => p.name === project)
+    project: org.projects.find(p => p.id === projectId)
   }));
   const projections = await Promise.all(
-    projects.map(async ({ slug, project }) => {
+    projects.map(async ({ slug, project }): Promise<ProjectProjection | null> => {
       if (project) {
         const projections = await getProjections(project.id);
-        return { projections, project, slug };
+        return { projections, slug, templateParams: { projectId: project.id, slug } };
       }
       return null;
     })

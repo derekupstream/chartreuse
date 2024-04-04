@@ -10,16 +10,20 @@ export const FooterData: React.FC<Props> = props => {
 
   return (
     <FooterBox>
-      <span>{title}</span>
-      <span>{value}</span>
+      <div>{title}</div>
+      <div>{value}</div>
     </FooterBox>
   );
 };
 
 const FooterBox = styled.div`
-  display: flex;
+  padding: 8px 0;
+  @media (min-width: 900px) {
+    display: flex;
+    padding-bottom: 0;
+  }
   justify-content: space-between;
   align-items: center;
-  height: 56px;
+  min-height: 56px;
   border-bottom: 1px solid #c4c4c4;
 `;
