@@ -2,7 +2,7 @@ import { readFile } from 'fs';
 
 import neatCsv from 'neat-csv';
 
-import { ALL_MATERIALS } from 'lib/calculator/constants/materials';
+import { ALL_MATERIALS, REUSABLE_MATERIALS } from 'lib/calculator/constants/materials';
 import { PRODUCT_CATEGORIES } from 'lib/calculator/constants/product-categories';
 import { PRODUCT_TYPES } from 'lib/calculator/constants/reusable-product-types';
 import { csvToNumber } from 'lib/csv';
@@ -60,7 +60,7 @@ function mapCSVRow(csvProduct: CSVRow): ReusableProduct {
   if (!type) {
     throw new Error('Could not determine product type for CSV row: ' + csvProduct['Product']);
   }
-  const material1 = ALL_MATERIALS.find(material => material.name === csvProduct['Primary Material']);
+  const material1 = REUSABLE_MATERIALS.find(material => material.name === csvProduct['Primary Material']);
   if (!material1) {
     throw new Error('Could not determine 1st material for CSV row: ' + csvProduct['Primary Material']);
   }
