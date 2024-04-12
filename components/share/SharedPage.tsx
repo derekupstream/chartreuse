@@ -135,7 +135,7 @@ export function SharedPage({
             >
               <div>
                 <Typography.Title level={2} style={{ color: '#343f29' }}>
-                  Stadium Template
+                  Your switch to reusables!
                 </Typography.Title>
                 <Typography.Title level={5} style={{ color: '#343f29' }}>
                   <ul>
@@ -205,13 +205,13 @@ export function SharedPage({
             </StyledCard>
             <StyledCard style={{ marginBottom: 24 }}>
               <Description>
-                <strong>Small:</strong> 100 customers /day
+                <strong>Small:</strong> 150 customers /day
               </Description>
               <Description>
-                <strong>Mid:</strong> 250 customers /day
+                <strong>Mid:</strong> 400 customers /day
               </Description>
               <Description>
-                <strong>Large:</strong> 500+ customers /day
+                <strong>Large:</strong> 600+ customers /day
               </Description>
             </StyledCard>
             <GreenStyledCard onClick={selectTemplate}>
