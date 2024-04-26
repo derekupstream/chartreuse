@@ -16,7 +16,6 @@ import { ResponsiveWrapper } from '../projects/[id]/styles';
 import { ContentHeader } from './components/ContentHeader';
 import { PageBanner } from './components/PageBanner';
 import { PageFooter } from './components/PageFooter';
-import { ProjectionAssumptions } from './components/ProjectionAssumptions/ProjectionAssumptions';
 import { SignupCard } from './components/SignupCard';
 
 type SharedPageView = ProjectionsView;

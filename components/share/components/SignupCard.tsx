@@ -48,7 +48,7 @@ export function SignupCard({
         </Button>
       </div>
       <Typography.Paragraph style={{ color: 'white', margin: 0 }}>
-        This is a template, chart your own switch to reuse by creating a free account,{' '}
+        Chart your own switch to reuse by creating a free account, sign up now,{' '}
         <Typography
           style={{
             display: 'inline',

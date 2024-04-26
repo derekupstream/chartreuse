@@ -83,14 +83,18 @@ export function PageBanner() {
           Reuse for On-Site Dining
         </Typography.Title>
         <DesktopElement>
-          <Typography.Title level={5} style={{ margin: 0, padding: 0 }}>
+          <Typography.Title level={5} style={{ maxWidth: 500, textAlign: 'center' }}>
+            The results below are based on data from real businesses that model the environmental impact and economic
+            savings of switching to reusables for on-site dining.
+          </Typography.Title>
+          {/* <Typography.Title level={5} style={{ margin: 0, padding: 0 }}>
             <ul>
               <li>Significantly reduce the amount of waste being sent to landfill</li>
               <li>Save money by ditching disposable cups</li>
               <li>Improve customer experience with high quality drinkware</li>
               <li>Demonstrate your commitment as a sustainability leader</li>
             </ul>
-          </Typography.Title>
+          </Typography.Title> */}
         </DesktopElement>
         {/* </div> */}
       </div>
