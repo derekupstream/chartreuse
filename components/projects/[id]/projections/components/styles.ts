@@ -11,6 +11,13 @@ export const SectionHeader = styled.p`
   font-weight: 600;
 `;
 
+export const SectionTitle = styled.span`
+  color: #262626;
+  font-size: 1rem;
+  font-weight: 700;
+  margin-right: 6px;
+`;
+
 export const CardTitle = styled.span`
   color: #262626;
   font-size: 16px;

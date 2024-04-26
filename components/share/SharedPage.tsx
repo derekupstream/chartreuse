@@ -19,7 +19,7 @@ import { PageFooter } from './components/PageFooter';
 import { ProjectionAssumptions } from './components/ProjectionAssumptions/ProjectionAssumptions';
 import { SignupCard } from './components/SignupCard';
 
-type SharedPageView = ProjectionsView | 'assumptions';
+type SharedPageView = ProjectionsView;
 
 const StyledCol = styled(Col)`
   @media print {
@@ -63,8 +63,8 @@ export function SharedPage({
   const router = useRouter();
 
   const defaultBusiness = router.query.project && projections.find(project => project.slug === router.query.project);
-  const defaultBusinessSize = defaultBusiness ? projections.indexOf(defaultBusiness) : 0;
-
+  const businessSize = defaultBusiness ? projections.indexOf(defaultBusiness) : 0;
+  console.log({ businessSize });
   // for printing
   const printRef = useRef(null);
 
@@ -82,9 +82,6 @@ export function SharedPage({
   }
 
   function openAssumptionsPopup() {
-    console.log('router', router);
-    console.log('router.asPath', router.asPath);
-    console.log('router.pathname', router.pathname);
     const url = router.asPath.split('?')[0];
     window.open(url + '/assumptions', '_blank', 'popup,width=800,height=600');
   }
@@ -129,7 +126,7 @@ export function SharedPage({
                     1: '400',
                     2: '600'
                   }}
-                  defaultValue={defaultBusinessSize}
+                  defaultValue={businessSize}
                   min={0}
                   max={2}
                   onChange={setBusinessSize}
@@ -148,7 +145,7 @@ export function SharedPage({
             <span className={view === 'summary' ? '' : 'print-only'}>
               <ProjectImpacts data={data.projections.annualSummary} />
               <div className='page-break' />
-              <FinancialSummary data={data.projections.financialResults} />
+              <FinancialSummary data={data.projections.financialResults} businessSize={businessSize} />
               <div className='page-break' />
               <EnvironmentalSummary data={data.projections.environmentalResults} />
             </span>
@@ -159,9 +156,9 @@ export function SharedPage({
             <span className={view === 'reusable_details' ? '' : 'print-only'}>
               <LineItemDetails variant='reusable' lineItemSummary={data.projections.reusableResults} />
             </span>
-            <span className={view === 'assumptions' ? '' : 'print-only'}>
+            {/* <span className={view === 'assumptions' ? '' : 'print-only'}>
               <ProjectionAssumptions />
-            </span>
+            </span> */}
             <SignupCard templateParams={data.templateParams} />
           </StyledCol>
         </Row>

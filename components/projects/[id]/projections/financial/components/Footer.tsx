@@ -1,19 +1,9 @@
+import type { ReactNode } from 'react';
 import styled from 'styled-components';
-
 type Props = {
   title: string;
+  icon?: ReactNode;
   value: string | number;
-};
-
-export const FooterData: React.FC<Props> = props => {
-  const { title, value } = props;
-
-  return (
-    <FooterBox>
-      <div>{title}</div>
-      <div>{value}</div>
-    </FooterBox>
-  );
 };
 
 const FooterBox = styled.div`
@@ -27,3 +17,24 @@ const FooterBox = styled.div`
   min-height: 56px;
   border-bottom: 1px solid #c4c4c4;
 `;
+
+const Title = styled.div`
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  flex-wrap: wrap;
+`;
+
+export const FooterData: React.FC<Props> = props => {
+  const { title, icon, value } = props;
+
+  return (
+    <FooterBox>
+      <Title>
+        {title}
+        {icon && <span>{icon}</span>}
+      </Title>
+      <div>{value}</div>
+    </FooterBox>
+  );
+};

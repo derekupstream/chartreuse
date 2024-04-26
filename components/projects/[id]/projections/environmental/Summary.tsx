@@ -10,8 +10,7 @@ import { changeValue } from 'lib/number';
 import BigNumber from '../components/BigNumber';
 import Card from '../components/Card';
 import Chart from '../components/ChartColumn';
-import { SectionContainer, SectionHeader } from '../components/styles';
-import TitleWithTooltip from '../components/TitleWithTooltip';
+import { SectionContainer, SectionHeader, SectionTitle } from '../components/styles';
 
 import { ViewResultsWrapper, BigNumberWrapper, ChartTitle } from './components/styles';
 
@@ -93,7 +92,7 @@ const EnvironmentalSummary: React.FC<Props> = ({ data }) => {
       <Row gutter={[30, 24]}>
         <StyledCol xs={24} lg={12}>
           <Card>
-            <TitleWithTooltip title='Your total annual waste changes' />
+            <SectionTitle>Your total annual waste changes</SectionTitle>
 
             <BigNumberWrapper>
               <BigNumber
@@ -117,7 +116,7 @@ const EnvironmentalSummary: React.FC<Props> = ({ data }) => {
 
         <StyledCol xs={24} lg={12}>
           <Card style={{ height: '100%' }}>
-            <TitleWithTooltip title='Your annual net GHG changes' />
+            <SectionTitle>Your annual net GHG changes</SectionTitle>
 
             <BigNumberWrapper>
               <BigNumber value={`${changeValue(data.annualGasEmissionChanges.total.change)} MTCO2e`} />
