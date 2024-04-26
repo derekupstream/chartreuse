@@ -63,7 +63,7 @@ export function SharedPage({
 
   const defaultBusiness = router.query.project && projections.find(project => project.slug === router.query.project);
   const businessSize = defaultBusiness ? projections.indexOf(defaultBusiness) : 0;
-  console.log({ businessSize });
+
   // for printing
   const printRef = useRef(null);
 
