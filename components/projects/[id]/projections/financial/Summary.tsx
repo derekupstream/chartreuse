@@ -136,7 +136,7 @@ const FinancialSummary: React.FC<Props> = ({ data: financialResults, businessSiz
             <hr />
 
             <FooterData
-              title='Reusable item purchasing'
+              title='Reusables purchasing'
               icon={
                 showTooltips && (
                   <InfoIcon maxWidth={400}>
