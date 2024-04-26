@@ -16,6 +16,10 @@ import * as gtag from '../lib/ga';
 import 'styles/antd.less';
 import 'styles/print.less';
 import '@antv/xflow/dist/index.css';
+import 'components/share/components/ProjectionAssumptions/styles.less';
+import 'components/share/components/ProjectionAssumptions/SmallSize.styles.less';
+import 'components/share/components/ProjectionAssumptions/MidSize.styles.less';
+import 'components/share/components/ProjectionAssumptions/LargeSize.styles.less';
 
 // Track initial pageview
 if (typeof window !== 'undefined') {
