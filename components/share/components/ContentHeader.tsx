@@ -45,22 +45,22 @@ export function ContentHeader({
       </Button>
 
       <div style={{ display: 'flex', gap: '8px' }}>
+        <Typography.Text
+          copyable={{
+            icon: [
+              <Button key={0}>
+                <ShareAltOutlined /> Share
+              </Button>,
+              <Button key={1}>
+                <ShareAltOutlined /> Copied
+              </Button>
+            ],
+            text: absoluteUrl
+          }}
+        ></Typography.Text>
         <DesktopElement className='dont-print-me'>
-          <Typography.Text
-            copyable={{
-              icon: [
-                <Button key={0}>
-                  <ShareAltOutlined /> Share
-                </Button>,
-                <Button key={1}>
-                  <ShareAltOutlined /> Copied
-                </Button>
-              ],
-              text: absoluteUrl
-            }}
-          ></Typography.Text>
+          <PrintButton printRef={printRef} pdfTitle={pageTitle} />
         </DesktopElement>
-        <PrintButton printRef={printRef} pdfTitle={pageTitle} />
       </div>
     </div>
   );
