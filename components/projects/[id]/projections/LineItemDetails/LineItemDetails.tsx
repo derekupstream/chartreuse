@@ -7,7 +7,7 @@ import type { ProjectionsResponse } from 'lib/calculator/getProjections';
 import { formatToDollar } from 'lib/calculator/utils';
 import { changeValue } from 'lib/number';
 
-import BarChart from '../components/ChartBar';
+import BarChart from '../components/BarChart';
 import { KPIContent } from '../components/KPICard';
 import { CardTitle, ChangeColumn, Divider, SectionContainer, SectionHeader } from '../components/styles';
 

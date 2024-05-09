@@ -14,8 +14,8 @@ const upstreamOrgId = '79cb54a3-8b75-4841-93d4-a23fd1c07553';
 
 const PRODUCTION_PAGES = [
   {
-    slug: 'pepsi',
-    title: 'Pepsi',
+    slug: 'onsite-dining',
+    title: 'Onsite Dining',
     orgId: upstreamOrgId,
     templates: TEMPLATES.pepsi
   }

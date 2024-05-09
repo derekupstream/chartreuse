@@ -5,7 +5,7 @@ import styled from 'styled-components';
 import type { ProjectionsResponse } from 'lib/calculator/getProjections';
 import { changeValue } from 'lib/number';
 
-import BarChart from '../components/ChartBar';
+import BarChart from '../components/BarChart';
 import Card from '../components/KPICard';
 import { Divider, SectionContainer, SectionHeader, ChartTitle } from '../components/styles';
 
@@ -95,6 +95,7 @@ const ProjectImpacts: React.FC<Props> = ({ data, showTitle }) => {
         <StyledCol xs={24} lg={12}>
           <Card
             title='Your GHG reductions'
+            changePercent={data.greenhouseGasEmissions.total.changePercent * -1}
             changeStr={changeValue(data.greenhouseGasEmissions.total.change * -1) + ' MTC02e'}
           >
             <br />

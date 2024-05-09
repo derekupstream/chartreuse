@@ -45,7 +45,7 @@ export function ContentHeader({
       </Button>
 
       <div style={{ display: 'flex', gap: '8px' }}>
-        <Typography.Text
+        {/* <Typography.Text
           copyable={{
             icon: [
               <Button key={0}>
@@ -57,7 +57,7 @@ export function ContentHeader({
             ],
             text: absoluteUrl
           }}
-        ></Typography.Text>
+        ></Typography.Text> */}
         <DesktopElement className='dont-print-me'>
           <PrintButton printRef={printRef} pdfTitle={pageTitle} />
         </DesktopElement>

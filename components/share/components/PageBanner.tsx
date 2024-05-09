@@ -1,3 +1,4 @@
+import { BarChartOutlined } from '@ant-design/icons';
 import { Col, Typography } from 'antd';
 import Image from 'next/legacy/image';
 import styled from 'styled-components';
@@ -75,9 +76,14 @@ export function PageBanner() {
           paddingTop: 24
         }}
       >
-        <div style={{ maxWidth: 300 }}>
+        <Typography.Paragraph
+          style={{ margin: '1em 0', lineHeight: '1em', display: 'flex', gap: '8px', alignItems: 'end' }}
+        >
+          <BarChartOutlined style={{ fontSize: '1.2em' }} />A CUSTOM DATA DASHBOARD
+        </Typography.Paragraph>
+        {/* <div style={{ maxWidth: 300 }}>
           <Image src={pageBannerBackgroundSrc} alt='' />
-        </div>
+        </div> */}
         {/* <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 24px' }}> */}
         <Typography.Title level={1} style={{ margin: 0, padding: 0, textAlign: 'center' }}>
           Reuse for On-Site Dining
