@@ -41,13 +41,16 @@ export async function getCustomerSubscription({
   }
   // calculate status
   let subscriptionStatus: SubscriptionStatus = 'Active';
-  const status = subscription.status;
-  if ((status === 'paused' || status === 'canceled') && !paymentMethod) {
-    subscriptionStatus = 'Expired_Trial';
-  } else if (status === 'trialing') {
-    subscriptionStatus = 'Trial';
-  } else if (status === 'canceled') {
-    subscriptionStatus = 'Canceled';
+  // only calculate status in prod for now
+  if (process.env.NODE_ENV === 'production') {
+    const status = subscription.status;
+    if ((status === 'paused' || status === 'canceled') && !paymentMethod) {
+      subscriptionStatus = 'Expired_Trial';
+    } else if (status === 'trialing') {
+      subscriptionStatus = 'Trial';
+    } else if (status === 'canceled') {
+      subscriptionStatus = 'Canceled';
+    }
   }
 
   // calculate trial end
