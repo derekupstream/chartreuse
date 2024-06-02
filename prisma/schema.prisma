@@ -98,6 +98,10 @@ model Project {
   currency                     String?             @default("USD")
   singleUseReductionPercentage Int?
   budget                       Int?
+
+  // template properties
+  isTemplate          Boolean @default(false)
+  templateDescription String?
 }
 
 model SingleUseLineItem {
