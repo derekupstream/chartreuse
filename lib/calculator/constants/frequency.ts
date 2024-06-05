@@ -9,6 +9,6 @@ export const FREQUENCIES_WITH_ONE_TIME = [{ name: 'One Time', annualOccurrence: 
 
 export type Frequency = (typeof FREQUENCIES)[number]['name'];
 
-export function getannualOccurrence(frequency: Frequency) {
+export function getAnnualOccurrence(frequency: Frequency) {
   return FREQUENCIES.find(f => f.name === frequency)!.annualOccurrence;
 }

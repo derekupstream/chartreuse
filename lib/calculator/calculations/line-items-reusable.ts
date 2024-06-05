@@ -4,7 +4,9 @@ import { PRODUCT_CATEGORIES } from '../constants/product-categories';
 import { PRODUCT_TYPES } from '../constants/reusable-product-types';
 import { getChangeSummaryRow } from '../utils';
 
-import { getDishwasherGasEmissions, getLineItemGasEmissions } from './environmental-results';
+import { getDishwasherGasEmissions, getLineItemGasEmissions } from './environmental-results-gas';
+import { getDishwasherWaterUsage } from './environmental-results-water';
+import { getLineItemWaterUsage } from './environmental-results-water';
 import type { PurchasingSummaryColumn, ProductForecastResults } from './line-items';
 import { getResultsByType, annualLineItemCost, annualLineItemCaseCount } from './line-items';
 
@@ -47,20 +49,25 @@ export function getReusableProductSummary(
           frequency: 'Annually'
         });
 
-      const emissions = item.product
-        ? getLineItemGasEmissions({
-            lineItem: item as ReusableLineItemPopulatedWithProduct,
-            frequency: 'Annually'
-          }).total
-        : null;
+      const emissions = getLineItemGasEmissions({
+        lineItem: item as ReusableLineItemPopulatedWithProduct,
+        frequency: 'Annually'
+      }).total;
+
+      const waterUsage = getLineItemWaterUsage({
+        lineItem: item as ReusableLineItemPopulatedWithProduct,
+        frequency: 'Annually'
+      }).total;
+
       return {
         annualCost: column.annualCost + annualCost,
-        annualGHG: emissions ? column.annualGHG + emissions.baseline : column.annualGHG,
+        annualGHG: column.annualGHG + emissions.baseline,
+        annualWater: column.annualWater + waterUsage.baseline,
         annualUnits: column.annualUnits + annualUnits,
         productCount: annualUnits > 0 ? column.productCount + 1 : column.productCount
       };
     },
-    { annualCost: 0, annualGHG: 0, annualUnits: 0, productCount: 0 }
+    { annualCost: 0, annualGHG: 0, annualWater: 0, annualUnits: 0, productCount: 0 }
   );
 
   const forecast = reusableItems.reduce<PurchasingSummaryColumn>(
@@ -70,40 +77,58 @@ export function getReusableProductSummary(
         return column;
       }
       const { newCaseCost: caseCost, newCasesPurchased: casesPurchased, product } = item;
+
       const annualCost = annualLineItemCost({
         caseCost,
         casesPurchased,
         frequency: 'Annually'
       });
+
       const annualUnits =
         product.unitsPerCase *
         annualLineItemCaseCount({
           casesPurchased,
           frequency: 'Annually'
         });
-      const emissions = item.product
-        ? getLineItemGasEmissions({
-            lineItem: item as ReusableLineItemPopulatedWithProduct,
-            frequency: 'Annually'
-          }).total
-        : null;
+
+      const emissions = getLineItemGasEmissions({
+        lineItem: item as ReusableLineItemPopulatedWithProduct,
+        frequency: 'Annually'
+      }).total;
+
+      const waterUsage = getLineItemWaterUsage({
+        lineItem: item as ReusableLineItemPopulatedWithProduct,
+        frequency: 'Annually'
+      }).total;
 
       return {
         annualCost: column.annualCost + annualCost,
-        annualGHG: emissions ? column.annualGHG + emissions.forecast : column.annualGHG,
+        annualGHG: column.annualGHG + emissions.forecast,
+        annualWater: column.annualWater + waterUsage.forecast,
         annualUnits: column.annualUnits + annualUnits,
         productCount: annualUnits > 0 ? column.productCount + 1 : column.productCount
       };
     },
-    { annualCost: 0, annualGHG: 0, annualUnits: 0, productCount: 0 }
+    { annualCost: 0, annualGHG: 0, annualWater: 0, annualUnits: 0, productCount: 0 }
   );
 
   // include the forecasted dishwasher emissions for both one-time and recurring gas emissions
   const dishwasherEmissions = getDishwasherGasEmissions(diswashers).forecast;
+  const dishwasherWaterUsage = getDishwasherWaterUsage(diswashers).forecast;
 
   return {
     annualCost: getChangeSummaryRow(baseline.annualCost, forecast.annualCost),
     annualGHG: getChangeSummaryRow(baseline.annualGHG + dishwasherEmissions, forecast.annualGHG + dishwasherEmissions),
+    // this is not a valid calculation - save baseline/forecast water usage for single-use items
+    // annualWater: getChangeSummaryRow(
+    //   baseline.annualWater + dishwasherWaterUsage,
+    //   forecast.annualWater + dishwasherWaterUsage
+    // ),
+    reusableWater: {
+      dishwasherForecast: dishwasherWaterUsage,
+      lineItemForecast: forecast.annualWater,
+      total: dishwasherWaterUsage + forecast.annualWater
+    },
     annualUnits: getChangeSummaryRow(baseline.annualUnits, forecast.annualUnits),
     productCount: getChangeSummaryRow(baseline.productCount, forecast.productCount)
   };

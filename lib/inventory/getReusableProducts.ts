@@ -45,8 +45,8 @@ const getProductsPromise = new Promise<ReusableProduct[]>((resolve, reject) => {
   });
 });
 
-export async function getReusableProducts(): Promise<ReusableProduct[]> {
-  return await getProductsPromise;
+export function getReusableProducts(): Promise<ReusableProduct[]> {
+  return getProductsPromise;
 }
 
 // dont use the calculated value from spreadsheet since it is rounded to 4 decimals
@@ -83,7 +83,7 @@ function mapCSVRow(csvProduct: CSVRow): ReusableProduct {
 
   return {
     id: productId,
-    boxWeight,
+    boxWeight: 0, // ignore box weight for now
     category: category.id,
     description: csvProduct['Product Description'],
     type: type.id,

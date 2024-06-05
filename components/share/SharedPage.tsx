@@ -146,14 +146,18 @@ export function SharedPage({
               <div className='page-break' />
               <FinancialSummary data={data.projections.financialResults} businessSize={businessSize} />
               <div className='page-break' />
-              <EnvironmentalSummary data={data.projections.environmentalResults} />
+              <EnvironmentalSummary hideWaterUsage data={data.projections.environmentalResults} />
             </span>
             <div className='page-break' />
             <span className={view === 'single_use_details' ? '' : 'print-only'}>
-              <LineItemDetails variant='single_use' lineItemSummary={data.projections.singleUseResults} />
+              <LineItemDetails
+                variant='single_use'
+                lineItemSummary={data.projections.singleUseResults}
+                hideWaterUsage
+              />
             </span>
             <span className={view === 'reusable_details' ? '' : 'print-only'}>
-              <LineItemDetails variant='reusable' lineItemSummary={data.projections.reusableResults} />
+              <LineItemDetails variant='reusable' lineItemSummary={data.projections.reusableResults} hideWaterUsage />
             </span>
             {/* <span className={view === 'assumptions' ? '' : 'print-only'}>
               <ProjectionAssumptions />

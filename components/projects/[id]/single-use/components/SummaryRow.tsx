@@ -1,7 +1,7 @@
 import { Typography, Row, Col } from 'antd';
 import styled from 'styled-components';
 
-import { getannualOccurrence } from 'lib/calculator/constants/frequency';
+import { getAnnualOccurrence } from 'lib/calculator/constants/frequency';
 import type { SingleUseLineItem } from 'lib/inventory/types/projects';
 
 import * as S from '../../styles';
@@ -14,12 +14,12 @@ export const SummaryRow = ({ lineItems }: { lineItems: SingleUseLineItem[] }) =>
   const baselineProductCount = lineItems.filter(item => item.casesPurchased > 0).length;
   const forecastProductCount = lineItems.filter(item => item.newCasesPurchased > 0).length;
   const baselineCost = lineItems.reduce((total, item) => {
-    const annualOccurrence = getannualOccurrence(item.frequency);
+    const annualOccurrence = getAnnualOccurrence(item.frequency);
     const itemTotal = annualOccurrence * item.caseCost * item.casesPurchased;
     return total + itemTotal;
   }, 0);
   const forecastCost = lineItems.reduce((total, item) => {
-    const annualOccurrence = getannualOccurrence(item.frequency);
+    const annualOccurrence = getAnnualOccurrence(item.frequency);
     const itemTotal = annualOccurrence * item.newCaseCost * item.newCasesPurchased;
     return total + itemTotal;
   }, 0);

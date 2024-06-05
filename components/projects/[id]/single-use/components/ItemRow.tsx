@@ -1,6 +1,6 @@
 import { Typography, Row, Col, Popconfirm, message } from 'antd';
 
-import { getannualOccurrence } from 'lib/calculator/constants/frequency';
+import { getAnnualOccurrence } from 'lib/calculator/constants/frequency';
 import chartreuseClient from 'lib/chartreuseClient';
 import type { SingleUseProduct } from 'lib/inventory/types/products';
 import type { SingleUseLineItem } from 'lib/inventory/types/projects';
@@ -13,7 +13,7 @@ export type SingleUseItemRecord = {
 };
 
 const BaselineCard = ({ item }: { item: SingleUseItemRecord }) => {
-  const annualOccurrence = getannualOccurrence(item.lineItem.frequency);
+  const annualOccurrence = getAnnualOccurrence(item.lineItem.frequency);
   const baselineTotal = annualOccurrence * item.lineItem.caseCost * item.lineItem.casesPurchased;
 
   return (
@@ -45,7 +45,7 @@ const BaselineCard = ({ item }: { item: SingleUseItemRecord }) => {
 };
 
 const InfoCard = ({ item }: { item: SingleUseItemRecord }) => {
-  const annualOccurrence = getannualOccurrence(item.lineItem.frequency);
+  const annualOccurrence = getAnnualOccurrence(item.lineItem.frequency);
   const baselineTotal = annualOccurrence * item.lineItem.caseCost * item.lineItem.casesPurchased;
   const forecastTotal = annualOccurrence * item.lineItem.newCaseCost * item.lineItem.newCasesPurchased;
   const change = forecastTotal - baselineTotal;

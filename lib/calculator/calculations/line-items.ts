@@ -1,16 +1,18 @@
 import type { SingleUseProduct } from '../../inventory/types/products';
 import type { SingleUseLineItemPopulated } from '../../inventory/types/projects';
 import type { Frequency } from '../constants/frequency';
-import { getannualOccurrence } from '../constants/frequency';
+import { getAnnualOccurrence } from '../constants/frequency';
 import { CORRUGATED_CARDBOARD_NAME } from '../constants/materials';
 import type { ChangeSummary } from '../utils';
 import { getChangeSummaryRow, getChangeSummaryRowRounded } from '../utils';
 
-import { getLineItemGasEmissions } from './environmental-results';
+import { getLineItemGasEmissions } from './environmental-results-gas';
+import { getLineItemWaterUsage } from './environmental-results-water';
 
 export type PurchasingSummaryColumn = {
   annualCost: number;
   annualGHG: number;
+  annualWater: number;
   annualUnits: number;
   productCount: number;
 };
@@ -20,6 +22,8 @@ export type ProductForecastResults = {
     annualCost: ChangeSummary;
     annualUnits: ChangeSummary;
     annualGHG: ChangeSummary;
+    annualWater?: ChangeSummary; // for single-use items
+    reusableWater?: { lineItemForecast: number; dishwasherForecast: number; total: number }; // we dont use baseline/forecast for reusable items
     productCount: ChangeSummary;
   };
   resultsByType: {
@@ -45,7 +49,7 @@ export function annualLineItemCost(item: { caseCost: number; casesPurchased: num
 
 // Detailed Results, Column N
 export function annualLineItemCaseCount(item: { casesPurchased: number; frequency: Frequency }) {
-  const frequencyVal = getannualOccurrence(item.frequency);
+  const frequencyVal = getAnnualOccurrence(item.frequency);
   return item.casesPurchased * frequencyVal;
 }
 
@@ -74,18 +78,21 @@ type ProductDetailedResult = {
   primaryGas: ChangeSummary;
   secondaryGas: ChangeSummary;
   shippingBoxGas: ChangeSummary;
+  waterUsage: ChangeSummary;
+  shippingBoxWater: ChangeSummary;
 };
 
 // see HIDDEN: Output Calculations
-interface CombinedLineItemResults {
+export type CombinedLineItemResults = {
   cost: ChangeSummary;
   gasEmissions: ChangeSummary;
   weight: ChangeSummary;
-}
+  waterUsage: ChangeSummary;
+};
 
-interface CombinedLineItemResultsWithTitle extends CombinedLineItemResults {
+type CombinedLineItemResultsWithTitle = CombinedLineItemResults & {
   title: string;
-}
+};
 
 type LineItemInput = Pick<
   SingleUseLineItemPopulated,
@@ -147,7 +154,7 @@ function getDetailedLineItemResults(singleUseItems: LineItemInput[]): ProductDet
       casesPurchased: lineItem.newCasesPurchased,
       frequency: lineItem.frequency || 'Annually'
     });
-    const annualOccurrence = getannualOccurrence(lineItem.frequency || 'Annually');
+    const annualOccurrence = getAnnualOccurrence(lineItem.frequency || 'Annually');
     const product = lineItem.product;
     const annualWeight = annualLineItemWeight(
       lineItem.casesPurchased,
@@ -172,6 +179,11 @@ function getDetailedLineItemResults(singleUseItems: LineItemInput[]): ProductDet
       lineItem
     });
 
+    const { total: waterUsage, shippingBoxWater } = getLineItemWaterUsage({
+      frequency: lineItem.frequency || 'Annually',
+      lineItem
+    });
+
     const annualBoxWeight = lineItem.casesPurchased * lineItem.product.boxWeight * annualOccurrence;
     const forecastAnnualBoxWeight = lineItem.newCasesPurchased * lineItem.product.boxWeight * annualOccurrence;
 
@@ -184,10 +196,12 @@ function getDetailedLineItemResults(singleUseItems: LineItemInput[]): ProductDet
       forecastAnnualWeight,
       forecastAnnualBoxWeight,
       gasEmissions,
+      waterUsage,
       primaryMaterial: product.primaryMaterial,
       primaryGas,
       secondaryGas: secondaryGas,
       shippingBoxGas: shippingBoxGas,
+      shippingBoxWater,
       type: product.type
     };
     return detailedResult;
@@ -212,6 +226,12 @@ const emptyCombinedResults: CombinedLineItemResults = {
     forecast: 0,
     change: 0,
     changePercent: 0
+  },
+  waterUsage: {
+    baseline: 0,
+    forecast: 0,
+    change: 0,
+    changePercent: 0
   }
 };
 
@@ -225,12 +245,14 @@ function combineLineItemResults(title: string, items: ProductDetailedResult[]): 
       let annualWeight = item.annualWeight;
       let forecastAnnualWeight = item.forecastAnnualWeight;
       let itemGasEmissions = item.primaryGas;
+      let itemWaterUsage = item.waterUsage;
       // calculate box weight for cardboard
       if (title === CORRUGATED_CARDBOARD_NAME) {
         annualWeight = item.annualBoxWeight;
         forecastAnnualWeight = item.forecastAnnualBoxWeight;
         cost = result.cost; // no cost for cardboard
         itemGasEmissions = item.shippingBoxGas;
+        itemWaterUsage = item.shippingBoxWater;
       }
 
       const baselineWeight = result.weight.baseline + annualWeight;
@@ -241,11 +263,16 @@ function combineLineItemResults(title: string, items: ProductDetailedResult[]): 
       const forecastGas = result.gasEmissions.forecast + itemGasEmissions.forecast;
       const gasEmissions = getChangeSummaryRowRounded(baselineGas, forecastGas, 2);
 
+      const baselineWater = result.waterUsage.baseline + itemWaterUsage.baseline;
+      const forecastWater = result.waterUsage.forecast + itemWaterUsage.forecast;
+      const waterUsage = getChangeSummaryRowRounded(baselineWater, forecastWater, 2);
+
       return {
         title,
         cost,
         gasEmissions,
-        weight
+        weight,
+        waterUsage
       };
     },
     {
@@ -271,10 +298,14 @@ function combineResultsByCategory(items: { title: string; items: ProductDetailed
     const baselineGas = totals.gasEmissions.baseline + row.gasEmissions.baseline;
     const forecastGas = totals.gasEmissions.forecast + row.gasEmissions.forecast;
     const gasEmissions = getChangeSummaryRowRounded(baselineGas, forecastGas, 2);
+    const baselineWater = totals.waterUsage.baseline + row.waterUsage.baseline;
+    const forecastWater = totals.waterUsage.forecast + row.waterUsage.forecast;
+    const waterUsage = getChangeSummaryRowRounded(baselineWater, forecastWater, 2);
 
     return {
       cost,
       gasEmissions,
+      waterUsage,
       weight
     };
   }, emptyCombinedResults);
@@ -286,7 +317,9 @@ function combineResultsByCategory(items: { title: string; items: ProductDetailed
       row.weight.baseline !== 0 ||
       row.weight.forecast !== 0 ||
       row.gasEmissions.baseline !== 0 ||
-      row.gasEmissions.forecast !== 0
+      row.gasEmissions.forecast !== 0 ||
+      row.waterUsage.baseline !== 0 ||
+      row.waterUsage.forecast !== 0
   );
 
   return {

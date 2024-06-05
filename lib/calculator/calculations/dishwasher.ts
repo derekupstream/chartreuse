@@ -1,6 +1,6 @@
 import type { Dishwasher as PrismaDishwasher } from '@prisma/client';
 
-import { getUtilityGasEmissions } from 'lib/calculator/calculations/environmental-results';
+import { getUtilityGasEmissions } from 'lib/calculator/calculations/environmental-results-gas';
 import { dishwasherUtilityUsage, dishwasherAnnualCostBreakdown } from 'lib/calculator/calculations/financial-results';
 import type { UtilityRates } from 'lib/calculator/constants/utilities';
 import type { DishWasher } from 'lib/inventory/types/projects';

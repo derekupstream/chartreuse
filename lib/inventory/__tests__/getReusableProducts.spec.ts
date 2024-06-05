@@ -4,7 +4,7 @@ describe('Predictions Calculator: Spreadsheet results from Upstream', () => {
   it('finds the first row of reusable products', async () => {
     const products = await getReusableProducts();
     expect(products[0]).toMatchObject({
-      boxWeight: 0.84375,
+      boxWeight: 0,
       category: '0',
       description: '8 oz Glass Cup',
       id: '100',

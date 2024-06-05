@@ -89,7 +89,6 @@ function mapReusableItem(reusableItem: ReusableLineItem, products: ReusableProdu
   // if (!product) {
   //   throw new Error('Product not found. Product Id: ' + reusableItem.productId);
   // }
-
   const category = PRODUCT_CATEGORIES.find(c => c.id === product?.category);
   return {
     ...reusableItem,

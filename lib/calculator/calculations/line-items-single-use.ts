@@ -4,7 +4,8 @@ import { PRODUCT_CATEGORIES } from '../constants/product-categories';
 import { PRODUCT_TYPES } from '../constants/product-types';
 import { getChangeSummaryRow } from '../utils';
 
-import { getLineItemGasEmissions } from './environmental-results';
+import { getLineItemGasEmissions } from './environmental-results-gas';
+import { getLineItemWaterUsage } from './environmental-results-water';
 import type { PurchasingSummaryColumn, ProductForecastResults } from './line-items';
 import { getResultsByType, annualLineItemCost, annualLineItemCaseCount } from './line-items';
 
@@ -30,18 +31,26 @@ export function getSingleUseProductSummary(
   const baseline = singleUseItems.reduce<PurchasingSummaryColumn>(
     (column, item) => {
       const { caseCost, casesPurchased, frequency, product } = item;
+
       const annualCost = annualLineItemCost({
         caseCost,
         casesPurchased,
         frequency
       });
+
       const annualUnits =
         product.unitsPerCase *
         annualLineItemCaseCount({
           casesPurchased,
           frequency
         });
+
       const emissions = getLineItemGasEmissions({
+        lineItem: item,
+        frequency: 'Annually'
+      }).total;
+
+      const waterUsage = getLineItemWaterUsage({
         lineItem: item,
         frequency: 'Annually'
       }).total;
@@ -49,11 +58,12 @@ export function getSingleUseProductSummary(
       return {
         annualCost: column.annualCost + annualCost,
         annualGHG: column.annualGHG + emissions.baseline,
+        annualWater: column.annualWater + waterUsage.baseline,
         annualUnits: column.annualUnits + annualUnits,
         productCount: annualUnits > 0 ? column.productCount + 1 : column.productCount
       };
     },
-    { annualCost: 0, annualGHG: 0, annualUnits: 0, productCount: 0 }
+    { annualCost: 0, annualGHG: 0, annualWater: 0, annualUnits: 0, productCount: 0 }
   );
 
   const forecast = singleUseItems.reduce<PurchasingSummaryColumn>(
@@ -71,26 +81,31 @@ export function getSingleUseProductSummary(
           frequency
         });
 
-      const emissions = item.product
-        ? getLineItemGasEmissions({
-            lineItem: item,
-            frequency: 'Annually'
-          }).total
-        : null;
+      const emissions = getLineItemGasEmissions({
+        lineItem: item,
+        frequency: 'Annually'
+      }).total;
+
+      const waterUsage = getLineItemWaterUsage({
+        lineItem: item,
+        frequency: 'Annually'
+      }).total;
 
       return {
         annualCost: column.annualCost + annualCost,
-        annualGHG: emissions ? column.annualGHG + emissions.forecast : column.annualGHG,
+        annualGHG: column.annualGHG + emissions.forecast,
+        annualWater: column.annualWater + waterUsage.forecast,
         annualUnits: column.annualUnits + annualUnits,
         productCount: annualUnits > 0 ? column.productCount + 1 : column.productCount
       };
     },
-    { annualCost: 0, annualGHG: 0, annualUnits: 0, productCount: 0 }
+    { annualCost: 0, annualGHG: 0, annualWater: 0, annualUnits: 0, productCount: 0 }
   );
 
   return {
     annualCost: getChangeSummaryRow(baseline.annualCost, forecast.annualCost),
     annualGHG: getChangeSummaryRow(baseline.annualGHG, forecast.annualGHG),
+    annualWater: getChangeSummaryRow(baseline.annualWater, forecast.annualWater),
     annualUnits: getChangeSummaryRow(baseline.annualUnits, forecast.annualUnits),
     productCount: getChangeSummaryRow(baseline.productCount, forecast.productCount)
   };

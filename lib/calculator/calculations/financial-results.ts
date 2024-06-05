@@ -1,6 +1,6 @@
 import type { DishWasherStatic, DishWasherOptions, ProjectInventory } from '../../inventory/types/projects';
 import { ANNUAL_DISHWASHER_CONSUMPTION, BUILDING_WATER_HEATER, BOOSTER_WATER_HEATER } from '../constants/dishwashers';
-import { getannualOccurrence } from '../constants/frequency';
+import { getAnnualOccurrence } from '../constants/frequency';
 import { getChangeSummaryRowRounded, round } from '../utils';
 
 import { getSingleUseProductSummary } from './line-items-single-use';
@@ -47,7 +47,7 @@ function calculateAnnualCostChanges(project: ProjectInventory): AnnualCostChange
     if (item.frequency === 'One Time') {
       return sum;
     }
-    const annualCost = item.cost * getannualOccurrence(item.frequency);
+    const annualCost = item.cost * getAnnualOccurrence(item.frequency);
     return sum + annualCost;
   }, 0);
 
@@ -55,7 +55,7 @@ function calculateAnnualCostChanges(project: ProjectInventory): AnnualCostChange
     if (item.frequency === 'One Time') {
       return sum;
     }
-    const annualCost = item.cost * getannualOccurrence(item.frequency);
+    const annualCost = item.cost * getAnnualOccurrence(item.frequency);
     return sum + annualCost;
   }, 0);
 

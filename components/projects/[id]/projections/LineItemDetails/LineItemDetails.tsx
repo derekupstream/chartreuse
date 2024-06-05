@@ -25,12 +25,16 @@ const LABELS = {
   single_use: {
     title: 'Single-use',
     description: 'Your estimated annual savings',
+    greenHouseGasLabel: 'Greenhouse gas emissions',
+    waterUsageLabel: 'Single-use foodware water usage',
     baselineLabel: 'Baseline',
     forecastLabel: 'Forecast'
   },
   reusable: {
     title: 'Reusable',
     description: 'One-time versus Annually recurring costs',
+    greenHouseGasLabel: 'Greenhouse gas emissions',
+    waterUsageLabel: 'Water usage (including dishwashing)',
     baselineLabel: 'One-time',
     forecastLabel: 'Annually recurring'
   }
@@ -42,6 +46,7 @@ type Props = {
   lineItemSummary: ProjectionsResponse['singleUseResults'] | ProjectionsResponse['reusableResults'];
   variant: VariantType;
   showTitle?: boolean;
+  hideWaterUsage?: boolean;
 };
 
 type RowType = 'productCategory' | 'productType' | 'material';
@@ -50,10 +55,11 @@ type ChangeType = 'cost' | 'waste' | 'ghg';
 const titleByChangeType = {
   cost: 'Cost',
   waste: 'Waste',
-  ghg: 'GHG'
+  ghg: 'GHG',
+  water: 'Water'
 };
 
-export const LineItemDetails: React.FC<Props> = ({ lineItemSummary, variant, showTitle }) => {
+export const LineItemDetails: React.FC<Props> = ({ lineItemSummary, variant, showTitle, hideWaterUsage }) => {
   const [rowType, setRowType] = useState<RowType>('productType');
   const [changeType, setChangeType] = useState<ChangeType>('cost');
   const [useTons, setUseTons] = useState(false);
@@ -72,7 +78,7 @@ export const LineItemDetails: React.FC<Props> = ({ lineItemSummary, variant, sho
 
   const labels = LABELS[variant];
 
-  const { annualCost, annualUnits, annualGHG } = lineItemSummary.summary;
+  const { annualCost, annualUnits, annualGHG, annualWater, reusableWater } = lineItemSummary.summary;
 
   const costsData = [
     { label: labels.baselineLabel, value: annualCost.baseline },
@@ -88,6 +94,18 @@ export const LineItemDetails: React.FC<Props> = ({ lineItemSummary, variant, sho
     { label: labels.baselineLabel, value: annualGHG.baseline },
     { label: labels.forecastLabel, value: annualGHG.forecast }
   ];
+
+  const waterData = annualWater
+    ? // single-item usage
+      [
+        { label: labels.baselineLabel, value: annualWater.baseline },
+        { label: labels.forecastLabel, value: annualWater.forecast }
+      ]
+    : // reusable item usage
+      [
+        { label: 'Reusable foodware water usage', value: reusableWater!.lineItemForecast },
+        { label: 'Dishwasher water usage', value: reusableWater!.dishwasherForecast }
+      ];
 
   const items = lineItemSummary.resultsByType[rowType];
   const dataSource: TableData[] = items.rows.map((item, index) => {
@@ -106,6 +124,9 @@ export const LineItemDetails: React.FC<Props> = ({ lineItemSummary, variant, sho
     } else if (changeType === 'ghg') {
       baseline = item.gasEmissions.baseline;
       forecast = item.gasEmissions.forecast;
+    } else if (changeType === 'water') {
+      baseline = item.waterUsage.baseline;
+      forecast = item.waterUsage.forecast;
     }
 
     return {
@@ -171,44 +192,51 @@ export const LineItemDetails: React.FC<Props> = ({ lineItemSummary, variant, sho
         </Body>
       </Card>
 
-      {variant === 'single_use' && (
-        <Card style={{ marginRight: 0 }}>
-          <CardTitle>Greenhouse gas emissions</CardTitle>
-          <Body>
-            <div style={{ width: '100%' }}>
-              <KPIContent
-                changePercent={annualGHG.changePercent * -1}
-                changeStr={changeValue(annualGHG.change * -1) + ' MTCO2e'}
-              />
-              {/* <ChartTitle>Annual {title} total changes</ChartTitle> */}
+      <Card style={{ marginRight: 0 }}>
+        {/* <CardTitle>{labels.greenHouseGasLabel}</CardTitle> */}
+        <div style={{ display: 'flex', gap: '20px' }}>
+          <Section>
+            <CardTitle>{labels.greenHouseGasLabel}</CardTitle>
+          </Section>
+
+          <Section>
+            <CardTitle>{labels.waterUsageLabel}</CardTitle>
+          </Section>
+        </div>
+        <Body>
+          <Section style={hideWaterUsage ? { width: '100%' } : {}}>
+            <KPIContent
+              changePercent={annualGHG.changePercent * -1}
+              changeStr={changeValue(annualGHG.change * -1) + ' MTCO2e'}
+            />
+            {/* <ChartTitle>Annual {title} total changes</ChartTitle> */}
+            <BarChart
+              data={ghgData}
+              formatter={(data: any) => `${data.label}: ${data.value.toLocaleString()} MTCO2e`}
+              seriesField='label'
+            />
+          </Section>
+
+          {!hideWaterUsage && (
+            <Section>
+              {annualWater ? (
+                <KPIContent
+                  changePercent={annualWater.changePercent * -1}
+                  changeStr={changeValue(annualWater.change * -1) + ' gallons'}
+                />
+              ) : (
+                <KPIContent changeStr={changeValue(reusableWater!.total) + ' gallons'} />
+              )}
               <BarChart
-                data={ghgData}
-                formatter={(data: any) => `${data.label}: ${data.value.toLocaleString()} MTCO2e`}
+                data={waterData}
+                formatter={(data: any) => `${data.label}: ${data.value.toLocaleString()} gallons`}
                 seriesField='label'
               />
-            </div>
-          </Body>
-        </Card>
-      )}
-      {variant === 'reusable' && (
-        <Card style={{ marginRight: 0 }}>
-          <CardTitle>Greenhouse gas emissions (including dishwashing)</CardTitle>
-          <Body>
-            <div style={{ width: '100%' }}>
-              <KPIContent
-                changePercent={annualGHG.changePercent * -1}
-                changeStr={changeValue(annualGHG.change * -1) + ' MTCO2e'}
-              />
-              {/* <ChartTitle>Annual {title} total changes</ChartTitle> */}
-              <BarChart
-                data={ghgData}
-                formatter={(data: any) => `${data.label}: ${data.value.toLocaleString()} MTCO2e`}
-                seriesField='label'
-              />
-            </div>
-          </Body>
-        </Card>
-      )}
+            </Section>
+          )}
+        </Body>
+      </Card>
+
       <SectionHeader>{labels.title} item purchasing</SectionHeader>
       <Divider />
       <Card style={{ marginRight: 0 }}>
@@ -217,9 +245,13 @@ export const LineItemDetails: React.FC<Props> = ({ lineItemSummary, variant, sho
           <Row $marginBottom={15}>
             <Label>View change in</Label>
             <Radio.Group defaultValue='cost' buttonStyle='solid' onChange={changeChangeType}>
-              <Radio.Button value='cost'>Cost</Radio.Button>
-              <Radio.Button value='waste'>Waste</Radio.Button>
-              <Radio.Button value='ghg'>GHG</Radio.Button>
+              {Object.entries(titleByChangeType)
+                .filter(([value]) => (hideWaterUsage ? value !== 'water' : true))
+                .map(([value, label]) => (
+                  <Radio.Button key={value} value={value}>
+                    {label}
+                  </Radio.Button>
+                ))}
             </Radio.Group>
             <Spacer horizontal={16} />
           </Row>

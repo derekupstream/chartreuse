@@ -14,7 +14,7 @@ import ExcelJS from 'exceljs';
 import { getDishwasherStats } from 'lib/calculator/calculations/dishwasher';
 import { poundsToTons } from 'lib/calculator/constants/conversions';
 import type { Frequency } from 'lib/calculator/constants/frequency';
-import { getannualOccurrence } from 'lib/calculator/constants/frequency';
+import { getAnnualOccurrence } from 'lib/calculator/constants/frequency';
 import { LABOR_CATEGORIES } from 'lib/calculator/constants/labor-categories';
 import { OTHER_EXPENSES } from 'lib/calculator/constants/other-expenses';
 import { getProjectUtilities } from 'lib/calculator/constants/utilities';
@@ -328,7 +328,7 @@ function getAnnualCost({ frequency, cost }: { frequency: string; cost: number })
   if (frequency === 'One Time') {
     return '';
   }
-  return cost * getannualOccurrence(frequency as Frequency);
+  return cost * getAnnualOccurrence(frequency as Frequency);
 }
 
 // Define Reusables Worksheet
