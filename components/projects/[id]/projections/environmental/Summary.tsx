@@ -8,6 +8,7 @@ import type { ProjectionsResponse } from 'lib/calculator/getProjections';
 import { changeValue } from 'lib/number';
 
 import BigNumber from '../components/BigNumber';
+import KPICard from '../components/KPICard';
 import Card from '../components/Card';
 import Chart from '../components/ChartColumn';
 import { SectionContainer, SectionHeader, SectionTitle } from '../components/styles';
@@ -154,16 +155,16 @@ const EnvironmentalSummary: React.FC<Props> = ({ data, hideWaterUsage }) => {
         </StyledCol>
         {!hideWaterUsage && (
           <StyledCol xs={24} lg={12}>
-            <Card style={{ height: '100%' }}>
-              <SectionTitle>Your annual water usage changes</SectionTitle>
-
-              <BigNumberWrapper>
-                <BigNumber value={`${changeValue(data.annualWaterUsageChanges.total.change)} gallons`} />
-              </BigNumberWrapper>
-
+            <KPICard
+              style={{ height: '100%' }}
+              title='Your annual water usage changes'
+              changePercent={data.annualWaterUsageChanges.total.changePercent * -1}
+              changeStr={`${changeValue(data.annualWaterUsageChanges.total.change)} gallons`}
+            >
+              <br />
               <ChartTitle>Annual water usage changes</ChartTitle>
               <Chart data={waterData} seriesField='wasteType' />
-            </Card>
+            </KPICard>
           </StyledCol>
         )}
 
