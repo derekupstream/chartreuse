@@ -1,4 +1,4 @@
-import { AddBlock, Placeholder } from '../../AdditionalCosts/components/ExpenseBlock';
+import { AddBlock, Placeholder } from '../../additional-costs/components/ExpenseBlock';
 
 import { DownloadButton } from './DownloadButton';
 

@@ -1,13 +1,13 @@
 import { ArrowLeftOutlined } from '@ant-design/icons';
+import { PlusOutlined } from '@ant-design/icons';
 import type { Project } from '@prisma/client';
-import { Button, Space, Steps, Typography } from 'antd';
+import { Alert, Button, Space, Steps, Typography } from 'antd';
 import Link from 'next/link';
-import { useRouter } from 'next/router';
 import styled from 'styled-components';
-
+import { StepsMenu } from './DashboardLayout/components/StepsMenu';
 import { ErrorBoundary } from 'components/common/errors/ErrorBoundary';
 import CalculatorFooter, { FooterProvider } from 'components/projects/[id]/components/Footer';
-import { CALCULATOR_STEPS } from 'components/projects/[id]/steps';
+
 import type { DashboardUser } from 'interfaces';
 import * as S from 'layouts/styles';
 
@@ -42,8 +42,6 @@ export function ProjectStepsLayout({
   currentStepIndex,
   ...pageProps
 }: React.PropsWithChildren<Props>) {
-  const router = useRouter();
-
   return (
     <BaseLayout {...pageProps} selectedMenuItem='projects'>
       <FooterProvider>
@@ -54,16 +52,18 @@ export function ProjectStepsLayout({
                 <BackToProjectsButton />
                 <Title level={3}>{project?.name}</Title>
               </div>
-              <S.Steps
-                current={currentStepIndex}
-                onChange={(id: number) => {
-                  router.push(`/projects/${project!.id}${CALCULATOR_STEPS[id].path}`);
-                }}
-              >
-                {CALCULATOR_STEPS.map((step, i) => (
-                  <Steps.Step key={step.title} title={`Step ${i + 1}`} description={step.title} />
-                ))}
-              </S.Steps>
+              <StepsMenu current={currentStepIndex} projectId={project?.id} />
+              {project?.isTemplate && (
+                <Alert
+                  message='This is a template to get you started. Make sure to customize your purchasing data to create an accurate dashboard'
+                  action={
+                    <Button href={`/projects/new?templateId=${project?.id}`} target='_blank' icon={<PlusOutlined />}>
+                      Use this template
+                    </Button>
+                  }
+                  style={{ backgroundColor: '#e3e2e0', border: '0 none', padding: '16px' }}
+                />
+              )}
             </Space>
             <ErrorBoundary>{children}</ErrorBoundary>
           </S.Content>

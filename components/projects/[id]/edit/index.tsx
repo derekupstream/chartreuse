@@ -7,7 +7,6 @@ import styled from 'styled-components';
 
 import type { DashboardUser } from 'interfaces';
 import { BackToProjectsButton } from 'layouts/ProjectStepsLayout';
-import * as S from 'layouts/styles';
 import chartreuseClient from 'lib/chartreuseClient';
 import type { ProjectInput } from 'lib/chartreuseClient';
 
@@ -15,7 +14,7 @@ import type { FormValues as BudgetFormValues } from './components/BudgetForm';
 import { BudgetForm } from './components/BudgetForm';
 import { ProjectForm } from './components/ProjectForm';
 
-const CALCULATOR_STEPS = [{ title: 'Project Setup' }, { title: 'Budgets + Targets' }];
+const steps = [{ title: 'Project Setup' }, { title: 'Budgets + Targets' }];
 
 const Wrapper = styled.div`
   width: 460px;
@@ -49,12 +48,16 @@ export type Props = {
 };
 
 export function ProjectSetup({
+  actionLabel,
   user,
   project: initialProjectState,
+  template,
   successPath
 }: {
+  actionLabel: string;
   user: DashboardUser;
   project?: Project;
+  template?: Pick<Project, 'name'>;
   successPath: (id: string) => string;
 }) {
   const [currentStepIndex, setIndex] = useState(0);
@@ -89,6 +92,7 @@ export function ProjectSetup({
     const urlRedirect = typeof router.query.redirect === 'string' ? router.query.redirect : null;
     router.push(urlRedirect || successPath(projectId));
   }
+  console.log('project', project);
 
   return (
     <>
@@ -106,12 +110,20 @@ export function ProjectSetup({
                   }
                 : undefined
             }
-            items={CALCULATOR_STEPS.map((step, i) => ({
+            items={steps.map((step, i) => ({
               title: step.title
             }))}
           /> */}
           <div style={{ marginTop: 50 }}>
-            {currentStepIndex === 0 && <ProjectForm org={user.org} project={project} onComplete={saveProject} />}
+            {currentStepIndex === 0 && (
+              <ProjectForm
+                actionLabel={actionLabel}
+                org={user.org}
+                project={project}
+                template={template}
+                onComplete={saveProject}
+              />
+            )}
             {currentStepIndex === 1 && project && (
               <BudgetForm project={project} onComplete={saveBudget} onSkip={onComplete} />
             )}

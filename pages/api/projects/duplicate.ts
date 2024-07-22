@@ -10,7 +10,7 @@ const handler = projectHandler();
 handler.post(duplicateProjectionsHandler);
 
 async function duplicateProjectionsHandler(req: NextApiRequestWithUser, res: NextApiResponse) {
-  const projectId = req.query.id as string;
+  const projectId = req.body.id as string;
   const accounts = await prisma.account.findMany({
     where: {
       orgId: req.user.orgId

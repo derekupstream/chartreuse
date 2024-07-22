@@ -5,16 +5,16 @@ import { useEffect } from 'react';
 import { useFooterState } from '../components/Footer';
 import { Wrapper } from '../styles';
 
-import DishWashingSection from './components/DishWashing/DishWashingSection';
 import LaborSection from './components/Labor/LaborSection';
 import OtherExpenseSection from './components/OtherExpenses/OtherExpensesSection';
 import WasteHaulingSection from './components/WasteHauling/WasteHaulingSection';
 
 type ServerSideProps = {
   project: Project;
+  readOnly: boolean;
 };
 
-export default function AdditionalCosts({ project }: ServerSideProps) {
+export default function AdditionalCosts({ project, readOnly }: ServerSideProps) {
   const { setFooterState } = useFooterState();
   useEffect(() => {
     setFooterState({ path: '/additional-costs', stepCompleted: true });
@@ -29,13 +29,13 @@ export default function AdditionalCosts({ project }: ServerSideProps) {
         line. This section will help you accurately capture and estimate those additional impacts.
       </Typography.Title>
       <br />
-      <LaborSection projectId={project.id} />
+      <LaborSection projectId={project.id} readOnly={readOnly} />
       <br />
-      <DishWashingSection projectId={project.id} />
+      {/* <DishWashingSection projectId={project.id} readOnly={readOnly} /> */}
       <br />
-      <WasteHaulingSection projectId={project.id} />
+      <WasteHaulingSection projectId={project.id} readOnly={readOnly} />
       <br />
-      <OtherExpenseSection projectId={project.id} />
+      <OtherExpenseSection projectId={project.id} readOnly={readOnly} />
     </Wrapper>
   );
 }

@@ -6,7 +6,7 @@ const DEV_PAGES = [
     orgName: 'YOLO',
     orgId: '73c6307a-a88c-44bf-bb40-5e72547055ac',
     title: 'YOLO!',
-    templates: TEMPLATES.matt_dev
+    templates: TEMPLATES.dev
   }
 ] as const;
 
@@ -17,7 +17,7 @@ const PRODUCTION_PAGES = [
     slug: 'onsite-dining',
     title: 'Onsite Dining',
     orgId: upstreamOrgId,
-    templates: TEMPLATES.pepsi
+    templates: TEMPLATES.production
   }
 ] as const;
 

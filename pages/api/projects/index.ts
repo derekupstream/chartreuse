@@ -1,4 +1,4 @@
-import type { Prisma, Project } from '@prisma/client';
+import type { Account, Project } from '@prisma/client';
 import type { NextApiRequest, NextApiResponse } from 'next';
 import nc from 'next-connect';
 
@@ -12,10 +12,13 @@ import prisma from 'lib/prisma';
 import { trackEvent } from 'lib/tracking';
 const handler = nc<NextApiRequest, NextApiResponse>({ onError, onNoMatch });
 
-handler.use(getUser).get(getProjects).post(createProject);
+handler.use(getUser).get(getProjects).post(createProject).delete(deleteProject);
+
+export type PopulatedProject = Project & { account: Account };
 
 async function createProject(req: NextApiRequestWithUser, res: NextApiResponse<{ project: Project }>) {
-  const { name, metadata, accountId, USState, currency, utilityRates } = req.body as ProjectInput;
+  const { name, metadata, accountId, USState, currency, utilityRates, templateDescription, isTemplate } =
+    req.body as ProjectInput;
 
   if (USState) {
     if (utilityRates) {
@@ -39,6 +42,8 @@ async function createProject(req: NextApiRequestWithUser, res: NextApiResponse<{
       USState: USState || undefined,
       currency,
       utilityRates: utilityRates || undefined,
+      isTemplate: isTemplate,
+      templateDescription: templateDescription || undefined,
       account: {
         connect: {
           id: accountId
@@ -66,11 +71,12 @@ async function createProject(req: NextApiRequestWithUser, res: NextApiResponse<{
   return res.status(200).json({ project });
 }
 
-async function getProjects(req: NextApiRequestWithUser, res: NextApiResponse<{ projects: Project[] }>) {
-  const projects = await prisma.project.findMany<Prisma.ProjectFindManyArgs>({
+async function getProjects(req: NextApiRequestWithUser, res: NextApiResponse<{ projects: PopulatedProject[] }>) {
+  const projects = await prisma.project.findMany({
     where: {
       accountId: req.user.accountId || undefined,
-      orgId: req.user.orgId
+      orgId: req.user.orgId,
+      isTemplate: false
     },
     include: {
       account: true
@@ -78,6 +84,21 @@ async function getProjects(req: NextApiRequestWithUser, res: NextApiResponse<{ p
   });
 
   return res.status(200).json({ projects });
+}
+
+async function deleteProject(req: NextApiRequestWithUser, res: NextApiResponse) {
+  const projectId = req.body.id;
+  if (typeof projectId !== 'string') {
+    return res.status(400).json({ error: 'Missing project ID' });
+  }
+  await prisma.project.delete({
+    where: {
+      id: projectId
+    }
+  });
+  console.log('Deleted project', { projectId });
+
+  return res.status(200).json({ ok: true });
 }
 
 export default handler;

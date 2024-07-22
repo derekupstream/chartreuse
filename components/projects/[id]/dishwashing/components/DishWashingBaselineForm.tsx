@@ -9,7 +9,7 @@ import styled from 'styled-components';
 import { DISHWASHER_TYPES, FUEL_TYPES, TEMPERATURES } from 'lib/calculator/constants/dishwashers';
 import { requiredRule } from 'utils/forms';
 
-import { OptionSelection } from '../../../styles';
+import { OptionSelection } from '../../styles';
 
 const typeOptions = DISHWASHER_TYPES.map(t => ({ label: t.name, value: t.name }));
 const temperaturesOptions = TEMPERATURES.map((t, i) => ({ label: t.name, value: t.name }));

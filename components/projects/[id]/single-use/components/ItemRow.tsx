@@ -94,11 +94,13 @@ const InfoCard = ({ item }: { item: SingleUseItemRecord }) => {
 export const ItemRow = ({
   item,
   onEdit,
-  onDelete
+  onDelete,
+  readOnly
 }: {
   item: SingleUseItemRecord;
   onEdit: (item: SingleUseItemRecord) => void;
   onDelete: () => void;
+  readOnly: boolean;
 }) => {
   function confirm() {
     chartreuseClient
@@ -118,19 +120,28 @@ export const ItemRow = ({
     <S.InfoRow>
       <Col span={8}>
         <Typography.Title level={5}>{item.product.description}</Typography.Title>
-        <a
-          href='#'
-          onClick={e => {
-            onEdit(item);
-            e.preventDefault();
-          }}
-        >
-          Edit
-        </a>
-        <Typography.Text style={{ opacity: '.25' }}> | </Typography.Text>
-        <Popconfirm title='Are you sure you want to delete this item?' onConfirm={confirm} okText='Yes' cancelText='No'>
-          <a href='#'>Delete</a>
-        </Popconfirm>
+        {!readOnly && (
+          <>
+            <a
+              href='#'
+              onClick={e => {
+                onEdit(item);
+                e.preventDefault();
+              }}
+            >
+              Edit
+            </a>
+            <Typography.Text style={{ opacity: '.25' }}> | </Typography.Text>
+            <Popconfirm
+              title='Are you sure you want to delete this item?'
+              onConfirm={confirm}
+              okText='Yes'
+              cancelText='No'
+            >
+              <a href='#'>Delete</a>
+            </Popconfirm>
+          </>
+        )}
       </Col>
       <Col span={8}>
         <BaselineCard item={item} />

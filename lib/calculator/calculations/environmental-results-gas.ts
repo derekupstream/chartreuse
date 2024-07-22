@@ -40,18 +40,24 @@ export function getAnnualGasEmissionChanges(project: ProjectInventory): AnnualGa
         frequency: 'Annually'
       })
     );
-  const landfillWaste = [...lineItems, ...reusableLineItems].reduce((sum, item) => {
-    return getChangeSummaryRow(
-      sum.baseline + item.primaryGas.baseline + item.secondaryGas.baseline,
-      sum.forecast + item.primaryGas.forecast + item.secondaryGas.forecast
-    );
-  }, getChangeSummaryRow(0, 0));
-  const shippingBox = [...lineItems, ...reusableLineItems].reduce((sum, item) => {
-    return getChangeSummaryRow(
-      sum.baseline + item.shippingBoxGas.baseline,
-      sum.forecast + item.shippingBoxGas.forecast
-    );
-  }, getChangeSummaryRow(0, 0));
+  const landfillWaste = [...lineItems, ...reusableLineItems].reduce(
+    (sum, item) => {
+      return getChangeSummaryRow(
+        sum.baseline + item.primaryGas.baseline + item.secondaryGas.baseline,
+        sum.forecast + item.primaryGas.forecast + item.secondaryGas.forecast
+      );
+    },
+    getChangeSummaryRow(0, 0)
+  );
+  const shippingBox = [...lineItems, ...reusableLineItems].reduce(
+    (sum, item) => {
+      return getChangeSummaryRow(
+        sum.baseline + item.shippingBoxGas.baseline,
+        sum.forecast + item.shippingBoxGas.forecast
+      );
+    },
+    getChangeSummaryRow(0, 0)
+  );
 
   const dishwashing = getDishwasherGasEmissions(project.dishwashers);
 

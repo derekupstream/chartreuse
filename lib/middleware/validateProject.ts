@@ -16,8 +16,14 @@ export async function validateProject(req: NextApiRequestWithUser, res: NextApiR
       id: projectId
     }
   });
+
+  const isAccessibleTemplate = project?.isTemplate;
+
   if (!project) {
     res.status(404).send('Project not found');
+  } else if (isAccessibleTemplate && req.method === 'GET') {
+    // allow access to read template data
+    next();
   } else if (project.orgId !== req.user.orgId) {
     res.status(403).send('Project not in org');
   } else if (req.user.accountId && req.user.accountId !== project.accountId) {

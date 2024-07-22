@@ -4,7 +4,7 @@ export const getServerSideProps: GetServerSideProps = async ({ query }) => {
   console.log('Redirect user to first page of project setup');
   return {
     redirect: {
-      destination: `/projects/${query.id}/single-use-items`,
+      destination: `/projects/${query.id}/projections`,
       permanent: false
     }
   };

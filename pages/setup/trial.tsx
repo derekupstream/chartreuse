@@ -44,7 +44,7 @@ export default function TrialSetup() {
   const { trigger, isMutating } = useCreateTrial();
 
   const createTrial = useCallback(
-    ({ title, email, name, phone }: TrialSetupFields) => {
+    ({ title, email, name, phone, orgName }: TrialSetupFields) => {
       if (!firebaseUser) {
         message.error('There was an error, please refresh your page and try again.');
         return;
@@ -55,11 +55,12 @@ export default function TrialSetup() {
           title,
           email,
           name,
-          phone
+          phone,
+          orgName
         },
         {
           onSuccess: () => {
-            router.push('/setup/org');
+            router.push('/projects?view=templates');
           },
           onError: err => {
             message.error((err as Error)?.message);

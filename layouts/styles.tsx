@@ -86,19 +86,6 @@ export const SiderWrapper = styled.div`
   }
 `;
 
-export const Steps = styled(AntSteps)`
-  & {
-    border-bottom: 1px solid #ccc;
-    border-top: 1px solid #ccc;
-    padding: 20px 0;
-  }
-
-  .ant-steps-item-description {
-    min-width: 150px;
-    font-size: 13px;
-  }
-`;
-
 export const ProjectType = styled.div`
   text-transform: uppercase;
   font-size: 8px;

@@ -11,16 +11,21 @@ import { useSimpleQuery } from 'hooks/useSimpleQuery';
 import * as http from 'lib/http';
 import type { Response } from 'pages/api/dishwashers/index';
 
-import { InfoCard, InfoRow } from '../../../styles';
-import { AddBlock, Container, contentWrapperStyle, Placeholder, Subtitle } from '../ExpenseBlock';
-import { SectionTitle, SectionContainer } from '../styles';
+import { InfoCard, InfoRow } from '../../styles';
+import {
+  AddBlock,
+  Container,
+  contentWrapperStyle,
+  Placeholder,
+  Subtitle
+} from '../../additional-costs/components/ExpenseBlock';
 
 import DishwashingBaselineForm from './DishWashingBaselineForm';
 import type { DishwasherData as BaselineFormValues } from './DishWashingBaselineForm';
 import DishwashingForecastForm from './DishWashingForecastForm';
 import type { DishwasherData as ForecastFormValues } from './DishWashingForecastForm';
 
-const DishWashingSection = ({ projectId }: { projectId: string }) => {
+const DishWashingSection = ({ projectId, readOnly }: { projectId: string; readOnly: boolean }) => {
   const route = useRouter();
   const { data, isLoading, refetch } = useSimpleQuery<Response>(`/api/dishwashers?projectId=${projectId}`);
   const createDishwashingCost = useSimpleMutation('/api/dishwashers', 'POST');
@@ -104,23 +109,25 @@ const DishWashingSection = ({ projectId }: { projectId: string }) => {
           </span>
           <span>${data?.rates?.water.toFixed(2)}</span>
         </Typography.Paragraph>
-        <Typography.Link
-          style={{ fontSize: 12 }}
-          underline
-          type='secondary'
-          href={`/projects/${projectId}/edit?redirect=${route.asPath}`}
-        >
-          Edit Utility Rates for this project
-        </Typography.Link>
+        {!readOnly && (
+          <Typography.Link
+            style={{ fontSize: 12 }}
+            underline
+            type='secondary'
+            href={`/projects/${projectId}/edit?redirect=${route.asPath}`}
+          >
+            Edit Utility Rates for this project
+          </Typography.Link>
+        )}
       </>
     )
   };
 
   return (
     <Container>
-      <SectionContainer>
-        <SectionTitle>Dishwashing</SectionTitle>
-        {!!data?.dishwashers?.length && (
+      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+        <Typography.Title level={1}>Dishwashing</Typography.Title>
+        {!!data?.dishwashers?.length && !readOnly && (
           <Button
             onClick={onClickCreate}
             icon={<PlusOutlined />}
@@ -130,17 +137,17 @@ const DishWashingSection = ({ projectId }: { projectId: string }) => {
             Add dishwasher
           </Button>
         )}
-      </SectionContainer>
+      </div>
       <Typography.Title level={5}>
         Use this section to help calculate dishwashing energy and water costs. Energy and water rates are based on your{' '}
         <Popover content={utilities.content} title={utilities.title} trigger='hover'>
-          <Typography.Link underline href={`/projects/${projectId}/edit?redirect=${route.asPath}`}>
+          <Typography.Link underline href={!readOnly ? `/projects/${projectId}/edit?redirect=${route.asPath}` : ''}>
             {data?.state ? 'state average' : 'custom rates'}
           </Typography.Link>
         </Popover>
         .
       </Typography.Title>
-      <Divider />
+      <br />
       {(data?.dishwashers ?? []).map(({ stats, dishwasher }) => (
         <InfoRow key={dishwasher.id}>
           <Col span={8} flex-direction='column'>
@@ -152,24 +159,28 @@ const DishWashingSection = ({ projectId }: { projectId: string }) => {
             </Options>
             <br />
             <br />
-            <a
-              href='#'
-              onClick={e => {
-                onClickEdit(dishwasher);
-                e.preventDefault();
-              }}
-            >
-              Edit
-            </a>
-            <Typography.Text style={{ opacity: '.25' }}> | </Typography.Text>
-            <Popconfirm
-              title='Are you sure to delete this item?'
-              onConfirm={onConfirmDelete}
-              okText='Yes'
-              cancelText='No'
-            >
-              <a href='#'>Delete</a>
-            </Popconfirm>
+            {!readOnly && (
+              <>
+                <a
+                  href='#'
+                  onClick={e => {
+                    onClickEdit(dishwasher);
+                    e.preventDefault();
+                  }}
+                >
+                  Edit
+                </a>
+                <Typography.Text style={{ opacity: '.25' }}> | </Typography.Text>
+                <Popconfirm
+                  title='Are you sure to delete this item?'
+                  onConfirm={onConfirmDelete}
+                  okText='Yes'
+                  cancelText='No'
+                >
+                  <a href='#'>Delete</a>
+                </Popconfirm>
+              </>
+            )}
           </Col>
           <Col span={8}>
             <InfoCard theme='baseline'>
@@ -235,7 +246,7 @@ const DishWashingSection = ({ projectId }: { projectId: string }) => {
           </Col>
         </InfoRow>
       ))}
-      {(!data || data?.dishwashers?.length === 0) && (
+      {(!data || data?.dishwashers?.length === 0) && !readOnly && (
         <>
           <AddBlock>
             <Button

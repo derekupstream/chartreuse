@@ -9,6 +9,7 @@ import prisma from 'lib/prisma';
 
 export type ProjectContext = {
   user: DashboardUser;
+  readOnly: boolean; // useful for templates
   project: Project & { org: { name: string }; account: { name: string } };
 };
 
@@ -82,6 +83,7 @@ export const getProjectContext: GetServerSideProps = async context => {
     const projectContext: ProjectContext = {
       // @ts-ignore - fix DashboardUser type to match
       user,
+      readOnly: project.isTemplate && !user.org.isUpstream,
       project
     };
 

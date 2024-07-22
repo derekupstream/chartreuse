@@ -18,11 +18,11 @@ type Response = {
   otherExpenses: OtherExpense[];
 };
 
-const OtherExpenseSection = ({ projectId }: { projectId: string }) => {
+const OtherExpenseSection = ({ projectId, readOnly }: { projectId: string; readOnly: boolean }) => {
   const url = `/api/other-expenses/?projectId=${projectId}`;
   const { data, isLoading, refetch } = useSimpleQuery<Response>(url);
   const deleteOtherExpenses = useSimpleMutation(url, 'DELETE');
-
+  console.log({ readOnly });
   const [isDrawerVisible, setIsDrawerVisible] = useState(false);
   const [activeOtherExpense, setActiveOtherExpense] = useState<OtherExpense | null>(null);
 
@@ -73,7 +73,7 @@ const OtherExpenseSection = ({ projectId }: { projectId: string }) => {
     <Container>
       <SectionContainer>
         <SectionTitle>Other cost impacts</SectionTitle>
-        {!!data?.otherExpenses?.length && (
+        {!!data?.otherExpenses?.length && !readOnly && (
           <Button
             onClick={onAddExpense}
             icon={<PlusOutlined />}
@@ -85,66 +85,70 @@ const OtherExpenseSection = ({ projectId }: { projectId: string }) => {
         )}
       </SectionContainer>
       <Divider />
-      {data?.otherExpenses?.length ? (
-        data.otherExpenses.map(additionalCost => (
-          <InfoRow key={additionalCost.id}>
-            <Col span={16}>
-              <Subtitle>{additionalCost.description}</Subtitle>
-              <a
-                href='#'
-                onClick={e => {
-                  onEdit(additionalCost);
-                  e.preventDefault();
-                }}
+      {data?.otherExpenses?.length
+        ? data.otherExpenses.map(additionalCost => (
+            <InfoRow key={additionalCost.id}>
+              <Col span={16}>
+                <Subtitle>{additionalCost.description}</Subtitle>
+                {!readOnly && (
+                  <>
+                    <a
+                      href='#'
+                      onClick={e => {
+                        onEdit(additionalCost);
+                        e.preventDefault();
+                      }}
+                    >
+                      Edit
+                    </a>
+                    <Typography.Text style={{ opacity: '.25' }}> | </Typography.Text>
+                    <Popconfirm
+                      title='Are you sure to delete this item?'
+                      onConfirm={() => onConfirmDelete(additionalCost.id)}
+                      okText='Yes'
+                      cancelText='No'
+                    >
+                      <a href='#'>Delete</a>
+                    </Popconfirm>
+                  </>
+                )}
+              </Col>
+              <Col span={8}>
+                <InfoCard theme='forecast'>
+                  <Typography.Title level={5}>Forecast</Typography.Title>
+                  <table style={{ width: '100%' }}>
+                    <thead>
+                      <tr>
+                        <td>Frequency</td>
+                        <td>Annual Total</td>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>{additionalCost.frequency}</td>
+                        <td>{formatToDollar(additionalCost.cost * getFrequencyInNumber(additionalCost.frequency))}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </InfoCard>
+              </Col>
+            </InfoRow>
+          ))
+        : !readOnly && (
+            <AddBlock>
+              <Button
+                onClick={onAddExpense}
+                icon={<PlusOutlined />}
+                type='primary'
+                style={{ paddingRight: '4em', paddingLeft: '4em' }}
               >
-                Edit
-              </a>
-              <Typography.Text style={{ opacity: '.25' }}> | </Typography.Text>
-              <Popconfirm
-                title='Are you sure to delete this item?'
-                onConfirm={() => onConfirmDelete(additionalCost.id)}
-                okText='Yes'
-                cancelText='No'
-              >
-                <a href='#'>Delete</a>
-              </Popconfirm>
-            </Col>
-            <Col span={8}>
-              <InfoCard theme='forecast'>
-                <Typography.Title level={5}>Forecast</Typography.Title>
-                <table style={{ width: '100%' }}>
-                  <thead>
-                    <tr>
-                      <td>Frequency</td>
-                      <td>Annual Total</td>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>{additionalCost.frequency}</td>
-                      <td>{formatToDollar(additionalCost.cost * getFrequencyInNumber(additionalCost.frequency))}</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </InfoCard>
-            </Col>
-          </InfoRow>
-        ))
-      ) : (
-        <AddBlock>
-          <Button
-            onClick={onAddExpense}
-            icon={<PlusOutlined />}
-            type='primary'
-            style={{ paddingRight: '4em', paddingLeft: '4em' }}
-          >
-            Add cost impact
-          </Button>
-          <Placeholder>
-            You have no additional expense entries yet. Click &apos;+ Add cost impact&apos; above to get started.
-          </Placeholder>
-        </AddBlock>
-      )}
+                Add cost impact
+              </Button>
+              <Placeholder>
+                You have no additional expense entries yet. Click &apos;+ Add cost impact&apos; above to get started.
+              </Placeholder>
+            </AddBlock>
+          )}
       <Drawer
         title={activeOtherExpense ? 'Update cost impact' : 'Add cost impact'}
         onClose={onCloseDrawer}

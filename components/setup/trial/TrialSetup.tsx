@@ -15,12 +15,13 @@ export type TrialSetupFields = {
   email: string;
   name: string;
   phone: string;
+  orgName: string;
 };
 
 export function TrialSetupForm({ onSubmit, isLoading }: Props) {
   const { firebaseUser } = useAuth();
   const [form] = Form.useForm<TrialSetupFields>();
-  console.log(firebaseUser);
+
   useEffect(() => {
     form.setFieldsValue({
       email: firebaseUser?.email || ''
@@ -43,6 +44,18 @@ export function TrialSetupForm({ onSubmit, isLoading }: Props) {
     <S.Wrapper>
       <S.OrgSetupForm form={form} name='orgAccount' layout='vertical' onFinish={onSubmit}>
         <Form.Item
+          label='Organization name'
+          name='orgName'
+          rules={[
+            {
+              required: true,
+              message: 'Please input your organization name!'
+            }
+          ]}
+        >
+          <Input autoFocus placeholder='Organization name' />
+        </Form.Item>
+        <Form.Item
           label='Your name'
           name='name'
           rules={[
@@ -52,7 +65,7 @@ export function TrialSetupForm({ onSubmit, isLoading }: Props) {
             }
           ]}
         >
-          <Input autoFocus placeholder='Your name' />
+          <Input placeholder='Your name' />
         </Form.Item>
 
         <Form.Item

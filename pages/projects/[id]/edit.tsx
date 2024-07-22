@@ -6,15 +6,22 @@ import type { DashboardUser } from 'interfaces';
 import { DashboardLayout as Template } from 'layouts/DashboardLayout/DashboardLayout';
 import { getProjectContext } from 'lib/middleware';
 
+type PageProps = { user: DashboardUser; project?: Project };
+
 export const getServerSideProps: GetServerSideProps = async context => {
-  const result = await getProjectContext(context);
-  return result;
+  const response = await getProjectContext(context);
+  return { ...response };
 };
 
-export default function SetupPage(pageProps: { user: DashboardUser; project?: Project }) {
+export default function SetupPage(pageProps: PageProps) {
   return (
     <Template {...pageProps} selectedMenuItem='projects' title='Projects'>
-      <ProjectSetup user={pageProps.user} project={pageProps.project} successPath={() => '/projects'} />
+      <ProjectSetup
+        actionLabel='Update project'
+        user={pageProps.user}
+        project={pageProps.project}
+        successPath={() => '/projects'}
+      />
     </Template>
   );
 }

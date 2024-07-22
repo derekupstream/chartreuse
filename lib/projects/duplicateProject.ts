@@ -4,14 +4,16 @@ export async function duplicateProject({
   id: projectId,
   targetAccountId: _targetAccountId,
   targetOrgId: _targetOrgId,
-  skipCopySuffix
+  skipCopySuffix,
+  skipTemplateProperties
 }: {
   id: string;
   targetAccountId?: string;
   targetOrgId?: string;
   skipCopySuffix?: boolean;
+  skipTemplateProperties?: boolean;
 }) {
-  // find the project to duplicate
+  // find the project to duplicate, do not include template fields
   const { createdAt, id, name, orgId, ...project } = await prisma.project.findUniqueOrThrow({
     where: {
       id: projectId
@@ -36,11 +38,15 @@ export async function duplicateProject({
   const newProject = await prisma.project.create({
     data: {
       ...project,
-      name: name + (skipCopySuffix ? '' : ' (Copy)'),
+      name: !project.isTemplate ? name + (skipCopySuffix ? '' : ' (Copy)') : '',
       accountId: targetAccountId,
       metadata: project.metadata as any,
       utilityRates: project.utilityRates as any,
       orgId: targetOrgId,
+      // template properties
+      isTemplate: skipTemplateProperties ? false : project.isTemplate,
+      templateDescription: skipTemplateProperties ? null : project.templateDescription,
+      templateId: project.isTemplate ? id : null,
       dishwashers: {
         createMany: {
           data: project.dishwashers.map(({ id, projectId, ...item }) => item)

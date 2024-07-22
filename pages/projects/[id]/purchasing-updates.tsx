@@ -10,10 +10,10 @@ export const getServerSideProps: GetServerSideProps = async context => {
   return result;
 };
 
-function PurchasingUpdatesPage({ project, user }: ProjectContext) {
+function PurchasingUpdatesPage({ project, user, readOnly }: ProjectContext) {
   return (
-    <ProjectStepsLayout currentStepIndex={4} project={project} title={`${project.name} - Reusable Items`} user={user}>
-      <PurchasingUpdates project={project} />
+    <ProjectStepsLayout currentStepIndex={10} project={project} title={`${project.name} - Reusable Items`} user={user}>
+      <PurchasingUpdates project={project} readOnly={readOnly} />
     </ProjectStepsLayout>
   );
 }

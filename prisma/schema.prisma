@@ -98,6 +98,9 @@ model Project {
   currency                     String?             @default("USD")
   singleUseReductionPercentage Int?
   budget                       Int?
+  templateId                   String?             @db.Uuid
+  template                     Project?            @relation("templates", fields: [templateId], references: [id], onDelete: SetNull)
+  projects                     Project[]           @relation("templates")
 
   // template properties
   isTemplate          Boolean @default(false)

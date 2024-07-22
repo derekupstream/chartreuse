@@ -28,6 +28,11 @@ const config = {
       //   permanent: false
       // },
       {
+        source: '/templates',
+        destination: '/projects?view=templates',
+        permanent: true
+      },
+      {
         // redirect to the first setup page
         source: '/setup',
         destination: '/setup/trial',

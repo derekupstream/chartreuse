@@ -18,7 +18,7 @@ type Response = {
   laborCosts: LaborCost[];
 };
 
-const LaborSection = ({ projectId }: { projectId: string }) => {
+const LaborSection = ({ projectId, readOnly }: { projectId: string; readOnly: boolean }) => {
   const url = `/api/labor-costs/?projectId=${projectId}`;
   const { data, isLoading, refetch } = useSimpleQuery<Response>(url);
   const deleteLabor = useSimpleMutation(url, 'DELETE');
@@ -74,7 +74,7 @@ const LaborSection = ({ projectId }: { projectId: string }) => {
     <Container>
       <SectionContainer>
         <SectionTitle>Labor</SectionTitle>
-        {!!data?.laborCosts?.length && (
+        {!!data?.laborCosts?.length && !readOnly && (
           <Button
             type='primary'
             onClick={onClickAddExpense}
@@ -91,68 +91,74 @@ const LaborSection = ({ projectId }: { projectId: string }) => {
         Also, estimate additional staff hours needed to support washing needs.
       </Typography.Title>
       <Divider />
-      {data?.laborCosts?.length ? (
-        data.laborCosts.map(labor => (
-          <InfoRow key={labor.id}>
-            <Col span={16}>
-              <Subtitle>{labor.description}</Subtitle>
-              <a
-                href='#'
-                onClick={e => {
-                  onEdit(labor);
-                  e.preventDefault();
-                }}
+      {data?.laborCosts?.length
+        ? data.laborCosts.map(labor => (
+            <InfoRow key={labor.id}>
+              <Col span={16}>
+                <Subtitle>{labor.description}</Subtitle>
+                {!readOnly && (
+                  <>
+                    <a
+                      href='#'
+                      onClick={e => {
+                        onEdit(labor);
+                        e.preventDefault();
+                      }}
+                    >
+                      Edit
+                    </a>
+                    <Typography.Text style={{ opacity: '.25' }}> | </Typography.Text>
+                    <Popconfirm
+                      title='Are you sure to delete this item?'
+                      onConfirm={() => onConfirmDelete(labor.id)}
+                      okText='Yes'
+                      cancelText='No'
+                    >
+                      <a href='#'>Delete</a>
+                    </Popconfirm>
+                  </>
+                )}
+              </Col>
+              <Col span={8}>
+                <InfoCard theme='forecast'>
+                  <Typography.Title level={5}>Forecast</Typography.Title>
+                  <table>
+                    <thead>
+                      <tr>
+                        <td>Frequency</td>
+                        <td></td>
+                        {/* <td>Weekly total</td> */}
+                        <td>Annual total</td>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>{labor.frequency}</td>
+                        <td></td>
+                        {/* <td>{formatToDollar(labor.cost)}</td> */}
+                        <td>{formatToDollar(labor.cost * getFrequencyInNumber(labor.frequency))}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </InfoCard>
+              </Col>
+            </InfoRow>
+          ))
+        : !readOnly && (
+            <AddBlock>
+              <Button
+                onClick={onClickAddExpense}
+                icon={<PlusOutlined />}
+                type='primary'
+                style={{ paddingRight: '4em', paddingLeft: '4em' }}
               >
-                Edit
-              </a>
-              <Typography.Text style={{ opacity: '.25' }}> | </Typography.Text>
-              <Popconfirm
-                title='Are you sure to delete this item?'
-                onConfirm={() => onConfirmDelete(labor.id)}
-                okText='Yes'
-                cancelText='No'
-              >
-                <a href='#'>Delete</a>
-              </Popconfirm>
-            </Col>
-            <Col span={8}>
-              <InfoCard theme='forecast'>
-                <Typography.Title level={5}>Forecast</Typography.Title>
-                <table>
-                  <thead>
-                    <tr>
-                      <td>Frequency</td>
-                      <td></td>
-                      {/* <td>Weekly total</td> */}
-                      <td>Annual total</td>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>{labor.frequency}</td>
-                      <td></td>
-                      {/* <td>{formatToDollar(labor.cost)}</td> */}
-                      <td>{formatToDollar(labor.cost * getFrequencyInNumber(labor.frequency))}</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </InfoCard>
-            </Col>
-          </InfoRow>
-        ))
-      ) : (
-        <AddBlock>
-          <Button
-            onClick={onClickAddExpense}
-            icon={<PlusOutlined />}
-            type='primary'
-            style={{ paddingRight: '4em', paddingLeft: '4em' }}
-          >
-            Add labor
-          </Button>
-          <Placeholder>You have no labor entries yet. Click &apos;+ Add labor&apos; above to get started.</Placeholder>
-        </AddBlock>
-      )}
+                Add labor
+              </Button>
+              <Placeholder>
+                You have no labor entries yet. Click &apos;+ Add labor&apos; above to get started.
+              </Placeholder>
+            </AddBlock>
+          )}
       <Drawer
         title={activeLabor ? 'Update labor' : 'Add labor'}
         onClose={onCloseDrawer}

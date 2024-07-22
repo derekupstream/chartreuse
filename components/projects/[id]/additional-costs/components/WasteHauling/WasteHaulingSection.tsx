@@ -22,7 +22,7 @@ interface Response {
   wasteHaulingCosts: WasteHaulingCost[];
 }
 
-const WasteHaulingSection = ({ projectId }: { projectId: string }) => {
+const WasteHaulingSection = ({ projectId, readOnly }: { projectId: string; readOnly: boolean }) => {
   const url = `/api/waste-hauling/?projectId=${projectId}`;
   const { data, isLoading, refetch } = useSimpleQuery<Response>(url);
   const deleteWasteHauling = useSimpleMutation(url, 'DELETE');
@@ -92,7 +92,7 @@ const WasteHaulingSection = ({ projectId }: { projectId: string }) => {
     <Container>
       <SectionContainer>
         <SectionTitle>Waste Hauling</SectionTitle>
-        {!!data?.wasteHaulingCosts?.length && (
+        {!!data?.wasteHaulingCosts?.length && !readOnly && (
           <Button
             onClick={onAddExpense}
             icon={<PlusOutlined />}
@@ -104,89 +104,93 @@ const WasteHaulingSection = ({ projectId }: { projectId: string }) => {
         )}
       </SectionContainer>
       <Divider />
-      {data?.wasteHaulingCosts?.length ? (
-        data.wasteHaulingCosts.map(wasteHauling => (
-          <InfoRow key={wasteHauling.id}>
-            <Col span={8}>
-              <Subtitle>{wasteHauling.serviceType}</Subtitle>
-              <a
-                href='#'
-                onClick={e => {
-                  onEdit(wasteHauling as WasteHaulingService);
-                  e.preventDefault();
-                }}
+      {data?.wasteHaulingCosts?.length
+        ? data.wasteHaulingCosts.map(wasteHauling => (
+            <InfoRow key={wasteHauling.id}>
+              <Col span={8}>
+                <Subtitle>{wasteHauling.serviceType}</Subtitle>
+                {!readOnly && (
+                  <>
+                    <a
+                      href='#'
+                      onClick={e => {
+                        onEdit(wasteHauling as WasteHaulingService);
+                        e.preventDefault();
+                      }}
+                    >
+                      Edit
+                    </a>
+                    <Typography.Text style={{ opacity: '.25' }}> | </Typography.Text>
+                    <Popconfirm
+                      title='Are you sure to delete this item?'
+                      onConfirm={() => onConfirmDelete(wasteHauling.id)}
+                      okText='Yes'
+                      cancelText='No'
+                    >
+                      <a href='#'>Delete</a>
+                    </Popconfirm>
+                  </>
+                )}
+              </Col>
+              <Col span={8}>
+                <InfoCard theme='baseline'>
+                  <Typography.Title level={5}>Baseline</Typography.Title>
+                  <table>
+                    <thead>
+                      <tr>
+                        <td>Collection frequency</td>
+                        <td>Monthly total</td>
+                        <td>Annual total</td>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>Monthly</td>
+                        <td>{formatToDollar(wasteHauling.monthlyCost)}</td>
+                        <td>{formatToDollar(wasteHauling.monthlyCost * annual)}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </InfoCard>
+              </Col>
+              <Col span={8}>
+                <InfoCard theme='forecast'>
+                  <Typography.Title level={5}>Forecast</Typography.Title>
+                  <table>
+                    <thead>
+                      <tr>
+                        <td>Collection frequency</td>
+                        <td>Monthly total</td>
+                        <td>Annual total</td>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>Monthly</td>
+                        <td>{formatToDollar(wasteHauling.newMonthlyCost)}</td>
+                        <td>{formatToDollar(wasteHauling.newMonthlyCost * annual)}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </InfoCard>
+              </Col>
+            </InfoRow>
+          ))
+        : !readOnly && (
+            <AddBlock>
+              <Button
+                onClick={onAddExpense}
+                icon={<PlusOutlined />}
+                type='primary'
+                style={{ paddingRight: '4em', paddingLeft: '4em' }}
               >
-                Edit
-              </a>
-              <Typography.Text style={{ opacity: '.25' }}> | </Typography.Text>
-              <Popconfirm
-                title='Are you sure to delete this item?'
-                onConfirm={() => onConfirmDelete(wasteHauling.id)}
-                okText='Yes'
-                cancelText='No'
-              >
-                <a href='#'>Delete</a>
-              </Popconfirm>
-            </Col>
-            <Col span={8}>
-              <InfoCard theme='baseline'>
-                <Typography.Title level={5}>Baseline</Typography.Title>
-                <table>
-                  <thead>
-                    <tr>
-                      <td>Collection frequency</td>
-                      <td>Monthly total</td>
-                      <td>Annual total</td>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>Monthly</td>
-                      <td>{formatToDollar(wasteHauling.monthlyCost)}</td>
-                      <td>{formatToDollar(wasteHauling.monthlyCost * annual)}</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </InfoCard>
-            </Col>
-            <Col span={8}>
-              <InfoCard theme='forecast'>
-                <Typography.Title level={5}>Forecast</Typography.Title>
-                <table>
-                  <thead>
-                    <tr>
-                      <td>Collection frequency</td>
-                      <td>Monthly total</td>
-                      <td>Annual total</td>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>Monthly</td>
-                      <td>{formatToDollar(wasteHauling.newMonthlyCost)}</td>
-                      <td>{formatToDollar(wasteHauling.newMonthlyCost * annual)}</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </InfoCard>
-            </Col>
-          </InfoRow>
-        ))
-      ) : (
-        <AddBlock>
-          <Button
-            onClick={onAddExpense}
-            icon={<PlusOutlined />}
-            type='primary'
-            style={{ paddingRight: '4em', paddingLeft: '4em' }}
-          >
-            Add waste hauling cost
-          </Button>
-          <Placeholder>
-            You have no waste hauling entries yet. Click &apos;+ Add waste hauling cost&apos; above to get started.
-          </Placeholder>
-        </AddBlock>
-      )}
+                Add waste hauling cost
+              </Button>
+              <Placeholder>
+                You have no waste hauling entries yet. Click &apos;+ Add waste hauling cost&apos; above to get started.
+              </Placeholder>
+            </AddBlock>
+          )}
       <Drawer
         title={`${formValues?.id ? 'Update' : 'Add'} current monthly waste hauling service fees`}
         onClose={onCloseForms}

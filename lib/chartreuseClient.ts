@@ -23,6 +23,8 @@ export type ProjectInput = {
   USState: string | null;
   currency: string | null;
   budget?: number;
+  templateDescription?: string;
+  isTemplate?: boolean;
 
   utilityRates: {
     water: number;

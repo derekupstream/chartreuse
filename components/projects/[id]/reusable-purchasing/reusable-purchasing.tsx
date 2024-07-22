@@ -45,7 +45,7 @@ export interface ReusableFormValues {
 
 const MISC_CATEGORY = -1;
 
-export default function ReusablePurchasing() {
+export default function ReusablePurchasing({ readOnly }: { readOnly: boolean }) {
   const [isDrawerVisible, setIsDrawerVisible] = useState<boolean>(false);
   const [formStep, setFormStep] = useState<number>(1);
   const [formValues, setFormValues] = useState<ReusableFormValues | null>(null);
@@ -169,7 +169,7 @@ export default function ReusablePurchasing() {
     <S.Wrapper>
       <div style={{ display: 'flex', justifyContent: 'space-between' }}>
         <Typography.Title level={1}>Reusables purchasing</Typography.Title>
-        {hasItems && (
+        {hasItems && !readOnly && (
           <Button
             type='primary'
             onClick={addItem}
@@ -199,7 +199,7 @@ export default function ReusablePurchasing() {
         <ContentLoader />
       ) : (
         <>
-          {!hasItems && (
+          {!hasItems && !readOnly && (
             <EmptyState
               label='Add a reusable item'
               message={`You have no reusable items yet. Click '+ Add a reusable item' above to get started.`}
@@ -216,7 +216,13 @@ export default function ReusablePurchasing() {
                   </S.TitleRow>
                   <Divider />
                   {items[category.id].map(item => (
-                    <ItemRow key={item.lineItem.id} item={item} onEdit={editItem} onDelete={getLineItems} />
+                    <ItemRow
+                      key={item.lineItem.id}
+                      item={item}
+                      onEdit={editItem}
+                      onDelete={getLineItems}
+                      readOnly={readOnly}
+                    />
                   ))}
                 </div>
               )
@@ -228,7 +234,13 @@ export default function ReusablePurchasing() {
               </S.TitleRow>
               <Divider />
               {items[MISC_CATEGORY].map(item => (
-                <ItemRow key={item.lineItem.id} item={item} onEdit={editItem} onDelete={getLineItems} />
+                <ItemRow
+                  key={item.lineItem.id}
+                  item={item}
+                  readOnly={readOnly}
+                  onEdit={editItem}
+                  onDelete={getLineItems}
+                />
               ))}
             </>
           )}

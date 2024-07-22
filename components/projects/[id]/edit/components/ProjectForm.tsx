@@ -1,9 +1,20 @@
 import type { Project } from '@prisma/client';
-import { Input, Typography, Slider, Alert } from 'antd';
-import { InputNumber, Form, Select } from 'antd';
-import { Button, Radio } from 'antd';
+import {
+  Button,
+  InputNumber,
+  Form,
+  Select,
+  Radio,
+  InputRef,
+  Checkbox,
+  Input,
+  Typography,
+  Slider,
+  Alert,
+  Card
+} from 'antd';
 import type { Store } from 'antd/lib/form/interface';
-import { useState } from 'react';
+import { useRef, useEffect, useState } from 'react';
 
 import type { DashboardUser } from 'interfaces';
 import { STATES } from 'lib/calculator/constants/utilities';
@@ -89,11 +100,18 @@ export type ProjectMetadata = {
   whereIsFoodPrepared: (typeof WhereFoodIsPrepared)[number];
 };
 
-type Props = { org: DashboardUser['org']; project?: Project; onComplete: (values: ProjectInput) => void };
+type Props = {
+  actionLabel: string;
+  org: DashboardUser['org'];
+  project?: Project;
+  template?: Pick<Project, 'name'>;
+  onComplete: (values: ProjectInput) => void;
+};
 
-export function ProjectForm({ org, project, onComplete }: Props) {
+export function ProjectForm({ actionLabel, org, project, template, onComplete }: Props) {
   // disable save button if there are no updates or there are errors
   const [form] = Form.useForm();
+  const autofocusRef = useRef<InputRef>(null);
   const [disabledSave, setDisabledSave] = useState(true);
   function handleFormChange() {
     const hasErrors = form.getFieldsError().some(({ errors }) => errors.length);
@@ -101,6 +119,8 @@ export function ProjectForm({ org, project, onComplete }: Props) {
   }
 
   const [showCustomUtilities, setShowCustomUtilities] = useState(project ? !project?.USState : false);
+
+  const isUpstream = org.isUpstream;
 
   function toggleCustomUtilities(value: boolean) {
     setShowCustomUtilities(value);
@@ -112,6 +132,8 @@ export function ProjectForm({ org, project, onComplete }: Props) {
     currency = null,
     USState = null,
     utilityRates = null,
+    isTemplate,
+    templateDescription,
     ...metadata
   }: Store) {
     const params: ProjectInput = {
@@ -122,6 +144,8 @@ export function ProjectForm({ org, project, onComplete }: Props) {
       USState,
       currency,
       utilityRates,
+      isTemplate,
+      templateDescription,
       orgId: org.id
     };
 
@@ -137,6 +161,12 @@ export function ProjectForm({ org, project, onComplete }: Props) {
   // make some inputs vertical so that nested layout for custom utilities can be horizontal: https://stackoverflow.com/questions/64451233/how-to-set-the-layout-horizontal-inside-for-few-form-item-while-keeping-for
   const verticalLayout = { labelCol: { span: 24 } };
 
+  useEffect(() => {
+    if (autofocusRef.current && !project?.name) {
+      autofocusRef.current.focus();
+    }
+  }, [autofocusRef]);
+
   if (org.accounts.length === 0) {
     return <Alert message='You need to create an account before you can create a project' type='error' showIcon />;
   }
@@ -146,6 +176,16 @@ export function ProjectForm({ org, project, onComplete }: Props) {
       <div style={{ textAlign: 'center' }}>
         <Typography.Title level={1}>Setup your project</Typography.Title>
       </div>
+      {/* <Alert message={`Using the template "${template?.name}"`} /> */}
+      {template && (
+        <>
+          <Typography.Title level={4}>Template</Typography.Title>
+          <Typography.Paragraph>"{template?.name}"</Typography.Paragraph>
+        </>
+      )}
+      {/* <Form.Item>
+        <Input value={template?.name} style={{ pointerEvents: 'none' }} />
+      </Form.Item> */}
       <Typography.Title level={4}>Project Info</Typography.Title>
       <Form
         form={form}
@@ -173,7 +213,7 @@ export function ProjectForm({ org, project, onComplete }: Props) {
             }
           ]}
         >
-          <Input placeholder='Project Name' />
+          <Input ref={autofocusRef} placeholder={project?.name || 'Project Name'} />
         </Form.Item>
 
         <Form.Item
@@ -353,9 +393,20 @@ export function ProjectForm({ org, project, onComplete }: Props) {
           </Select>
         </Form.Item>
 
+        {isUpstream && !project?.templateId && (
+          <Card bordered={false} title='Template settings' style={{ marginBottom: '1em' }}>
+            <Form.Item name='isTemplate' valuePropName='checked'>
+              <Checkbox>Make template</Checkbox>
+            </Form.Item>
+            <Form.Item labelCol={{ span: 24 }} label='Template description' name='templateDescription'>
+              <Input.TextArea />
+            </Form.Item>
+          </Card>
+        )}
+
         <Form.Item>
           <Button disabled={disabledSave} type='primary' htmlType='submit' block>
-            {project ? 'Update Project' : 'Add project'}
+            {actionLabel}
           </Button>
         </Form.Item>
       </Form>

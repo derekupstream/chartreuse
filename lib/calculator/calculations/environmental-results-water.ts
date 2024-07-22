@@ -35,9 +35,12 @@ export function getannualWaterUsageChanges(project: ProjectInventory): AnnualWat
         frequency: 'Annually'
       })
     );
-  const lineItemResults = [...lineItems, ...reusableLineItems].reduce((sum, item) => {
-    return getChangeSummaryRow(sum.baseline + item.total.baseline, sum.forecast + item.total.forecast);
-  }, getChangeSummaryRow(0, 0));
+  const lineItemResults = [...lineItems, ...reusableLineItems].reduce(
+    (sum, item) => {
+      return getChangeSummaryRow(sum.baseline + item.total.baseline, sum.forecast + item.total.forecast);
+    },
+    getChangeSummaryRow(0, 0)
+  );
 
   const dishwashing = getDishwasherWaterUsage(project.dishwashers);
 

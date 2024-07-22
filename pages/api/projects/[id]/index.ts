@@ -29,8 +29,19 @@ async function deleteProject(req: NextApiRequestWithUser, res: NextApiResponse<R
 }
 
 async function updateProject(req: NextApiRequestWithUser, res: NextApiResponse<Response>) {
-  const { name, metadata, accountId, USState, orgId, currency, utilityRates, budget, singleUseReductionPercentage } =
-    req.body;
+  const {
+    name,
+    metadata,
+    accountId,
+    USState,
+    orgId,
+    currency,
+    utilityRates,
+    budget,
+    singleUseReductionPercentage,
+    isTemplate,
+    templateDescription
+  } = req.body;
 
   if (USState) {
     if (utilityRates) {
@@ -58,6 +69,8 @@ async function updateProject(req: NextApiRequestWithUser, res: NextApiResponse<R
       currency,
       utilityRates: utilityRates || Prisma.JsonNull,
       budget,
+      isTemplate: isTemplate,
+      templateDescription: templateDescription || undefined,
       singleUseReductionPercentage,
       account: {
         connect: {

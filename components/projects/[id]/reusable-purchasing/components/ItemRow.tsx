@@ -19,13 +19,14 @@ interface Props {
   item: ReusableItemRecord;
   onDelete(): void;
   onEdit: (item: ReusableItemRecord) => void;
+  readOnly: boolean;
 }
 
 interface deleteResponse {
   lineItem: ReusableLineItem;
 }
 
-export const ItemRow: FC<Props> = ({ item, onEdit, onDelete }) => {
+export const ItemRow: FC<Props> = ({ item, onEdit, onDelete, readOnly }) => {
   const onClickConfirm = async () => {
     const url = `/api/projects/${item.lineItem.projectId}/reusable-items`;
     try {
@@ -43,19 +44,28 @@ export const ItemRow: FC<Props> = ({ item, onEdit, onDelete }) => {
     <StyledInfoRow>
       <Col span={8}>
         <Typography.Title level={5}>{item.lineItem.productName || item.product?.description}</Typography.Title>
-        <a
-          href='#'
-          onClick={e => {
-            onEdit(item);
-            e.preventDefault();
-          }}
-        >
-          Edit
-        </a>
-        <Typography.Text style={{ opacity: '.25' }}> | </Typography.Text>
-        <Popconfirm title='Are you sure to delete this item?' onConfirm={onClickConfirm} okText='Yes' cancelText='No'>
-          <a href='#'>Delete</a>
-        </Popconfirm>
+        {!readOnly && (
+          <>
+            <a
+              href='#'
+              onClick={e => {
+                onEdit(item);
+                e.preventDefault();
+              }}
+            >
+              Edit
+            </a>
+            <Typography.Text style={{ opacity: '.25' }}> | </Typography.Text>
+            <Popconfirm
+              title='Are you sure to delete this item?'
+              onConfirm={onClickConfirm}
+              okText='Yes'
+              cancelText='No'
+            >
+              <a href='#'>Delete</a>
+            </Popconfirm>
+          </>
+        )}
       </Col>
       <Col span={8}>
         <InitialCosts item={item.lineItem} />

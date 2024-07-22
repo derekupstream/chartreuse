@@ -6,7 +6,7 @@ import {
   signInWithPopup,
   createUserWithEmailAndPassword,
   setPersistence,
-  browserSessionPersistence
+  browserLocalPersistence
 } from 'firebase/auth';
 import { setCookie, destroyCookie } from 'nookies';
 import { createContext, useEffect, useState, useCallback } from 'react';
@@ -44,7 +44,10 @@ export const AuthProvider: React.FC<{ children: any }> = ({ children }) => {
   useEffect(() => {
     const unsubscribe = onIdTokenChanged(auth, async (_firebaseUser: FirebaseUser | null) => {
       const emailIsBlacklisted = _firebaseUser?.email && isBlacklistedEmail(_firebaseUser.email);
+
       if (!_firebaseUser || emailIsBlacklisted) {
+        console.log('TODO: Log user out');
+        // for some reason, _firebaseUser is null when the user is logged out
         setFirebaseUser(null);
         destroyCookie(null, 'token', {
           path: '/' // setting path is required or this wont work
@@ -55,7 +58,6 @@ export const AuthProvider: React.FC<{ children: any }> = ({ children }) => {
         }
         return;
       }
-      console.log('Log user in');
 
       setFirebaseUser(_firebaseUser);
       const token = await _firebaseUser.getIdToken();
@@ -69,10 +71,13 @@ export const AuthProvider: React.FC<{ children: any }> = ({ children }) => {
 
   // force refresh the token every 10 minutes
   useEffect(() => {
-    const handle = setInterval(async () => {
-      const user = auth.currentUser;
-      if (user) await user.getIdToken(true);
-    }, 10 * 60 * 1000);
+    const handle = setInterval(
+      async () => {
+        const user = auth.currentUser;
+        if (user) await user.getIdToken(true);
+      },
+      10 * 60 * 1000
+    );
 
     // clean up setInterval
     return () => clearInterval(handle);
@@ -80,15 +85,16 @@ export const AuthProvider: React.FC<{ children: any }> = ({ children }) => {
 
   const login = useCallback(async ({ email, password }: Credentials, persist: boolean) => {
     assertEmailIsNotBlacklisted(email);
+    console.log('LOGIN', { email, password, persist });
     if (!persist) {
-      await setPersistence(auth, browserSessionPersistence);
+      await setPersistence(auth, browserLocalPersistence);
     }
     return signInWithEmailAndPassword(auth, email, password);
   }, []);
 
   const loginWithProvider = useCallback(async (provider: FirebaseAuthProvider, persist: boolean) => {
     if (!persist) {
-      await setPersistence(auth, browserSessionPersistence);
+      await setPersistence(auth, browserLocalPersistence);
     }
     return signInWithPopup(auth, provider);
   }, []);
@@ -96,7 +102,7 @@ export const AuthProvider: React.FC<{ children: any }> = ({ children }) => {
   const signup = useCallback(async ({ email, password }: Credentials, persist: boolean) => {
     assertEmailIsNotBlacklisted(email);
     if (!persist) {
-      await setPersistence(auth, browserSessionPersistence);
+      await setPersistence(auth, browserLocalPersistence);
     }
     return createUserWithEmailAndPassword(auth, email, password);
   }, []);

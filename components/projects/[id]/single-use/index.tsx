@@ -26,9 +26,10 @@ import SingleUseForm from './SingleUseForm';
 type ServerSideProps = {
   project: Project;
   user: DashboardUser;
+  readOnly: boolean;
 };
 
-export default function SingleUsePage({ project }: ServerSideProps) {
+export default function SingleUsePage({ project, readOnly }: ServerSideProps) {
   const [formStep, setFormStep] = useState<number>(1);
   const [isDrawerVisible, setIsDrawerVisible] = useState<boolean>(false);
   const [lineItem, setLineItem] = useState<SingleUseLineItem | null>(null);
@@ -124,7 +125,7 @@ export default function SingleUsePage({ project }: ServerSideProps) {
     <S.Wrapper>
       <div style={{ display: 'flex', justifyContent: 'space-between' }}>
         <Typography.Title level={1}>Single-use purchasing</Typography.Title>
-        {hasItems && (
+        {hasItems && !readOnly && (
           <Button
             type='primary'
             onClick={addItem}
@@ -143,7 +144,7 @@ export default function SingleUsePage({ project }: ServerSideProps) {
         <ContentLoader />
       ) : (
         <>
-          {!hasItems && (
+          {!hasItems && !readOnly && (
             <EmptyState
               label='Add a single-use item'
               message={`You have no single-use items yet. Click '+ Add a single-use item' above to get started.`}
@@ -160,7 +161,13 @@ export default function SingleUsePage({ project }: ServerSideProps) {
                   </S.TitleRow>
                   <Divider />
                   {items[category.id].map(item => (
-                    <ItemRow key={item.lineItem.id} item={item} onEdit={editItem} onDelete={getLineItems} />
+                    <ItemRow
+                      key={item.lineItem.id}
+                      item={item}
+                      onEdit={editItem}
+                      onDelete={getLineItems}
+                      readOnly={readOnly}
+                    />
                   ))}
                 </div>
               )
