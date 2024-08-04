@@ -62,6 +62,7 @@ async function query() {
         id: id
       },
       data: {
+        // @ts-ignore
         ...(fields[id] as any),
         updatedAt: new Date()
       }
