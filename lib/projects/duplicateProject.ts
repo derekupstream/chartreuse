@@ -38,6 +38,8 @@ export async function duplicateProject({
   const newProject = await prisma.project.create({
     data: {
       ...project,
+      createdAt: new Date(),
+      updatedAt: new Date(),
       name: !project.isTemplate ? name + (skipCopySuffix ? '' : ' (Copy)') : '',
       accountId: targetAccountId,
       metadata: project.metadata as any,
