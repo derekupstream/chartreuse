@@ -6,7 +6,7 @@ import type { NextApiRequestWithUser } from './getUser';
 
 // this method requires getUser middleware to be run first
 export async function validateProject(req: NextApiRequestWithUser, res: NextApiResponse, next: () => void) {
-  const projectId = (req.query.projectId || req.body.projectId || req.query.id) as string;
+  const projectId = (req.query.projectId || req.body.projectId || req.query.id || req.body.id) as string;
   if (!projectId) {
     res.status(400).send('Missing projectId');
     return;
