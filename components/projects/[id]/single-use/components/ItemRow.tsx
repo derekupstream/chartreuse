@@ -4,7 +4,8 @@ import { getAnnualOccurrence } from 'lib/calculator/constants/frequency';
 import chartreuseClient from 'lib/chartreuseClient';
 import type { SingleUseProduct } from 'lib/inventory/types/products';
 import type { SingleUseLineItem } from 'lib/inventory/types/projects';
-
+import { PRODUCT_TYPES_MAP } from 'lib/calculator/constants/product-types';
+import { MATERIAL_MAP } from 'lib/calculator/constants/materials';
 import * as S from '../../styles';
 
 export type SingleUseItemRecord = {
@@ -119,7 +120,12 @@ export const ItemRow = ({
   return (
     <S.InfoRow>
       <Col span={8}>
-        <Typography.Title level={5}>{item.product.description}</Typography.Title>
+        <Typography.Title level={5} style={{ marginBottom: '0.5em' }}>
+          {PRODUCT_TYPES_MAP[item.product.type]}
+        </Typography.Title>
+        <Typography.Paragraph style={{ fontSize: 12 }}>
+          {MATERIAL_MAP[item.product.primaryMaterial]}
+        </Typography.Paragraph>
         {!readOnly && (
           <>
             <a

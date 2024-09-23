@@ -45,3 +45,11 @@ export const PRODUCT_TYPES = [
   { id: 41, name: 'Drink Tray' }, // added for Taco Bell
   { id: 42, name: 'Misc.' } // added for Taco Bell
 ] as const;
+
+export const PRODUCT_TYPES_MAP = PRODUCT_TYPES.reduce(
+  (acc, product) => {
+    acc[product.id] = product.name;
+    return acc;
+  },
+  {} as Record<number, string>
+);

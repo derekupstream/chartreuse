@@ -135,3 +135,11 @@ export const REUSABLE_MATERIALS = [
 export type ReusableMaterial = (typeof MATERIALS)[number];
 
 export const ALL_MATERIALS = [...MATERIALS, ...REUSABLE_MATERIALS] as const;
+
+export const MATERIAL_MAP = ALL_MATERIALS.reduce(
+  (acc, material) => {
+    acc[material.id] = material.name;
+    return acc;
+  },
+  {} as Record<number, string>
+);

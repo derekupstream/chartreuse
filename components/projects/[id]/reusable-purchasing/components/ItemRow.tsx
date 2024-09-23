@@ -1,6 +1,8 @@
 import { Col, message, Popconfirm, Row, Typography } from 'antd';
 import type { FC } from 'react';
 
+import { PRODUCT_TYPES_MAP } from 'lib/calculator/constants/product-types';
+import { MATERIAL_MAP } from 'lib/calculator/constants/materials';
 import { DELETE } from 'lib/http';
 import type { ReusableProduct } from 'lib/inventory/types/products';
 import type { ReusableLineItem } from 'lib/inventory/types/projects';
@@ -43,7 +45,13 @@ export const ItemRow: FC<Props> = ({ item, onEdit, onDelete, readOnly }) => {
   return (
     <StyledInfoRow>
       <Col span={8}>
-        <Typography.Title level={5}>{item.lineItem.productName || item.product?.description}</Typography.Title>
+        <Typography.Title level={5} style={{ marginBottom: '0.5em' }}>
+          {item.product && PRODUCT_TYPES_MAP[item.product.type]}
+        </Typography.Title>
+        <Typography.Paragraph style={{ fontSize: 12 }}>
+          {item.product && MATERIAL_MAP[item.product.primaryMaterial]}
+        </Typography.Paragraph>
+        {/* <Typography.Title level={5}>{item.lineItem.productName || item.product?.description}</Typography.Title> */}
         {!readOnly && (
           <>
             <a
