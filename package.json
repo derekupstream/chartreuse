@@ -30,7 +30,7 @@
     "antd": "^4.19.3",
     "date-fns": "^2.29.3",
     "exceljs": "^4.3.0",
-    "firebase": "^9.22.0",
+    "firebase": "^10.9.0",
     "firebase-admin": "^11.8.0",
     "form-data": "^4.0.0",
     "less-loader": "^11.1.0",
