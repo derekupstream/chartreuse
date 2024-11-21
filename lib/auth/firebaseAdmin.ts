@@ -1,6 +1,12 @@
 import admin from 'firebase-admin';
 
-export const verifyIdToken = (token: string) => {
+export const verifyIdToken = async (token?: string): Promise<{ uid: string }> => {
+  if (typeof process.env.NEXT_PUBLIC_REMOTE_USER_ID === 'string') {
+    return { uid: process.env.NEXT_PUBLIC_REMOTE_USER_ID };
+  }
+  if (!token) {
+    throw new Error('Request requires authentication');
+  }
   if (!admin.apps.length) {
     admin.initializeApp({
       credential: admin.credential.cert({

@@ -11,13 +11,10 @@ export async function getUserFromContext<T extends Partial<Prisma.UserInclude> =
   context: GetServerSidePropsContext,
   dataToInclude: T = null as unknown as T
 ) {
-  let token: DecodedIdToken;
+  let token: { uid: string };
   const cookies = nookies.get(context);
 
   try {
-    if (!cookies.token) {
-      throw new Error('Request requires authentication');
-    }
     token = await verifyIdToken(cookies.token);
   } catch (error) {
     console.warn('Error retrieving user from cookie:', error);

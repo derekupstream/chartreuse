@@ -45,6 +45,11 @@ export const AuthProvider: React.FC<{ children: any }> = ({ children }) => {
     const unsubscribe = onIdTokenChanged(auth, async (_firebaseUser: FirebaseUser | null) => {
       const emailIsBlacklisted = _firebaseUser?.email && isBlacklistedEmail(_firebaseUser.email);
 
+      if (process.env.NEXT_PUBLIC_REMOTE_USER_ID) {
+        // ignore firebase auth for remote user
+        return;
+      }
+
       if (!_firebaseUser || emailIsBlacklisted) {
         console.log('TODO: Log user out');
         // for some reason, _firebaseUser is null when the user is logged out

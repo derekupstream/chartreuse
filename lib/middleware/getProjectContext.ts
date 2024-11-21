@@ -37,9 +37,6 @@ export const UserDataToInclude = {
 export const getProjectContext: GetServerSideProps = async context => {
   try {
     const cookies = nookies.get(context);
-    if (!cookies.token) {
-      throw new Error('Request requires authentication');
-    }
     const token = await verifyIdToken(cookies.token);
 
     const user = await prisma.user.findUnique({
