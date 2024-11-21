@@ -30,7 +30,7 @@ export function getSingleUseProductSummary(
 ): ProductForecastResults['summary'] {
   const baseline = singleUseItems.reduce<PurchasingSummaryColumn>(
     (column, item) => {
-      const { caseCost, casesPurchased, frequency, product } = item;
+      const { caseCost, casesPurchased, frequency, product, unitsPerCase } = item;
 
       const annualCost = annualLineItemCost({
         caseCost,
@@ -39,7 +39,7 @@ export function getSingleUseProductSummary(
       });
 
       const annualUnits =
-        product.unitsPerCase *
+        unitsPerCase *
         annualLineItemCaseCount({
           casesPurchased,
           frequency
@@ -68,14 +68,14 @@ export function getSingleUseProductSummary(
 
   const forecast = singleUseItems.reduce<PurchasingSummaryColumn>(
     (column, item) => {
-      const { newCaseCost: caseCost, newCasesPurchased: casesPurchased, frequency, product } = item;
+      const { newCaseCost: caseCost, newCasesPurchased: casesPurchased, frequency, unitsPerCase } = item;
       const annualCost = annualLineItemCost({
         caseCost,
         casesPurchased,
         frequency
       });
       const annualUnits =
-        product.unitsPerCase *
+        unitsPerCase *
         annualLineItemCaseCount({
           casesPurchased,
           frequency

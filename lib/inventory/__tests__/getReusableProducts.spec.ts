@@ -14,8 +14,7 @@ describe('Predictions Calculator: Spreadsheet results from Upstream', () => {
       secondaryMaterial: 0,
       secondaryMaterialWeightPerUnit: 0,
       size: '8 oz',
-      type: 0,
-      unitsPerCase: 12
+      type: 0
     });
   });
 });

@@ -90,7 +90,7 @@ function csvRowToSingleUseProduct(csvProduct: CSVRow): SingleUseProduct {
     description: csvProduct['Description'],
     type: type.id,
     itemWeight,
-    unitsPerCase,
+    //unitsPerCase,
     primaryMaterial: material1.id,
     primaryMaterialWeightPerUnit,
     secondaryMaterial: material2?.id || 0,

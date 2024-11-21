@@ -36,14 +36,14 @@ export function getReusableProductSummary(
       if (!item.product) {
         return column;
       }
-      const { caseCost, casesPurchased, product } = item;
+      const { caseCost, casesPurchased, unitsPerCase } = item;
       const annualCost = annualLineItemCost({
         caseCost,
         casesPurchased,
         frequency: 'Annually'
       });
       const annualUnits =
-        product.unitsPerCase *
+        unitsPerCase *
         annualLineItemCaseCount({
           casesPurchased,
           frequency: 'Annually'
@@ -76,7 +76,7 @@ export function getReusableProductSummary(
       if (!item.product) {
         return column;
       }
-      const { newCaseCost: caseCost, newCasesPurchased: casesPurchased, product } = item;
+      const { newCaseCost: caseCost, newCasesPurchased: casesPurchased, unitsPerCase } = item;
 
       const annualCost = annualLineItemCost({
         caseCost,
@@ -85,7 +85,7 @@ export function getReusableProductSummary(
       });
 
       const annualUnits =
-        product.unitsPerCase *
+        unitsPerCase *
         annualLineItemCaseCount({
           casesPurchased,
           frequency: 'Annually'

@@ -19,7 +19,8 @@ export function getAnnualWasteChanges(project: ProjectInventory): AnnualWasteRes
     ...project.singleUseItems.map(item => ({
       casesPurchased: item.casesPurchased,
       product: item.product,
-      frequency: item.frequency
+      frequency: item.frequency,
+      unitsPerCase: item.unitsPerCase
     }))
     // dont count 'baseline' of reusable items against this year's waste
     // ...project.reusableItems
@@ -36,14 +37,16 @@ export function getAnnualWasteChanges(project: ProjectInventory): AnnualWasteRes
     ...project.singleUseItems.map(item => ({
       casesPurchased: item.newCasesPurchased,
       product: item.product,
-      frequency: item.frequency
+      frequency: item.frequency,
+      unitsPerCase: item.unitsPerCase
     })),
     ...project.reusableItems
       .filter(item => !!item.product)
       .map(item => ({
         casesPurchased: item.newCasesPurchased,
         product: item.product as ReusableProduct,
-        frequency: 'Annually' as const
+        frequency: 'Annually' as const,
+        unitsPerCase: item.unitsPerCase
       }))
   ];
 
@@ -72,7 +75,7 @@ type AnnualWaste = {
 };
 
 function getAnnualWaste(
-  lineItems: { casesPurchased: number; frequency: Frequency; product: SingleUseProduct }[]
+  lineItems: { casesPurchased: number; frequency: Frequency; product: SingleUseProduct; unitsPerCase: number }[]
 ): AnnualWaste {
   return lineItems.reduce<AnnualWaste>(
     (sums, lineItem) => {
@@ -81,7 +84,7 @@ function getAnnualWaste(
       const annualWeight = annualLineItemWeight(
         lineItem.casesPurchased,
         annualOccurrence,
-        product.unitsPerCase,
+        lineItem.unitsPerCase,
         product.itemWeight
       );
       const boxAnnualWeight = lineItem.casesPurchased * product.boxWeight * annualOccurrence;

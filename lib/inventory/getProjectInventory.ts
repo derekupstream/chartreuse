@@ -114,6 +114,11 @@ function mapSingleUseItem(
   }
 
   const category = PRODUCT_CATEGORIES.find(c => c.id === product.category);
+  console.log(
+    singleUseItem.casesPurchased,
+    singleUseItem.unitsPerCase,
+    singleUseItem.casesPurchased * singleUseItem.unitsPerCase
+  );
   return {
     ...singleUseItem,
     categoryName: category?.name ?? 'N/A',

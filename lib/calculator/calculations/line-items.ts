@@ -159,13 +159,13 @@ function getDetailedLineItemResults(singleUseItems: LineItemInput[]): ProductDet
     const annualWeight = annualLineItemWeight(
       lineItem.casesPurchased,
       annualOccurrence,
-      product.unitsPerCase,
+      lineItem.unitsPerCase,
       product.primaryMaterialWeightPerUnit
     );
     const forecastAnnualWeight = annualLineItemWeight(
       lineItem.newCasesPurchased,
       annualOccurrence,
-      product.unitsPerCase,
+      lineItem.unitsPerCase,
       product.primaryMaterialWeightPerUnit
     );
 
