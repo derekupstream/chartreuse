@@ -3,18 +3,38 @@ import prisma from 'lib/prisma';
 import { getSharedProjections } from 'lib/share/getSharedProjections';
 
 async function query() {
-  // const r = await getProjections('a3bba2e5-3881-4f29-8de4-c7c45be3f1f9');
-  // console.log(r);
-  // const result = await getSharedProjections('pepsi');
-  // console.log(result.projects.map(p => p?.project));
-  await prisma.project.update({
+  // const r = await getProjections('4627641a-1642-4445-be25-79d5da221508');
+  // console.log(JSON.stringify(r, null, 2));
+
+  const project = await prisma.project.findFirst({
     where: {
-      id: 'c6a8a8fa-ca6f-4bb6-a0f7-a978676c0201'
+      id: 'e370a2a1-7997-457a-95e5-8c8b2fa4e91f'
     },
-    data: {
-      templateDescription: '- 150 customers a day\n- Using dishwasher\n- Mostly take-out'
+    include: {
+      org: {
+        include: {
+          users: true
+        }
+      }
     }
   });
+  console.log(JSON.stringify(project, null, 2));
+
+  // const result = await getSharedProjections('pepsi');
+  // console.log(result.projects.map(p => p?.project));
+  // const project = await prisma.project.findFirst({
+  //   where: {
+  //     id: '4627641a-1642-4445-be25-79d5da221508'
+  //   },
+  //   include: {
+  //     org: {
+  //       include: {
+  //         users: true
+  //       }
+  //     }
+  //   }
+  // });
+  // console.log(JSON.stringify(project, null, 2));
   // const org = await prisma.org.findFirst({
   //   where: {
   //     name: 'Staging'

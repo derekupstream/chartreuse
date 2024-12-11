@@ -11,7 +11,7 @@ export async function getUserFromContext<T extends Partial<Prisma.UserInclude> =
   context: GetServerSidePropsContext,
   dataToInclude: T = null as unknown as T
 ) {
-  let token: { uid: string };
+  let token: { uid: string; email?: string };
   const cookies = nookies.get(context);
 
   try {

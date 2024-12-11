@@ -10,7 +10,7 @@ import prisma from 'lib/prisma';
 export type ProjectContext = {
   user: DashboardUser;
   readOnly: boolean; // useful for templates
-  project: Project & { org: { name: string }; account: { name: string } };
+  project: Project & { org: { isUpstream: boolean; name: string }; account: { name: string } };
 };
 
 export const UserDataToInclude = {
@@ -66,6 +66,7 @@ export const getProjectContext: GetServerSideProps = async context => {
         },
         org: {
           select: {
+            isUpstream: true,
             name: true
           }
         }

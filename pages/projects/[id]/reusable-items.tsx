@@ -19,7 +19,7 @@ function ReusablesPurchasingPage({ project, user, readOnly }: ProjectContext) {
 
   return (
     <ProjectStepsLayout currentStepIndex={2} project={project} title={`${project.name} - Reusable Items`} user={user}>
-      <ReusablesPurchasing readOnly={readOnly} />
+      <ReusablesPurchasing readOnly={readOnly} isUpstream={!!project.org.isUpstream} />
     </ProjectStepsLayout>
   );
 }

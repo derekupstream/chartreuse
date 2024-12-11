@@ -7,8 +7,8 @@ import { getChangeSummaryRow } from '../utils';
 import { getDishwasherGasEmissions, getLineItemGasEmissions } from './environmental-results-gas';
 import { getDishwasherWaterUsage } from './environmental-results-water';
 import { getLineItemWaterUsage } from './environmental-results-water';
-import type { PurchasingSummaryColumn, ProductForecastResults } from './line-items';
-import { getResultsByType, annualLineItemCost, annualLineItemCaseCount } from './line-items';
+import type { PurchasingSummaryColumn, ProductForecastResults } from './lineItemUtils';
+import { getResultsByType, annualLineItemCost, annualLineItemCaseCount } from './lineItemUtils';
 
 export function getReusableResults(inventory: ProjectInventory): ProductForecastResults {
   const summary = getReusableProductSummary(inventory.reusableItems, inventory.dishwashers);

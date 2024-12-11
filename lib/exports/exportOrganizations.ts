@@ -11,7 +11,7 @@ import type {
 } from '@prisma/client';
 import ExcelJS from 'exceljs';
 
-import { getDishwasherStats } from 'lib/calculator/calculations/dishwasher';
+import { getDishwasherStats } from 'lib/calculator/calculations/getDishwasherStats';
 import { poundsToTons } from 'lib/calculator/constants/conversions';
 import type { Frequency } from 'lib/calculator/constants/frequency';
 import { getAnnualOccurrence } from 'lib/calculator/constants/frequency';

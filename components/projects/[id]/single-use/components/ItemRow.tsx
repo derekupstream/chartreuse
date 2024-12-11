@@ -124,7 +124,7 @@ export const ItemRow = ({
           {PRODUCT_TYPES_MAP[item.product.type]}
         </Typography.Title>
         <Typography.Paragraph style={{ fontSize: 12 }}>
-          {MATERIAL_MAP[item.product.primaryMaterial]}
+          {MATERIAL_MAP[item.product.primaryMaterial]?.name}
         </Typography.Paragraph>
         {!readOnly && (
           <>

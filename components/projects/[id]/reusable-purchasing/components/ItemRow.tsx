@@ -1,7 +1,7 @@
 import { Col, message, Popconfirm, Row, Typography } from 'antd';
 import type { FC } from 'react';
 
-import { PRODUCT_TYPES_MAP } from 'lib/calculator/constants/product-types';
+import { PRODUCT_TYPES_MAP } from 'lib/calculator/constants/reusable-product-types';
 import { MATERIAL_MAP } from 'lib/calculator/constants/materials';
 import { DELETE } from 'lib/http';
 import type { ReusableProduct } from 'lib/inventory/types/products';
@@ -49,7 +49,7 @@ export const ItemRow: FC<Props> = ({ item, onEdit, onDelete, readOnly }) => {
           {item.product && PRODUCT_TYPES_MAP[item.product.type]}
         </Typography.Title>
         <Typography.Paragraph style={{ fontSize: 12 }}>
-          {item.product && MATERIAL_MAP[item.product.primaryMaterial]}
+          {item.product && MATERIAL_MAP[item.product.primaryMaterial]?.name}
         </Typography.Paragraph>
         {/* <Typography.Title level={5}>{item.lineItem.productName || item.product?.description}</Typography.Title> */}
         {!readOnly && (

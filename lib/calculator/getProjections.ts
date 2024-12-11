@@ -1,10 +1,10 @@
 import { getProjectInventory } from '../inventory/getProjectInventory';
 
-import { getAnnualSummary } from './calculations/annual-summary';
-import { getEnvironmentalResults } from './calculations/environmental-results';
-import { getFinancialResults } from './calculations/financial-results';
-import { getReusableResults } from './calculations/line-items-reusable';
-import { getSingleUseResults } from './calculations/line-items-single-use';
+import { getAnnualSummary } from './calculations/getAnnualSummary';
+import { getEnvironmentalResults } from './calculations/getEnvironmentalResults';
+import { getFinancialResults } from './calculations/getFinancialResults';
+import { getReusableResults } from './calculations/getReusableResults';
+import { getSingleUseResults } from './calculations/getSingleUseResults';
 
 export type ProjectionsResponse = Awaited<ReturnType<typeof getProjections>>;
 

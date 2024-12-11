@@ -1,6 +1,6 @@
 import { Radio, Table, Typography } from 'antd';
 import type { ReactNode } from 'react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { Spacer } from 'components/common/Spacer';
 import type { ProjectionsResponse } from 'lib/calculator/getProjections';
@@ -63,6 +63,8 @@ export const LineItemDetails: React.FC<Props> = ({ lineItemSummary, variant, sho
   const [rowType, setRowType] = useState<RowType>('productType');
   const [changeType, setChangeType] = useState<ChangeType>('cost');
   const [useTons, setUseTons] = useState(false);
+
+  const hideCost = rowType === 'material';
 
   function changeRowType(e: any) {
     setRowType(e.target.value);
@@ -153,6 +155,13 @@ export const LineItemDetails: React.FC<Props> = ({ lineItemSummary, variant, sho
     };
   });
 
+  // if cost is hidden, default to waste when rowType changes
+  useEffect(() => {
+    if (hideCost && changeType === 'cost') {
+      setChangeType('waste');
+    }
+  }, [hideCost, changeType, rowType]);
+
   return (
     <SectionContainer>
       {showTitle && (
@@ -206,7 +215,7 @@ export const LineItemDetails: React.FC<Props> = ({ lineItemSummary, variant, sho
         <Body>
           <Section style={hideWaterUsage ? { width: '100%' } : {}}>
             <KPIContent
-              changePercent={annualGHG.changePercent * -1}
+              changePercent={annualGHG.changePercent === 0 ? 0 : annualGHG.changePercent * -1}
               changeStr={changeValue(annualGHG.change * -1) + ' MTCO2e'}
             />
             {/* <ChartTitle>Annual {title} total changes</ChartTitle> */}
@@ -244,9 +253,9 @@ export const LineItemDetails: React.FC<Props> = ({ lineItemSummary, variant, sho
           <CardTitle>{titleByChangeType[changeType]}</CardTitle>
           <Row $marginBottom={15}>
             <Label>View change in</Label>
-            <Radio.Group defaultValue='cost' buttonStyle='solid' onChange={changeChangeType}>
+            <Radio.Group value={changeType} buttonStyle='solid' onChange={changeChangeType}>
               {Object.entries(titleByChangeType)
-                .filter(([value]) => (hideWaterUsage ? value !== 'water' : true))
+                .filter(([value]) => (hideWaterUsage ? value !== 'water' : hideCost ? value !== 'cost' : true))
                 .map(([value, label]) => (
                   <Radio.Button key={value} value={value}>
                     {label}

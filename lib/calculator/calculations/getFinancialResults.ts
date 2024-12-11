@@ -3,7 +3,7 @@ import { ANNUAL_DISHWASHER_CONSUMPTION, BUILDING_WATER_HEATER, BOOSTER_WATER_HEA
 import { getAnnualOccurrence } from '../constants/frequency';
 import { getChangeSummaryRowRounded, round } from '../utils';
 
-import { getSingleUseProductSummary } from './line-items-single-use';
+import { getSingleUseProductSummary } from './getSingleUseResults';
 
 interface FinancialResults {
   annualCostChanges: AnnualCostChanges;

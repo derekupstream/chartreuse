@@ -44,3 +44,11 @@ export const PRODUCT_TYPES = [
   { id: 24, name: 'Bowl' },
   { id: 30, name: 'Ramekin' }
 ] as const;
+
+export const PRODUCT_TYPES_MAP = PRODUCT_TYPES.reduce(
+  (acc, product) => {
+    acc[product.id] = product.name;
+    return acc;
+  },
+  {} as Record<number, string>
+);

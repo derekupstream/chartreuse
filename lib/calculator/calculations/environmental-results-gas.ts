@@ -5,16 +5,20 @@ import type {
   SingleUseLineItemPopulated,
   ReusableLineItemPopulatedWithProduct
 } from '../../inventory/types/projects';
-import { NATURAL_GAS_CO2_EMISSIONS_FACTOR, ELECTRIC_CO2_EMISSIONS_FACTOR } from '../constants/carbon-dioxide-emissions';
+import {
+  NATURAL_GAS_CO2_EMISSIONS_FACTOR,
+  ELECTRIC_CO2_EMISSIONS_FACTOR,
+  TRANSPORTATION_CO2_EMISSIONS_FACTOR
+} from '../constants/carbon-dioxide-emissions';
 import { POUND_TO_TONNE } from '../constants/conversions';
 import type { Frequency } from '../constants/frequency';
 import { getAnnualOccurrence } from '../constants/frequency';
-import { CORRUGATED_CARDBOARD_GAS, ALL_MATERIALS } from '../constants/materials';
+import { CORRUGATED_CARDBOARD_GAS, MATERIAL_MAP } from '../constants/materials';
 import type { ChangeSummary } from '../utils';
 import { getChangeSummaryRow, getChangeSummaryRowRounded } from '../utils';
 
-import { dishwasherUtilityUsage } from './financial-results';
-import { annualLineItemWeight } from './line-items';
+import { dishwasherUtilityUsage } from './getFinancialResults';
+import { annualLineItemWeight } from './lineItemUtils';
 
 // all values in MTCO2e
 export type AnnualGasEmissionChanges = {
@@ -23,6 +27,8 @@ export type AnnualGasEmissionChanges = {
   dishwashing: ChangeSummary;
   total: ChangeSummary;
 };
+
+// each product GHG= (material EF*product mass) + (overseas cargo EF *product mass* 19270 nautical miles )
 
 export function getAnnualGasEmissionChanges(project: ProjectInventory): AnnualGasEmissionChanges {
   const lineItems = project.singleUseItems.map(lineItem =>
@@ -148,8 +154,8 @@ export function getLineItemGasEmissions({
 
   // Column AW: shipping box emissions
   const shippingBoxGas = getChangeSummaryRow(
-    annualBoxWeight * CORRUGATED_CARDBOARD_GAS,
-    forecastAnnualBoxWeight * CORRUGATED_CARDBOARD_GAS
+    annualBoxWeight * CORRUGATED_CARDBOARD_GAS + annualBoxWeight * TRANSPORTATION_CO2_EMISSIONS_FACTOR,
+    forecastAnnualBoxWeight * CORRUGATED_CARDBOARD_GAS + forecastAnnualBoxWeight * TRANSPORTATION_CO2_EMISSIONS_FACTOR
   );
 
   // Column: AX
@@ -191,7 +197,7 @@ function calculateMaterialGas(
   material: number,
   weightPerUnit: number
 ): ChangeSummary {
-  const epaWARMAssumption = ALL_MATERIALS.find(m => m.id === material);
+  const epaWARMAssumption = MATERIAL_MAP[material];
   if (!epaWARMAssumption) {
     throw new Error('Could not find EPA Warm assumption for material: ' + material);
   }
@@ -203,7 +209,7 @@ function calculateMaterialGas(
   //   gasReduction = -1 * changeInWeight * epaWARMAssumption.mtco2ePerLb
   // }
   return getChangeSummaryRow(
-    annualWeight * epaWARMAssumption.mtco2ePerLb,
-    forecastAnnualWeight * epaWARMAssumption.mtco2ePerLb
+    annualWeight * epaWARMAssumption.mtco2ePerLb + annualWeight * TRANSPORTATION_CO2_EMISSIONS_FACTOR,
+    forecastAnnualWeight * epaWARMAssumption.mtco2ePerLb + forecastAnnualWeight * TRANSPORTATION_CO2_EMISSIONS_FACTOR
   );
 }

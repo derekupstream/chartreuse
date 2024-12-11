@@ -5,13 +5,13 @@ import type {
 } from '../../inventory/types/projects';
 import type { Frequency } from '../constants/frequency';
 import { getAnnualOccurrence } from '../constants/frequency';
-import { ALL_MATERIALS } from '../constants/materials';
+import { ALL_MATERIALS, MATERIAL_MAP } from '../constants/materials';
 import { CORRUGATED_CARDBOARD_NAME } from '../constants/materials';
 import type { ChangeSummary } from '../utils';
 import { getChangeSummaryRow, getChangeSummaryRowRounded, round } from '../utils';
 
-import { dishwasherUtilityUsage } from './financial-results';
-import { annualLineItemWeight } from './line-items';
+import { dishwasherUtilityUsage } from './getFinancialResults';
+import { annualLineItemWeight } from './lineItemUtils';
 
 export type AnnualWaterResults = {
   landfillWaste: ChangeSummary;
@@ -157,7 +157,7 @@ function calculateMaterialWater(
   material: number,
   weightPerUnit: number
 ): ChangeSummary {
-  const epaWARMAssumption = ALL_MATERIALS.find(m => m.id === material);
+  const epaWARMAssumption = MATERIAL_MAP[material];
   const waterUsageGalPerLb = epaWARMAssumption?.waterUsageGalPerLb;
   if (!waterUsageGalPerLb) {
     throw new Error('Could not find EPA Warm assumption for material: ' + material);

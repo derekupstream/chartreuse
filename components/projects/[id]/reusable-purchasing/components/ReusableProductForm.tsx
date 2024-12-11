@@ -2,7 +2,7 @@ import { Button, Form } from 'antd';
 import { useState, useEffect, useCallback } from 'react';
 import styled from 'styled-components';
 
-import { REUSABLE_MATERIALS } from 'lib/calculator/constants/materials';
+import { REUSABLE_MATERIALS, UPSTREAM_ONLY_MATERIALS } from 'lib/calculator/constants/materials';
 import { PRODUCT_CATEGORIES } from 'lib/calculator/constants/product-categories';
 import { PRODUCT_TYPES } from 'lib/calculator/constants/reusable-product-types';
 import type { ReusableProduct } from 'lib/inventory/types/products';
@@ -35,7 +35,7 @@ type SelectedFeatureOptions = Record<
   string | number | undefined | null
 >;
 
-function getFormValues(features: SelectedFeatureOptions, products: ReusableProduct[]) {
+function getFormValues(features: SelectedFeatureOptions, products: ReusableProduct[], isUpstream: boolean) {
   const categories = PRODUCT_CATEGORIES.filter(category => products.some(p => p.category === category.id));
   let remainingProducts = features.Category ? products.filter(product => product.category === features.Category) : [];
 
@@ -51,8 +51,8 @@ function getFormValues(features: SelectedFeatureOptions, products: ReusableProdu
       : [];
 
   const materials = REUSABLE_MATERIALS.filter(material =>
-    remainingProducts.some(product => product.primaryMaterial === material.id)
-  );
+    isUpstream ? material : !UPSTREAM_ONLY_MATERIALS.includes(material.name)
+  ).filter(material => remainingProducts.some(product => product.primaryMaterial === material.id));
   if (typeof features.Material !== 'number' && materials.length === 1) {
     features.Material = materials[0].id;
   }
@@ -107,21 +107,23 @@ const featureDefaults = {
 export function ReusableProductForm({
   input,
   onSubmit,
-  products
+  products,
+  isUpstream
 }: {
   input?: Partial<Pick<ReusableFormValues, 'productId'>>;
   onSubmit: (productId: string) => void;
   products: ReusableProduct[];
+  isUpstream: boolean;
 }) {
   // get default values if they exist
-  const { productId, features, remainingOptions } = getFormValues(featureDefaults, products);
+  const { productId, features, remainingOptions } = getFormValues(featureDefaults, products, isUpstream);
 
   const [selected, setSelected] = useState<SelectedFeatureOptions>({ ...features, productId });
   const [options, setOptions] = useState<FeatureOptions>(remainingOptions);
 
   const selectFeatures = useCallback(
     (currentFeatures: SelectedFeatureOptions) => {
-      const { productId, features, remainingOptions } = getFormValues(currentFeatures, products);
+      const { productId, features, remainingOptions } = getFormValues(currentFeatures, products, isUpstream);
       setSelected({ ...features, productId });
       setOptions(remainingOptions);
     },

@@ -1,8 +1,8 @@
 import type { ProjectInventory } from 'lib/inventory/types/projects';
 
-import { getEnvironmentalResults } from './environmental-results';
-import { getFinancialResults } from './financial-results';
-import { getSingleUseResults } from './line-items-single-use';
+import { getEnvironmentalResults } from './getEnvironmentalResults';
+import { getFinancialResults } from './getFinancialResults';
+import { getSingleUseResults } from './getSingleUseResults';
 
 export function getAnnualSummary(project: ProjectInventory) {
   const financeResults = getFinancialResults(project);

@@ -14,9 +14,10 @@ type Props = {
   formStep: number;
   setFormStep: (step: number) => void;
   products: ReusableProduct[];
+  isUpstream: boolean;
 };
 
-export function ReusableItemForm({ lineItem, onSubmit, products, formStep, setFormStep }: Props) {
+export function ReusableItemForm({ lineItem, onSubmit, products, formStep, setFormStep, isUpstream }: Props) {
   const [lineItemInput, setLineItemInput] = useState<Partial<ReusableFormValues>>({
     ...(lineItem ? lineItem : {})
   });
@@ -55,7 +56,14 @@ export function ReusableItemForm({ lineItem, onSubmit, products, formStep, setFo
 
   return (
     <>
-      {formStep === 1 && <ReusableProductForm input={lineItemInput} products={products} onSubmit={enterProduct} />}
+      {formStep === 1 && (
+        <ReusableProductForm
+          input={lineItemInput}
+          products={products}
+          isUpstream={isUpstream}
+          onSubmit={enterProduct}
+        />
+      )}
       {formStep === 2 && (
         <FirstStepForm
           input={lineItemInput}

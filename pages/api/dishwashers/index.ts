@@ -2,8 +2,8 @@ import type { Dishwasher as PrismaDishwasher, Prisma } from '@prisma/client';
 import type { NextApiRequest, NextApiResponse } from 'next';
 import nc from 'next-connect';
 
-import type { DishwasherStats } from 'lib/calculator/calculations/dishwasher';
-import { getDishwasherStats } from 'lib/calculator/calculations/dishwasher';
+import type { DishwasherStats } from 'lib/calculator/calculations/getDishwasherStats';
+import { getDishwasherStats } from 'lib/calculator/calculations/getDishwasherStats';
 import type { UtilityRates } from 'lib/calculator/constants/utilities';
 import { getProjectUtilities } from 'lib/calculator/constants/utilities';
 import type { NextApiRequestWithUser } from 'lib/middleware';

@@ -5,7 +5,7 @@ import { getAnnualOccurrence } from '../constants/frequency';
 import type { ChangeSummary } from '../utils';
 import { getChangeSummaryRowRounded } from '../utils';
 
-import { annualLineItemWeight } from './line-items';
+import { annualLineItemWeight } from './lineItemUtils';
 
 // all values in pounds
 export type AnnualWasteResults = {

@@ -45,7 +45,7 @@ export interface ReusableFormValues {
 
 const MISC_CATEGORY = -1;
 
-export default function ReusablePurchasing({ readOnly }: { readOnly: boolean }) {
+export default function ReusablePurchasing({ isUpstream, readOnly }: { isUpstream: boolean; readOnly: boolean }) {
   const [isDrawerVisible, setIsDrawerVisible] = useState<boolean>(false);
   const [formStep, setFormStep] = useState<number>(1);
   const [formValues, setFormValues] = useState<ReusableFormValues | null>(null);
@@ -259,6 +259,7 @@ export default function ReusablePurchasing({ readOnly }: { readOnly: boolean }) 
               lineItem={formValues}
               products={products.data}
               onSubmit={onSubmitItem}
+              isUpstream={isUpstream}
             />
           </Drawer>
         </>

@@ -6,8 +6,8 @@ import { getChangeSummaryRow } from '../utils';
 
 import { getLineItemGasEmissions } from './environmental-results-gas';
 import { getLineItemWaterUsage } from './environmental-results-water';
-import type { PurchasingSummaryColumn, ProductForecastResults } from './line-items';
-import { getResultsByType, annualLineItemCost, annualLineItemCaseCount } from './line-items';
+import type { PurchasingSummaryColumn, ProductForecastResults } from './lineItemUtils';
+import { getResultsByType, annualLineItemCost, annualLineItemCaseCount } from './lineItemUtils';
 
 export function getSingleUseResults(inventory: ProjectInventory): ProductForecastResults {
   const summary = getSingleUseProductSummary(inventory.singleUseItems);
