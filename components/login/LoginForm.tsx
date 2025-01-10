@@ -45,9 +45,17 @@ export function LoginForm({ onSubmit, onSubmitWithProvider }: Props) {
           label='Password'
           name='password'
           rules={[{ required: true, message: 'Please input your password!' }]}
+          style={{ textAlign: 'left', marginBottom: 10 }}
         >
           <Input.Password placeholder='Your password' />
         </Form.Item>
+        <div style={{ marginBottom: 20, textAlign: 'left' }}>
+          <Typography.Text style={{ fontSize: 12 }}>
+            <Link href='/reset-password' legacyBehavior>
+              <Typography.Link underline>Forgot password?</Typography.Link>
+            </Link>
+          </Typography.Text>
+        </div>
 
         <Form.Item>
           <Button type='primary' htmlType='submit' block>

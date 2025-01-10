@@ -6,7 +6,8 @@ import {
   signInWithPopup,
   createUserWithEmailAndPassword,
   setPersistence,
-  browserLocalPersistence
+  browserLocalPersistence,
+  sendPasswordResetEmail
 } from 'firebase/auth';
 import { setCookie, destroyCookie } from 'nookies';
 import { createContext, useEffect, useState, useCallback } from 'react';
@@ -17,6 +18,8 @@ import { isBlacklistedEmail, assertEmailIsNotBlacklisted } from './userEmailBlac
 
 export type { FirebaseUser };
 
+const WEB_HOST = process.env.NODE_ENV === 'production' ? 'https://app.chart-reuse.eco' : 'http://localhost:3000';
+
 export type Credentials = {
   email: string;
   password: string;
@@ -26,6 +29,7 @@ type AuthContextType = {
   firebaseUser: FirebaseUser | null;
   login: (credentials: Credentials, persist: boolean) => Promise<UserCredential | null>;
   loginWithProvider: (provider: FirebaseAuthProvider, persist: boolean) => Promise<UserCredential | null>;
+  resetPassword: (credentials: { email: string }) => Promise<void>;
   signup: (credentials: Credentials, persist: boolean) => Promise<UserCredential | null>;
   signout: () => Promise<void>;
 };
@@ -34,6 +38,7 @@ export const AuthContext = createContext<AuthContextType>({
   firebaseUser: null,
   login: () => Promise.resolve(null),
   loginWithProvider: () => Promise.resolve(null),
+  resetPassword: () => Promise.resolve(),
   signup: () => Promise.resolve(null),
   signout: () => Promise.resolve()
 });
@@ -119,8 +124,14 @@ export const AuthProvider: React.FC<{ children: any }> = ({ children }) => {
     });
   }, []);
 
+  const resetPassword = useCallback(async ({ email }: { email: string }) => {
+    await sendPasswordResetEmail(auth, email, {
+      url: WEB_HOST + '/login'
+    });
+  }, []);
+
   return (
-    <AuthContext.Provider value={{ firebaseUser, login, loginWithProvider, signup, signout }}>
+    <AuthContext.Provider value={{ firebaseUser, login, loginWithProvider, signup, resetPassword, signout }}>
       {children}
     </AuthContext.Provider>
   );
