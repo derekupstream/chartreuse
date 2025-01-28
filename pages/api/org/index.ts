@@ -12,12 +12,13 @@ const handler = handlerWithUser();
 export type RequestBody = {
   numberOfClientAccounts: number;
   orgName: string;
+  currency: string;
 };
 
 handler.post(createOrg);
 
 async function createOrg(req: NextApiRequestWithUser, res: NextApiResponse) {
-  const { orgName, numberOfClientAccounts } = req.body as RequestBody;
+  const { orgName, numberOfClientAccounts, currency } = req.body as RequestBody;
 
   // an empty org should have vbeen created when user starts a free trial
   const org = await prisma.org.update({
@@ -26,7 +27,8 @@ async function createOrg(req: NextApiRequestWithUser, res: NextApiResponse) {
     },
     data: {
       name: orgName.trim(),
-      metadata: { numberOfClientAccounts }
+      currency: currency,
+      metadata: { numberOfClientAccounts, currency }
     }
   });
 

@@ -1,0 +1,11 @@
+## Values in Currency Format
+
+When displaying a value with a currency symbol, utilize `<CurrencySymbol value={value} />` to format the value.
+
+This component accepts the value as a number and formats the value as a string with the appropriate number of decimal points and the corresponding currency symbol.
+
+If no value is provided, the component returns the currency symbol only.
+
+The currency symbol is determined by the CurrencyProvider, which returns the currency abbreviation based on the currency set for the current user's Org. CurrencySymbol then utilizes the getCurrencySymbol() utility to return the corresponding HTML entity code for the currency abbreviation by using the currency mapping data in `/lib/currencies/currencies`. CurrencySymbol then formats the symbol as HTML to be used directly in components.
+
+`CurrencySymbol` handles formatting previously applied by `formatToDollar`.

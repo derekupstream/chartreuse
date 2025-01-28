@@ -2,8 +2,8 @@ import sortBy from 'lodash/sortBy';
 import uniqBy from 'lodash/uniqBy';
 import type { GetServerSideProps } from 'next';
 
-import type { PageProps } from 'components/analytics/Analytics';
-import Analytics from 'components/analytics/Analytics';
+import type { PageProps } from 'components/org/analytics/Analytics';
+import Analytics from 'components/org/analytics/Analytics';
 import { DashboardLayout as Template } from 'layouts/DashboardLayout/DashboardLayout';
 import { getAllProjections } from 'lib/calculator/getProjections';
 import { getUserFromContext } from 'lib/middleware';

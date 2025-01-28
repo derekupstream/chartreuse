@@ -3,6 +3,7 @@ import type { LaborCost } from '@prisma/client';
 import { Button, Col, Divider, Drawer, message, Popconfirm, Typography } from 'antd';
 import { useState } from 'react';
 
+import CurrencySymbol from 'components/_app/CurrencySymbol';
 import ContentLoader from 'components/common/ContentLoader';
 import { useSimpleMutation, useSimpleQuery } from 'hooks/useSimpleQuery';
 import { OTHER_EXPENSES_FREQUENCIES } from 'lib/calculator/constants/other-expenses';
@@ -136,7 +137,9 @@ const LaborSection = ({ projectId, readOnly }: { projectId: string; readOnly: bo
                         <td>{labor.frequency}</td>
                         <td></td>
                         {/* <td>{formatToDollar(labor.cost)}</td> */}
-                        <td>{formatToDollar(labor.cost * getFrequencyInNumber(labor.frequency))}</td>
+                        <td>
+                          <CurrencySymbol value={labor.cost * getFrequencyInNumber(labor.frequency)} />
+                        </td>
                       </tr>
                     </tbody>
                   </table>

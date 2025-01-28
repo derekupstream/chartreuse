@@ -6,7 +6,7 @@ import { formatToDollar } from 'lib/calculator/utils';
 
 import Card from '../components/Card';
 import { SectionContainer, SectionHeader, SectionTitle } from '../components/styles';
-
+import { useCurrency } from 'components/_app/CurrencyProvider';
 import { FooterData } from './components/Footer';
 import { Text, Title, Value } from './components/styles';
 
@@ -70,8 +70,10 @@ const tooltipVariants = [
 ];
 
 const FinancialSummary: React.FC<Props> = ({ data: financialResults, businessSize }) => {
+  const { abbreviation: currencyAbbreviation } = useCurrency();
   const showTooltips = typeof businessSize === 'number';
   const tooltipVars = typeof businessSize === 'number' ? tooltipVariants[businessSize] : tooltipVariants[0];
+  console.log('financialResults', currencyAbbreviation);
   return (
     <SectionContainer>
       <SectionHeader>Financial summary</SectionHeader>
@@ -84,7 +86,7 @@ const FinancialSummary: React.FC<Props> = ({ data: financialResults, businessSiz
             <Text strong>Savings</Text>
             <Title>Annual total</Title>
             <Value color={financialResults.summary.annualCost < 0 ? 'green' : 'black'}>
-              {formatToDollar(financialResults.summary.annualCost * -1)}
+              {formatToDollar(financialResults.summary.annualCost * -1, currencyAbbreviation)}
             </Value>
 
             <Title>Annual program ROI</Title>
@@ -102,7 +104,7 @@ const FinancialSummary: React.FC<Props> = ({ data: financialResults, businessSiz
                   </InfoIcon>
                 )
               }
-              value={formatToDollar(financialResults.annualCostChanges.singleUseProductChange)}
+              value={formatToDollar(financialResults.annualCostChanges.singleUseProductChange, currencyAbbreviation)}
             />
             <FooterData
               title='Waste hauling'
@@ -116,7 +118,7 @@ const FinancialSummary: React.FC<Props> = ({ data: financialResults, businessSiz
                   </InfoIcon>
                 )
               }
-              value={formatToDollar(financialResults.annualCostChanges.wasteHauling)}
+              value={formatToDollar(financialResults.annualCostChanges.wasteHauling, currencyAbbreviation)}
             />
           </Col>
 
@@ -124,7 +126,7 @@ const FinancialSummary: React.FC<Props> = ({ data: financialResults, businessSiz
             <Text strong>One-time expenses</Text>
 
             <Title>Annual total</Title>
-            <Value color='black'>{formatToDollar(financialResults.oneTimeCosts.total)}</Value>
+            <Value color='black'>{formatToDollar(financialResults.oneTimeCosts.total, currencyAbbreviation)}</Value>
 
             <Title>Payback Period</Title>
             <Value>
@@ -146,7 +148,7 @@ const FinancialSummary: React.FC<Props> = ({ data: financialResults, businessSiz
                   </InfoIcon>
                 )
               }
-              value={formatToDollar(financialResults.oneTimeCosts.reusableProductCosts)}
+              value={formatToDollar(financialResults.oneTimeCosts.reusableProductCosts, currencyAbbreviation)}
             />
             <FooterData
               title='Additional expenses'
@@ -162,7 +164,7 @@ const FinancialSummary: React.FC<Props> = ({ data: financialResults, businessSiz
                   </InfoIcon>
                 )
               }
-              value={formatToDollar(financialResults.oneTimeCosts.additionalCosts)}
+              value={formatToDollar(financialResults.oneTimeCosts.additionalCosts, currencyAbbreviation)}
             />
           </Col>
 
@@ -171,7 +173,8 @@ const FinancialSummary: React.FC<Props> = ({ data: financialResults, businessSiz
             <Title>Annual total</Title>
             <Value color='black'>
               {formatToDollar(
-                financialResults.annualCostChanges.change - financialResults.annualCostChanges.singleUseProductChange
+                financialResults.annualCostChanges.change - financialResults.annualCostChanges.singleUseProductChange,
+                currencyAbbreviation
               )}
             </Value>
 
@@ -186,7 +189,7 @@ const FinancialSummary: React.FC<Props> = ({ data: financialResults, businessSiz
                   <InfoIcon>Return rate of reusable foodware items: {tooltipVars.reusableReturnRate}</InfoIcon>
                 )
               }
-              value={formatToDollar(financialResults.annualCostChanges.reusableProductCosts)}
+              value={formatToDollar(financialResults.annualCostChanges.reusableProductCosts, currencyAbbreviation)}
             />
             <FooterData
               title='Labor'
@@ -200,7 +203,7 @@ const FinancialSummary: React.FC<Props> = ({ data: financialResults, businessSiz
                   </InfoIcon>
                 )
               }
-              value={formatToDollar(financialResults.annualCostChanges.laborCosts)}
+              value={formatToDollar(financialResults.annualCostChanges.laborCosts, currencyAbbreviation)}
             />
             <FooterData
               title='Dishwashing'
@@ -219,12 +222,15 @@ const FinancialSummary: React.FC<Props> = ({ data: financialResults, businessSiz
                   </InfoIcon>
                 )
               }
-              value={formatToDollar(financialResults.annualCostChanges.utilities)}
+              value={formatToDollar(financialResults.annualCostChanges.utilities, currencyAbbreviation)}
             />
-            <FooterData title='Waste hauling' value={formatToDollar(financialResults.annualCostChanges.wasteHauling)} />
+            <FooterData
+              title='Waste hauling'
+              value={formatToDollar(financialResults.annualCostChanges.wasteHauling, currencyAbbreviation)}
+            />
             <FooterData
               title='Additional expenses'
-              value={formatToDollar(financialResults.annualCostChanges.otherExpenses)}
+              value={formatToDollar(financialResults.annualCostChanges.otherExpenses, currencyAbbreviation)}
             />
           </Col>
         </Row>

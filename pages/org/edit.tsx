@@ -1,5 +1,5 @@
 import { ArrowLeftOutlined } from '@ant-design/icons';
-import type { Account } from '@prisma/client';
+import type { Org } from '@prisma/client';
 import { message } from 'antd';
 import type { GetServerSideProps } from 'next';
 import Link from 'next/link';
@@ -8,7 +8,7 @@ import nookies from 'nookies';
 
 import { Header } from 'components/common/Header';
 import { PageLoader } from 'components/common/PageLoader';
-import { AccountEditForm } from 'components/edit-account';
+import { OrgEditPage } from 'components/org/edit/OrgEditPage';
 import { FormPageTemplate } from 'layouts/FormPageLayout';
 import { verifyIdToken } from 'lib/auth/firebaseAdmin';
 import chartreuseClient from 'lib/chartreuseClient';
@@ -20,9 +20,16 @@ export const getServerSideProps: GetServerSideProps = async context => {
     const cookies = nookies.get(context);
     const token = await verifyIdToken(cookies.token);
 
-    const { id } = context.query;
+    const user = await prisma.user.findUnique({
+      where: {
+        id: token.uid
+      },
+      include: {
+        org: true
+      }
+    });
 
-    if (!id) {
+    if (!user) {
       return {
         redirect: {
           permanent: false,
@@ -30,28 +37,8 @@ export const getServerSideProps: GetServerSideProps = async context => {
         }
       };
     }
-
-    const user = await prisma.user.findUnique({
-      where: {
-        id: token.uid
-      },
-      include: {
-        org: {
-          include: {
-            accounts: {
-              where: {
-                id: id as string
-              },
-              include: {
-                users: true
-              }
-            }
-          }
-        }
-      }
-    });
-
-    if (!user) {
+    if (user.role !== 'ORG_ADMIN') {
+      console.warn('User is not an org admin', { user });
       return {
         redirect: {
           permanent: false,
@@ -76,26 +63,22 @@ export const getServerSideProps: GetServerSideProps = async context => {
 };
 
 type Props = {
-  org: {
-    id: string;
-    accounts: Account[];
-  };
+  org: Pick<Org, 'id' | 'name' | 'currency'>;
 };
 
 export default function EditAccount({ org }: Props) {
   const router = useRouter();
 
-  const redirect = typeof router.query.redirect === 'string' ? router.query.redirect : '/accounts';
+  const redirect = typeof router.query.redirect === 'string' ? router.query.redirect : null;
 
-  function updateAccount(data: any) {
+  function updateOrg(data: any) {
     chartreuseClient
-      .updateAccount({
-        id: router.query.id,
-        ...data
-      })
+      .updateOrganization(org.id, data)
       .then(() => {
-        message.success('Account edited with success.');
-        router.push(redirect);
+        message.success('Organization edited successfully.');
+        if (redirect) {
+          router.push(redirect);
+        }
       })
       .catch(err => {
         message.error((err as Error)?.message);
@@ -104,25 +87,23 @@ export default function EditAccount({ org }: Props) {
 
   if (!org) return <PageLoader />;
 
-  const accountName = org.accounts.find(account => account.id === router.query.id)?.name;
-
   return (
     <>
-      <Header title='Edit Account' />
+      <Header title='Edit Organization' />
 
       <main>
         <FormPageTemplate
-          title='Edit account'
+          title='Edit organization'
           navBackLink={
             <Link href='/'>
               <ArrowLeftOutlined /> back to dashboard
             </Link>
           }
         >
-          <AccountEditForm
-            onSubmit={updateAccount}
-            onCancel={() => router.push('/accounts')}
-            initialValues={{ name: accountName }}
+          <OrgEditPage
+            onSubmit={updateOrg}
+            onCancel={redirect ? () => router.push(redirect) : undefined}
+            initialValues={org}
           />
         </FormPageTemplate>
       </main>

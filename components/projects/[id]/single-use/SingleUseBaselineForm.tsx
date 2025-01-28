@@ -1,6 +1,7 @@
 import { Button, Form, Input, Radio, Typography } from 'antd';
 import { useState, useEffect } from 'react';
 
+import CurrencySymbol from 'components/_app/CurrencySymbol';
 import type { SingleUseLineItem } from 'lib/inventory/types/projects';
 
 import * as S from '../styles';
@@ -85,7 +86,7 @@ export default function SelectQuantityStep({
       </Form.Item>
 
       <Form.Item name='caseCost' label='Cost per case' rules={[{ required: true }]}>
-        <Input type='number' prefix='$' />
+        <Input type='number' prefix={<CurrencySymbol />} />
       </Form.Item>
 
       <S.BoxEnd>

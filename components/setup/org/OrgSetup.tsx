@@ -1,11 +1,16 @@
 import { RightOutlined } from '@ant-design/icons';
 import { Divider, Form, Input, Button, Select } from 'antd';
 
+import type { Currency } from '@lib/currencies/currencies';
+import { currencies } from '@lib/currencies/currencies';
+
 import * as S from './OrgSetup.styles';
+import { getCurrencySymbol } from 'utils/currency';
 
 export type OrgSetupFields = {
   orgName: string;
   numberOfClientAccounts: number;
+  currency: string;
 };
 
 type Props = {
@@ -18,7 +23,13 @@ export function OrgSetupForm({ onSubmit, isLoading }: Props) {
 
   return (
     <S.Wrapper>
-      <S.OrgSetupForm form={form} name='orgAccount' layout='vertical' onFinish={onSubmit}>
+      <S.OrgSetupForm
+        form={form}
+        name='orgAccount'
+        layout='vertical'
+        onFinish={onSubmit}
+        initialValues={{ currency: 'USD' }}
+      >
         <Form.Item
           label='Organization name'
           name='orgName'
@@ -39,6 +50,16 @@ export function OrgSetupForm({ onSubmit, isLoading }: Props) {
             <Select.Option value='3'>3</Select.Option>
             <Select.Option value='4'>4</Select.Option>
             <Select.Option value='5+'>5+</Select.Option>
+          </Select>
+        </Form.Item>
+
+        <Form.Item label='Organization Currency' name='currency'>
+          <Select placeholder='Select your currency'>
+            {currencies.map((currency: Currency) => (
+              <Select.Option key={currency.abbreviation} value={currency.abbreviation}>
+                {currency.currency} ({getCurrencySymbol(currency.abbreviation)})
+              </Select.Option>
+            ))}
           </Select>
         </Form.Item>
 

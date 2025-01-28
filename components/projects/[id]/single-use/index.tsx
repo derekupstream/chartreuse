@@ -3,7 +3,6 @@ import type { Project } from '@prisma/client';
 import { Button, Divider, Drawer, Typography, message } from 'antd';
 import { useMemo, useState } from 'react';
 import { useEffect } from 'react';
-
 import ContentLoader from 'components/common/ContentLoader';
 import { useLoadingState } from 'hooks/useLoadingState';
 import type { DashboardUser } from 'interfaces';

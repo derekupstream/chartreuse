@@ -5,6 +5,7 @@ import styled from 'styled-components';
 import type { ProjectionsResponse } from 'lib/calculator/getProjections';
 import { changeValue } from 'lib/number';
 
+import { useCurrency } from 'components/_app/CurrencyProvider';
 import BarChart from '../components/BarChart';
 import Card from '../components/KPICard';
 import { Divider, SectionContainer, SectionHeader, ChartTitle } from '../components/styles';
@@ -21,6 +22,7 @@ type Props = {
 };
 
 const ProjectImpacts: React.FC<Props> = ({ data, showTitle }) => {
+  const { symbol: currencySymbol } = useCurrency();
   const savingsData = [
     { label: 'Baseline', value: data.dollarCost.baseline },
     { label: 'Forecast', value: data.dollarCost.forecast }
@@ -54,12 +56,12 @@ const ProjectImpacts: React.FC<Props> = ({ data, showTitle }) => {
           <Card
             title='Your estimated annual savings'
             changePercent={data.dollarCost.changePercent * -1}
-            changeStr={`${changeValue(data.dollarCost.change * -1, { preUnit: '$' }).toLocaleString()}`}
+            changeStr={`${changeValue(data.dollarCost.change * -1, { preUnit: currencySymbol }).toLocaleString()}`}
           >
             <br />
             <BarChart
               data={savingsData}
-              formatter={(data: any) => `${data.label}: $${data.value.toLocaleString()}`}
+              formatter={(data: any) => `${data.label}: ${currencySymbol}${data.value.toLocaleString()}`}
               seriesField='label'
             />
           </Card>

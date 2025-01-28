@@ -1,4 +1,4 @@
-import type { Project } from '@prisma/client';
+import type { Project, Org } from '@prisma/client';
 import type { GetServerSideProps } from 'next';
 import nookies from 'nookies';
 
@@ -9,8 +9,9 @@ import prisma from 'lib/prisma';
 
 export type ProjectContext = {
   user: DashboardUser;
-  readOnly: boolean; // useful for templates
   project: Project & { org: { isUpstream: boolean; name: string }; account: { name: string } };
+  org: Org;
+  readOnly: boolean; // useful for templates
 };
 
 export const UserDataToInclude = {
@@ -81,8 +82,9 @@ export const getProjectContext: GetServerSideProps = async context => {
     const projectContext: ProjectContext = {
       // @ts-ignore - fix DashboardUser type to match
       user,
-      readOnly: project.isTemplate && !user.org.isUpstream,
-      project
+      project,
+      org: user.org,
+      readOnly: project.isTemplate && !user.org.isUpstream
     };
 
     return {

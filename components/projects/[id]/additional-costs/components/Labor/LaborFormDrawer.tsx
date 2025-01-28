@@ -4,6 +4,7 @@ import { useRouter } from 'next/router';
 import { useEffect } from 'react';
 import React from 'react';
 
+import CurrencySymbol from 'components/_app/CurrencySymbol';
 import { useSimpleMutation } from 'hooks/useSimpleQuery';
 import { LABOR_CATEGORIES } from 'lib/calculator/constants/labor-categories';
 import { OTHER_EXPENSES_FREQUENCIES } from 'lib/calculator/constants/other-expenses';
@@ -64,7 +65,7 @@ const LaborFormDrawer: React.FC<Props> = ({ input, onClose }) => {
         name='cost'
         extra='To enter a labor savings, format your number as a negative value. Ex. “-500”'
       >
-        <Input type='number' prefix='$ ' name='cost' />
+        <Input type='number' prefix={<CurrencySymbol />} name='cost' />
       </FormItem>
       <FormItem label='Description' name='description' rules={requiredRule}>
         <Input.TextArea rows={4} />

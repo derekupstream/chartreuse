@@ -39,10 +39,11 @@ export function getChangeSummaryRowRounded(baseline: number, forecast: number, d
 }
 
 // minimumFractionDigits needs to be set or we get "RangeError: maximumFractionDigits value is out of range"
-export const formatToDollar = (value: number) =>
+export const formatToDollar = (value: number, currencyAbbreviation: string) =>
   removeNegativeZero(value).toLocaleString('en-US', {
     style: 'currency',
-    currency: 'USD',
+    currency: currencyAbbreviation,
+    currencyDisplay: 'narrowSymbol',
     maximumFractionDigits: 0,
     minimumFractionDigits: 0
   });

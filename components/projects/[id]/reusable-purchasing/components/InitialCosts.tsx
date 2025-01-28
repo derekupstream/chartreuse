@@ -2,6 +2,7 @@ import { Col, Row, Typography } from 'antd';
 import type { FC } from 'react';
 import styled from 'styled-components';
 
+import CurrencySymbol from 'components/_app/CurrencySymbol';
 import { formatToDollar } from 'lib/calculator/utils';
 import type { ReusableLineItem } from 'lib/inventory/types/projects';
 
@@ -29,12 +30,15 @@ const InitialCosts: FC<Props> = ({ item }) => {
           <SmallText>Total one-time cost</SmallText>
           <br />
           <SmallerText>
-            ({formatToDollar(item.caseCost)}/case x {item.casesPurchased})
+            (<CurrencySymbol value={item.caseCost} />
+            /case x {item.casesPurchased})
           </SmallerText>
         </Col>
         <Col span={8}>
           <Typography.Text>
-            <strong>{formatToDollar(annualCost)}</strong>
+            <strong>
+              <CurrencySymbol value={annualCost} />
+            </strong>
           </Typography.Text>
         </Col>
       </Row>

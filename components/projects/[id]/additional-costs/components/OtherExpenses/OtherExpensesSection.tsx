@@ -3,10 +3,10 @@ import type { OtherExpense } from '@prisma/client';
 import { Button, Col, Divider, Drawer, message, Popconfirm, Typography } from 'antd';
 import { useState } from 'react';
 
+import CurrencySymbol from 'components/_app/CurrencySymbol';
 import ContentLoader from 'components/common/ContentLoader';
 import { useSimpleMutation, useSimpleQuery } from 'hooks/useSimpleQuery';
 import { OTHER_EXPENSES_FREQUENCIES } from 'lib/calculator/constants/other-expenses';
-import { formatToDollar } from 'lib/calculator/utils';
 
 import { InfoCard, InfoRow } from '../../../styles';
 import { AddBlock, Container, contentWrapperStyle, Placeholder, Subtitle } from '../ExpenseBlock';
@@ -22,7 +22,6 @@ const OtherExpenseSection = ({ projectId, readOnly }: { projectId: string; readO
   const url = `/api/other-expenses/?projectId=${projectId}`;
   const { data, isLoading, refetch } = useSimpleQuery<Response>(url);
   const deleteOtherExpenses = useSimpleMutation(url, 'DELETE');
-  console.log({ readOnly });
   const [isDrawerVisible, setIsDrawerVisible] = useState(false);
   const [activeOtherExpense, setActiveOtherExpense] = useState<OtherExpense | null>(null);
 
@@ -126,7 +125,11 @@ const OtherExpenseSection = ({ projectId, readOnly }: { projectId: string; readO
                     <tbody>
                       <tr>
                         <td>{additionalCost.frequency}</td>
-                        <td>{formatToDollar(additionalCost.cost * getFrequencyInNumber(additionalCost.frequency))}</td>
+                        <td>
+                          <CurrencySymbol
+                            value={additionalCost.cost * getFrequencyInNumber(additionalCost.frequency)}
+                          />
+                        </td>
                       </tr>
                     </tbody>
                   </table>

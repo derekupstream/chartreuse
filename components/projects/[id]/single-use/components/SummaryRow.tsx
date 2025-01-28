@@ -1,6 +1,7 @@
 import { Typography, Row, Col } from 'antd';
 import styled from 'styled-components';
 
+import CurrencySymbol from 'components/_app/CurrencySymbol';
 import { getAnnualOccurrence } from 'lib/calculator/constants/frequency';
 import type { SingleUseLineItem } from 'lib/inventory/types/projects';
 
@@ -50,7 +51,9 @@ export const SummaryRow = ({ lineItems }: { lineItems: SingleUseLineItem[] }) =>
               <SmallText>Annual cost</SmallText>
             </Col>
             <Col span={8}>
-              <SmallText>${baselineCost.toLocaleString()}</SmallText>
+              <SmallText>
+                <CurrencySymbol value={baselineCost} />
+              </SmallText>
             </Col>
           </Row>
         </Col>

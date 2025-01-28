@@ -86,7 +86,7 @@ export const BaseLayout: React.FC<DashboardProps> = ({ user, selectedMenuItem, t
 
   const accountLinks: MenuProps['items'] = [
     {
-      key: 'accounts',
+      key: 'help',
       label: (
         <a href='mailto:chart-reuse@upstreamsolutions.org' target='_blank' rel='noreferrer'>
           Help
@@ -98,6 +98,13 @@ export const BaseLayout: React.FC<DashboardProps> = ({ user, selectedMenuItem, t
       label: <a onClick={handleLogout}>Logout</a>
     }
   ];
+
+  if (user.role === 'ORG_ADMIN') {
+    accountLinks.unshift({
+      key: 'edit_org',
+      label: <Link href={'/org/edit?redirect=' + encodeURIComponent(router.asPath)}>Edit organization</Link>
+    });
+  }
 
   const extendedLinks: (SubMenuType | MenuItemType)[] = [
     {

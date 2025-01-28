@@ -39,15 +39,16 @@ export default function OrgSetup() {
   const router = useRouter();
 
   const updateOrganization = useMutation((data: any) => {
-    return chartreuseClient.updateOrganization(data);
+    return chartreuseClient.setupOrganization(data);
   });
 
   const handleOrgSetupCreation = useCallback(
-    ({ orgName, numberOfClientAccounts }: OrgSetupFields) => {
+    ({ orgName, numberOfClientAccounts, currency }: OrgSetupFields) => {
       updateOrganization.mutate(
         {
           orgName,
-          numberOfClientAccounts
+          numberOfClientAccounts,
+          currency
         },
         {
           onSuccess: () => {

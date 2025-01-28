@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import { useEffect } from 'react';
 import styled from 'styled-components';
 
+import CurrencySymbol from 'components/_app/CurrencySymbol';
 import { SERVICE_TYPES, WASTE_STREAMS } from 'lib/calculator/constants/waste-hauling';
 import type { WasteHaulingService } from 'lib/inventory/types/projects';
 import { requiredRule } from 'utils/forms';
@@ -55,7 +56,7 @@ const WasteHaulingFormDrawer: React.FC<Props> = ({ input, onClose }) => {
         <Input.TextArea rows={4} />
       </FormItem>
       <FormItem label='Monthly cost' name='monthlyCost' rules={requiredRule}>
-        <Input type='number' prefix='$' />
+        <Input type='number' prefix={<CurrencySymbol />} />
       </FormItem>
       <Button htmlType='submit' size='large' type='primary' style={{ float: 'right' }}>
         {input?.id ? 'Update' : 'Add'} expense

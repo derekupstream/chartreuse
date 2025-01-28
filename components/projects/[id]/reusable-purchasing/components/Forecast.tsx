@@ -1,7 +1,8 @@
 import { Col, Row, Typography } from 'antd';
 import type { FC } from 'react';
 
-import { formatToDollar, round } from 'lib/calculator/utils';
+import CurrencySymbol from 'components/_app/CurrencySymbol';
+import { round } from 'lib/calculator/utils';
 import type { ReusableLineItem } from 'lib/inventory/types/projects';
 
 import { InfoCard, SmallText, SmallerText } from '../../styles';
@@ -43,17 +44,22 @@ const Forecast: FC<Props> = ({ item }) => {
           <SmallText>Annual cost</SmallText>
           <br />
           <SmallerText>
-            ({formatToDollar(item.caseCost)}/case x {round(item.casesPurchased * item.annualRepurchasePercentage)})
+            (<CurrencySymbol value={item.caseCost} />
+            /case x {round(item.casesPurchased * item.annualRepurchasePercentage)})
           </SmallerText>
         </Col>
         <Col span={5}>
           <Typography.Text>
-            <strong>{formatToDollar(annualCost)}</strong>
+            <strong>
+              <CurrencySymbol value={annualCost} />
+            </strong>
           </Typography.Text>
         </Col>
         <Col span={5}>
           <Typography.Text>
-            <strong>{formatToDollar(change)}</strong>
+            <strong>
+              <CurrencySymbol value={change} />
+            </strong>
           </Typography.Text>
         </Col>
       </Row>

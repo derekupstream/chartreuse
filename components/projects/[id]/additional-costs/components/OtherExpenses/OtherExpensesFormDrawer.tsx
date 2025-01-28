@@ -4,6 +4,7 @@ import { useRouter } from 'next/router';
 import { useEffect } from 'react';
 import React from 'react';
 
+import CurrencySymbol from 'components/_app/CurrencySymbol';
 import { useSimpleMutation } from 'hooks/useSimpleQuery';
 import {
   OTHER_EXPENSES,
@@ -69,7 +70,7 @@ const OtherExpensesFormDrawer: React.FC<Props> = ({ input, onClose }) => {
         <OptionSelection name='frequecy' options={frequencyOptions} optionType='button' />
       </FormItem>
       <FormItem label='Cost' name='cost'>
-        <Input type='number' prefix='$ ' name='cost' />
+        <Input type='number' prefix={<CurrencySymbol />} name='cost' />
       </FormItem>
       <FormItem label='Description' name='description' rules={requiredRule}>
         <Input.TextArea rows={4} />

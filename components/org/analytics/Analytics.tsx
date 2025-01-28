@@ -18,16 +18,16 @@ import type { SummaryValues, AllProjectsSummary, ProjectSummary } from 'lib/calc
 import { formatToDollar } from 'lib/calculator/utils';
 import { requestDownload } from 'lib/files';
 
-import * as S2 from '../../layouts/styles';
+import * as S2 from '../../../layouts/styles';
 
-const StyledCol = styled(Col as any)`
+const StyledCol = styled(Col)`
   @media print {
     flex: 0 0 50% !important;
     max-width: 50% !important;
   }
 `;
 
-const KPIValue = styled(Typography.Title as any)`
+const KPIValue = styled(Typography.Title)`
   margin: 0 !important;
   font-size: 30px !important;
   @media print {
@@ -35,6 +35,7 @@ const KPIValue = styled(Typography.Title as any)`
   }
 `;
 
+import { useCurrency } from 'components/_app/CurrencyProvider';
 export interface PageProps {
   isUpstreamView?: boolean;
   user: User & { org: Org };
@@ -54,6 +55,7 @@ const SummaryCardWithGraph = ({
   value: SummaryValues;
   formatter?: (val: number) => string | ReactNode;
 }) => {
+  const { abbreviation: currencyAbbreviation } = useCurrency();
   const graphData = {
     baseline: value.baseline,
     forecast: value.forecast
@@ -110,12 +112,13 @@ const columns = [
     title: 'Baseline',
     key: 'baseline',
     render: (record: ProjectSummary) => {
+      const { abbreviation: currencyAbbreviation } = useCurrency();
       return (
         <>
           <Typography.Title level={4}>&nbsp;</Typography.Title>
           <Typography.Paragraph>&nbsp;</Typography.Paragraph>
           <Typography.Text style={{ lineHeight: 2 }}>
-            {formatToDollar(record.projections.annualSummary.dollarCost.baseline)}
+            {formatToDollar(record.projections.annualSummary.dollarCost.baseline, currencyAbbreviation)}
             <br />
             {record.projections.annualSummary.wasteWeight.baseline.toLocaleString()}
             <br />
@@ -131,12 +134,13 @@ const columns = [
     title: 'Forecast',
     key: 'forecast',
     render: (record: ProjectSummary) => {
+      const { abbreviation: currencyAbbreviation } = useCurrency();
       return (
         <>
           <Typography.Title level={4}>&nbsp;</Typography.Title>
           <Typography.Paragraph>&nbsp;</Typography.Paragraph>
           <Typography.Text style={{ lineHeight: 2 }}>
-            {formatToDollar(record.projections.annualSummary.dollarCost.forecast)}
+            {formatToDollar(record.projections.annualSummary.dollarCost.forecast, currencyAbbreviation)}
             <br />
             {record.projections.annualSummary.wasteWeight.forecast.toLocaleString()}
             <br />
@@ -153,12 +157,16 @@ const columns = [
     title: '',
     key: 'change',
     render: (record: ProjectSummary) => {
+      const { abbreviation: currencyAbbreviation } = useCurrency();
       return (
         <>
           <Typography.Title level={4}>&nbsp;</Typography.Title>
           <Typography.Paragraph>&nbsp;</Typography.Paragraph>
           <Typography.Text style={{ lineHeight: 2 }}>
-            <ReductionValue value={record.projections.annualSummary.dollarCost} formatter={formatToDollar} />
+            <ReductionValue
+              value={record.projections.annualSummary.dollarCost}
+              formatter={val => formatToDollar(val, currencyAbbreviation)}
+            />
             <ReductionValue value={record.projections.annualSummary.wasteWeight} />
             <ReductionValue value={record.projections.annualSummary.singleUseProductCount} />
             <ReductionValue value={record.projections.annualSummary.greenhouseGasEmissions.total} />
@@ -206,7 +214,7 @@ const ReductionValue = ({
 
 export default function AnalyticsPage({ user, data, allAccounts, allProjects, isUpstreamView }: PageProps) {
   const router = useRouter();
-
+  const { abbreviation: currencyAbbreviation } = useCurrency();
   // for printing
   const printRef = useRef(null);
 
@@ -311,7 +319,11 @@ export default function AnalyticsPage({ user, data, allAccounts, allProjects, is
 
       <Row gutter={[24, 24]}>
         <StyledCol xs={24} md={12}>
-          <SummaryCardWithGraph label='Estimated Savings' formatter={formatToDollar} value={data.summary.savings} />
+          <SummaryCardWithGraph
+            label='Estimated Savings'
+            formatter={val => formatToDollar(val, currencyAbbreviation)}
+            value={data.summary.savings}
+          />
         </StyledCol>
         <StyledCol xs={24} md={12}>
           <SummaryCardWithGraph label='Single-Use Reduction' units='units' value={data.summary.singleUse} />

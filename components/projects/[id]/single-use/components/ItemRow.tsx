@@ -1,5 +1,6 @@
 import { Typography, Row, Col, Popconfirm, message } from 'antd';
 
+import CurrencySymbol from 'components/_app/CurrencySymbol';
 import { getAnnualOccurrence } from 'lib/calculator/constants/frequency';
 import chartreuseClient from 'lib/chartreuseClient';
 import type { SingleUseProduct } from 'lib/inventory/types/products';
@@ -32,7 +33,8 @@ const BaselineCard = ({ item }: { item: SingleUseItemRecord }) => {
           <S.SmallText>Annual cost</S.SmallText>
           <br />
           <S.SmallerText>
-            (${item.lineItem.caseCost}/case x {annualOccurrence * item.lineItem.casesPurchased})
+            (<CurrencySymbol value={item.lineItem.caseCost} />
+            /case x {annualOccurrence * item.lineItem.casesPurchased})
           </S.SmallerText>
         </Col>
         <Col span={8}>
@@ -76,7 +78,8 @@ const InfoCard = ({ item }: { item: SingleUseItemRecord }) => {
         <Col span={7}>
           <Typography.Text>
             <strong>
-              {isNegativeChange ? '-' : '+'}${Math.abs(change).toLocaleString()}
+              {isNegativeChange ? '-' : '+'}
+              <CurrencySymbol value={Math.abs(change)} />
             </strong>
           </Typography.Text>
         </Col>

@@ -4,10 +4,10 @@ import { useRouter } from 'next/router';
 import { useMemo, useState, useEffect } from 'react';
 import styled from 'styled-components';
 
+import CurrencySymbol from 'components/_app/CurrencySymbol';
 import ContentLoader from 'components/common/ContentLoader';
 import { useLoadingState } from 'hooks/useLoadingState';
 import { PRODUCT_CATEGORIES } from 'lib/calculator/constants/product-categories';
-import { formatToDollar } from 'lib/calculator/utils';
 import chartreuseClient from 'lib/chartreuseClient';
 import * as http from 'lib/http';
 import type { ReusableProduct } from 'lib/inventory/types/products';
@@ -323,7 +323,9 @@ const SummaryRow = ({ lineItems }: { lineItems: ReusableLineItem[] }) => {
               <SmallText>Total</SmallText>
             </Col>
             <Col span={8}>
-              <SmallText>{formatToDollar(totals.cost)}</SmallText>
+              <SmallText>
+                <CurrencySymbol value={totals.cost} />
+              </SmallText>
             </Col>
           </Row>
         </Col>
@@ -353,7 +355,9 @@ const SummaryRow = ({ lineItems }: { lineItems: ReusableLineItem[] }) => {
               <SmallText>Annual repurchase cost</SmallText>
             </Col>
             <Col span={8}>
-              <SmallText>{formatToDollar(totals.costForecast)}</SmallText>
+              <SmallText>
+                <CurrencySymbol value={totals.costForecast} />
+              </SmallText>
             </Col>
           </Row>
         </Col>

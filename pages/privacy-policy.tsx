@@ -7,13 +7,13 @@ import Container from 'components/common/Container';
 import { Header } from 'components/common/Header';
 import Logo from 'public/images/chart-reuse-logo-black.png';
 
-const LogoWrapper = styled(Link as any)`
+const LogoWrapper = styled(Link)`
   display: block;
   text-align: center;
   width: 100%;
 `;
 
-const StyledContainer = styled(Container as any)`
+const StyledContainer = styled(Container)`
   padding: 4rem 0;
 `;
 

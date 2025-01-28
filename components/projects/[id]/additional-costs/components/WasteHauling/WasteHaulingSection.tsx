@@ -4,9 +4,9 @@ import { Button, Col, Divider, Drawer, message, Popconfirm, Row, Typography } fr
 import React, { useState } from 'react';
 import styled from 'styled-components';
 
+import CurrencySymbol from 'components/_app/CurrencySymbol';
 import ContentLoader from 'components/common/ContentLoader';
 import { useSimpleMutation, useSimpleQuery } from 'hooks/useSimpleQuery';
-import { formatToDollar } from 'lib/calculator/utils';
 import type { WasteHaulingService } from 'lib/inventory/types/projects';
 
 import { InfoCard, InfoRow } from '../../../styles';
@@ -146,8 +146,12 @@ const WasteHaulingSection = ({ projectId, readOnly }: { projectId: string; readO
                     <tbody>
                       <tr>
                         <td>Monthly</td>
-                        <td>{formatToDollar(wasteHauling.monthlyCost)}</td>
-                        <td>{formatToDollar(wasteHauling.monthlyCost * annual)}</td>
+                        <td>
+                          <CurrencySymbol value={wasteHauling.monthlyCost} />
+                        </td>
+                        <td>
+                          <CurrencySymbol value={wasteHauling.monthlyCost * annual} />
+                        </td>
                       </tr>
                     </tbody>
                   </table>
@@ -167,8 +171,12 @@ const WasteHaulingSection = ({ projectId, readOnly }: { projectId: string; readO
                     <tbody>
                       <tr>
                         <td>Monthly</td>
-                        <td>{formatToDollar(wasteHauling.newMonthlyCost)}</td>
-                        <td>{formatToDollar(wasteHauling.newMonthlyCost * annual)}</td>
+                        <td>
+                          <CurrencySymbol value={wasteHauling.newMonthlyCost} />
+                        </td>
+                        <td>
+                          <CurrencySymbol value={wasteHauling.newMonthlyCost * annual} />
+                        </td>
                       </tr>
                     </tbody>
                   </table>

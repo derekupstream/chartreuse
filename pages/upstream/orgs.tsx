@@ -1,7 +1,7 @@
 import type { Org } from '@prisma/client';
 import type { GetServerSideProps } from 'next';
 
-import Organizations from 'components/orgs';
+import Organizations from 'components/upstream/orgs';
 import type { DashboardUser } from 'interfaces';
 import { DashboardLayout as Template } from 'layouts/DashboardLayout/DashboardLayout';
 import { checkIsUpstream, checkLogin } from 'lib/middleware';

@@ -5,6 +5,7 @@ import { useRouter } from 'next/router';
 import React, { useState } from 'react';
 import styled from 'styled-components';
 
+import CurrencySymbol from 'components/_app/CurrencySymbol';
 import ContentLoader from 'components/common/ContentLoader';
 import { useSimpleMutation } from 'hooks/useSimpleQuery';
 import { useSimpleQuery } from 'hooks/useSimpleQuery';
@@ -93,21 +94,46 @@ const DishWashingSection = ({ projectId, readOnly }: { projectId: string; readOn
       <>
         <Typography.Paragraph style={{ display: 'flex', justifyContent: 'space-between' }}>
           <span style={{ paddingRight: '1em' }}>
-            Electric <span style={{ color: 'grey' }}>($/kWh)</span>:
+            Electric{' '}
+            <span style={{ color: 'grey' }}>
+              ( <CurrencySymbol />
+              /kWh)
+            </span>
+            :
           </span>
-          <span>${data?.rates?.electric.toFixed(2)}</span>
+          <span>
+            <CurrencySymbol />
+            {data?.rates?.electric.toFixed(2)}
+          </span>
         </Typography.Paragraph>
         <Typography.Paragraph style={{ display: 'flex', justifyContent: 'space-between' }}>
           <span style={{ paddingRight: '1em' }}>
-            Gas <span style={{ color: 'grey' }}>($/therm)</span>:
+            Gas{' '}
+            <span style={{ color: 'grey' }}>
+              ( <CurrencySymbol />
+              /therm)
+            </span>
+            :
           </span>
-          <span>${data?.rates?.gas.toFixed(2)}</span>
+          <span>
+            <CurrencySymbol />
+            {data?.rates?.gas.toFixed(2)}
+          </span>
         </Typography.Paragraph>
         <Typography.Paragraph style={{ display: 'flex', justifyContent: 'space-between' }}>
           <span style={{ paddingRight: '1em' }}>
-            Water <span style={{ color: 'grey' }}>($/thousand gallons)</span>:
+            Water{' '}
+            <span style={{ color: 'grey' }}>
+              ( <CurrencySymbol />
+              /thousand gallons)
+            </span>
+            :
           </span>
-          <span>${data?.rates?.water.toFixed(2)}</span>
+          <span>
+            {' '}
+            <CurrencySymbol />
+            {data?.rates?.water.toFixed(2)}
+          </span>
         </Typography.Paragraph>
         {!readOnly && (
           <Typography.Link
@@ -197,17 +223,23 @@ const DishWashingSection = ({ projectId, readOnly }: { projectId: string; readOn
                   <tr>
                     <td>{prettifyValues(stats.electricUsage.baseline)} kWh</td>
                     <td>{prettifyValues(stats.electricCO2Weight.baseline)}</td>
-                    <td>$ {stats.electricCost.baseline.toLocaleString(undefined, { maximumFractionDigits: 2 })}</td>
+                    <td>
+                      <CurrencySymbol value={stats.electricCost.baseline} />
+                    </td>
                   </tr>
                   <tr>
                     <td>{stats.gasUsage.baseline.toLocaleString(undefined, { maximumFractionDigits: 2 })} CF</td>
                     <td>{prettifyValues(stats.gasCO2Weight.baseline)}</td>
-                    <td>$ {stats.gasCost.baseline.toLocaleString(undefined, { maximumFractionDigits: 2 })}</td>
+                    <td>
+                      <CurrencySymbol value={stats.gasCost.baseline} />
+                    </td>
                   </tr>
                   <tr>
                     <td>{stats.waterUsage.baseline.toLocaleString(undefined, { maximumFractionDigits: 2 })} gal</td>
                     <td></td>
-                    <td>$ {stats.waterCost.baseline.toLocaleString(undefined, { maximumFractionDigits: 2 })}</td>
+                    <td>
+                      <CurrencySymbol value={stats.waterCost.baseline} />
+                    </td>
                   </tr>
                 </tbody>
               </table>
@@ -228,17 +260,23 @@ const DishWashingSection = ({ projectId, readOnly }: { projectId: string; readOn
                   <tr>
                     <td>{prettifyValues(stats.electricUsage.forecast)} kWh</td>
                     <td>{prettifyValues(stats.electricCO2Weight.forecast)}</td>
-                    <td>$ {stats.electricCost.forecast.toLocaleString(undefined, { maximumFractionDigits: 2 })}</td>
+                    <td>
+                      <CurrencySymbol value={stats.electricCost.forecast} />
+                    </td>
                   </tr>
                   <tr>
                     <td>{stats.gasUsage.forecast.toLocaleString(undefined, { maximumFractionDigits: 2 })} CF</td>
                     <td>{prettifyValues(stats.gasCO2Weight.forecast)}</td>
-                    <td>$ {stats.gasCost.forecast.toLocaleString(undefined, { maximumFractionDigits: 2 })}</td>
+                    <td>
+                      <CurrencySymbol value={stats.gasCost.forecast} />
+                    </td>
                   </tr>
                   <tr>
                     <td>{stats.waterUsage.forecast.toLocaleString(undefined, { maximumFractionDigits: 2 })} gal</td>
                     <td></td>
-                    <td>$ {stats.waterCost.forecast.toLocaleString(undefined, { maximumFractionDigits: 2 })}</td>
+                    <td>
+                      <CurrencySymbol value={stats.waterCost.forecast} />
+                    </td>
                   </tr>
                 </tbody>
               </table>

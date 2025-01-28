@@ -55,7 +55,7 @@ export default function Accounts({ user }: LoggedinProps) {
       render: (_: any, record: AccountRow) => {
         return (
           <Space size='middle'>
-            <Button onClick={() => router.push(`/edit-account/${record.key}`)} icon={<EditOutlined />} />
+            <Button onClick={() => router.push(`/accounts/edit/${record.key}`)} icon={<EditOutlined />} />
             <Popconfirm
               title={
                 <Space direction='vertical' size='small'>

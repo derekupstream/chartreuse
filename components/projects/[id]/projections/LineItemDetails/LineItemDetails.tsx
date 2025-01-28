@@ -6,7 +6,7 @@ import { Spacer } from 'components/common/Spacer';
 import type { ProjectionsResponse } from 'lib/calculator/getProjections';
 import { formatToDollar } from 'lib/calculator/utils';
 import { changeValue } from 'lib/number';
-
+import { useCurrency } from 'components/_app/CurrencyProvider';
 import BarChart from '../components/BarChart';
 import { KPIContent } from '../components/KPICard';
 import { CardTitle, ChangeColumn, Divider, SectionContainer, SectionHeader } from '../components/styles';
@@ -62,6 +62,7 @@ const titleByChangeType = {
 export const LineItemDetails: React.FC<Props> = ({ lineItemSummary, variant, showTitle, hideWaterUsage }) => {
   const [rowType, setRowType] = useState<RowType>('productType');
   const [changeType, setChangeType] = useState<ChangeType>('cost');
+  const { symbol: currencySymbol, abbreviation: currencyAbbreviation } = useCurrency();
   const [useTons, setUseTons] = useState(false);
 
   const hideCost = rowType === 'material';
@@ -136,13 +137,13 @@ export const LineItemDetails: React.FC<Props> = ({ lineItemSummary, variant, sho
       product: item.title,
       baselineSpending: baseline,
       forecastSpending: forecast,
-      forecastStr: formatNumber(forecast, changeType),
-      baselineStr: formatNumber(baseline, changeType),
+      forecastStr: formatNumber(forecast, changeType, currencyAbbreviation),
+      baselineStr: formatNumber(baseline, changeType, currencyAbbreviation),
       change: baseline ? (
         <ChangeColumn>
           <span>
             {forecast > baseline && '+'}
-            {formatNumber(forecast - baseline, changeType)}
+            {formatNumber(forecast - baseline, changeType, currencyAbbreviation)}
           </span>{' '}
           <span>
             {forecast > baseline && '+'}
@@ -176,12 +177,12 @@ export const LineItemDetails: React.FC<Props> = ({ lineItemSummary, variant, sho
           <Section>
             <KPIContent
               changePercent={annualCost.changePercent * -1}
-              changeStr={`${changeValue(annualCost.change * -1, { preUnit: '$' }).toLocaleString()}`}
+              changeStr={`${changeValue(annualCost.change * -1, { preUnit: currencySymbol }).toLocaleString()}`}
             />
             {/* <ChartTitle>Annual Spending changes</ChartTitle> */}
             <BarChart
               data={costsData}
-              formatter={(data: any) => `${data.label}: $${data.value.toLocaleString()}`}
+              formatter={(data: any) => `${data.label}: ${currencySymbol}${data.value.toLocaleString()}`}
               seriesField='label'
             />
           </Section>
@@ -313,9 +314,9 @@ export const LineItemDetails: React.FC<Props> = ({ lineItemSummary, variant, sho
   );
 };
 
-function formatNumber(value: number, changeType: ChangeType) {
+function formatNumber(value: number, changeType: ChangeType, currencyAbbreviation?: string) {
   if (changeType === 'cost') {
-    return formatToDollar(value);
+    return formatToDollar(value, currencyAbbreviation!);
   }
   return value.toLocaleString();
 }
@@ -333,6 +334,7 @@ function ItemsTable({
   disablePagination?: boolean;
   variant: VariantType;
 }) {
+  const { abbreviation: currencyAbbreviation } = useCurrency();
   const labels = LABELS[variant];
   const columns = [
     {
@@ -374,16 +376,16 @@ function ItemsTable({
           <Table.Summary.Row>
             <Table.Summary.Cell index={0}>Total</Table.Summary.Cell>
             <Table.Summary.Cell index={1}>
-              <Typography.Text strong>{formatNumber(baselineTotal, changeType)}</Typography.Text>
+              <Typography.Text strong>{formatNumber(baselineTotal, changeType, currencyAbbreviation)}</Typography.Text>
             </Table.Summary.Cell>
             <Table.Summary.Cell index={2}>
-              <Typography.Text strong>{formatNumber(forecastTotal, changeType)}</Typography.Text>
+              <Typography.Text strong>{formatNumber(forecastTotal, changeType, currencyAbbreviation)}</Typography.Text>
             </Table.Summary.Cell>
             {variant === 'single_use' && (
               <Table.Summary.Cell index={3}>
                 <Typography.Text strong>
                   {forecastTotal > baselineTotal && '+'}
-                  {formatNumber(forecastTotal - baselineTotal, changeType)}
+                  {formatNumber(forecastTotal - baselineTotal, changeType, currencyAbbreviation)}
                 </Typography.Text>
               </Table.Summary.Cell>
             )}

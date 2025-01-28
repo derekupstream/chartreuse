@@ -5,6 +5,7 @@ import type { ProjectInventory } from 'lib/inventory/types/projects';
 import type { ReusableLineItem, SingleUseLineItem } from 'lib/inventory/types/projects';
 import type { MailChimpEvent } from 'lib/mailchimp/sendEvent';
 import type { RequestBody as OrganizationInput } from 'pages/api/org/index';
+import type { RequestBody as UpdateOrganizationInput } from 'pages/api/org/[orgId]/index';
 import type { UserProfile } from 'pages/api/profile/[id]';
 
 import * as http from './http';
@@ -52,8 +53,12 @@ export type CreateProfileInput = {
 };
 
 class Client {
-  updateOrganization(org: OrganizationInput) {
+  setupOrganization(org: OrganizationInput) {
     return http.POST('/api/org', org);
+  }
+
+  updateOrganization(id: string, org: UpdateOrganizationInput) {
+    return http.POST('/api/org/' + id, org);
   }
 
   deleteOrganization(orgId: string) {

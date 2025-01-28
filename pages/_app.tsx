@@ -1,4 +1,5 @@
 import type { NextPage } from 'next';
+import type { GetServerSideProps } from 'next';
 import type { AppProps } from 'next/app';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
@@ -6,10 +7,12 @@ import { useEffect } from 'react';
 import { QueryClient, QueryClientProvider } from 'react-query';
 import { createGlobalStyle } from 'styled-components';
 
+import { CurrencyProvider } from 'components/_app/CurrencyProvider';
 import { ErrorBoundary } from 'components/common/errors/ErrorBoundary';
 import { analytics } from 'lib/analytics/mixpanel.browser';
 import { AuthProvider } from 'lib/auth/auth.browser';
 import chartreuseClient from 'lib/chartreuseClient';
+import { getProjectContext } from 'lib/middleware';
 
 import * as gtag from '../lib/ga';
 
@@ -42,6 +45,11 @@ export type PageProps = any;
 
 type Page<P = any> = NextPage<P> & {
   getLayout?: (page: React.ReactNode, pageProps: PageProps) => React.ReactNode;
+};
+
+export const getServerSideProps: GetServerSideProps = async context => {
+  const result = await getProjectContext(context);
+  return result;
 };
 
 function MyApp({ Component, pageProps }: Props) {
@@ -79,16 +87,18 @@ function MyApp({ Component, pageProps }: Props) {
 
   return (
     <>
-      <Head>
-        <title>Welcome to Chart-Reuse by Upstream</title>
-        <link rel='icon' href='/favicon.png' key='favicon' />
-      </Head>
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <GlobalStyles />
-          <ErrorBoundary>{getLayout(<Component {...pageProps} />, pageProps)}</ErrorBoundary>
-        </AuthProvider>
-      </QueryClientProvider>
+      <CurrencyProvider abbreviation={pageProps.org?.currency ? pageProps.org.currency : 'USD'}>
+        <Head>
+          <title>Welcome to Chart-Reuse by Upstream</title>
+          <link rel='icon' href='/favicon.png' key='favicon' />
+        </Head>
+        <QueryClientProvider client={queryClient}>
+          <AuthProvider>
+            <GlobalStyles />
+            <ErrorBoundary>{getLayout(<Component {...pageProps} />, pageProps)}</ErrorBoundary>
+          </AuthProvider>
+        </QueryClientProvider>
+      </CurrencyProvider>
     </>
   );
 }

@@ -9,7 +9,7 @@ import { formatDateShort } from 'lib/dates';
 import type { SingleUseLineItemRecord, SingleUseLineItemPopulated } from 'lib/inventory/types/projects';
 
 import { TitleRow } from '../../styles';
-
+import { useCurrency } from 'components/_app/CurrencyProvider';
 const StyledCard = styled(Card)`
   .ant-table-expanded-row {
     > .ant-table-cell {
@@ -60,9 +60,10 @@ const recordColumns: TableColumnsType<SingleUseLineItemRecord> = [
     key: 'totalCost',
     width: 120,
     render: (record: SingleUseLineItemRecord) => {
+      const { abbreviation: currencyAbbreviation } = useCurrency();
       return (
         <>
-          <Typography.Text>{formatToDollar(record.totalCost)}</Typography.Text>
+          <Typography.Text>{formatToDollar(record.totalCost, currencyAbbreviation)}</Typography.Text>
         </>
       );
     }
@@ -172,9 +173,12 @@ const columns: TableColumnsType<SingleUseLineItemPopulated> = [
     key: 'totalCost',
     width: 120,
     render: (item: SingleUseLineItemPopulated) => {
+      const { abbreviation: currencyAbbreviation } = useCurrency();
       return (
         <>
-          <Typography.Text>{formatToDollar(item.records[0]?.totalCost ?? item.totalCost)}</Typography.Text>
+          <Typography.Text>
+            {formatToDollar(item.records[0]?.totalCost ?? item.totalCost, currencyAbbreviation)}
+          </Typography.Text>
         </>
       );
     }

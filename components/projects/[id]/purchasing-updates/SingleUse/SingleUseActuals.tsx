@@ -13,6 +13,7 @@ import { CardTitle, Divider, SectionContainer, SectionHeader } from '../../proje
 import { Card, Body, Section, Value, Row, Label } from '../../projections/LineItemDetails/styles';
 import KPICard, { Header } from '../components/KpiCard';
 
+import { useCurrency } from 'components/_app/CurrencyProvider';
 import PieChart from './components/CategoryPieChart';
 import ColumnChart from './components/ChartColumnTrendline';
 
@@ -41,6 +42,7 @@ export function SingleUseActuals({
   dateRange?: DateRange;
   periodSelect: JSX.Element;
 }) {
+  const { symbol: currencySymbol } = useCurrency();
   const [selectedCategoryId, setSelectedCategory] = useState<string | undefined>(undefined);
   const [useUnits, setUseUnits] = useState(true);
 
@@ -149,7 +151,7 @@ export function SingleUseActuals({
                 ? `${categoryName(actuals.singleUseProducts.biggestSavingsCategory.id)}: ${changeValue(
                     actuals.singleUseProducts.biggestSavingsCategory.change,
                     {
-                      preUnit: '$'
+                      preUnit: currencySymbol
                     }
                   ).toLocaleString()} `
                 : 'N/A'

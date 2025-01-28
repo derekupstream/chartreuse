@@ -1,7 +1,7 @@
 import { Typography } from 'antd';
 import styled from 'styled-components';
 
-const Container = styled(Typography.Text as any)`
+const Container = styled(Typography.Text)`
   display: flex;
   gap: 10px;
   justify-content: flex-end;

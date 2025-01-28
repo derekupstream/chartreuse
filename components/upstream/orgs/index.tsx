@@ -9,7 +9,7 @@ import { formatDateShort } from 'lib/dates';
 import { requestDownload } from 'lib/files';
 import type { OrgSummary } from 'pages/upstream/orgs';
 
-import * as S from '../../layouts/styles';
+import * as S from '../../../layouts/styles';
 
 export interface PageProps {
   orgs: OrgSummary[];
