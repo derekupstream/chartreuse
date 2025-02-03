@@ -70,7 +70,7 @@ const AnalyticsPage = ({ allAccounts, allProjects, data, user }: PageProps) => {
 
 AnalyticsPage.getLayout = (page: React.ReactNode, pageProps: any) => {
   return (
-    <Template {...pageProps} selectedMenuItem='org-analytics' title='Analytics'>
+    <Template {...pageProps} selectedMenuItem='org/analytics' title='Analytics'>
       {page}
     </Template>
   );
