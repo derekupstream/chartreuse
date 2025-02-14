@@ -1,5 +1,6 @@
-import { Bar } from '@ant-design/plots';
+import dynamic from 'next/dynamic';
 import styled from 'styled-components';
+const Bar = dynamic(() => import('@ant-design/plots').then(item => item.Bar), { ssr: false });
 
 const ChartContainer = styled.div`
   height: 100px;
@@ -11,7 +12,7 @@ type Props = {
   formatter?: (datum: any) => string;
 };
 
-// ref: https://charts.ant.design/en/examples/bar/grouped#basic
+// ref: https://ant-design-charts-v1.antgroup.com/en/examples/bar/grouped#basic
 
 export default function GroupedBar({ data, formatter = (val: number) => val?.toLocaleString() }: Props) {
   const config = {
@@ -27,24 +28,58 @@ export default function GroupedBar({ data, formatter = (val: number) => val?.toL
         value: data.forecast
       }
     ],
-    isGroup: true,
-    xField: 'value',
-    yField: 'label',
+    style: {
+      minWidth: 25,
+      maxWidth: 25
+    },
+    marginLeft: 0,
+    marginTop: 0,
+    marginBottom: 0,
+    group: true,
+    xField: 'type',
+    yField: 'value',
     seriesField: 'type',
-    color: ['#E0FACA', '#95EE49'],
-    // xAxis: {
+    scale: {
+      color: {
+        range: ['#E0FACA', '#95EE49']
+      },
+      x: {
+        padding: 0.7 // pushes the bars a bit from the edge of the chart
+      }
+    },
+    colorField: 'type',
+    // axis: { x: {
     //   label: {
     //     formatter: (datum: string) => formatter(parseInt(datum)),
     //   }
-    // },
+    // } },
+    axis: {
+      x: {
+        line: true,
+        tick: false,
+        label: null
+      },
+      y: {
+        grid: true,
+        gridLineDash: [0, 0],
+        gridStrokeOpacity: 0.2,
+        tick: false,
+        labelAutoRotate: false,
+        label: {
+          formatter: (datum: string) => formatter(parseInt(datum))
+        }
+      }
+    },
     label: {
-      formatter: (datum: any) => formatter(datum.value)
+      formatter: (text: string, datum: any) => formatter(datum.value)
     },
     tooltip: {
-      formatter: (datum: any) => ({
-        name: datum.type,
-        value: formatter(datum.value)
-      })
+      items: [
+        {
+          field: 'value',
+          valueFormatter: (text: string) => formatter(text)
+        }
+      ]
     },
     // @ts-ignore - make Bar types happy
     legend: false as undefined

@@ -1,11 +1,13 @@
-const withLess = require('next-with-less');
+import withLess from 'next-with-less';
 
 const config = {
   compiler: {
     styledComponents: true
   },
   reactStrictMode: true,
-  transpilePackages: [ "antd", "@ant-design", "rc-util", "rc-pagination", "rc-picker", "rc-notification", "rc-tooltip", "rc-tree", "rc-table" ],
+  experimental: { esmExternals: 'loose' },
+  // source: https://github.com/ant-design/ant-design/issues/46053
+  transpilePackages: [ "antd", "@ant-design", "@antv/g2-extension-plot", "@ant-design/plots","d3-hierarchy", "rc-util", "rc-pagination", "rc-picker", "rc-notification", "rc-tooltip", "rc-tree", "rc-table" ],
   webpack(_config) {
     _config.module.rules.push({
       test: /\.svg$/,
@@ -54,4 +56,4 @@ const config = {
   }
 };
 
-module.exports = withLess(config);
+export default withLess(config);

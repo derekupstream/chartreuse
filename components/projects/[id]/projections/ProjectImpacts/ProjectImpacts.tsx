@@ -61,7 +61,9 @@ const ProjectImpacts: React.FC<Props> = ({ data, showTitle }) => {
             <br />
             <BarChart
               data={savingsData}
-              formatter={(data: any) => `${data.label}: ${currencySymbol}${data.value.toLocaleString()}`}
+              formatter={(text, data) => {
+                return `${data.label}: ${currencySymbol}${data.value.toLocaleString()}`;
+              }}
               seriesField='label'
             />
           </Card>
@@ -75,7 +77,7 @@ const ProjectImpacts: React.FC<Props> = ({ data, showTitle }) => {
             <br />
             <BarChart
               data={singleUseData}
-              formatter={(data: any) => `${data.label}: ${data.value.toLocaleString()} pieces`}
+              formatter={(text, data) => `${data.label}: ${data.value.toLocaleString()} pieces`}
               seriesField='label'
             />
           </Card>
@@ -89,7 +91,7 @@ const ProjectImpacts: React.FC<Props> = ({ data, showTitle }) => {
             <br />
             <BarChart
               data={wasteData}
-              formatter={(data: any) => `${data.label}: ${data.value.toLocaleString()} lbs`}
+              formatter={(text, data) => `${data.label}: ${data.value.toLocaleString()} lbs`}
               seriesField='label'
             />
           </Card>
@@ -103,7 +105,7 @@ const ProjectImpacts: React.FC<Props> = ({ data, showTitle }) => {
             <br />
             <BarChart
               data={ghgData}
-              formatter={(data: any) => `${data.label}: ${data.value.toLocaleString()} MTC02e`}
+              formatter={(text, data) => `${data.label}: ${data.value.toLocaleString()} MTC02e`}
               seriesField='label'
             />
           </Card>

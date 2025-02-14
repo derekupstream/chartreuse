@@ -20,7 +20,7 @@ const PieChart = ({ data }: Props) => {
     innerRadius: 0.7,
     meta: {
       value: {
-        formatter: v => v.toLocaleString() + ' units'
+        formatter: (v: number) => v.toLocaleString() + ' units'
       }
     },
     label: false,

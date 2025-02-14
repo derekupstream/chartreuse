@@ -18,7 +18,7 @@ import * as gtag from '../lib/ga';
 
 import 'styles/antd.less';
 import 'styles/print.less';
-import '@antv/xflow/dist/index.css';
+// import '@antv/xflow/dist/index.css';
 import 'components/share/components/ProjectionAssumptions/styles.less';
 import 'components/share/components/ProjectionAssumptions/SmallSize.styles.less';
 import 'components/share/components/ProjectionAssumptions/MidSize.styles.less';
@@ -43,7 +43,7 @@ type Props = AppProps & {
 
 export type PageProps = any;
 
-type Page<P = any> = NextPage<P> & {
+type Page<P = any> = NextPage & {
   getLayout?: (page: React.ReactNode, pageProps: PageProps) => React.ReactNode;
 };
 

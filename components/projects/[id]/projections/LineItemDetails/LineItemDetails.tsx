@@ -182,7 +182,7 @@ export const LineItemDetails: React.FC<Props> = ({ lineItemSummary, variant, sho
             {/* <ChartTitle>Annual Spending changes</ChartTitle> */}
             <BarChart
               data={costsData}
-              formatter={(data: any) => `${data.label}: ${currencySymbol}${data.value.toLocaleString()}`}
+              formatter={(label, data) => `${data.label}: ${currencySymbol}${data.value.toLocaleString()}`}
               seriesField='label'
             />
           </Section>
@@ -195,7 +195,7 @@ export const LineItemDetails: React.FC<Props> = ({ lineItemSummary, variant, sho
             {/* <ChartTitle>Annual {title} total changes</ChartTitle> */}
             <BarChart
               data={unitCountData}
-              formatter={(data: any) => `${data.label}: ${data.value.toLocaleString()} pieces`}
+              formatter={(label, data) => `${data.label}: ${data.value.toLocaleString()} pieces`}
               seriesField='label'
             />
           </Section>
@@ -222,7 +222,7 @@ export const LineItemDetails: React.FC<Props> = ({ lineItemSummary, variant, sho
             {/* <ChartTitle>Annual {title} total changes</ChartTitle> */}
             <BarChart
               data={ghgData}
-              formatter={(data: any) => `${data.label}: ${data.value.toLocaleString()} MTCO2e`}
+              formatter={(label, data) => `${data.label}: ${data.value.toLocaleString()} MTCO2e`}
               seriesField='label'
             />
           </Section>
@@ -239,7 +239,7 @@ export const LineItemDetails: React.FC<Props> = ({ lineItemSummary, variant, sho
               )}
               <BarChart
                 data={waterData}
-                formatter={(data: any) => `${data.label}: ${data.value.toLocaleString()} gallons`}
+                formatter={(label, data) => `${data.label}: ${data.value.toLocaleString()} gallons`}
                 seriesField='label'
               />
             </Section>

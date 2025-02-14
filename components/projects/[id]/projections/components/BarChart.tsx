@@ -1,9 +1,8 @@
-import type { BarConfig } from '@ant-design/plots';
 import dynamic from 'next/dynamic';
-import type { ComponentType } from 'react';
+import type { FC, ComponentType } from 'react';
 import styled from 'styled-components';
 // lazy import because ant-design charts does not work with SSR
-const Bar: ComponentType<BarConfig> = dynamic(() => import('@ant-design/plots/es/components/bar'), { ssr: false });
+const Bar = dynamic(() => import('@ant-design/plots').then(r => r.Bar), { ssr: false });
 
 const ChartContainer = styled.div`
   height: 200px;
@@ -12,7 +11,7 @@ const ChartContainer = styled.div`
 
 type Props = {
   data: { label: string; value: number }[];
-  formatter?: (datum: any) => string;
+  formatter?: (text: string, datum: any) => string;
   seriesField?: string;
 };
 
@@ -24,14 +23,33 @@ const Chart: React.FC<Props> = props => {
     <ChartContainer>
       <Bar
         data={data}
+        marginLeft={0}
+        marginTop={0}
+        marginBottom={0}
         label={{
           formatter: props.formatter,
-          position: 'left'
+          position: 'left',
+          dx: 10 // pushes the labels a bit from the edge of the bar
         }}
-        minBarWidth={40}
-        maxBarWidth={40}
-        yAxis={{
-          label: null
+        style={{
+          minWidth: 40,
+          maxWidth: 40
+        }}
+        axis={{
+          x: {
+            line: true,
+            tick: false,
+            lineLineDash: [0, 0],
+            label: null,
+            labelAutoHide: true
+          },
+          y: {
+            grid: true,
+            gridLineDash: [0, 0],
+            gridStrokeOpacity: 0.2,
+            tick: false,
+            labelAutoRotate: false
+          }
         }}
         theme={{
           styleSheet: {
@@ -43,12 +61,35 @@ const Chart: React.FC<Props> = props => {
             }
           }
         }}
-        xField='value'
-        yField='label'
+        xField='label'
+        yField='value'
+        colorField='label'
+        scale={{
+          color: {
+            range: ['#E0FACA', '#95EE49']
+          },
+          x: {
+            padding: 0.5 // pushes the bars a bit from the edge of the chart
+          }
+        }}
         seriesField={seriesField}
         color={['#E0FACA', '#95EE49']}
         isGroup
-        legend={{ position: 'bottom-left' }}
+        group
+        legend={{
+          color: {
+            position: 'bottom'
+            // layout: { alignItems: 'flex-start', justifyContent: 'flex-end' }
+          }
+        }}
+        tooltip={{
+          items: [
+            {
+              field: 'value',
+              valueFormatter: (text: string) => parseFloat(text || '').toLocaleString()
+            }
+          ]
+        }}
         //layout={layout}
       />
     </ChartContainer>

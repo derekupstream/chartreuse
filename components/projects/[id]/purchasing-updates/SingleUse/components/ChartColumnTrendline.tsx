@@ -1,5 +1,6 @@
 import type { DualAxesConfig } from '@ant-design/plots';
-import { DualAxes } from '@ant-design/plots';
+import dynamic from 'next/dynamic';
+const DualAxes = dynamic(() => import('@ant-design/plots/es/components/dual-axes'), { ssr: false });
 
 type Props = {
   data: { label: string; value: number }[];
@@ -28,7 +29,7 @@ const Chart: React.FC<Props> = ({ data, seriesField, useUnits }) => {
     yField: ['value', 'count'],
     meta: {
       value: {
-        formatter: v => (useUnits ? v.toLocaleString() + ' units' : '$' + v.toLocaleString())
+        formatter: (v: string) => (useUnits ? v.toLocaleString() + ' units' : '$' + v.toLocaleString())
       }
     },
     geometryOptions: [
@@ -43,9 +44,9 @@ const Chart: React.FC<Props> = ({ data, seriesField, useUnits }) => {
         color: '#95EE49',
         geometry: 'line',
         // ref: https://charts.ant.design/en/docs/api/plots/line#linestyle
-        lineStyle: {
+        line: {
           lineWidth: 2,
-          smooth: true,
+          shapeField: 'smooth',
           lineDash: [8, 8]
         }
       }

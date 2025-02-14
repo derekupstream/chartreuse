@@ -36,7 +36,7 @@ export default function EmailVerification() {
               if (firebaseUser.emailVerified) {
                 console.log('Email verified! send user to /setup');
                 setCookie(null, 'emailVerified', 'true', { expires: 0 });
-                clearInterval(interval);
+                clearInterval(interval as NodeJS.Timeout);
                 router.push('/setup');
               }
               await firebaseUser.reload();
@@ -48,7 +48,7 @@ export default function EmailVerification() {
         }
       }
       return () => {
-        clearInterval(interval);
+        clearInterval(interval as NodeJS.Timeout);
       };
     };
     if (firebaseUser) {

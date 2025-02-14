@@ -1,6 +1,8 @@
-import { Bullet } from '@ant-design/plots';
 import type { ReactNode } from 'react';
 import styled from 'styled-components';
+import dynamic from 'next/dynamic';
+// lazy import because ant-design charts does not work with SSR
+const Bullet = dynamic(() => import('@ant-design/plots/es/components/bullet'), { ssr: false });
 
 const ChartContainer = styled.div`
   height: 100px;
@@ -40,14 +42,16 @@ export default function KPIBullet({ data, formatter = (val: number) => val?.toLo
       [targetField]: { formatter },
       ranges: { formatter }
     },
-    xAxis: {
-      line: null
-    },
-    yAxis: {
-      tickMethod: ({ max }: { max: number }) => {
-        const interval = Math.ceil(max / 5); // 自定义刻度 ticks
+    axis: {
+      x: {
+        line: null
+      },
+      y: {
+        tickMethod: ({ max }: { max: number }) => {
+          const interval = Math.ceil(max / 5); // 自定义刻度 ticks
 
-        return [0, interval, interval * 2, interval * 3, interval * 4, max];
+          return [0, interval, interval * 2, interval * 3, interval * 4, max];
+        }
       }
     }
   };

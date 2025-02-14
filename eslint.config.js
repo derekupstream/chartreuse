@@ -1,4 +1,4 @@
-module.exports = [{
+export default [{
   "extends": [
     "next",
     "next/core-web-vitals",
