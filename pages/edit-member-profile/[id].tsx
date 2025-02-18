@@ -1,5 +1,5 @@
 import { ArrowLeftOutlined } from '@ant-design/icons';
-import { message } from 'antd';
+import { message, Typography } from 'antd';
 import type { GetServerSideProps } from 'next';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
@@ -134,8 +134,10 @@ export default function EditMemberProfile({ org, user }: Props) {
         <FormPageTemplate
           title='Edit account member'
           navBackLink={
-            <Link href='/'>
-              <ArrowLeftOutlined /> back to dashboard
+            <Link href='/members' passHref legacyBehavior>
+              <Typography.Link>
+                <ArrowLeftOutlined /> back to dashboard
+              </Typography.Link>
             </Link>
           }
         >

@@ -65,7 +65,13 @@ const DishWashingSection = ({ projectId, readOnly }: { projectId: string; readOn
     });
   }
 
-  function onSubmit() {
+  function onSubmit(e: any) {
+    // TODO: figure out why error trigglers onSuccess // get rid of useSimpleMutation
+    if (e.message) {
+      console.error(e);
+      message.error('Something went wrong, please check the inputs and try again.');
+      return;
+    }
     if (formState?.id) {
       message.success('Dishwasher updated');
     } else {

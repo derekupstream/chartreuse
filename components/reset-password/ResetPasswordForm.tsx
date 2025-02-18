@@ -17,7 +17,7 @@ export function ResetPasswordForm({ onSubmit }: Props) {
   const [form] = Form.useForm<FormValues>();
   return (
     <S.Wrapper>
-      <S.LoginForm form={form} name='login' layout='vertical' onFinish={onSubmit as VoidFunction}>
+      <S.LoginForm form={form} name='login' layout='vertical' onFinish={onSubmit}>
         <Form.Item
           label='Email'
           name='email'

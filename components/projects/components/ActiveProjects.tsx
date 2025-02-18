@@ -111,7 +111,7 @@ export function ActiveProjects() {
                   <Typography.Text>{(project?.metadata as ProjectMetadata)?.type}</Typography.Text>
                 </S.ProjectInfo>
               </div>
-              <Button type='ghost' block href={`/projects/${project.id}`}>
+              <Button ghost block href={`/projects/${project.id}`}>
                 View project
               </Button>
             </Card>

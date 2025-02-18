@@ -23,7 +23,7 @@ export function LoginForm({ onSubmit, onSubmitWithProvider }: Props) {
   const rememberMe = Form.useWatch('rememberMe', form);
   return (
     <S.Wrapper>
-      <S.LoginForm form={form} name='login' layout='vertical' onFinish={onSubmit as VoidFunction}>
+      <S.LoginForm form={form} name='login' layout='vertical' onFinish={onSubmit}>
         <Form.Item
           label='Email'
           name='email'

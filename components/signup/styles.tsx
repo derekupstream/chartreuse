@@ -9,7 +9,7 @@ export const SignupForm = styled(Form)`
     font-style: italic;
     padding-top: 0.5rem;
   }
-`;
+` as typeof Form;
 
 export const Wrapper = styled.div`
   width: 317px;

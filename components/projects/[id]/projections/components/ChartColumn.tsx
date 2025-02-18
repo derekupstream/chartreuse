@@ -44,7 +44,7 @@ const Chart: React.FC<Props> = props => {
         items: [
           {
             field: 'value',
-            valueFormatter: (text: string) => parseFloat(text || '').toLocaleString()
+            valueFormatter: (text: string) => parseFloat(text || '0').toLocaleString()
           }
         ]
       }}

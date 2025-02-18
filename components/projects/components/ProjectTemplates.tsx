@@ -111,7 +111,7 @@ export function ProjectTemplates({ isUpstream }: { isUpstream: boolean }) {
                   Use this template
                 </Button>
               </div>
-              <Button type='ghost' block href={`/projects/${template.id}`}>
+              <Button ghost block href={`/projects/${template.id}`}>
                 View details
               </Button>
             </Card>

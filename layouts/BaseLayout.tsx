@@ -154,7 +154,7 @@ export const BaseLayout: React.FC<DashboardProps> = ({ user, selectedMenuItem, t
           <S.OrgAndUserWrapper>
             <Typography.Text type='secondary'>{user.org.name}</Typography.Text>
             <Dropdown menu={{ items: accountLinks }} placement='bottomRight'>
-              <Button type='ghost'>
+              <Button ghost>
                 {user.name} <DownOutlined />
               </Button>
             </Dropdown>

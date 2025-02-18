@@ -7,7 +7,7 @@ const config = {
   reactStrictMode: true,
   experimental: { esmExternals: 'loose' },
   // source: https://github.com/ant-design/ant-design/issues/46053
-  transpilePackages: [ "antd", "@ant-design", "@antv/g2-extension-plot", "@ant-design/plots","d3-hierarchy", "rc-util", "rc-pagination", "rc-picker", "rc-notification", "rc-tooltip", "rc-tree", "rc-table" ],
+  transpilePackages: [ "antd","rc-input", "@ant-design", "@antv/g2-extension-plot", "@ant-design/plots","d3-hierarchy", "rc-util", "rc-pagination", "rc-picker", "rc-notification", "rc-tooltip", "rc-tree", "rc-table" ],
   webpack(_config) {
     _config.module.rules.push({
       test: /\.svg$/,

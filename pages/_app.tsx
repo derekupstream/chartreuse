@@ -13,7 +13,7 @@ import { analytics } from 'lib/analytics/mixpanel.browser';
 import { AuthProvider } from 'lib/auth/auth.browser';
 import chartreuseClient from 'lib/chartreuseClient';
 import { getProjectContext } from 'lib/middleware';
-
+import { ConfigProvider, theme, ThemeConfig } from 'antd';
 import * as gtag from '../lib/ga';
 
 import 'styles/antd.less';
@@ -94,8 +94,10 @@ function MyApp({ Component, pageProps }: Props) {
         </Head>
         <QueryClientProvider client={queryClient}>
           <AuthProvider>
-            <GlobalStyles />
-            <ErrorBoundary>{getLayout(<Component {...pageProps} />, pageProps)}</ErrorBoundary>
+            <ConfigProvider theme={themeConfig}>
+              <GlobalStyles />
+              <ErrorBoundary>{getLayout(<Component {...pageProps} />, pageProps)}</ErrorBoundary>
+            </ConfigProvider>
           </AuthProvider>
         </QueryClientProvider>
       </CurrencyProvider>
@@ -103,3 +105,23 @@ function MyApp({ Component, pageProps }: Props) {
   );
 }
 export default MyApp;
+
+const themeConfig: ThemeConfig = {
+  token: {
+    colorPrimary: '#2bbe50',
+    colorLink: '#2bbe50',
+    fontFamily: 'Poppins, Helvetica, Arial, sans-serif'
+  },
+  components: {
+    Button: {
+      colorPrimary: '#95ee49',
+      // by default, ghost buttons have a border color of white (which is not visible)
+      // use the colors for default: https://ant.design/components/button#presetcolors
+      defaultGhostBorderColor: '#d9d9d9',
+      defaultGhostColor: 'rgba(0,0,0,0.88)'
+    },
+    Radio: {
+      borderRadius: 0
+    }
+  }
+};

@@ -10,7 +10,7 @@ export const InviteForm = styled(Form)`
   .ant-form-item-explain-error {
     text-align: left;
   }
-`;
+` as typeof Form;
 
 export const Wrapper = styled.div`
   width: 317px;

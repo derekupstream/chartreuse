@@ -57,7 +57,7 @@ export function getFriendlyPeriod(period: PeriodValue | undefined): string {
 }
 
 export function PeriodSelect({ onChange }: { onChange: (value: PeriodOption) => void }) {
-  function _onChange(_: PeriodValue, option: PeriodOption | PeriodOption[]) {
+  function _onChange(_: PeriodValue, option?: PeriodOption | PeriodOption[]) {
     onChange(option as PeriodOption);
   }
   return (

@@ -1,5 +1,5 @@
 import { ArrowLeftOutlined } from '@ant-design/icons';
-import { message } from 'antd';
+import { message, Typography } from 'antd';
 import type { GetServerSideProps } from 'next';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
@@ -102,8 +102,10 @@ export default function AccountSetup({ org, user }: Props) {
           subtitle='Create an account for any of your clients. Don’t have client accounts? You can use your organization information for the account section.'
           navBackLink={
             fromDashboard ? (
-              <Link href='/'>
-                <ArrowLeftOutlined /> back to dashboard
+              <Link href='/accounts' passHref legacyBehavior>
+                <Typography.Link>
+                  <ArrowLeftOutlined /> back to dashboard
+                </Typography.Link>
               </Link>
             ) : undefined
           }

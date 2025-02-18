@@ -87,10 +87,10 @@ const DishwashingFormDrawer: React.FC<Props> = ({ input, onSubmit }) => {
       <FormItem label='Building water heater fuel type' name='buildingWaterHeaterFuelType' rules={requiredRule}>
         <OptionSelection options={fuelTypeOptions} optionType='button' />
       </FormItem>
-      <FormItem label='Dish machine operating days per year' name='operatingDays'>
+      <FormItem label='Dish machine operating days per year' name='operatingDays' rules={requiredRule}>
         <Input type='number' />
       </FormItem>
-      <FormItem label='Current racks/per day for reusables' name='racksPerDay'>
+      <FormItem label='Current racks/per day for reusables' name='racksPerDay' rules={requiredRule}>
         <Input type='number' />
       </FormItem>
       <Button htmlType='submit' size='large' type='primary' style={{ float: 'right' }}>

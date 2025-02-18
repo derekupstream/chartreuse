@@ -18,7 +18,7 @@ type Props = {
 const ReusablePurchasingSecondStepForm: FC<Props> = props => {
   const { input, goBack, onSubmit, productName } = props;
 
-  const [form] = Form.useForm<{ casesAnnually: number }>();
+  const [form] = Form.useForm<{ casesAnnually: number; casesPurchased: number }>();
 
   function _goBack() {
     const casesAnnually = form.getFieldValue('casesAnnually');

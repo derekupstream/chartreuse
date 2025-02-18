@@ -7,7 +7,7 @@ export const OrgSetupForm = styled(Form)`
   .ant-select-selection-item {
     text-align: left;
   }
-`;
+` as typeof Form;
 
 export const Wrapper = styled.div`
   width: 317px;

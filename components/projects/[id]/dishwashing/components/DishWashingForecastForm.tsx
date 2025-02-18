@@ -2,6 +2,7 @@ import type { Dishwasher } from '@prisma/client';
 import { Button, Form, Input } from 'antd';
 import { useEffect } from 'react';
 import styled from 'styled-components';
+import { requiredRule } from 'utils/forms';
 
 export type DishwasherData = Partial<Pick<Dishwasher, 'newOperatingDays' | 'newRacksPerDay'>> & { id?: string };
 
@@ -38,10 +39,10 @@ const DishwashingFormDrawer: React.FC<Props> = ({ input, onSubmit }) => {
 
   return (
     <Form form={form} layout='vertical' onFinish={handleSubmit} style={{ paddingBottom: '24px' }}>
-      <FormItem label='Dish machine operating days per year' name='newOperatingDays'>
+      <FormItem label='Dish machine operating days per year' name='newOperatingDays' rules={requiredRule}>
         <Input type='number' />
       </FormItem>
-      <FormItem label='Additional racks/day for reusables' name='newRacksPerDay'>
+      <FormItem label='Additional racks/day for reusables' name='newRacksPerDay' rules={requiredRule}>
         <Input type='number' />
       </FormItem>
       <Button htmlType='submit' size='large' type='primary' style={{ float: 'right' }}>

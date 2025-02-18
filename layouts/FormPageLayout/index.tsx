@@ -23,7 +23,9 @@ export const FormPageTemplate: React.FC<Props> = ({ children, title, subtitle, n
           {navBackLink && (
             <S.LogoWithNavBackLink>
               {navBackLink}
-              <Image src={Logo} alt='Chart-Reuse' />
+              <div style={{ width: '600px' }}>
+                <Image src={Logo} alt='Chart-Reuse' />
+              </div>
               <div style={{ visibility: 'hidden' }}>{navBackLink}</div>
             </S.LogoWithNavBackLink>
           )}

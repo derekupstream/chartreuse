@@ -1,5 +1,5 @@
 import { ArrowLeftOutlined } from '@ant-design/icons';
-import { message } from 'antd';
+import { message, Typography } from 'antd';
 import type { GetServerSideProps } from 'next';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
@@ -125,8 +125,10 @@ export default function InviteMember({ org, user }: Props) {
           subtitle='Select the account to add a new member, and send them an invite to create a profile.'
           navBackLink={
             fromDashboard ? (
-              <Link href='/'>
-                <ArrowLeftOutlined /> back to dashboard
+              <Link href='/members' passHref legacyBehavior>
+                <Typography.Link>
+                  <ArrowLeftOutlined /> back to dashboard
+                </Typography.Link>
               </Link>
             ) : undefined
           }

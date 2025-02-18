@@ -2,27 +2,34 @@
 import Document, { Html, Head, Main, NextScript } from 'next/document';
 import * as React from 'react';
 import { ServerStyleSheet } from 'styled-components';
-
+import { createCache, extractStyle, StyleProvider } from '@ant-design/cssinjs';
 // example here: https://github.com/vercel/next.js/blob/canary/examples/with-styled-components/pages/_document.js
 
 export default class MyDocument extends Document {
   static async getInitialProps(ctx: any) {
+    const cache = createCache();
     const sheet = new ServerStyleSheet();
     const originalRenderPage = ctx.renderPage;
 
     try {
       ctx.renderPage = () =>
         originalRenderPage({
-          enhanceApp: (App: any) => (props: any) => sheet.collectStyles(<App {...props} />)
+          enhanceApp: (App: any) => (props: any) =>
+            sheet.collectStyles(
+              <StyleProvider cache={cache}>
+                <App {...props} />
+              </StyleProvider>
+            )
         });
 
       const initialProps = await Document.getInitialProps(ctx);
-
+      const style = extractStyle(cache, true);
       return {
         ...initialProps,
         styles: [
           <>
             {initialProps.styles}
+            <style dangerouslySetInnerHTML={{ __html: style }} />
             {sheet.getStyleElement()}
           </>
         ]
