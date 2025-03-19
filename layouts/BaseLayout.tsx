@@ -35,8 +35,8 @@ const menuLinks: MenuProps['items'] = [
   { key: 'projects', label: <Link href='/projects'>Projects</Link> },
   { key: 'org/analytics', label: <Link href='/org/analytics'>Analytics</Link> },
   { key: 'accounts', label: <Link href='/accounts'>Accounts</Link> },
-  { key: 'members', label: <Link href='/members'>Members</Link> },
-  { key: 'subscription', label: <Link href='/subscription'>Subscription</Link> }
+  { key: 'members', label: <Link href='/members'>Members</Link> }
+  // { key: 'subscription', label: <Link href='/subscription'>Subscription</Link> }
 ];
 
 const upstreamLinks: MenuProps['items'] = [
