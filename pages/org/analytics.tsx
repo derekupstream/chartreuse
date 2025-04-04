@@ -59,7 +59,8 @@ export const getServerSideProps: GetServerSideProps<PageProps> = async context =
       allAccounts,
       allProjects,
       data,
-      user
+      user,
+      org: user.org
     })
   };
 };

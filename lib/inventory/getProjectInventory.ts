@@ -37,7 +37,12 @@ export async function getProjectInventory(projectId: string): Promise<ProjectInv
       },
       reusableItems: true,
       dishwashers: true,
-      wasteHaulingCosts: true
+      wasteHaulingCosts: true,
+      org: {
+        select: {
+          useMetricSystem: true
+        }
+      }
     }
   });
   if (!project) {

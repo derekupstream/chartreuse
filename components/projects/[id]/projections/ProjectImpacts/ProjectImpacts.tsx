@@ -2,8 +2,9 @@ import { Row, Col } from 'antd';
 import React from 'react';
 import styled from 'styled-components';
 
+import { useMetricSystem } from 'components/_app/MetricSystemProvider';
 import type { ProjectionsResponse } from 'lib/calculator/getProjections';
-import { changeValue } from 'lib/number';
+import { changeValue, formattedValueInPounds, changeValueInPounds } from 'lib/number';
 
 import { useCurrency } from 'components/_app/CurrencyProvider';
 import BarChart from '../components/BarChart';
@@ -23,6 +24,7 @@ type Props = {
 
 const ProjectImpacts: React.FC<Props> = ({ data, showTitle }) => {
   const { symbol: currencySymbol } = useCurrency();
+  const displayAsMetric = useMetricSystem();
   const savingsData = [
     { label: 'Baseline', value: data.dollarCost.baseline },
     { label: 'Forecast', value: data.dollarCost.forecast }
@@ -86,12 +88,14 @@ const ProjectImpacts: React.FC<Props> = ({ data, showTitle }) => {
           <Card
             title='Your waste reductions'
             changePercent={data.wasteWeight.changePercent * -1}
-            changeStr={changeValue(data.wasteWeight.change * -1) + ' lbs'}
+            changeStr={changeValueInPounds(data.wasteWeight.change * -1, { displayAsMetric, displayAsTons: false })}
           >
             <br />
             <BarChart
               data={wasteData}
-              formatter={(text, data) => `${data.label}: ${data.value.toLocaleString()} lbs`}
+              formatter={(text, data) =>
+                `${data.label}: ${formattedValueInPounds(data.value, { displayAsMetric, displayAsTons: false })}`
+              }
               seriesField='label'
             />
           </Card>

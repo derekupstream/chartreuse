@@ -20,14 +20,13 @@ import type { DashboardUser } from 'interfaces';
 import { STATES } from 'lib/calculator/constants/utilities';
 import type { ProjectInput } from 'lib/chartreuseClient';
 
-import currencyOptions from '../../components/currencyList';
 import * as S from '../../styles';
+import { useMetricSystem } from 'components/_app/MetricSystemProvider';
+import { useCurrency } from 'components/_app/CurrencyProvider';
 
 // component and config for currency select is from the example at https://codesandbox.io/s/currency-wrapper-antd-input-3ynzo?file=/src/index.js
 // referenced at https://ant.design/components/input-number
 const locale = 'en-us';
-
-const USDollarOption = currencyOptions[0];
 
 const currencyFormatter =
   (selectedCurrOpt: string) =>
@@ -111,8 +110,10 @@ type Props = {
 export function ProjectForm({ actionLabel, org, project, template, onComplete }: Props) {
   // disable save button if there are no updates or there are errors
   const [form] = Form.useForm();
+  const { abbreviation: currencyAbbreviation } = useCurrency();
   const autofocusRef = useRef<InputRef>(null);
   const [disabledSave, setDisabledSave] = useState(true);
+  const displayAsMetric = useMetricSystem();
   function handleFormChange() {
     const hasErrors = form.getFieldsError().some(({ errors }) => errors.length);
     setDisabledSave(hasErrors);
@@ -195,7 +196,7 @@ export function ProjectForm({ actionLabel, org, project, template, onComplete }:
           accountId: org.accounts[0].id,
           customers: 0,
           dineInVsTakeOut: 0,
-          currency: USDollarOption.value,
+          currency: currencyAbbreviation,
           ...((project?.metadata as any) || {}),
           ...(project || {})
         }}
@@ -307,27 +308,36 @@ export function ProjectForm({ actionLabel, org, project, template, onComplete }:
                   min={0}
                   precision={2}
                   step={0.1}
-                  formatter={currencyFormatter(USDollarOption.value)}
+                  formatter={currencyFormatter(currencyAbbreviation)}
                   parser={currencyParser}
+                  style={{ width: '100px' }}
                 />
+                <Typography.Text style={{ fontSize: '0.8em' }}> /kWh</Typography.Text>
               </Form.Item>
               <Form.Item label='Gas' name={['utilityRates', 'gas']} labelCol={{ span: 5 }}>
                 <InputNumber
                   min={0}
                   precision={2}
                   step={0.1}
-                  formatter={currencyFormatter(USDollarOption.value)}
+                  formatter={currencyFormatter(currencyAbbreviation)}
                   parser={currencyParser}
+                  style={{ width: '100px' }}
                 />
+                <Typography.Text style={{ fontSize: '0.8em' }}> /therm</Typography.Text>
               </Form.Item>
               <Form.Item label='Water' name={['utilityRates', 'water']} labelCol={{ span: 5 }}>
                 <InputNumber
                   min={0}
                   precision={2}
                   step={0.1}
-                  formatter={currencyFormatter(USDollarOption.value)}
+                  formatter={currencyFormatter(currencyAbbreviation)}
                   parser={currencyParser}
+                  style={{ width: '100px' }}
                 />
+                <Typography.Text style={{ fontSize: '0.8em' }}>
+                  {' '}
+                  /thousand {displayAsMetric ? 'liters' : 'gallons'}
+                </Typography.Text>
               </Form.Item>
             </>
           )}

@@ -8,6 +8,7 @@ import { QueryClient, QueryClientProvider } from 'react-query';
 import { createGlobalStyle } from 'styled-components';
 
 import { CurrencyProvider } from 'components/_app/CurrencyProvider';
+import { MetricSystemProvider } from 'components/_app/MetricSystemProvider';
 import { ErrorBoundary } from 'components/common/errors/ErrorBoundary';
 import { analytics } from 'lib/analytics/mixpanel.browser';
 import { AuthProvider } from 'lib/auth/auth.browser';
@@ -88,18 +89,20 @@ function MyApp({ Component, pageProps }: Props) {
   return (
     <>
       <CurrencyProvider abbreviation={pageProps.org?.currency ? pageProps.org.currency : 'USD'}>
-        <Head>
-          <title>Welcome to Chart-Reuse by Upstream</title>
-          <link rel='icon' href='/favicon.png' key='favicon' />
-        </Head>
-        <QueryClientProvider client={queryClient}>
-          <AuthProvider>
-            <ConfigProvider theme={themeConfig}>
-              <GlobalStyles />
-              <ErrorBoundary>{getLayout(<Component {...pageProps} />, pageProps)}</ErrorBoundary>
-            </ConfigProvider>
-          </AuthProvider>
-        </QueryClientProvider>
+        <MetricSystemProvider isMetric={pageProps.org?.useMetricSystem ?? false}>
+          <Head>
+            <title>Welcome to Chart-Reuse by Upstream</title>
+            <link rel='icon' href='/favicon.png' key='favicon' />
+          </Head>
+          <QueryClientProvider client={queryClient}>
+            <AuthProvider>
+              <ConfigProvider theme={themeConfig}>
+                <GlobalStyles />
+                <ErrorBoundary>{getLayout(<Component {...pageProps} />, pageProps)}</ErrorBoundary>
+              </ConfigProvider>
+            </AuthProvider>
+          </QueryClientProvider>
+        </MetricSystemProvider>
       </CurrencyProvider>
     </>
   );

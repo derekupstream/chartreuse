@@ -68,7 +68,7 @@ type Props = {
 
 export default function EditAccount({ org }: Props) {
   const router = useRouter();
-
+  console.log(org);
   const redirect = typeof router.query.redirect === 'string' ? router.query.redirect : null;
 
   function updateOrg(data: any) {

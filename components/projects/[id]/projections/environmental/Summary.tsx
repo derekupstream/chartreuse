@@ -5,14 +5,14 @@ import styled from 'styled-components';
 
 import { poundsToTons } from 'lib/calculator/constants/conversions';
 import type { ProjectionsResponse } from 'lib/calculator/getProjections';
-import { changeValue } from 'lib/number';
+import { changeValue, valueInGallons, valueInPounds, changeValueInGallons, changeValueInPounds } from 'lib/number';
 
 import BigNumber from '../components/BigNumber';
 import KPICard from '../components/KPICard';
 import Card from '../components/Card';
 import Chart from '../components/ChartColumn';
 import { SectionContainer, SectionHeader, SectionTitle } from '../components/styles';
-
+import { useMetricSystem } from 'components/_app/MetricSystemProvider';
 import { ViewResultsWrapper, BigNumberWrapper, ChartTitle } from './components/styles';
 
 const StyledCol = styled(Col)`
@@ -27,34 +27,33 @@ type Props = {
 };
 
 const EnvironmentalSummary: React.FC<Props> = ({ data, hideWaterUsage }) => {
+  const displayAsMetric = useMetricSystem();
   const [units, setUnits] = useState<'pounds' | 'tons'>('pounds');
   const onChangeResults = (event: RadioChangeEvent) => {
     setUnits(event.target.value);
   };
-
-  function formatWeight(value: number) {
-    return units === 'pounds' ? value : poundsToTons(value);
-  }
+  const displayAsTons = units === 'tons';
+  const options = { displayAsMetric, displayAsTons };
 
   const annualWasteData = [
     {
       label: 'Landfilled foodware weight',
-      value: formatWeight(data.annualWasteChanges.disposableProductWeight.baseline),
+      value: valueInPounds(data.annualWasteChanges.disposableProductWeight.baseline, options),
       wasteType: 'Baseline'
     },
     {
       label: 'Landfilled foodware weight',
-      value: formatWeight(data.annualWasteChanges.disposableProductWeight.forecast),
+      value: valueInPounds(data.annualWasteChanges.disposableProductWeight.forecast, options),
       wasteType: 'Forecast'
     },
     {
       label: 'Shipping box weight',
-      value: formatWeight(data.annualWasteChanges.disposableShippingBoxWeight.baseline),
+      value: valueInPounds(data.annualWasteChanges.disposableShippingBoxWeight.baseline, options),
       wasteType: 'Baseline'
     },
     {
       label: 'Shipping box weight',
-      value: formatWeight(data.annualWasteChanges.disposableShippingBoxWeight.forecast),
+      value: valueInPounds(data.annualWasteChanges.disposableShippingBoxWeight.forecast, options),
       wasteType: 'Forecast'
     }
   ];
@@ -100,12 +99,12 @@ const EnvironmentalSummary: React.FC<Props> = ({ data, hideWaterUsage }) => {
   const waterData = [
     {
       label: 'Foodware water usage',
-      value: data.annualWaterUsageChanges.landfillWaste.baseline,
+      value: valueInGallons(data.annualWaterUsageChanges.landfillWaste.baseline, { displayAsMetric }),
       wasteType: 'Baseline'
     },
     {
       label: 'Foodware water usage',
-      value: data.annualWaterUsageChanges.landfillWaste.forecast,
+      value: valueInGallons(data.annualWaterUsageChanges.landfillWaste.forecast, { displayAsMetric }),
       wasteType: 'Forecast'
     }
   ];
@@ -114,12 +113,12 @@ const EnvironmentalSummary: React.FC<Props> = ({ data, hideWaterUsage }) => {
     waterData.push(
       {
         label: 'Dishwashing water usage',
-        value: data.annualWaterUsageChanges.dishwashing.baseline,
+        value: valueInGallons(data.annualWaterUsageChanges.dishwashing.baseline, { displayAsMetric }),
         wasteType: 'Baseline'
       },
       {
         label: 'Dishwashing water usage',
-        value: data.annualWaterUsageChanges.dishwashing.forecast,
+        value: valueInGallons(data.annualWaterUsageChanges.dishwashing.forecast, { displayAsMetric }),
         wasteType: 'Forecast'
       }
     );
@@ -135,11 +134,7 @@ const EnvironmentalSummary: React.FC<Props> = ({ data, hideWaterUsage }) => {
             <SectionTitle>Your total annual waste changes</SectionTitle>
 
             <BigNumberWrapper>
-              <BigNumber
-                value={`${changeValue(formatWeight(data.annualWasteChanges.total.change))} ${
-                  units === 'pounds' ? 'lbs.' : 'tons'
-                }`}
-              />
+              <BigNumber value={changeValueInPounds(data.annualWasteChanges.total.change, options)} />
             </BigNumberWrapper>
 
             <ChartTitle>Annual waste changes</ChartTitle>
@@ -147,8 +142,8 @@ const EnvironmentalSummary: React.FC<Props> = ({ data, hideWaterUsage }) => {
             <ViewResultsWrapper>
               <Typography.Text style={{ marginRight: '20px' }}>View results in:</Typography.Text>
               <Radio.Group onChange={onChangeResults} defaultValue={units}>
-                <Radio.Button value='pounds'>Pounds</Radio.Button>
-                <Radio.Button value='tons'>Tons</Radio.Button>
+                <Radio.Button value='pounds'>{displayAsMetric ? 'kilograms' : 'pounds'}</Radio.Button>
+                <Radio.Button value='tons'>tons</Radio.Button>
               </Radio.Group>
             </ViewResultsWrapper>
           </Card>
@@ -159,7 +154,9 @@ const EnvironmentalSummary: React.FC<Props> = ({ data, hideWaterUsage }) => {
               style={{ height: '100%' }}
               title='Your annual water usage changes'
               changePercent={data.annualWaterUsageChanges.total.changePercent * -1}
-              changeStr={`${changeValue(data.annualWaterUsageChanges.total.change)} gallons`}
+              changeStr={`${changeValueInGallons(data.annualWaterUsageChanges.total.change, {
+                displayAsMetric
+              })}`}
             >
               <br />
               <ChartTitle>Annual water usage changes</ChartTitle>

@@ -28,6 +28,13 @@ async function getDishwashers(req: NextApiRequestWithUser, res: NextApiResponse<
   const project = await prisma.project.findUniqueOrThrow({
     where: {
       id: projectId
+    },
+    include: {
+      org: {
+        select: {
+          useMetricSystem: true
+        }
+      }
     }
   });
   const dishwashers = await prisma.dishwasher.findMany({

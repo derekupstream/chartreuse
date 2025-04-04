@@ -1,4 +1,6 @@
-const WATER_NATIONAL_AVERAGE = 6.98;
+const WATER_NATIONAL_AVERAGE = 6.98; // $ per 1000 gallons
+
+import { LITER_TO_GALLON } from '../../number';
 
 // Commercial electric rate ($/kWh)	Commercial gas rate ($/therm)
 // U.S. average	$0.10	$0.92
@@ -72,11 +74,25 @@ function getUtilitiesByState(state: USState): UtilityRates {
   };
 }
 
-export function getProjectUtilities(project: { USState?: string | null; utilityRates?: any | null }): UtilityRates {
+export function getProjectUtilities(project: {
+  USState?: string | null;
+  utilityRates?: any | null;
+  org: { useMetricSystem: boolean };
+}): UtilityRates {
   if (project.USState) {
-    return getUtilitiesByState(project.USState as USState);
+    const utilities = getUtilitiesByState(project.USState as USState);
+    if (project.org.useMetricSystem) {
+      utilities.water = utilities.water * LITER_TO_GALLON;
+    }
+    return utilities;
   } else if (project.utilityRates?.electric && project.utilityRates?.gas && project.utilityRates?.water) {
-    return project.utilityRates;
+    // Note: if useMetricSystem is true, we expect the user will assume their rate is for 1000 liters, not 1000 gallons
+    // but since values are in gallons, we need to convert the rate to gallons
+    const rates = { ...project.utilityRates };
+    if (project.org.useMetricSystem) {
+      rates.water = rates.water * 1000;
+    }
+    return rates;
   }
   throw new Error('Project does not have a state or utility rates');
 }

@@ -1,5 +1,5 @@
 import { RightOutlined } from '@ant-design/icons';
-import { Divider, Form, Input, Button, Select } from 'antd';
+import { Divider, Form, Input, Button, Select, Radio } from 'antd';
 
 import type { Currency } from '@lib/currencies/currencies';
 import { currencies } from '@lib/currencies/currencies';
@@ -53,7 +53,7 @@ export function OrgSetupForm({ onSubmit, isLoading }: Props) {
           </Select>
         </Form.Item>
 
-        <Form.Item label='Organization Currency' name='currency'>
+        <Form.Item label='Currency Display' name='currency'>
           <Select placeholder='Select your currency'>
             {currencies.map((currency: Currency) => (
               <Select.Option key={currency.abbreviation} value={currency.abbreviation}>
@@ -61,6 +61,13 @@ export function OrgSetupForm({ onSubmit, isLoading }: Props) {
               </Select.Option>
             ))}
           </Select>
+        </Form.Item>
+
+        <Form.Item label='Measurements Display' name='useMetricSystem'>
+          <Radio.Group>
+            <Radio value={false}>Standard</Radio>
+            <Radio value={true}>Metric</Radio>
+          </Radio.Group>
         </Form.Item>
 
         <Form.Item>

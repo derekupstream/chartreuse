@@ -1,11 +1,11 @@
 import { Radio, Table, Typography } from 'antd';
 import type { ReactNode } from 'react';
 import { useEffect, useState } from 'react';
-
+import { useMetricSystem } from 'components/_app/MetricSystemProvider';
 import { Spacer } from 'components/common/Spacer';
 import type { ProjectionsResponse } from 'lib/calculator/getProjections';
 import { formatToDollar } from 'lib/calculator/utils';
-import { changeValue } from 'lib/number';
+import { changeValue, valueInGallons, changeValueInGallons, valueInPounds, formattedValueInGallons } from 'lib/number';
 import { useCurrency } from 'components/_app/CurrencyProvider';
 import BarChart from '../components/BarChart';
 import { KPIContent } from '../components/KPICard';
@@ -63,6 +63,7 @@ export const LineItemDetails: React.FC<Props> = ({ lineItemSummary, variant, sho
   const [rowType, setRowType] = useState<RowType>('productType');
   const [changeType, setChangeType] = useState<ChangeType>('cost');
   const { symbol: currencySymbol, abbreviation: currencyAbbreviation } = useCurrency();
+  const displayAsMetric = useMetricSystem();
   const [useTons, setUseTons] = useState(false);
 
   const hideCost = rowType === 'material';
@@ -101,13 +102,19 @@ export const LineItemDetails: React.FC<Props> = ({ lineItemSummary, variant, sho
   const waterData = annualWater
     ? // single-item usage
       [
-        { label: labels.baselineLabel, value: annualWater.baseline },
-        { label: labels.forecastLabel, value: annualWater.forecast }
+        { label: labels.baselineLabel, value: valueInGallons(annualWater.baseline, { displayAsMetric }) },
+        { label: labels.forecastLabel, value: valueInGallons(annualWater.forecast, { displayAsMetric }) }
       ]
     : // reusable item usage
       [
-        { label: 'Reusable foodware water usage', value: reusableWater!.lineItemForecast },
-        { label: 'Dishwasher water usage', value: reusableWater!.dishwasherForecast }
+        {
+          label: 'Reusable foodware water usage',
+          value: valueInGallons(reusableWater!.lineItemForecast, { displayAsMetric })
+        },
+        {
+          label: 'Dishwasher water usage',
+          value: valueInGallons(reusableWater!.dishwasherForecast, { displayAsMetric })
+        }
       ];
 
   const items = lineItemSummary.resultsByType[rowType];
@@ -118,8 +125,8 @@ export const LineItemDetails: React.FC<Props> = ({ lineItemSummary, variant, sho
       baseline = item.cost.baseline;
       forecast = item.cost.forecast;
     } else if (changeType === 'waste') {
-      baseline = item.weight.baseline;
-      forecast = item.weight.forecast;
+      baseline = valueInPounds(item.weight.baseline, { displayAsMetric, displayAsTons: useTons });
+      forecast = valueInPounds(item.weight.forecast, { displayAsMetric, displayAsTons: useTons });
       if (useTons) {
         baseline = baseline / 2000;
         forecast = forecast / 2000;
@@ -128,8 +135,8 @@ export const LineItemDetails: React.FC<Props> = ({ lineItemSummary, variant, sho
       baseline = item.gasEmissions.baseline;
       forecast = item.gasEmissions.forecast;
     } else if (changeType === 'water') {
-      baseline = item.waterUsage.baseline;
-      forecast = item.waterUsage.forecast;
+      baseline = valueInGallons(item.waterUsage.baseline, { displayAsMetric });
+      forecast = valueInGallons(item.waterUsage.forecast, { displayAsMetric });
     }
 
     return {
@@ -232,14 +239,16 @@ export const LineItemDetails: React.FC<Props> = ({ lineItemSummary, variant, sho
               {annualWater ? (
                 <KPIContent
                   changePercent={annualWater.changePercent * -1}
-                  changeStr={changeValue(annualWater.change * -1) + ' gallons'}
+                  changeStr={changeValueInGallons(annualWater.change * -1, { displayAsMetric })}
                 />
               ) : (
-                <KPIContent changeStr={changeValue(reusableWater!.total) + ' gallons'} />
+                <KPIContent changeStr={changeValueInGallons(reusableWater!.total, { displayAsMetric })} />
               )}
               <BarChart
                 data={waterData}
-                formatter={(label, data) => `${data.label}: ${data.value.toLocaleString()} gallons`}
+                formatter={(label, data) =>
+                  `${data.label}: ${formattedValueInGallons(data.value, { displayAsMetric })}`
+                }
                 seriesField='label'
               />
             </Section>
@@ -278,7 +287,7 @@ export const LineItemDetails: React.FC<Props> = ({ lineItemSummary, variant, sho
             <Spacer horizontal={16} />
             {changeType === 'waste' && (
               <Radio.Group defaultValue={useTons ? 'tons' : 'pounds'} buttonStyle='solid' onChange={changeWeightType}>
-                <Radio.Button value='pounds'>Pounds</Radio.Button>
+                <Radio.Button value='pounds'>{displayAsMetric ? 'Kilograms' : 'Pounds'}</Radio.Button>
                 <Radio.Button value='tons'>Tons</Radio.Button>
               </Radio.Group>
             )}

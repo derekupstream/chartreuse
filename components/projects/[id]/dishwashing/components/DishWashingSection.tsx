@@ -4,6 +4,7 @@ import { Button, Col, Divider, Drawer, message, Popconfirm, Typography, Popover 
 import { useRouter } from 'next/router';
 import React, { useState } from 'react';
 import styled from 'styled-components';
+import { formatNumber, valueInPounds } from 'lib/number';
 
 import CurrencySymbol from 'components/_app/CurrencySymbol';
 import ContentLoader from 'components/common/ContentLoader';
@@ -25,11 +26,13 @@ import DishwashingBaselineForm from './DishWashingBaselineForm';
 import type { DishwasherData as BaselineFormValues } from './DishWashingBaselineForm';
 import DishwashingForecastForm from './DishWashingForecastForm';
 import type { DishwasherData as ForecastFormValues } from './DishWashingForecastForm';
-
+import { useMetricSystem } from 'components/_app/MetricSystemProvider';
+import { convertAndFormatGallons } from 'lib/number';
 const DishWashingSection = ({ projectId, readOnly }: { projectId: string; readOnly: boolean }) => {
   const route = useRouter();
   const { data, isLoading, refetch } = useSimpleQuery<Response>(`/api/dishwashers?projectId=${projectId}`);
   const createDishwashingCost = useSimpleMutation('/api/dishwashers', 'POST');
+  const displayAsMetric = useMetricSystem();
 
   const [visibleForm, setVisibleForm] = useState<'baseline' | 'forecast' | null>(null);
   const [formState, setFormState] = useState<(BaselineFormValues & ForecastFormValues) | null>(null);
@@ -88,8 +91,6 @@ const DishWashingSection = ({ projectId, readOnly }: { projectId: string; readOn
     });
   };
 
-  const prettifyValues = (value: number) => value.toLocaleString(undefined, { maximumFractionDigits: 2 });
-
   if (isLoading) {
     return <ContentLoader />;
   }
@@ -131,7 +132,7 @@ const DishWashingSection = ({ projectId, readOnly }: { projectId: string; readOn
             Water{' '}
             <span style={{ color: 'grey' }}>
               ( <CurrencySymbol />
-              /thousand gallons)
+              /thousand {displayAsMetric ? 'liters' : 'gallons'})
             </span>
             :
           </span>
@@ -221,27 +222,27 @@ const DishWashingSection = ({ projectId, readOnly }: { projectId: string; readOn
                 <thead>
                   <tr>
                     <td>Annual usage</td>
-                    <td>CO2 (lbs/yr)</td>
+                    <td>CO2 ({displayAsMetric ? 'kg' : 'lbs'}/yr)</td>
                     <td>Annual cost</td>
                   </tr>
                 </thead>
                 <tbody>
                   <tr>
-                    <td>{prettifyValues(stats.electricUsage.baseline)} kWh</td>
-                    <td>{prettifyValues(stats.electricCO2Weight.baseline)}</td>
+                    <td>{formatNumber(stats.electricUsage.baseline)} kWh</td>
+                    <td>{formatNumber(valueInPounds(stats.electricCO2Weight.baseline, { displayAsMetric }))}</td>
                     <td>
                       <CurrencySymbol value={stats.electricCost.baseline} />
                     </td>
                   </tr>
                   <tr>
                     <td>{stats.gasUsage.baseline.toLocaleString(undefined, { maximumFractionDigits: 2 })} CF</td>
-                    <td>{prettifyValues(stats.gasCO2Weight.baseline)}</td>
+                    <td>{formatNumber(valueInPounds(stats.gasCO2Weight.baseline, { displayAsMetric }))}</td>
                     <td>
                       <CurrencySymbol value={stats.gasCost.baseline} />
                     </td>
                   </tr>
                   <tr>
-                    <td>{stats.waterUsage.baseline.toLocaleString(undefined, { maximumFractionDigits: 2 })} gal</td>
+                    <td>{convertAndFormatGallons(stats.waterUsage.baseline, { displayAsMetric })}</td>
                     <td></td>
                     <td>
                       <CurrencySymbol value={stats.waterCost.baseline} />
@@ -258,27 +259,27 @@ const DishWashingSection = ({ projectId, readOnly }: { projectId: string; readOn
                 <thead>
                   <tr>
                     <td>Annual usage</td>
-                    <td>CO2 (lbs/yr)</td>
+                    <td>CO2 ({displayAsMetric ? 'kg' : 'lbs'}/yr)</td>
                     <td>Annual cost</td>
                   </tr>
                 </thead>
                 <tbody>
                   <tr>
-                    <td>{prettifyValues(stats.electricUsage.forecast)} kWh</td>
-                    <td>{prettifyValues(stats.electricCO2Weight.forecast)}</td>
+                    <td>{formatNumber(stats.electricUsage.forecast)} kWh</td>
+                    <td>{formatNumber(valueInPounds(stats.electricCO2Weight.forecast, { displayAsMetric }))}</td>
                     <td>
                       <CurrencySymbol value={stats.electricCost.forecast} />
                     </td>
                   </tr>
                   <tr>
                     <td>{stats.gasUsage.forecast.toLocaleString(undefined, { maximumFractionDigits: 2 })} CF</td>
-                    <td>{prettifyValues(stats.gasCO2Weight.forecast)}</td>
+                    <td>{formatNumber(valueInPounds(stats.gasCO2Weight.forecast, { displayAsMetric }))}</td>
                     <td>
                       <CurrencySymbol value={stats.gasCost.forecast} />
                     </td>
                   </tr>
                   <tr>
-                    <td>{stats.waterUsage.forecast.toLocaleString(undefined, { maximumFractionDigits: 2 })} gal</td>
+                    <td>{convertAndFormatGallons(stats.waterUsage.forecast, { displayAsMetric })}</td>
                     <td></td>
                     <td>
                       <CurrencySymbol value={stats.waterCost.forecast} />

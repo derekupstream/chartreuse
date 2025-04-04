@@ -11,10 +11,11 @@ handler.post(updateOrg).use(requireUpstream).delete(deleteOrg);
 export type RequestBody = {
   name: string;
   currency: string;
+  useMetricSystem: boolean;
 };
 
 async function updateOrg(req: NextApiRequestWithUser, res: NextApiResponse) {
-  const { name, currency } = req.body as RequestBody;
+  const { name, currency, useMetricSystem } = req.body as RequestBody;
 
   if (req.user.role !== 'ORG_ADMIN') {
     return res.status(401).json({ message: 'Unauthorized' });
@@ -26,7 +27,8 @@ async function updateOrg(req: NextApiRequestWithUser, res: NextApiResponse) {
     },
     data: {
       name: name.trim(),
-      currency: currency
+      currency: currency,
+      useMetricSystem: useMetricSystem
     }
   });
 

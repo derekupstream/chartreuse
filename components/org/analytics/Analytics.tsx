@@ -17,6 +17,10 @@ import * as S from 'components/projects/[id]/projections/components/styles';
 import type { SummaryValues, AllProjectsSummary, ProjectSummary } from 'lib/calculator/getProjections';
 import { formatToDollar } from 'lib/calculator/utils';
 import { requestDownload } from 'lib/files';
+import { useMetricSystem } from 'components/_app/MetricSystemProvider';
+import { valueInPounds, valueInGallons, formattedValueInPounds } from 'lib/number';
+
+import { useCurrency } from 'components/_app/CurrencyProvider';
 
 import * as S2 from '../../../layouts/styles';
 
@@ -35,7 +39,6 @@ const KPIValue = styled(Typography.Title)`
   }
 `;
 
-import { useCurrency } from 'components/_app/CurrencyProvider';
 export interface PageProps {
   isUpstreamView?: boolean;
   user: User & { org: Org };
@@ -55,7 +58,6 @@ const SummaryCardWithGraph = ({
   value: SummaryValues;
   formatter?: (val: number) => string | ReactNode;
 }) => {
-  const { abbreviation: currencyAbbreviation } = useCurrency();
   const graphData = {
     baseline: value.baseline,
     forecast: value.forecast
@@ -87,6 +89,7 @@ const columns = [
     title: 'Name',
     key: 'name',
     render: (record: ProjectSummary) => {
+      const displayAsMetric = useMetricSystem();
       return (
         <>
           <Typography.Title level={4} style={{ margin: 0 }}>
@@ -98,7 +101,7 @@ const columns = [
           <Typography.Text style={{ fontWeight: 500, lineHeight: 2 }}>
             Estimated Savings
             <br />
-            Waste Reduction <span style={{ color: 'grey' }}>(lb)</span>
+            Waste Reduction <span style={{ color: 'grey' }}>({displayAsMetric ? 'kg' : 'lb'})</span>
             <br />
             Single-Use Reduction <span style={{ color: 'grey' }}>(units)</span>
             <br />
@@ -113,14 +116,20 @@ const columns = [
     key: 'baseline',
     render: (record: ProjectSummary) => {
       const { abbreviation: currencyAbbreviation } = useCurrency();
+      const displayAsMetric = useMetricSystem();
       return (
         <>
-          <Typography.Title level={4}>&nbsp;</Typography.Title>
+          <Typography.Title level={4} style={{ margin: 0 }}>
+            &nbsp;
+          </Typography.Title>
           <Typography.Paragraph>&nbsp;</Typography.Paragraph>
           <Typography.Text style={{ lineHeight: 2 }}>
             {formatToDollar(record.projections.annualSummary.dollarCost.baseline, currencyAbbreviation)}
             <br />
-            {record.projections.annualSummary.wasteWeight.baseline.toLocaleString()}
+            {valueInPounds(record.projections.annualSummary.wasteWeight.baseline, {
+              displayAsMetric,
+              displayAsTons: false
+            }).toLocaleString()}
             <br />
             {record.projections.annualSummary.singleUseProductCount.baseline.toLocaleString()}
             <br />
@@ -135,14 +144,20 @@ const columns = [
     key: 'forecast',
     render: (record: ProjectSummary) => {
       const { abbreviation: currencyAbbreviation } = useCurrency();
+      const displayAsMetric = useMetricSystem();
       return (
         <>
-          <Typography.Title level={4}>&nbsp;</Typography.Title>
+          <Typography.Title level={4} style={{ margin: 0 }}>
+            &nbsp;
+          </Typography.Title>
           <Typography.Paragraph>&nbsp;</Typography.Paragraph>
           <Typography.Text style={{ lineHeight: 2 }}>
             {formatToDollar(record.projections.annualSummary.dollarCost.forecast, currencyAbbreviation)}
             <br />
-            {record.projections.annualSummary.wasteWeight.forecast.toLocaleString()}
+            {valueInPounds(record.projections.annualSummary.wasteWeight.forecast, {
+              displayAsMetric,
+              displayAsTons: false
+            }).toLocaleString()}
             <br />
             {record.projections.annualSummary.singleUseProductCount.forecast.toLocaleString()}
             <br />
@@ -158,16 +173,22 @@ const columns = [
     key: 'change',
     render: (record: ProjectSummary) => {
       const { abbreviation: currencyAbbreviation } = useCurrency();
+      const displayAsMetric = useMetricSystem();
       return (
         <>
-          <Typography.Title level={4}>&nbsp;</Typography.Title>
+          <Typography.Title level={4} style={{ margin: 0 }}>
+            &nbsp;
+          </Typography.Title>
           <Typography.Paragraph>&nbsp;</Typography.Paragraph>
           <Typography.Text style={{ lineHeight: 2 }}>
             <ReductionValue
               value={record.projections.annualSummary.dollarCost}
               formatter={val => formatToDollar(val, currencyAbbreviation)}
             />
-            <ReductionValue value={record.projections.annualSummary.wasteWeight} />
+            <ReductionValue
+              value={record.projections.annualSummary.wasteWeight}
+              formatter={val => defaultFormatter(valueInPounds(val, { displayAsMetric, displayAsTons: false }))}
+            />
             <ReductionValue value={record.projections.annualSummary.singleUseProductCount} />
             <ReductionValue value={record.projections.annualSummary.greenhouseGasEmissions.total} />
           </Typography.Text>
@@ -214,6 +235,8 @@ const ReductionValue = ({
 
 export default function AnalyticsPage({ user, data, allAccounts, allProjects, isUpstreamView }: PageProps) {
   const router = useRouter();
+  const displayAsMetric = useMetricSystem();
+  console.log({ displayAsMetric });
   const { abbreviation: currencyAbbreviation } = useCurrency();
   // for printing
   const printRef = useRef(null);
@@ -329,7 +352,17 @@ export default function AnalyticsPage({ user, data, allAccounts, allProjects, is
           <SummaryCardWithGraph label='Single-Use Reduction' units='units' value={data.summary.singleUse} />
         </StyledCol>
         <StyledCol xs={24} md={12}>
-          <SummaryCardWithGraph label='Waste Reduction' units='lbs' value={data.summary.waste} />
+          <SummaryCardWithGraph
+            label='Waste Reduction'
+            units={displayAsMetric ? 'kg' : 'lbs'}
+            formatter={val =>
+              formattedValueInPounds(valueInPounds(val, { displayAsMetric, displayAsTons: false }), {
+                displayAsMetric,
+                displayAsTons: false
+              })
+            }
+            value={data.summary.waste}
+          />
         </StyledCol>
         <StyledCol xs={24} md={12}>
           <SummaryCardWithGraph label='GHG Reduction' units='MTC02e' value={data.summary.gas} />
