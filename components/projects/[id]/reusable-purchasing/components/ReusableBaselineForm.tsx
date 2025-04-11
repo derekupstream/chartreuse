@@ -25,7 +25,7 @@ type Props = {
   productName?: string;
 };
 
-const ReusablePurchasingFirstStepForm: React.FC<Props> = ({ goBack, input, onSubmit, productName }) => {
+const ReusableBaselineForm: React.FC<Props> = ({ goBack, input, onSubmit, productName }) => {
   const [form] = Form.useForm<ReusableFormValues>();
 
   function _goBack() {
@@ -76,4 +76,4 @@ const ReusablePurchasingFirstStepForm: React.FC<Props> = ({ goBack, input, onSub
   );
 };
 
-export default ReusablePurchasingFirstStepForm;
+export default ReusableBaselineForm;

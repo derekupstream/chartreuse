@@ -31,15 +31,15 @@ export default function SelectQuantityForecastStep({
 
   function _goBack() {
     goBack({
-      newCasesPurchased: parseInt(form.getFieldValue('newCasesPurchased') || '0'),
-      newCaseCost: parseInt((form.getFieldValue('newCaseCost') as string) || '0')
+      newCasesPurchased: form.getFieldValue('newCasesPurchased'),
+      newCaseCost: form.getFieldValue('newCaseCost')
     });
   }
 
   function _onSubmit(values: FormProps) {
     onSubmit({
       newCasesPurchased: parseInt((values.newCasesPurchased as string) || '0'),
-      newCaseCost: parseInt((values.newCaseCost as string) || '0')
+      newCaseCost: parseFloat((values.newCaseCost as string) || '0')
     });
   }
 

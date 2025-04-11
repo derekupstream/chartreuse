@@ -32,7 +32,7 @@ export default function SelectQuantityStep({
       frequency: form.getFieldValue('frequency'),
       unitsPerCase: parseInt(form.getFieldValue('unitsPerCase') || '0'),
       casesPurchased: parseInt(form.getFieldValue('casesPurchased') || '0'),
-      caseCost: parseInt(form.getFieldValue('caseCost') || '0')
+      caseCost: parseFloat(form.getFieldValue('caseCost') || '0')
     });
   }
 
@@ -41,8 +41,8 @@ export default function SelectQuantityStep({
       frequency: values.frequency as SingleUseLineItem['frequency'],
       unitsPerCase: parseInt((values.unitsPerCase as string) || '0'),
       casesPurchased: parseInt((values.casesPurchased as string) || '0'),
-      caseCost: parseInt((values.caseCost as string) || '0'),
-      newCaseCost: input?.newCaseCost || parseInt((values.caseCost as string) || '0')
+      caseCost: parseFloat((values.caseCost as string) || '0'),
+      newCaseCost: input?.newCaseCost || parseFloat((values.caseCost as string) || '0')
     });
   }
 

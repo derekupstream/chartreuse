@@ -15,6 +15,11 @@ This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next
 
 Run `yarn dev` to start the development server and then go to [http://localhost:3000](http://localhost:3000) in your browser.
 
+## Running against production data
+
+Create a ".env.production" config file with env vars and run:
+`NEXT_PUBLIC_REMOTE_USER_ID=<user_id> yarn start:remote`
+
 ## Tests
 
 ```bash
