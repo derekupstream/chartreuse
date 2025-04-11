@@ -316,7 +316,7 @@ const SummaryRow = ({ lineItems }: { lineItems: ReusableLineItem[] }) => {
               <SmallText>Number of units</SmallText>
             </Col>
             <Col span={8}>
-              <SmallText>{totals.units}</SmallText>
+              <SmallText>{totals.units.toLocaleString()}</SmallText>
             </Col>
             {/* next row */}
             <Col span={16}>
@@ -348,7 +348,7 @@ const SummaryRow = ({ lineItems }: { lineItems: ReusableLineItem[] }) => {
               <SmallText>Number of units</SmallText>
             </Col>
             <Col span={8}>
-              <SmallText>{totals.unitsForecast}</SmallText>
+              <SmallText>{totals.unitsForecast.toLocaleString()}</SmallText>
             </Col>
             {/* next row */}
             <Col span={16}>
