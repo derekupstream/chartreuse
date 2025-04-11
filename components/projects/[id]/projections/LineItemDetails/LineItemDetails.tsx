@@ -1,6 +1,6 @@
 import { Radio, Table, Typography } from 'antd';
 import type { ReactNode } from 'react';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useMetricSystem } from 'components/_app/MetricSystemProvider';
 import { Spacer } from 'components/common/Spacer';
 import type { ProjectionsResponse } from 'lib/calculator/getProjections';
@@ -12,6 +12,7 @@ import { KPIContent } from '../components/KPICard';
 import { CardTitle, ChangeColumn, Divider, SectionContainer, SectionHeader } from '../components/styles';
 
 import { Card, Body, Section, Row, Label } from './styles';
+import { isTruthy } from '@lib/types';
 
 interface TableData {
   product: string;
@@ -117,51 +118,59 @@ export const LineItemDetails: React.FC<Props> = ({ lineItemSummary, variant, sho
         }
       ];
 
-  const items = lineItemSummary.resultsByType[rowType];
-  const dataSource: TableData[] = items.rows.map((item, index) => {
-    let baseline = 0;
-    let forecast = 0;
-    if (changeType === 'cost') {
-      baseline = item.cost.baseline;
-      forecast = item.cost.forecast;
-    } else if (changeType === 'waste') {
-      baseline = valueInPounds(item.weight.baseline, { displayAsMetric, displayAsTons: useTons });
-      forecast = valueInPounds(item.weight.forecast, { displayAsMetric, displayAsTons: useTons });
-      if (useTons) {
-        baseline = baseline / 2000;
-        forecast = forecast / 2000;
-      }
-    } else if (changeType === 'ghg') {
-      baseline = item.gasEmissions.baseline;
-      forecast = item.gasEmissions.forecast;
-    } else if (changeType === 'water') {
-      baseline = valueInGallons(item.waterUsage.baseline, { displayAsMetric });
-      forecast = valueInGallons(item.waterUsage.forecast, { displayAsMetric });
-    }
+  const dataSource: TableData[] = useMemo(
+    () =>
+      lineItemSummary.resultsByType[rowType].rows
+        .map((item, index) => {
+          let baseline = 0;
+          let forecast = 0;
+          if (changeType === 'cost') {
+            baseline = item.cost.baseline;
+            forecast = item.cost.forecast;
+          } else if (changeType === 'waste') {
+            baseline = valueInPounds(item.weight.baseline, { displayAsMetric, displayAsTons: useTons });
+            forecast = valueInPounds(item.weight.forecast, { displayAsMetric, displayAsTons: useTons });
+            if (useTons) {
+              baseline = baseline / 2000;
+              forecast = forecast / 2000;
+            }
+          } else if (changeType === 'ghg') {
+            baseline = item.gasEmissions.baseline;
+            forecast = item.gasEmissions.forecast;
+          } else if (changeType === 'water') {
+            baseline = valueInGallons(item.waterUsage.baseline, { displayAsMetric });
+            forecast = valueInGallons(item.waterUsage.forecast, { displayAsMetric });
+          }
+          if (baseline === 0 && forecast === 0) {
+            return null;
+          }
 
-    return {
-      key: index, // for @antd/table
-      product: item.title,
-      baselineSpending: baseline,
-      forecastSpending: forecast,
-      forecastStr: formatNumber(forecast, changeType, currencyAbbreviation),
-      baselineStr: formatNumber(baseline, changeType, currencyAbbreviation),
-      change: baseline ? (
-        <ChangeColumn>
-          <span>
-            {forecast > baseline && '+'}
-            {formatNumber(forecast - baseline, changeType, currencyAbbreviation)}
-          </span>{' '}
-          <span>
-            {forecast > baseline && '+'}
-            {Math.round(((forecast - baseline) / baseline) * 100)}%
-          </span>
-        </ChangeColumn>
-      ) : (
-        'N/A'
-      )
-    };
-  });
+          return {
+            key: index, // for @antd/table
+            product: item.title,
+            baselineSpending: baseline,
+            forecastSpending: forecast,
+            forecastStr: formatNumber(forecast, changeType, currencyAbbreviation),
+            baselineStr: formatNumber(baseline, changeType, currencyAbbreviation),
+            change: baseline ? (
+              <ChangeColumn>
+                <span>
+                  {forecast > baseline && '+'}
+                  {formatNumber(forecast - baseline, changeType, currencyAbbreviation)}
+                </span>{' '}
+                <span>
+                  {forecast > baseline && '+'}
+                  {Math.round(((forecast - baseline) / baseline) * 100)}%
+                </span>
+              </ChangeColumn>
+            ) : (
+              'N/A'
+            )
+          };
+        })
+        .filter(isTruthy),
+    [lineItemSummary.resultsByType[rowType].rows, changeType, useTons]
+  );
 
   // if cost is hidden, default to waste when rowType changes
   useEffect(() => {
@@ -282,7 +291,7 @@ export const LineItemDetails: React.FC<Props> = ({ lineItemSummary, variant, sho
             <Radio.Group defaultValue='productType' buttonStyle='solid' onChange={changeRowType}>
               <Radio.Button value='productType'>Product</Radio.Button>
               <Radio.Button value='productCategory'>Category</Radio.Button>
-              <Radio.Button value='material'>Material</Radio.Button>
+              {changeType !== 'cost' && <Radio.Button value='material'>Material</Radio.Button>}
             </Radio.Group>
             <Spacer horizontal={16} />
             {changeType === 'waste' && (

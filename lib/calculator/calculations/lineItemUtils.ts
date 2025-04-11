@@ -226,15 +226,17 @@ function getMaterialImpact(materialId: number, singleUseItems: LineItemInput[]):
         isSecondaryMaterial ? product.secondaryMaterialWeightPerUnit : product.primaryMaterialWeightPerUnit
       );
 
-      const { shippingBoxGas, total: allGasEmissions } = getLineItemGasEmissions({
+      const { shippingBoxGas, primaryGas, secondaryGas } = getLineItemGasEmissions({
         frequency: lineItem.frequency || 'Annually',
         lineItem
       });
+      const gasEmissions = isCardboard ? shippingBoxGas : isSecondaryMaterial ? secondaryGas : primaryGas;
 
-      const { total: waterUsage, shippingBoxWater } = getLineItemWaterUsage({
+      const { secondaryWater, primaryWater, shippingBoxWater } = getLineItemWaterUsage({
         frequency: lineItem.frequency || 'Annually',
         lineItem
       });
+      const waterUsage = isCardboard ? shippingBoxWater : isSecondaryMaterial ? secondaryWater : primaryWater;
 
       const annualBoxWeight = lineItem.casesPurchased * lineItem.product.boxWeight * annualOccurrence;
       const forecastAnnualBoxWeight = lineItem.newCasesPurchased * lineItem.product.boxWeight * annualOccurrence;
@@ -244,8 +246,8 @@ function getMaterialImpact(materialId: number, singleUseItems: LineItemInput[]):
         annualWeight: isCardboard ? annualBoxWeight : annualWeight,
         forecastAnnualCost,
         forecastAnnualWeight: isCardboard ? forecastAnnualBoxWeight : forecastAnnualWeight,
-        gasEmissions: isCardboard ? shippingBoxGas : allGasEmissions,
-        waterUsage: isCardboard ? shippingBoxWater : waterUsage
+        gasEmissions,
+        waterUsage
       };
       return detailedResult;
     })

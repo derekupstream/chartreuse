@@ -156,15 +156,15 @@ describe('Predictions Calculator: Spreadsheet results from Upstream', () => {
         changePercent: -70
       },
       gasEmissions: {
-        baseline: 231.34,
-        change: -173.27,
-        changePercent: -75,
-        forecast: 58.07
+        baseline: 104.98,
+        change: -80.33,
+        changePercent: -77,
+        forecast: 24.65
       },
       waterUsage: {
-        baseline: 590411,
-        change: -325549,
-        forecast: 264862,
+        baseline: 285333.55,
+        change: -156954.95,
+        forecast: 128378.6,
         changePercent: -55
       },
       weight: {
