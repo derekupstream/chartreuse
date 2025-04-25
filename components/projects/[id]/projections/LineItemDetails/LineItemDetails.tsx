@@ -56,8 +56,8 @@ type ChangeType = 'cost' | 'waste' | 'ghg';
 const titleByChangeType = {
   cost: 'Cost',
   waste: 'Waste',
-  ghg: 'GHG',
-  water: 'Water'
+  ghg: 'GHG (MTCO2e)',
+  water: 'Water (gal)'
 };
 
 export const LineItemDetails: React.FC<Props> = ({ lineItemSummary, variant, showTitle, hideWaterUsage }) => {
@@ -277,7 +277,7 @@ export const LineItemDetails: React.FC<Props> = ({ lineItemSummary, variant, sho
                 .filter(([value]) => (hideWaterUsage ? value !== 'water' : hideCost ? value !== 'cost' : true))
                 .map(([value, label]) => (
                   <Radio.Button key={value} value={value}>
-                    {label}
+                    {label.split(' ')[0]}
                   </Radio.Button>
                 ))}
             </Radio.Group>
