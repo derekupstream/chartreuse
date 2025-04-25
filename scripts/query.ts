@@ -35,14 +35,14 @@ async function query() {
   //   }
   // });
   // console.log(JSON.stringify(project, null, 2));
-  const org = await prisma.org.findFirst({
+  const org = await prisma.project.groupBy({
     where: {
-      isUpstream: true
-      // name: 'Staging'
+      templateId: {
+        not: null
+      }
     },
-    include: {
-      users: true
-    }
+    by: ['orgId'],
+    _count: true
   });
   console.log(org);
 }
