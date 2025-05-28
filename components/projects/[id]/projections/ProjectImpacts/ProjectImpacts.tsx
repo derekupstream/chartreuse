@@ -4,7 +4,7 @@ import styled from 'styled-components';
 
 import { useMetricSystem } from 'components/_app/MetricSystemProvider';
 import type { ProjectionsResponse } from 'lib/calculator/getProjections';
-import { changeValue, formattedValueInPounds, changeValueInPounds } from 'lib/number';
+import { changeValue, formattedValueInPounds, valueInPounds, changeValueInPounds } from 'lib/number';
 
 import { useCurrency } from 'components/_app/CurrencyProvider';
 import BarChart from '../components/BarChart';
@@ -38,11 +38,11 @@ const ProjectImpacts: React.FC<Props> = ({ data, showTitle }) => {
   const wasteData = [
     {
       label: 'Baseline',
-      value: changeValueInPounds(data.wasteWeight.baseline, { displayAsMetric, displayAsTons: false })
+      value: valueInPounds(data.wasteWeight.baseline, { displayAsMetric, displayAsTons: false })
     },
     {
       label: 'Forecast',
-      value: changeValueInPounds(data.wasteWeight.forecast, { displayAsMetric, displayAsTons: false })
+      value: valueInPounds(data.wasteWeight.forecast, { displayAsMetric, displayAsTons: false })
     }
   ];
 
