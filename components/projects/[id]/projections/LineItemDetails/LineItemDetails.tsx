@@ -65,7 +65,7 @@ export const LineItemDetails: React.FC<Props> = ({ lineItemSummary, variant, sho
   const [changeType, setChangeType] = useState<ChangeType>('cost');
   const { symbol: currencySymbol, abbreviation: currencyAbbreviation } = useCurrency();
   const displayAsMetric = useMetricSystem();
-  const [useTons, setUseTons] = useState(false);
+  const [displayWeightAsMetric, setDisplayWeightAsMetric] = useState(displayAsMetric);
 
   const hideCost = rowType === 'material';
 
@@ -78,7 +78,7 @@ export const LineItemDetails: React.FC<Props> = ({ lineItemSummary, variant, sho
   }
 
   function changeWeightType(e: any) {
-    setUseTons(e.target.value === 'tons');
+    setDisplayWeightAsMetric(e.target.value === 'metric');
   }
 
   const labels = LABELS[variant];
@@ -103,18 +103,24 @@ export const LineItemDetails: React.FC<Props> = ({ lineItemSummary, variant, sho
   const waterData = annualWater
     ? // single-item usage
       [
-        { label: labels.baselineLabel, value: valueInGallons(annualWater.baseline, { displayAsMetric }) },
-        { label: labels.forecastLabel, value: valueInGallons(annualWater.forecast, { displayAsMetric }) }
+        {
+          label: labels.baselineLabel,
+          value: valueInGallons(annualWater.baseline, { displayAsMetric: displayAsMetric })
+        },
+        {
+          label: labels.forecastLabel,
+          value: valueInGallons(annualWater.forecast, { displayAsMetric: displayAsMetric })
+        }
       ]
     : // reusable item usage
       [
         {
           label: 'Reusable foodware water usage',
-          value: valueInGallons(reusableWater!.lineItemForecast, { displayAsMetric })
+          value: valueInGallons(reusableWater!.lineItemForecast, { displayAsMetric: displayAsMetric })
         },
         {
           label: 'Dishwasher water usage',
-          value: valueInGallons(reusableWater!.dishwasherForecast, { displayAsMetric })
+          value: valueInGallons(reusableWater!.dishwasherForecast, { displayAsMetric: displayAsMetric })
         }
       ];
 
@@ -128,18 +134,14 @@ export const LineItemDetails: React.FC<Props> = ({ lineItemSummary, variant, sho
             baseline = item.cost.baseline;
             forecast = item.cost.forecast;
           } else if (changeType === 'waste') {
-            baseline = valueInPounds(item.weight.baseline, { displayAsMetric, displayAsTons: useTons });
-            forecast = valueInPounds(item.weight.forecast, { displayAsMetric, displayAsTons: useTons });
-            if (useTons) {
-              baseline = baseline / 2000;
-              forecast = forecast / 2000;
-            }
+            baseline = valueInPounds(item.weight.baseline, { displayAsMetric: displayWeightAsMetric });
+            forecast = valueInPounds(item.weight.forecast, { displayAsMetric: displayWeightAsMetric });
           } else if (changeType === 'ghg') {
             baseline = item.gasEmissions.baseline;
             forecast = item.gasEmissions.forecast;
           } else if (changeType === 'water') {
-            baseline = valueInGallons(item.waterUsage.baseline, { displayAsMetric });
-            forecast = valueInGallons(item.waterUsage.forecast, { displayAsMetric });
+            baseline = valueInGallons(item.waterUsage.baseline, { displayAsMetric: displayAsMetric });
+            forecast = valueInGallons(item.waterUsage.forecast, { displayAsMetric: displayAsMetric });
           }
           if (baseline === 0 && forecast === 0) {
             return null;
@@ -169,7 +171,7 @@ export const LineItemDetails: React.FC<Props> = ({ lineItemSummary, variant, sho
           };
         })
         .filter(isTruthy),
-    [lineItemSummary.resultsByType[rowType].rows, changeType, useTons]
+    [lineItemSummary.resultsByType[rowType].rows, changeType, displayAsMetric, displayWeightAsMetric]
   );
 
   // if cost is hidden, default to waste when rowType changes
@@ -248,15 +250,17 @@ export const LineItemDetails: React.FC<Props> = ({ lineItemSummary, variant, sho
               {annualWater ? (
                 <KPIContent
                   changePercent={annualWater.changePercent * -1}
-                  changeStr={changeValueInGallons(annualWater.change * -1, { displayAsMetric })}
+                  changeStr={changeValueInGallons(annualWater.change * -1, { displayAsMetric: displayAsMetric })}
                 />
               ) : (
-                <KPIContent changeStr={changeValueInGallons(reusableWater!.total, { displayAsMetric })} />
+                <KPIContent
+                  changeStr={changeValueInGallons(reusableWater!.total, { displayAsMetric: displayAsMetric })}
+                />
               )}
               <BarChart
                 data={waterData}
                 formatter={(label, data) =>
-                  `${data.label}: ${formattedValueInGallons(data.value, { displayAsMetric })}`
+                  `${data.label}: ${formattedValueInGallons(data.value, { displayAsMetric: displayAsMetric })}`
                 }
                 seriesField='label'
               />
@@ -295,9 +299,15 @@ export const LineItemDetails: React.FC<Props> = ({ lineItemSummary, variant, sho
             </Radio.Group>
             <Spacer horizontal={16} />
             {changeType === 'waste' && (
-              <Radio.Group defaultValue={useTons ? 'tons' : 'pounds'} buttonStyle='solid' onChange={changeWeightType}>
-                <Radio.Button value='pounds'>{displayAsMetric ? 'Kilograms' : 'Pounds'}</Radio.Button>
-                <Radio.Button value='tons'>Tons</Radio.Button>
+              <Radio.Group
+                defaultValue={displayWeightAsMetric ? 'metric' : 'standard'}
+                buttonStyle='solid'
+                onChange={changeWeightType}
+              >
+                {!displayAsMetric && <Radio.Button value='standard'>Pounds</Radio.Button>}
+                <Radio.Button value='metric'>Kilograms</Radio.Button>
+                {/* show standard second if they prefer metric */}
+                {displayAsMetric && <Radio.Button value='standard'>Pounds</Radio.Button>}
               </Radio.Group>
             )}
           </Row>
