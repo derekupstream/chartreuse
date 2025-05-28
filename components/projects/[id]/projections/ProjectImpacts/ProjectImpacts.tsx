@@ -36,8 +36,14 @@ const ProjectImpacts: React.FC<Props> = ({ data, showTitle }) => {
   ];
 
   const wasteData = [
-    { label: 'Baseline', value: data.wasteWeight.baseline },
-    { label: 'Forecast', value: data.wasteWeight.forecast }
+    {
+      label: 'Baseline',
+      value: changeValueInPounds(data.wasteWeight.baseline, { displayAsMetric, displayAsTons: false })
+    },
+    {
+      label: 'Forecast',
+      value: changeValueInPounds(data.wasteWeight.forecast, { displayAsMetric, displayAsTons: false })
+    }
   ];
 
   const ghgData = [
