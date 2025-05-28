@@ -138,14 +138,16 @@ export function getLineItemGasEmissions({
   );
 
   // Column: AU: calculate secondary material emissions
-  const secondaryGas = calculateMaterialGas(
-    casesPurchased,
-    newCasesPurchased,
-    annualOccurrence,
-    unitsPerCase,
-    product.secondaryMaterial,
-    product.secondaryMaterialWeightPerUnit
-  );
+  const secondaryGas = product.secondaryMaterial
+    ? calculateMaterialGas(
+        casesPurchased,
+        newCasesPurchased,
+        annualOccurrence,
+        unitsPerCase,
+        product.secondaryMaterial,
+        product.secondaryMaterialWeightPerUnit
+      )
+    : getChangeSummaryRow(0, 0);
 
   // Columns: X, Y
   const annualBoxWeight = product.boxWeight * casesPurchased * annualOccurrence;

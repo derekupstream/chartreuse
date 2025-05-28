@@ -147,13 +147,13 @@ describe('Predictions Calculator: Spreadsheet results from Upstream', () => {
     });
     expect(results.resultsByType.productCategory.rows.length).toBe(2);
     expect(results.resultsByType.productType.rows.length).toBe(5);
-    expect(results.resultsByType.material.rows.length).toBe(7);
+    expect(results.resultsByType.material.rows.length).toBe(6);
     expect(results.resultsByType.material.totals).toEqual<CombinedLineItemResults>({
       cost: {
-        baseline: 257400,
-        forecast: 78000,
-        change: -179400,
-        changePercent: -70
+        baseline: 171600,
+        forecast: 57200,
+        change: -114400,
+        changePercent: -67
       },
       gasEmissions: {
         baseline: 104.98,

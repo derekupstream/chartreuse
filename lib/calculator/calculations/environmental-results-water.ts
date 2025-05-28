@@ -109,14 +109,16 @@ export function getLineItemWaterUsage({
   );
 
   // Column: AU: calculate secondary material emissions
-  const secondaryWater = calculateMaterialWater(
-    casesPurchased,
-    newCasesPurchased,
-    annualOccurrence,
-    unitsPerCase,
-    product.secondaryMaterial,
-    product.secondaryMaterialWeightPerUnit
-  );
+  const secondaryWater = product.secondaryMaterial
+    ? calculateMaterialWater(
+        casesPurchased,
+        newCasesPurchased,
+        annualOccurrence,
+        unitsPerCase,
+        product.secondaryMaterial,
+        product.secondaryMaterialWeightPerUnit
+      )
+    : getChangeSummaryRow(0, 0);
 
   // impact from shipping box
   const baselineBoxWeight = product.boxWeight * casesPurchased * annualOccurrence;

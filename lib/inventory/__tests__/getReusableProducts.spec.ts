@@ -11,7 +11,7 @@ describe('Predictions Calculator: Spreadsheet results from Upstream', () => {
       itemWeight: 0.4921875,
       primaryMaterial: 100,
       primaryMaterialWeightPerUnit: 0.4921875,
-      secondaryMaterial: 0,
+      // secondaryMaterial: 0,
       secondaryMaterialWeightPerUnit: 0,
       size: '8 oz',
       type: 0

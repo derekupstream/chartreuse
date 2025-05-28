@@ -3,8 +3,8 @@ import prisma from 'lib/prisma';
 import { getSharedProjections } from 'lib/share/getSharedProjections';
 
 async function query() {
-  // const r = await getProjections('4627641a-1642-4445-be25-79d5da221508');
-  // console.log(JSON.stringify(r, null, 2));
+  const r = await getProjections('64bdd945-98dd-4699-a8c4-9924520e9430');
+  console.log(JSON.stringify(r, null, 2));
 
   // const project = await prisma.project.findFirst({
   //   where: {
@@ -24,7 +24,7 @@ async function query() {
   // console.log(result.projects.map(p => p?.project));
   // const project = await prisma.project.findFirst({
   //   where: {
-  //     id: '4627641a-1642-4445-be25-79d5da221508'
+  //     id: '64bdd945-98dd-4699-a8c4-9924520e9430'
   //   },
   //   include: {
   //     org: {
@@ -35,16 +35,16 @@ async function query() {
   //   }
   // });
   // console.log(JSON.stringify(project, null, 2));
-  const org = await prisma.project.groupBy({
-    where: {
-      templateId: {
-        not: null
-      }
-    },
-    by: ['orgId'],
-    _count: true
-  });
-  console.log(org);
+  // const org = await prisma.project.groupBy({
+  //   where: {
+  //     templateId: {
+  //       not: null
+  //     }
+  //   },
+  //   by: ['orgId'],
+  //   _count: true
+  // });
+  // console.log(org);
 }
 
 query();

@@ -300,7 +300,6 @@ function combineLineItemResults(title: string, items: LineItemResult[]): Combine
       const baselineWater = result.waterUsage.baseline + item.waterUsage.baseline;
       const forecastWater = result.waterUsage.forecast + item.waterUsage.forecast;
       const waterUsage = getChangeSummaryRowRounded(baselineWater, forecastWater, 2);
-
       return {
         title,
         cost,
