@@ -22,66 +22,59 @@ import {
   Subtitle
 } from '../../additional-costs/components/ExpenseBlock';
 
-import DishwashingBaselineForm from './DishWashingBaselineForm';
-import type { DishwasherData as BaselineFormValues } from './DishWashingBaselineForm';
-import DishwashingForecastForm from './DishWashingForecastForm';
-import type { DishwasherData as ForecastFormValues } from './DishWashingForecastForm';
+import { DishwashingForm } from './DishWashingForm';
+import type { DishwasherData as FormValues } from './DishWashingForm';
 import { useMetricSystem } from 'components/_app/MetricSystemProvider';
 import { convertAndFormatGallons } from 'lib/number';
+
 const DishWashingSection = ({ projectId, readOnly }: { projectId: string; readOnly: boolean }) => {
   const route = useRouter();
   const { data, isLoading, refetch } = useSimpleQuery<Response>(`/api/dishwashers?projectId=${projectId}`);
   const createDishwashingCost = useSimpleMutation('/api/dishwashers', 'POST');
   const displayAsMetric = useMetricSystem();
 
-  const [visibleForm, setVisibleForm] = useState<'baseline' | 'forecast' | null>(null);
-  const [formState, setFormState] = useState<(BaselineFormValues & ForecastFormValues) | null>(null);
+  const [visibleForm, setVisibleForm] = useState<boolean>(false);
+  const [formState, setFormState] = useState<FormValues | null>(null);
 
   function onClickCreate() {
     setFormState(null);
-    setVisibleForm('baseline');
+    setVisibleForm(true);
   }
 
   function onClickEdit(item: Dishwasher) {
     setFormState(item);
-    setVisibleForm('baseline');
+    setVisibleForm(true);
   }
 
   function onClose() {
     setFormState(null);
-    setVisibleForm(null);
+    setVisibleForm(false);
   }
 
-  function onSubmitBaseline(newValues: BaselineFormValues) {
+  function onSubmit(newValues: FormValues) {
     setFormState(current => ({ ...(current || {}), ...newValues }));
-    setVisibleForm('forecast');
-  }
-
-  function onSubmitForecast(newValues: ForecastFormValues) {
     const values = {
       ...formState,
       ...newValues
     };
 
     createDishwashingCost.mutate(values, {
-      onSuccess: onSubmit
+      onSuccess: function (e: any) {
+        // TODO: figure out why error trigglers onSuccess // get rid of useSimpleMutation
+        if (e.message) {
+          console.error(e);
+          message.error('Something went wrong, please check the inputs and try again.');
+          return;
+        }
+        if (formState?.id) {
+          message.success('Dishwasher updated');
+        } else {
+          message.success('Dishwasher created');
+        }
+        onClose();
+        refetch();
+      }
     });
-  }
-
-  function onSubmit(e: any) {
-    // TODO: figure out why error trigglers onSuccess // get rid of useSimpleMutation
-    if (e.message) {
-      console.error(e);
-      message.error('Something went wrong, please check the inputs and try again.');
-      return;
-    }
-    if (formState?.id) {
-      message.success('Dishwasher updated');
-    } else {
-      message.success('Dishwasher created');
-    }
-    onClose();
-    refetch();
   }
 
   const onConfirmDelete = () => {
@@ -215,46 +208,10 @@ const DishWashingSection = ({ projectId, readOnly }: { projectId: string; readOn
               </>
             )}
           </Col>
-          <Col span={8}>
-            <InfoCard theme='baseline'>
-              <Typography.Title level={5}>Baseline</Typography.Title>
-              <table>
-                <thead>
-                  <tr>
-                    <td>Annual usage</td>
-                    <td>CO2 ({displayAsMetric ? 'kg' : 'lbs'}/yr)</td>
-                    <td>Annual cost</td>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td>{formatNumber(stats.electricUsage.baseline)} kWh</td>
-                    <td>{formatNumber(valueInPounds(stats.electricCO2Weight.baseline, { displayAsMetric }))}</td>
-                    <td>
-                      <CurrencySymbol value={stats.electricCost.baseline} />
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>{stats.gasUsage.baseline.toLocaleString(undefined, { maximumFractionDigits: 2 })} CF</td>
-                    <td>{formatNumber(valueInPounds(stats.gasCO2Weight.baseline, { displayAsMetric }))}</td>
-                    <td>
-                      <CurrencySymbol value={stats.gasCost.baseline} />
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>{convertAndFormatGallons(stats.waterUsage.baseline, { displayAsMetric })}</td>
-                    <td></td>
-                    <td>
-                      <CurrencySymbol value={stats.waterCost.baseline} />
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </InfoCard>
-          </Col>
+          <Col span={8}></Col>
           <Col span={8}>
             <InfoCard theme='forecast'>
-              <Typography.Title level={5}>Forecast</Typography.Title>
+              {/* <Typography.Title level={5}>Forecast</Typography.Title> */}
               <table>
                 <thead>
                   <tr>
@@ -309,22 +266,13 @@ const DishWashingSection = ({ projectId, readOnly }: { projectId: string; readOn
         </>
       )}
       <Drawer
-        title={formState?.id ? 'Update current dishwashing expense' : 'Add current dishwashing expense'}
+        title={formState?.id ? 'Update dishwashing expense' : 'Add dishwashing expense'}
         onClose={onClose}
-        open={visibleForm === 'baseline'}
+        open={visibleForm}
         contentWrapperStyle={contentWrapperStyle}
         destroyOnClose
       >
-        <DishwashingBaselineForm input={formState} onSubmit={onSubmitBaseline} />
-      </Drawer>
-      <Drawer
-        title={formState?.id ? 'Update dishwashing forecast' : 'Add dishwashing forecast'}
-        onClose={onClose}
-        open={visibleForm === 'forecast'}
-        contentWrapperStyle={contentWrapperStyle}
-        destroyOnClose
-      >
-        <DishwashingForecastForm input={formState} onSubmit={onSubmitForecast} />
+        <DishwashingForm input={formState} onSubmit={onSubmit} />
       </Drawer>
     </Container>
   );
