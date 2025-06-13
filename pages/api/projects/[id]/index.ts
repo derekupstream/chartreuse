@@ -3,7 +3,7 @@ import type { Project } from '@prisma/client';
 import type { Org, User } from '@prisma/client';
 import type { NextApiResponse } from 'next';
 
-import type { ProjectMetadata } from 'components/projects/[id]/edit';
+import type { ProjectMetadata } from 'components/projects/[id]/edit/ProjectSetup';
 import { handlerWithUser } from 'lib/middleware';
 import type { NextApiRequestWithUser } from 'lib/middleware';
 import prisma from 'lib/prisma';
@@ -40,7 +40,8 @@ async function updateProject(req: NextApiRequestWithUser, res: NextApiResponse<R
     budget,
     singleUseReductionPercentage,
     isTemplate,
-    templateDescription
+    templateDescription,
+    category
   } = req.body;
 
   if (USState) {
@@ -64,6 +65,7 @@ async function updateProject(req: NextApiRequestWithUser, res: NextApiResponse<R
     },
     data: {
       name: name.trim(),
+      category,
       metadata: metadata as ProjectMetadata,
       USState,
       currency,

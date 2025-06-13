@@ -86,6 +86,7 @@ function csvRowToSingleUseProduct(csvProduct: CSVRow): SingleUseProduct {
   return {
     id: productId,
     boxWeight,
+    boxWeightPerItem: 0,
     category: category.id,
     description: csvProduct['Description'],
     type: type.id,

@@ -29,7 +29,7 @@ export const ProjectsDashboard = ({
 
   return (
     <>
-      <S.SpaceBetween>
+      <S.HeaderRow>
         <Typography.Title>Projects</Typography.Title>
         {/* <Popconfirm
           title={
@@ -63,7 +63,7 @@ export const ProjectsDashboard = ({
             Start custom project
           </Button>
         )}
-      </S.SpaceBetween>
+      </S.HeaderRow>
       <Tabs
         defaultActiveKey={showTemplateByDefault ? 'templates' : 'active'}
         size={'large'}

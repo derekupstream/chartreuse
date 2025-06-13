@@ -2,10 +2,11 @@ import { ArrowLeftOutlined, ArrowRightOutlined } from '@ant-design/icons';
 import { useRouter } from 'next/router';
 import { createContext, useContext, useState } from 'react';
 
-import type { ProjectPath } from '../../steps';
-import { CALCULATOR_STEPS } from '../../steps';
+import { categoryByType } from 'lib/projects/categories';
+import type { ProjectPath } from 'lib/projects/steps';
 
 import { Container, LinkBox, Row } from './styles';
+import { ProjectCategory } from '@prisma/client';
 
 type FooterState = { path: ProjectPath; stepCompleted: boolean };
 
@@ -15,24 +16,32 @@ const FooterContext = createContext<{ state: FooterState | null; setFooterState:
 });
 export const useFooterState = () => useContext(FooterContext);
 
-export function FooterProvider({ children }: { children: React.ReactNode }) {
-  const [state, setFooterState] = useState<FooterState>({ path: CALCULATOR_STEPS[0].path, stepCompleted: false });
+export function FooterProvider({
+  children,
+  projectCategory = 'default'
+}: {
+  children: React.ReactNode;
+  projectCategory?: ProjectCategory;
+}) {
+  const steps = categoryByType(projectCategory).steps;
+  const [state, setFooterState] = useState<FooterState>({ path: steps[0].path, stepCompleted: false });
 
   return <FooterContext.Provider value={{ state, setFooterState }}>{children}</FooterContext.Provider>;
 }
 
-export default function Footer() {
+export default function Footer({ projectCategory = 'default' }: { projectCategory?: ProjectCategory }) {
   const { state } = useFooterState();
 
   const { query } = useRouter();
   const projectId = query.id as string;
 
-  const stepIndex = CALCULATOR_STEPS.findIndex(step => step.path === state?.path);
+  const steps = categoryByType(projectCategory).steps;
+  const stepIndex = steps.findIndex(step => step.path === state?.path);
   if (stepIndex === -1) {
     return null;
   }
-  const previousStep = stepIndex > 0 ? CALCULATOR_STEPS[stepIndex - 1] : undefined;
-  const nextStep = stepIndex < CALCULATOR_STEPS.length - 1 ? CALCULATOR_STEPS[stepIndex + 1] : undefined;
+  const previousStep = stepIndex > 0 ? steps[stepIndex - 1] : undefined;
+  const nextStep = stepIndex < steps.length - 1 ? steps[stepIndex + 1] : undefined;
 
   return (
     <Container>

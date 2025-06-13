@@ -3,12 +3,12 @@
  * The following tests are based on data provided as part of the spreadsheet model from Upstream
  */
 
-import type { ProjectInventory } from '../../inventory/types/projects';
+import type { ProjectInventory } from 'lib/inventory/types/projects';
 import { getAnnualSummary } from '../calculations/getAnnualSummary';
 import { getEnvironmentalResults } from '../calculations/getEnvironmentalResults';
 import { getFinancialResults } from '../calculations/getFinancialResults';
-import type { CombinedLineItemResults } from '../calculations/lineItemUtils';
-import { getSingleUseResults } from '../calculations/getSingleUseResults';
+import type { CombinedLineItemResults } from '../calculations/foodware/lineItemUtils';
+import { getSingleUseResults } from '../calculations/foodware/getSingleUseResults';
 
 import { getProjectInventory } from './testData';
 
@@ -44,10 +44,10 @@ describe('Predictions Calculator: Spreadsheet results from Upstream', () => {
             forecast: 4.9
           },
           landfillWaste: {
-            baseline: 83.6,
-            change: -67.72,
+            baseline: 83.74,
+            change: -67.76,
             changePercent: -81,
-            forecast: 15.88
+            forecast: 15.98
           },
           shippingBox: {
             baseline: 21.38,
@@ -56,10 +56,10 @@ describe('Predictions Calculator: Spreadsheet results from Upstream', () => {
             forecast: 8.77
           },
           total: {
-            baseline: 104.98,
-            change: -75.43,
+            baseline: 105.12,
+            change: -75.47,
             changePercent: -72,
-            forecast: 29.56
+            forecast: 29.65
           }
         },
         singleUseProductCount: {
@@ -69,10 +69,10 @@ describe('Predictions Calculator: Spreadsheet results from Upstream', () => {
           forecast: 1451840
         },
         wasteWeight: {
-          baseline: 33644,
-          change: -22100,
+          baseline: 33732,
+          change: -22133,
           changePercent: -66,
-          forecast: 11544
+          forecast: 11599
         }
       })
     );
@@ -88,10 +88,10 @@ describe('Predictions Calculator: Spreadsheet results from Upstream', () => {
         forecast: 4.9
       },
       landfillWaste: {
-        baseline: 83.6,
-        change: -67.72,
+        baseline: 83.74,
+        change: -67.76,
         changePercent: -81,
-        forecast: 15.88
+        forecast: 15.98
       },
       shippingBox: {
         baseline: 21.38,
@@ -100,10 +100,10 @@ describe('Predictions Calculator: Spreadsheet results from Upstream', () => {
         forecast: 8.77
       },
       total: {
-        baseline: 104.98,
-        change: -75.43,
+        baseline: 105.12,
+        change: -75.47,
         changePercent: -72,
-        forecast: 29.56
+        forecast: 29.65
       }
     });
   });
@@ -156,22 +156,22 @@ describe('Predictions Calculator: Spreadsheet results from Upstream', () => {
         changePercent: -67
       },
       gasEmissions: {
-        baseline: 104.98,
-        change: -80.33,
-        changePercent: -77,
-        forecast: 24.65
+        baseline: 105.12,
+        change: -80.36,
+        changePercent: -76,
+        forecast: 24.76
       },
       waterUsage: {
-        baseline: 285333.55,
-        change: -156954.95,
-        forecast: 128378.6,
+        baseline: 286726.74,
+        change: -157613.02,
+        forecast: 129113.72,
         changePercent: -55
       },
       weight: {
-        baseline: 33644,
-        change: -22100,
+        baseline: 33731,
+        change: -22133,
         changePercent: -66,
-        forecast: 11544
+        forecast: 11598
       }
     });
   });

@@ -29,15 +29,19 @@ function kgToTons(number: number) {
   return number / 1000;
 }
 
-function weightToTons(number: number, displayAsTons?: boolean) {
-  return displayAsTons ? kgToTons(number) : poundsToTons(number);
-}
-
+// given a number in lb, convert to kg if necessary, then convert to tons if necessary
 export function valueInPounds(number: number, { displayAsMetric, displayAsTons }: WeightDisplayOptions) {
   if (displayAsMetric) {
     number = number * POUND_TO_KILOGRAM;
+    if (displayAsTons) {
+      number = kgToTons(number);
+    }
+    return number;
   }
-  return weightToTons(number, displayAsTons);
+  if (displayAsTons) {
+    number = poundsToTons(number);
+  }
+  return number;
 }
 
 // convert to kg if necessary

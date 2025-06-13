@@ -1,10 +1,10 @@
 import { ArrowLeftOutlined } from '@ant-design/icons';
 import { PlusOutlined } from '@ant-design/icons';
 import type { Project } from '@prisma/client';
-import { Alert, Button, Space, Steps, Typography } from 'antd';
+import { Alert, Button, Space, Typography } from 'antd';
 import Link from 'next/link';
 import styled from 'styled-components';
-import { StepsMenu } from './DashboardLayout/components/StepsMenu';
+import { StepsNavigation } from './DashboardLayout/components/StepsNavigation';
 import { ErrorBoundary } from 'components/common/errors/ErrorBoundary';
 import CalculatorFooter, { FooterProvider } from 'components/projects/[id]/components/Footer';
 
@@ -44,7 +44,7 @@ export function ProjectStepsLayout({
 }: React.PropsWithChildren<Props>) {
   return (
     <BaseLayout {...pageProps} selectedMenuItem='projects'>
-      <FooterProvider>
+      <FooterProvider projectCategory={project?.category}>
         <S.ContentContainer>
           <S.Content>
             <Space direction='vertical' size='large' style={{ width: '100%' }}>
@@ -52,7 +52,7 @@ export function ProjectStepsLayout({
                 <BackToProjectsButton />
                 <Title level={3}>{project?.name}</Title>
               </div>
-              <StepsMenu current={currentStepIndex} projectId={project?.id} />
+              <StepsNavigation current={currentStepIndex} projectId={project?.id} projectCategory={project?.category} />
               {project?.isTemplate && (
                 <Alert
                   message='This is a template to get you started. Make sure to customize your purchasing data to create an accurate dashboard'
@@ -68,7 +68,7 @@ export function ProjectStepsLayout({
             <ErrorBoundary>{children}</ErrorBoundary>
           </S.Content>
         </S.ContentContainer>
-        <CalculatorFooter />
+        <CalculatorFooter projectCategory={project?.category} />
       </FooterProvider>
     </BaseLayout>
   );

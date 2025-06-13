@@ -13,6 +13,7 @@ import {
   Alert,
   Card
 } from 'antd';
+import { hasAccessToCategory, categories } from 'lib/projects/categories';
 import type { Store } from 'antd/lib/form/interface';
 import { useRef, useEffect, useState } from 'react';
 
@@ -72,15 +73,13 @@ const currencyParser = (val = ''): number => {
   }
 };
 
-const ProjectTypes = [
+const projectTypes = [
   'Cafe/Cafeteria',
   'Kitchenette/Employee Breakroom',
-  'Event Catering',
-  'Special Event (Venue)',
+  'Event',
   'Coffee Shop',
   'Fast Casual Restaurant',
   'Food Hall Stand',
-  'Live Events',
   'Other'
 ] as const;
 
@@ -93,7 +92,7 @@ const dishwashingTypes = [
 ];
 
 export type ProjectMetadata = {
-  type: (typeof ProjectTypes)[number];
+  type: (typeof projectTypes)[number];
   customers: string;
   dineInVsTakeOut: number;
   whereIsFoodPrepared: (typeof WhereFoodIsPrepared)[number];
@@ -135,6 +134,7 @@ export function ProjectForm({ actionLabel, org, project, template, onComplete }:
     utilityRates = null,
     isTemplate,
     templateDescription,
+    // category,
     ...metadata
   }: Store) {
     const params: ProjectInput = {
@@ -147,7 +147,9 @@ export function ProjectForm({ actionLabel, org, project, template, onComplete }:
       utilityRates,
       isTemplate,
       templateDescription,
-      orgId: org.id
+      orgId: org.id,
+      // project type determines category
+      category: metadata.type === 'Event' ? 'event' : 'default'
     };
 
     if (showCustomUtilities) {
@@ -175,13 +177,13 @@ export function ProjectForm({ actionLabel, org, project, template, onComplete }:
   return (
     <>
       <div style={{ textAlign: 'center' }}>
-        <Typography.Title level={1}>Setup your project</Typography.Title>
+        <Typography.Title level={1}>{project ? 'Edit' : 'Setup'} your project</Typography.Title>
       </div>
       {/* <Alert message={`Using the template "${template?.name}"`} /> */}
       {template && (
         <>
-          <Typography.Title level={4}>Template</Typography.Title>
-          <Typography.Paragraph>"{template?.name}"</Typography.Paragraph>
+          <Typography.Title level={4}>Template being used</Typography.Title>
+          <Typography.Paragraph>{template?.name}</Typography.Paragraph>
         </>
       )}
       {/* <Form.Item>
@@ -196,6 +198,7 @@ export function ProjectForm({ actionLabel, org, project, template, onComplete }:
           accountId: org.accounts[0].id,
           customers: 0,
           dineInVsTakeOut: 0,
+          category: 'default',
           currency: currencyAbbreviation,
           ...((project?.metadata as any) || {}),
           ...(project || {})
@@ -228,8 +231,8 @@ export function ProjectForm({ actionLabel, org, project, template, onComplete }:
             }
           ]}
         >
-          <Select placeholder='Project Type'>
-            {ProjectTypes.map(type => {
+          <Select placeholder='Project Type' disabled={!!template}>
+            {projectTypes.map(type => {
               return (
                 <Select.Option key={type} value={type}>
                   {type}
@@ -404,7 +407,7 @@ export function ProjectForm({ actionLabel, org, project, template, onComplete }:
         </Form.Item>
 
         {isUpstream && !project?.templateId && (
-          <Card bordered={false} title='Template settings' style={{ marginBottom: '1em' }}>
+          <Card title='Template settings' style={{ marginBottom: '1em' }}>
             <Form.Item name='isTemplate' valuePropName='checked'>
               <Checkbox>Make template</Checkbox>
             </Form.Item>

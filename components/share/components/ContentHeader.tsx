@@ -19,10 +19,12 @@ const DesktopElement = styled.div`
 
 export function ContentHeader({
   onClickAssumptions,
+  showAssumptions,
   printRef,
   pageTitle
 }: {
   onClickAssumptions: VoidFunction;
+  showAssumptions?: boolean;
   printRef: any;
   pageTitle: string;
 }) {
@@ -40,9 +42,13 @@ export function ContentHeader({
         justifyContent: 'space-between'
       }}
     >
-      <Button icon={<HelpIcon />} style={{ color: '#999' }} type='text' onClick={onClickAssumptions}>
-        Assumptions / Methodologies
-      </Button>
+      {showAssumptions ? (
+        <Button icon={<HelpIcon />} style={{ color: '#999' }} type='text' onClick={onClickAssumptions}>
+          Assumptions / Methodologies
+        </Button>
+      ) : (
+        <div />
+      )}
 
       <div style={{ display: 'flex', gap: '8px' }}>
         {/* <Typography.Text

@@ -10,7 +10,7 @@ import type { ProjectContext } from 'lib/middleware/getProjectContext';
 
 import { AddBlock, Placeholder } from '../additional-costs/components/ExpenseBlock';
 import { useFooterState } from '../components/Footer';
-import { SectionContainer } from '../projections/components/styles';
+import { SectionContainer } from '../projections/components/common/styles';
 import { Wrapper } from '../styles';
 
 import { EmptyState } from './components/EmptyState';

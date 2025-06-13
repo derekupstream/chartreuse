@@ -26,6 +26,7 @@ export async function duplicateProject({
           records: true
         }
       },
+      eventFoodwareItems: true,
       reusableItems: true,
       dishwashers: true,
       wasteHaulingCosts: true
@@ -49,6 +50,11 @@ export async function duplicateProject({
       isTemplate: skipTemplateProperties ? false : project.isTemplate,
       templateDescription: skipTemplateProperties ? null : project.templateDescription,
       templateId: project.isTemplate ? id : null,
+      eventFoodwareItems: {
+        createMany: {
+          data: project.eventFoodwareItems.map(({ id, projectId, ...item }) => item)
+        }
+      },
       dishwashers: {
         createMany: {
           data: project.dishwashers.map(({ id, projectId, ...item }) => item)

@@ -101,16 +101,18 @@ export async function trackEvent(event: UserEvent & { userId: string }) {
       console.log(`Sent user event email for event to ${process.env.NOTIFICATIONS_EMAIL}: ` + event.type);
     }
 
-    if (IDENTITY_EVENTS.includes(event.type)) {
-      const profile: MixpanelProfile = {
-        $created: user.createdAt.toISOString(),
-        $name: user.name ?? '',
-        Organization: user.org.name
-      };
-      identify(user.id, profile);
-    }
+    if (process.env.NODE_ENV === 'production') {
+      if (IDENTITY_EVENTS.includes(event.type)) {
+        const profile: MixpanelProfile = {
+          $created: user.createdAt.toISOString(),
+          $name: user.name ?? '',
+          Organization: user.org.name
+        };
+        identify(user.id, profile);
+      }
 
-    await sendEvent(event.type, { userId: event.userId, Organization: user.org.name, ...event.props });
+      await sendEvent(event.type, { userId: event.userId, Organization: user.org.name, ...event.props });
+    }
   } catch (error) {
     console.error(`Error sending user event "${event.type}"`, error);
   }

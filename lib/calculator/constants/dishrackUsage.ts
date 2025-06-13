@@ -1,0 +1,20 @@
+export const dishrackUsage = new Map([
+  [0, { category: 'No reusable substitute', items_per_rack: 0 }],
+  [1, { category: 'Boat', items_per_rack: 12 }],
+  [2, { category: 'Mid-sized clamshell', items_per_rack: 15 }],
+  [3, { category: 'Small bowl', items_per_rack: 11 }],
+  [4, { category: 'Large bowl', items_per_rack: 8 }],
+  [5, { category: 'Pizza box', items_per_rack: 6 }],
+  [6, { category: 'Large clamshell', items_per_rack: 12 }],
+  [7, { category: 'Hot cup', items_per_rack: 25 }],
+  [8, { category: 'Cold cup', items_per_rack: 25 }],
+  [9, { category: 'Cold cup lid', items_per_rack: 40 }],
+  [10, { category: 'Ramekin', items_per_rack: 30 }],
+  [11, { category: 'Cutlery', items_per_rack: 24 }],
+  [12, { category: 'Utensil', items_per_rack: 51 }],
+  [13, { category: 'Bowl lid', items_per_rack: 25 }],
+  [14, { category: 'Hot cup lid', items_per_rack: 40 }],
+  [15, { category: 'Ramekin lid', items_per_rack: 45 }],
+  [16, { category: 'Large plate', items_per_rack: 12 }],
+  [17, { category: 'Small plate', items_per_rack: 25 }]
+]);

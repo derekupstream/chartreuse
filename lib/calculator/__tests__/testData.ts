@@ -130,12 +130,17 @@ const wasteHauling: WasteHaulingService[] = [
 ];
 
 const project: ProjectInventory = {
+  isEventProject: false,
   state: 'California',
   laborCosts: [],
   singleUseItems: [],
   otherExpenses,
   reusableItems,
+  foodwareItems: [],
   dishwashers: [dishwasher],
+  dishwashersSimple: [],
+  racksUsedForEventProjects: 0,
+  truckTransportationCosts: [],
   utilityRates: {
     gas: 0.922,
     electric: 0.1032,

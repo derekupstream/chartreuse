@@ -5,13 +5,12 @@ import styled from 'styled-components';
 
 import type { ProjectProjection } from 'lib/share/getSharedProjections';
 
-import { useFooterState } from '../projects/[id]/components/Footer';
-import type { ProjectionsView } from '../projects/[id]/projections';
-import EnvironmentalSummary from '../projects/[id]/projections/environmental/Summary';
-import FinancialSummary from '../projects/[id]/projections/financial/Summary';
-import { LineItemDetails } from '../projects/[id]/projections/LineItemDetails/LineItemDetails';
-import ProjectImpacts from '../projects/[id]/projections/ProjectImpacts/ProjectImpacts';
-import { ResponsiveWrapper } from '../projects/[id]/styles';
+import { useFooterState } from 'components/projects/[id]/components/Footer';
+import { EventProjectSummary } from 'components/projects/[id]/projections/components/EventProjectSummary';
+import type { ProjectionsView } from 'components/projects/[id]/projections/ProjectionsStep';
+import { ProjectSummary } from 'components/projects/[id]/projections/components/ProjectSummary/ProjectSummary';
+import { LineItemSummary } from 'components/projects/[id]/projections/components/LineItemSummary/LineItemSummary';
+import { ResponsiveWrapper } from 'components/projects/[id]/styles';
 
 import { ContentHeader } from './components/ContentHeader';
 import { PageBanner } from './components/PageBanner';
@@ -51,11 +50,17 @@ const StyledLeftCol = styled(Col)`
 
 export function SharedPage({
   projections,
-  pageTitle
+  pageTitle,
+  isProjectTemplate,
+  bannerTitle,
+  bannerDescription
 }: {
   orgName: string;
   projections: ProjectProjection[];
   pageTitle: string;
+  isProjectTemplate?: boolean;
+  bannerTitle?: string | null;
+  bannerDescription?: string | null;
 }) {
   const [view, setView] = useState<SharedPageView>('summary');
   const [data, setData] = useState(projections[0]);
@@ -98,10 +103,15 @@ export function SharedPage({
 
   return (
     <>
-      <PageBanner />
+      <PageBanner title={bannerTitle} description={bannerDescription} />
       <ResponsiveWrapper ref={printRef} style={{ marginTop: 0 }}>
         <MobileElement>
-          <ContentHeader onClickAssumptions={openAssumptionsPopup} printRef={printRef} pageTitle={pageTitle} />
+          <ContentHeader
+            showAssumptions={isProjectTemplate}
+            onClickAssumptions={openAssumptionsPopup}
+            printRef={printRef}
+            pageTitle={pageTitle}
+          />
         </MobileElement>
         <Row gutter={24}>
           <StyledLeftCol xs={24} md={8} lg={5} className='dont-print-me'>
@@ -116,53 +126,60 @@ export function SharedPage({
                 { key: 'reusable_details', label: 'Reusable details' }
               ]}
             />
-            <Card>
-              <Typography.Paragraph>Avg. Customers / day</Typography.Paragraph>
-              <div style={{ padding: '0 14px' }}>
-                <Slider
-                  marks={{
-                    0: '150',
-                    1: '400',
-                    2: '600'
-                  }}
-                  defaultValue={businessSize}
-                  min={0}
-                  max={2}
-                  onChange={setBusinessSize}
-                  step={1}
-                  tooltip={{
-                    open: false
-                  }}
-                />
-              </div>
-            </Card>
+            {isProjectTemplate && (
+              <Card>
+                <Typography.Paragraph>Avg. Customers / day</Typography.Paragraph>
+                <div style={{ padding: '0 14px' }}>
+                  <Slider
+                    marks={{
+                      0: '150',
+                      1: '400',
+                      2: '600'
+                    }}
+                    defaultValue={businessSize}
+                    min={0}
+                    max={2}
+                    onChange={setBusinessSize}
+                    step={1}
+                    tooltip={{
+                      open: false
+                    }}
+                  />
+                </div>
+              </Card>
+            )}
           </StyledLeftCol>
           <StyledCol xs={24} md={16} lg={19}>
             <DesktopElement>
-              <ContentHeader onClickAssumptions={openAssumptionsPopup} printRef={printRef} pageTitle={pageTitle} />
+              <ContentHeader
+                showAssumptions={isProjectTemplate}
+                onClickAssumptions={openAssumptionsPopup}
+                printRef={printRef}
+                pageTitle={pageTitle}
+              />
             </DesktopElement>
             <span className={view === 'summary' ? '' : 'print-only'}>
-              <ProjectImpacts data={data.projections.annualSummary} />
-              <div className='page-break' />
-              <FinancialSummary data={data.projections.financialResults} businessSize={businessSize} />
-              <div className='page-break' />
-              <EnvironmentalSummary hideWaterUsage data={data.projections.environmentalResults} />
+              {data.projectCategory === 'event' ? (
+                <EventProjectSummary data={data.projections} />
+              ) : (
+                <ProjectSummary data={data.projections} />
+              )}
             </span>
             <div className='page-break' />
             <span className={view === 'single_use_details' ? '' : 'print-only'}>
-              <LineItemDetails
+              <LineItemSummary
                 variant='single_use'
                 lineItemSummary={data.projections.singleUseResults}
                 hideWaterUsage
               />
             </span>
             <span className={view === 'reusable_details' ? '' : 'print-only'}>
-              <LineItemDetails variant='reusable' lineItemSummary={data.projections.reusableResults} hideWaterUsage />
+              <LineItemSummary variant='reusable' lineItemSummary={data.projections.reusableResults} hideWaterUsage />
             </span>
             {/* <span className={view === 'assumptions' ? '' : 'print-only'}>
               <ProjectionAssumptions />
             </span> */}
-            <SignupCard templateParams={data.templateParams} />
+            {isProjectTemplate && <SignupCard templateParams={data.templateParams} />}
           </StyledCol>
         </Row>
       </ResponsiveWrapper>

@@ -42,7 +42,8 @@ export const PRODUCT_TYPES = [
   { id: 16, name: 'Plate' },
   { id: 21, name: 'Food Tray' },
   { id: 24, name: 'Bowl' },
-  { id: 30, name: 'Ramekin' }
+  { id: 30, name: 'Ramekin' },
+  { id: 31, name: 'Drinking Water Station' }
 ] as const;
 
 export const PRODUCT_TYPES_MAP = PRODUCT_TYPES.reduce(

@@ -1,10 +1,11 @@
-import { getProjectInventory } from '../inventory/getProjectInventory';
+import { getProjectInventory } from 'lib/inventory/getProjectInventory';
 
 import { getAnnualSummary } from './calculations/getAnnualSummary';
 import { getEnvironmentalResults } from './calculations/getEnvironmentalResults';
 import { getFinancialResults } from './calculations/getFinancialResults';
-import { getReusableResults } from './calculations/getReusableResults';
-import { getSingleUseResults } from './calculations/getSingleUseResults';
+import { getReusableResults } from './calculations/foodware/getReusableResults';
+import { getSingleUseResults } from './calculations/foodware/getSingleUseResults';
+import { getBottleStationResults } from './calculations/foodware/getBottleStationResults';
 
 export type ProjectionsResponse = Awaited<ReturnType<typeof getProjections>>;
 
@@ -16,13 +17,15 @@ export async function getProjections(projectId: string) {
   const financialResults = getFinancialResults(inventory);
   const singleUseResults = getSingleUseResults(inventory);
   const reusableResults = getReusableResults(inventory);
+  const bottleStationResults = getBottleStationResults(inventory);
 
   return {
     annualSummary,
     environmentalResults,
     financialResults,
     singleUseResults,
-    reusableResults
+    reusableResults,
+    bottleStationResults
   };
 }
 

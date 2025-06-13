@@ -8,7 +8,7 @@ import { PRODUCT_TYPES } from 'lib/calculator/constants/reusable-product-types';
 import type { ReusableProduct } from 'lib/inventory/types/products';
 
 import * as S from '../../styles';
-import type { ReusableFormValues } from '../reusable-purchasing';
+import type { ReusableFormValues } from '../ReusablePurchasingStep';
 
 const StyledFormItem = styled(Form.Item)`
   .ant-form-item-label label {

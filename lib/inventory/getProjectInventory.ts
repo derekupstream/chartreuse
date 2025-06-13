@@ -4,7 +4,8 @@ import type {
   ReusableLineItem,
   SingleUseLineItem,
   SingleUseLineItemRecord,
-  WasteHaulingCost
+  WasteHaulingCost,
+  EventFoodwareLineItem
 } from '@prisma/client';
 
 import prisma from 'lib/prisma';
@@ -16,10 +17,20 @@ import { PRODUCT_CATEGORIES } from '../calculator/constants/product-categories';
 import type { USState } from '../calculator/constants/utilities';
 import { getProjectUtilities } from '../calculator/constants/utilities';
 
-import { getReusableProducts } from './getReusableProducts';
+import {
+  BOTTLE_STATION_PRODUCT_ID,
+  getReusableProductsWithBottleStation
+} from './assets/reusables/getReusableProducts';
 import { getSingleUseProducts } from './getSingleUseProducts';
-import type { ReusableProduct, SingleUseProduct } from './types/products';
-import type { DishWasher, ProjectInventory, WasteHaulingService, ReusableLineItemPopulated } from './types/projects';
+import type { FoodwareSelection, ReusableProduct, SingleUseProduct } from './types/products';
+import type {
+  DishWasher,
+  ProjectInventory,
+  WasteHaulingService,
+  ReusableLineItemPopulated,
+  CalculatorDishWasherSimple
+} from './types/projects';
+import { getBottleCountForBottleStation } from 'lib/calculator/calculations/foodware/getBottleStationResults';
 
 export async function getProjectInventory(projectId: string): Promise<ProjectInventory> {
   const project = await prisma.project.findFirst({
@@ -35,8 +46,16 @@ export async function getProjectInventory(projectId: string): Promise<ProjectInv
           records: true
         }
       },
+      eventFoodwareItems: true,
       reusableItems: true,
       dishwashers: true,
+      dishwashersSimple: true,
+      truckTransportationCosts: {
+        select: {
+          id: true,
+          distanceInMiles: true
+        }
+      },
       wasteHaulingCosts: true,
       org: {
         select: {
@@ -54,22 +73,41 @@ export async function getProjectInventory(projectId: string): Promise<ProjectInv
 
   // map db model types to frontend types
   const products = await getSingleUseProducts({ orgId: project.orgId });
-  const reusableProducts = await getReusableProducts();
+  const reusableProducts = await getReusableProductsWithBottleStation();
   const laborCosts = project.laborCosts.map(mapLaborCost);
   const otherExpenses = project.otherExpenses.map(mapAdditionalCost);
   const reusableItems = project.reusableItems.map(item => mapReusableItem(item, reusableProducts));
   const singleUseItems = project.singleUseItems.map(item => mapSingleUseItem(item, products));
   const wasteHauling = project.wasteHaulingCosts.map(mapWasteHauling);
+  const foodwareItems = project.eventFoodwareItems.map(item => mapFoodwareItem(item, products, reusableProducts));
+  const foodwareSingleUseItems = foodwareItems.map(item => mapFoodwareSingleUseItem(item));
+  const foodwareReusableItems = foodwareItems.map(item => mapFoodwareReusableItem(item));
 
+  const allSingleUseItems = [...singleUseItems, ...foodwareSingleUseItems];
+  // only calculate racks used for dishwashers if the project is an event
+  const racksUsedForEventProjects =
+    project.category !== 'event'
+      ? 0
+      : allSingleUseItems.reduce((sum, item) => {
+          return (
+            sum +
+            (item.product.reusableItemCountPerRack ? item.unitsPerCase / item.product.reusableItemCountPerRack : 0)
+          );
+        }, 0);
   return {
+    isEventProject: project.category === 'event',
     dishwashers: project.dishwashers as DishWasher[],
+    dishwashersSimple: project.dishwashersSimple as CalculatorDishWasherSimple[],
     laborCosts,
     otherExpenses,
-    reusableItems,
-    singleUseItems,
+    reusableItems: [...reusableItems, ...foodwareReusableItems],
+    singleUseItems: allSingleUseItems,
+    racksUsedForEventProjects,
+    foodwareItems,
     state: project.USState as USState,
     utilityRates,
-    wasteHauling
+    wasteHauling,
+    truckTransportationCosts: project.truckTransportationCosts
   };
 }
 
@@ -89,6 +127,22 @@ function mapAdditionalCost(expense: OtherExpense): ProjectInventory['otherExpens
   };
 }
 
+function mapFoodwareItem(
+  item: EventFoodwareLineItem,
+  products: SingleUseProduct[],
+  reusableProducts: ReusableProduct[]
+): FoodwareSelection {
+  return {
+    id: item.id,
+    createdAt: item.createdAt,
+    projectId: item.projectId,
+    reusableItemCount: item.reusableItemCount,
+    reusableReturnPercentage: item.reusableReturnPercentage,
+    reusableProduct: reusableProducts.find(product => product.id === item.reusableProductId)!,
+    singleUseProduct: products.find(product => product.id === item.singleUseProductId)!
+  };
+}
+
 function mapReusableItem(reusableItem: ReusableLineItem, products: ReusableProduct[]): ReusableLineItemPopulated {
   const product = products.find(product => product.id === reusableItem.productId);
   // if (!product) {
@@ -104,6 +158,27 @@ function mapReusableItem(reusableItem: ReusableLineItem, products: ReusableProdu
     // totalCost: reusableItem.casesPurchased * reusableItem.caseCost,
     // totalUnits: reusableItem.casesPurchased * reusableItem.unitsPerCase,
     product
+  };
+}
+
+function mapFoodwareReusableItem(item: FoodwareSelection): ProjectInventory['reusableItems'][number] {
+  const product = item.reusableProduct;
+  // we want to only consider the impact of lost reusable items
+  const lossRate = 1 - item.reusableReturnPercentage / 100;
+  return {
+    id: item.id,
+    categoryName: 'N/A',
+    newCaseCost: 0,
+    newCasesPurchased: 1,
+    unitsPerCase: item.reusableItemCount * lossRate,
+    productId: product.id,
+    projectId: item.projectId,
+    product,
+    categoryId: 'N/A',
+    annualRepurchasePercentage: 0,
+    caseCost: 0,
+    casesPurchased: 0,
+    productName: product.description
   };
 }
 
@@ -133,6 +208,34 @@ function mapSingleUseItem(
     })),
     frequency: singleUseItem.frequency as Frequency,
     product
+  };
+}
+
+function mapFoodwareSingleUseItem(item: FoodwareSelection): ProjectInventory['singleUseItems'][number] {
+  const product = item.singleUseProduct;
+  // for water stations, we want to consider the impact of water bottles
+  const unitsPerCase =
+    item.reusableProduct.id === BOTTLE_STATION_PRODUCT_ID
+      ? getBottleCountForBottleStation(item.reusableItemCount)
+      : item.reusableItemCount;
+
+  return {
+    casesPurchased: 1,
+    unitsPerCase,
+    // other unimportant fields...
+    createdAt: item.createdAt,
+    id: item.id,
+    categoryName: 'N/A',
+    caseCost: 0,
+    totalCost: 0,
+    totalUnits: 0,
+    product,
+    records: [],
+    newCaseCost: 0,
+    newCasesPurchased: 0,
+    projectId: item.projectId,
+    frequency: 'Annually',
+    productId: product.id
   };
 }
 

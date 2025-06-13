@@ -1,6 +1,6 @@
 import type { GetServerSideProps } from 'next';
 
-import { DishwashingView } from 'components/projects/[id]/dishwashing';
+import { DishwashingStep } from 'components/projects/[id]/dishwashing/DishwashingStep';
 import { ProjectStepsLayout } from 'layouts/ProjectStepsLayout';
 import type { ProjectContext } from 'lib/middleware';
 import { getProjectContext } from 'lib/middleware';
@@ -13,7 +13,7 @@ export const getServerSideProps: GetServerSideProps = async context => {
 function DishwashingPage({ project, readOnly, user }: ProjectContext) {
   return (
     <ProjectStepsLayout currentStepIndex={3} project={project} title={`${project.name} - Dishwashing`} user={user}>
-      <DishwashingView project={project} readOnly={readOnly} />
+      <DishwashingStep project={project} readOnly={readOnly} />
     </ProjectStepsLayout>
   );
 }

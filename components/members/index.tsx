@@ -148,12 +148,12 @@ export default function Members({ accounts, users, invites }: PageProps) {
 
   return (
     <Space direction='vertical' size='large' style={{ width: '100%' }}>
-      <S.SpaceBetween>
+      <S.HeaderRow>
         <Typography.Title>Members</Typography.Title>
         <Button type='primary' onClick={handleAddAccountUser} icon={<PlusOutlined />}>
           Invite new member
         </Button>
-      </S.SpaceBetween>
+      </S.HeaderRow>
       {/* @ts-ignore */}
       {activeUsers.length > 0 && <Table columns={columns} dataSource={activeUsers} pagination={false} />}
       {activeUsers.length === 0 && (

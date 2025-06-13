@@ -2,8 +2,8 @@ import type { TableColumnsType } from 'antd';
 import { Typography, Table } from 'antd';
 import styled from 'styled-components';
 
-import Card from 'components/projects/[id]/projections/components/Card';
-import { ChartTitle } from 'components/projects/[id]/projections/environmental/components/styles';
+import Card from 'components/projects/[id]/projections/components/common/Card';
+import { ChartTitle } from 'components/projects/[id]/projections/components/ProjectSummary/EnvironmentalSummary/components/styles';
 import { formatToDollar } from 'lib/calculator/utils';
 import { formatDateShort } from 'lib/dates';
 import type { SingleUseLineItemRecord, SingleUseLineItemPopulated } from 'lib/inventory/types/projects';

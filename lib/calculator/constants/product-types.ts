@@ -43,7 +43,8 @@ export const PRODUCT_TYPES = [
   // { id: 39, name: 'Knife (Medium Weight)' },
   { id: 40, name: 'Bag' }, // added for Taco Bell,
   { id: 41, name: 'Drink Tray' }, // added for Taco Bell
-  { id: 42, name: 'Misc.' } // added for Taco Bell
+  { id: 42, name: 'Misc.' }, // added for Taco Bell
+  { id: 43, name: 'Plastic water bottle' }
 ] as const;
 
 export const PRODUCT_TYPES_MAP = PRODUCT_TYPES.reduce(

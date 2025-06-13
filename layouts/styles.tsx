@@ -72,10 +72,13 @@ export const OrgAndUserWrapper = styled.div`
   }
 `;
 
-export const SpaceBetween = styled.div`
+export const HeaderRow = styled.div`
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
+  h1 {
+    margin-top: 0;
+  }
 `;
 
 export const SiderWrapper = styled.div`

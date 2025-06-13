@@ -26,9 +26,10 @@ type FormValues = Omit<DishwasherData, 'energyStarCertified'> & { energyStarCert
 type Props = {
   input: DishwasherData | null;
   onSubmit(values: DishwasherData): void;
+  showUsage: boolean;
 };
 
-export const DishwashingForm: React.FC<Props> = ({ input, onSubmit }) => {
+export const DishwashingForm: React.FC<Props> = ({ showUsage, input, onSubmit }) => {
   const [form] = Form.useForm<FormValues>();
   const [isWaterHeaterFuelVisible, setIsWaterHeaterFuelVisible] = useState(false);
 
@@ -43,8 +44,8 @@ export const DishwashingForm: React.FC<Props> = ({ input, onSubmit }) => {
       projectId,
       racksPerDay: 0, // we no longer support baseline
       operatingDays: 0, // we no longer support baseline
-      newRacksPerDay: Number(newRacksPerDay),
-      newOperatingDays: Number(newOperatingDays),
+      newRacksPerDay: Number(newRacksPerDay || 0),
+      newOperatingDays: Number(newOperatingDays || 0),
       energyStarCertified: Boolean(energyStarCertified)
     };
     onSubmit(values);
@@ -89,12 +90,16 @@ export const DishwashingForm: React.FC<Props> = ({ input, onSubmit }) => {
       <FormItem label='Building water heater fuel type' name='buildingWaterHeaterFuelType' rules={requiredRule}>
         <OptionSelection options={fuelTypeOptions} optionType='button' />
       </FormItem>
-      <FormItem label='Dish machine operating days per year' name='newOperatingDays' rules={requiredRule}>
-        <Input type='number' />
-      </FormItem>
-      <FormItem label='Racks/per day for reusables' name='newRacksPerDay' rules={requiredRule}>
-        <Input type='number' />
-      </FormItem>
+      {showUsage && (
+        <>
+          <FormItem label='Dish machine operating days per year' name='newOperatingDays' rules={requiredRule}>
+            <Input type='number' />
+          </FormItem>
+          <FormItem label='Racks/per day for reusables' name='newRacksPerDay' rules={requiredRule}>
+            <Input type='number' />
+          </FormItem>
+        </>
+      )}
       <Button htmlType='submit' size='large' type='primary' style={{ float: 'right' }}>
         Save
       </Button>

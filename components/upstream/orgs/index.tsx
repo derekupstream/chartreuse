@@ -122,12 +122,12 @@ export default function Organizations({ orgs }: PageProps) {
 
   return (
     <Space direction='vertical' size='large' style={{ width: '100%' }}>
-      <S.SpaceBetween>
+      <S.HeaderRow>
         <Typography.Title>Organizations</Typography.Title>
         <Button onClick={exportUsers}>
           <DownloadOutlined /> Export all users
         </Button>
-      </S.SpaceBetween>
+      </S.HeaderRow>
       {/* @ts-ignore */}
       <Table columns={columns} dataSource={orgs} pagination={false} />
     </Space>

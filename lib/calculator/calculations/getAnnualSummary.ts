@@ -2,7 +2,7 @@ import type { ProjectInventory } from 'lib/inventory/types/projects';
 
 import { getEnvironmentalResults } from './getEnvironmentalResults';
 import { getFinancialResults } from './getFinancialResults';
-import { getSingleUseResults } from './getSingleUseResults';
+import { getSingleUseResults } from './foodware/getSingleUseResults';
 
 export function getAnnualSummary(project: ProjectInventory) {
   const financeResults = getFinancialResults(project);
@@ -12,6 +12,6 @@ export function getAnnualSummary(project: ProjectInventory) {
     dollarCost: financeResults.annualCostChanges,
     singleUseProductCount: singleUseResults.summary.annualUnits,
     greenhouseGasEmissions: environmentalResults.annualGasEmissionChanges,
-    wasteWeight: environmentalResults.annualWasteChanges.total
+    wasteWeight: environmentalResults.annualWasteChanges.summary
   };
 }

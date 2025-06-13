@@ -1,6 +1,6 @@
 import type { GetServerSideProps } from 'next';
 
-import SingleUse from 'components/projects/[id]/single-use';
+import { SingleUseStep } from 'components/projects/[id]/single-use/SingleUseStep';
 import { ProjectStepsLayout } from 'layouts/ProjectStepsLayout';
 import type { ProjectContext } from 'lib/middleware';
 import { getProjectContext } from 'lib/middleware';
@@ -13,7 +13,7 @@ export const getServerSideProps: GetServerSideProps = async context => {
 function SingleUsePage({ project, user, readOnly }: ProjectContext) {
   return (
     <ProjectStepsLayout currentStepIndex={1} project={project} title={`${project.name} - Single Use Items`} user={user}>
-      <SingleUse project={project!} user={user} readOnly={readOnly} />
+      <SingleUseStep project={project!} user={user} readOnly={readOnly} />
     </ProjectStepsLayout>
   );
 }

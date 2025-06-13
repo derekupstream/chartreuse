@@ -11,9 +11,9 @@ import ContentLoader from 'components/common/ContentLoader';
 import { PrintButton } from 'components/common/print/PrintButton';
 import { PrintHeader } from 'components/common/print/PrintHeader';
 import { Spacer } from 'components/common/Spacer';
-import Card from 'components/projects/[id]/projections/components/Card';
-import GroupedBar from 'components/projects/[id]/projections/components/GroupedBar';
-import * as S from 'components/projects/[id]/projections/components/styles';
+import Card from 'components/projects/[id]/projections/components/common/Card';
+import GroupedBar from 'components/projects/[id]/projections/components/common/GroupedBar';
+import * as S from 'components/projects/[id]/projections/components/common/styles';
 import type { SummaryValues, AllProjectsSummary, ProjectSummary } from 'lib/calculator/getProjections';
 import { formatToDollar } from 'lib/calculator/utils';
 import { requestDownload } from 'lib/files';
@@ -66,7 +66,7 @@ const SummaryCardWithGraph = ({
   const change = (value.forecast - value.baseline) * -1;
 
   return (
-    <Card bordered={false} style={{ height: '100%' }}>
+    <Card style={{ height: '100%' }}>
       <Row>
         <Col xs={24} sm={13}>
           <Typography.Paragraph>
@@ -236,7 +236,6 @@ const ReductionValue = ({
 export default function AnalyticsPage({ user, data, allAccounts, allProjects, isUpstreamView }: PageProps) {
   const router = useRouter();
   const displayAsMetric = useMetricSystem();
-  console.log({ displayAsMetric });
   const { abbreviation: currencyAbbreviation } = useCurrency();
   // for printing
   const printRef = useRef(null);
@@ -303,7 +302,7 @@ export default function AnalyticsPage({ user, data, allAccounts, allProjects, is
   return (
     <div ref={printRef}>
       <PrintHeader orgName={user.org.name} />
-      <S2.SpaceBetween>
+      <S2.HeaderRow>
         <Typography.Title className='dont-print-me'>
           {isUpstreamView ? 'Upstream Analytics' : `${user.org.name}'s Analytics`}
         </Typography.Title>
@@ -314,11 +313,11 @@ export default function AnalyticsPage({ user, data, allAccounts, allProjects, is
             <DownloadOutlined /> Export Data
           </Button>
         </div>
-      </S2.SpaceBetween>
+      </S2.HeaderRow>
 
       <Spacer vertical={spacing} />
 
-      <S2.SpaceBetween>
+      <S2.HeaderRow>
         <Typography.Title level={3} style={{ margin: 0 }}>
           High-Level Overview
         </Typography.Title>
@@ -334,7 +333,7 @@ export default function AnalyticsPage({ user, data, allAccounts, allProjects, is
             />
           </Form.Item>
         </Form>
-      </S2.SpaceBetween>
+      </S2.HeaderRow>
 
       <Divider style={{ margin: 0 }} />
 

@@ -1,8 +1,8 @@
 import { RightOutlined } from '@ant-design/icons';
 import { Divider, Form, Input, Button, Select, Radio } from 'antd';
 
-import type { Currency } from '@lib/currencies/currencies';
-import { currencies } from '@lib/currencies/currencies';
+import type { Currency } from 'lib/currencies/currencies';
+import { currencies } from 'lib/currencies/currencies';
 
 import * as S from './OrgSetup.styles';
 import { getCurrencySymbol } from 'utils/currency';

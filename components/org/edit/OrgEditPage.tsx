@@ -1,7 +1,7 @@
 import { Form, Input, Button, Select, Radio } from 'antd';
 import type { Org } from '@prisma/client';
-import type { Currency } from '@lib/currencies/currencies';
-import { currencies } from '@lib/currencies/currencies';
+import type { Currency } from 'lib/currencies/currencies';
+import { currencies } from 'lib/currencies/currencies';
 import * as S from './styles';
 
 import { getCurrencySymbol } from 'utils/currency';

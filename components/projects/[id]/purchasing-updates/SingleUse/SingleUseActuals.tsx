@@ -9,8 +9,8 @@ import type { DateRange } from 'lib/calculator/types';
 import type { ProjectInventory } from 'lib/inventory/types/projects';
 import { changeValue } from 'lib/number';
 
-import { CardTitle, Divider, SectionContainer, SectionHeader } from '../../projections/components/styles';
-import { Card, Body, Section, Value, Row, Label } from '../../projections/LineItemDetails/styles';
+import { CardTitle, Divider, SectionHeader } from '../../projections/components/common/styles';
+import { Card, Row } from '../../projections/components/LineItemSummary/styles';
 import KPICard, { Header } from '../components/KpiCard';
 
 import { useCurrency } from 'components/_app/CurrencyProvider';

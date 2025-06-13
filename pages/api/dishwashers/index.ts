@@ -2,8 +2,8 @@ import type { Dishwasher as PrismaDishwasher, Prisma } from '@prisma/client';
 import type { NextApiRequest, NextApiResponse } from 'next';
 import nc from 'next-connect';
 
-import type { DishwasherStats } from 'lib/calculator/calculations/getDishwasherStats';
-import { getDishwasherStats } from 'lib/calculator/calculations/getDishwasherStats';
+import type { DishwasherStats } from 'lib/calculator/calculations/dishwashing/getDishwasherStats';
+import { getDishwasherStats } from 'lib/calculator/calculations/dishwashing/getDishwasherStats';
 import type { UtilityRates } from 'lib/calculator/constants/utilities';
 import { getProjectUtilities } from 'lib/calculator/constants/utilities';
 import type { NextApiRequestWithUser } from 'lib/middleware';
@@ -11,6 +11,8 @@ import { onError, onNoMatch, getUser } from 'lib/middleware';
 import { validateProject } from 'lib/middleware/validateProject';
 import prisma from 'lib/prisma';
 import { DishWasherValidator } from 'lib/validators';
+import { getSingleUseProducts } from 'lib/inventory/getSingleUseProducts';
+import { getProjectInventory } from 'lib/inventory/getProjectInventory';
 
 const handler = nc<NextApiRequest, NextApiResponse>({ onError, onNoMatch });
 
@@ -34,7 +36,8 @@ async function getDishwashers(req: NextApiRequestWithUser, res: NextApiResponse<
         select: {
           useMetricSystem: true
         }
-      }
+      },
+      singleUseItems: true
     }
   });
   const dishwashers = await prisma.dishwasher.findMany({
@@ -42,20 +45,18 @@ async function getDishwashers(req: NextApiRequestWithUser, res: NextApiResponse<
       projectId
     }
   });
+  const inventory = await getProjectInventory(projectId);
+  const products = await getSingleUseProducts({ orgId: project.orgId });
 
   const accountId = project.accountId;
   const rates = getProjectUtilities(project);
+  const racksUsed = inventory.racksUsedForEventProjects;
+  const dishwasherDTOs = dishwashers.map(dishwasher => ({
+    dishwasher,
+    stats: getDishwasherStats({ rates, dishwasher, racksUsed })
+  }));
 
-  if (dishwashers.length === 0) {
-    res.status(200).json({ accountId, dishwashers: [], state: project.USState, rates });
-  } else {
-    const dishwasherDTOs = dishwashers.map(dishwasher => ({
-      dishwasher,
-      stats: getDishwasherStats({ rates, dishwasher })
-    }));
-
-    res.status(200).json({ accountId, dishwashers: dishwasherDTOs, state: project.USState, rates });
-  }
+  res.status(200).json({ accountId, dishwashers: dishwasherDTOs, state: project.USState, rates });
 }
 
 async function createDishwasher(

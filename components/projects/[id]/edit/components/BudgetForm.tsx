@@ -1,4 +1,4 @@
-import type { Project } from '@prisma/client';
+import type { Project, ProjectCategory } from '@prisma/client';
 import { InputNumber, Typography, Slider } from 'antd';
 import { Form } from 'antd';
 import { Button } from 'antd';
@@ -6,7 +6,11 @@ import { useState } from 'react';
 
 export type FormValues = { budget: number | null; singleUseReductionPercentage: number };
 
-type Props = { project: Project; onComplete: (values: FormValues) => void; onSkip: (projectId: string) => void };
+type Props = {
+  project: Project;
+  onComplete: (values: FormValues) => void;
+  onSkip: (projectId: string, category: ProjectCategory) => void;
+};
 
 export function BudgetForm({ project, onComplete, onSkip }: Props) {
   // disable save button if there are no updates or there are errors
@@ -76,7 +80,7 @@ export function BudgetForm({ project, onComplete, onSkip }: Props) {
           <br />
           <br />
           {!project.budget && (
-            <Button onClick={() => onSkip(project.id)} type='text' block>
+            <Button onClick={() => onSkip(project.id, project.category)} type='text' block>
               <u>skip and complete later</u>
             </Button>
           )}

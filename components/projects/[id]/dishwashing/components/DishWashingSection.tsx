@@ -1,6 +1,6 @@
 import { PlusOutlined } from '@ant-design/icons';
-import type { Dishwasher } from '@prisma/client';
-import { Button, Col, Divider, Drawer, message, Popconfirm, Typography, Popover } from 'antd';
+import type { Dishwasher, ProjectCategory } from '@prisma/client';
+import { Button, Col, Drawer, message, Popconfirm, Typography, Popover } from 'antd';
 import { useRouter } from 'next/router';
 import React, { useState } from 'react';
 import styled from 'styled-components';
@@ -27,7 +27,15 @@ import type { DishwasherData as FormValues } from './DishWashingForm';
 import { useMetricSystem } from 'components/_app/MetricSystemProvider';
 import { convertAndFormatGallons } from 'lib/number';
 
-const DishWashingSection = ({ projectId, readOnly }: { projectId: string; readOnly: boolean }) => {
+export function DishWashingSection({
+  projectId,
+  readOnly,
+  projectCategory
+}: {
+  projectId: string;
+  readOnly: boolean;
+  projectCategory: ProjectCategory;
+}) {
   const route = useRouter();
   const { data, isLoading, refetch } = useSimpleQuery<Response>(`/api/dishwashers?projectId=${projectId}`);
   const createDishwashingCost = useSimpleMutation('/api/dishwashers', 'POST');
@@ -272,11 +280,11 @@ const DishWashingSection = ({ projectId, readOnly }: { projectId: string; readOn
         contentWrapperStyle={contentWrapperStyle}
         destroyOnClose
       >
-        <DishwashingForm input={formState} onSubmit={onSubmit} />
+        <DishwashingForm input={formState} onSubmit={onSubmit} showUsage={projectCategory !== 'event'} />
       </Drawer>
     </Container>
   );
-};
+}
 
 const Options = styled.span`
   font-size: 14px;
@@ -284,5 +292,3 @@ const Options = styled.span`
   font-weight: 700;
   margin: 8px 0;
 `;
-
-export default DishWashingSection;

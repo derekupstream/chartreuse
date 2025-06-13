@@ -2,7 +2,7 @@ import type { Account, Project } from '@prisma/client';
 import type { NextApiRequest, NextApiResponse } from 'next';
 import nc from 'next-connect';
 
-import type { ProjectMetadata } from 'components/projects/[id]/edit';
+import type { ProjectMetadata } from 'components/projects/[id]/edit/ProjectSetup';
 import type { ProjectInput } from 'lib/chartreuseClient';
 import type { NextApiRequestWithUser } from 'lib/middleware/getUser';
 import getUser from 'lib/middleware/getUser';
@@ -10,6 +10,8 @@ import onError from 'lib/middleware/onError';
 import onNoMatch from 'lib/middleware/onNoMatch';
 import prisma from 'lib/prisma';
 import { trackEvent } from 'lib/tracking';
+import { isEventProjectsEnabledForOrg } from 'lib/featureFlags';
+
 const handler = nc<NextApiRequest, NextApiResponse>({ onError, onNoMatch });
 
 handler.use(getUser).get(getProjects).post(createProject).delete(deleteProject);
@@ -17,8 +19,11 @@ handler.use(getUser).get(getProjects).post(createProject).delete(deleteProject);
 export type PopulatedProject = Project & { account: Account };
 
 async function createProject(req: NextApiRequestWithUser, res: NextApiResponse<{ project: Project }>) {
-  const { name, metadata, accountId, USState, currency, utilityRates, templateDescription, isTemplate } =
+  const { category, name, metadata, accountId, USState, currency, utilityRates, templateDescription, isTemplate } =
     req.body as ProjectInput;
+
+  const isEventProjectsEnabled = await isEventProjectsEnabledForOrg({ orgId: req.user.orgId! });
+  const categorySafe = isEventProjectsEnabled ? category : 'default';
 
   if (USState) {
     if (utilityRates) {
@@ -44,6 +49,7 @@ async function createProject(req: NextApiRequestWithUser, res: NextApiResponse<{
       utilityRates: utilityRates || undefined,
       isTemplate: isTemplate,
       templateDescription: templateDescription || undefined,
+      category: categorySafe,
       account: {
         connect: {
           id: accountId

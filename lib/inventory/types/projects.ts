@@ -1,30 +1,35 @@
 import type { DishwasherType, FuelType, TemperatureType } from 'lib/calculator/constants/dishwashers';
 import type { Frequency } from 'lib/calculator/constants/frequency';
+import type { DishwasherSimple, TruckTransportationCost } from '@prisma/client';
 import type { LaborCostCategory } from 'lib/calculator/constants/labor-categories';
 import type { OtherExpenseCategory } from 'lib/calculator/constants/other-expenses';
 import type { USState } from 'lib/calculator/constants/utilities';
 import type { ServiceType, WasteStream } from 'lib/calculator/constants/waste-hauling';
 
-import type { ReusableProduct, SingleUseProduct } from './products';
-
+import type { ReusableProduct, SingleUseProduct, FoodwareSelection } from './products';
 /**
  *
  * Data including single-use, reusable items and additional costs per project required to generate outputs
  *
  * */
 export interface ProjectInventory {
+  isEventProject: boolean;
   state: USState;
   laborCosts: LaborCost[];
   otherExpenses: OtherExpense[];
   reusableItems: ReusableLineItemPopulated[];
   singleUseItems: SingleUseLineItemPopulated[];
+  racksUsedForEventProjects: number;
   dishwashers: DishWasher[];
+  dishwashersSimple: CalculatorDishWasherSimple[];
+  foodwareItems: FoodwareSelection[];
   utilityRates: {
     gas: number;
     electric: number;
     water: number;
   };
   wasteHauling: WasteHaulingService[];
+  truckTransportationCosts: Pick<TruckTransportationCost, 'id' | 'distanceInMiles'>[];
 }
 
 export interface Project {
@@ -120,6 +125,7 @@ export interface DishWasherStatic {
 export interface DishWasherOptions {
   racksPerDay: number;
   operatingDays: number;
+  calculatedRacksUsed?: number; // when we automatically calculate usage
 }
 
 export interface DishWasher extends DishWasherStatic {
@@ -129,6 +135,8 @@ export interface DishWasher extends DishWasherStatic {
   operatingDays: number;
   newOperatingDays: number;
 }
+
+export type CalculatorDishWasherSimple = Pick<DishwasherSimple, 'id' | 'waterUsage' | 'electricUsage' | 'fuelType'>;
 
 // monthly utilities and costs
 export interface UtilitiesAndCosts {

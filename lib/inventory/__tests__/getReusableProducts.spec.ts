@@ -1,4 +1,4 @@
-import { getReusableProducts } from '../getReusableProducts';
+import { getReusableProducts } from '../assets/reusables/getReusableProducts';
 
 describe('Predictions Calculator: Spreadsheet results from Upstream', () => {
   it('finds the first row of reusable products', async () => {

@@ -1,4 +1,4 @@
-import type { ProjectInventory } from '../../inventory/types/projects';
+import type { ProjectInventory } from 'lib/inventory/types/projects';
 import type { DateRange } from '../types';
 import { calculatePercentChange } from '../utils';
 

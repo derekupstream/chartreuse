@@ -5,7 +5,7 @@ import styled from 'styled-components';
 import { requiredRule } from 'utils/forms';
 
 import * as S from '../../styles';
-import type { ReusableFormValues } from '../reusable-purchasing';
+import type { ReusableFormValues } from '../ReusablePurchasingStep';
 
 const StyledFormItem = styled(Form.Item)`
   .ant-form-item-label label {

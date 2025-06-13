@@ -55,7 +55,7 @@ export function ProjectTemplates({ isUpstream }: { isUpstream: boolean }) {
 
   if (templates?.length === 0) {
     return (
-      <Card style={{ height: 280 }} bodyStyle={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <Card style={{ height: 280, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <Typography.Text>There are no project templates yet.</Typography.Text>
       </Card>
     );

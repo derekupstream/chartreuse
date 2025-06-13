@@ -1,7 +1,7 @@
 import type { Project } from '@prisma/client';
 import type { GetServerSideProps } from 'next';
 
-import { ProjectSetup } from 'components/projects/[id]/edit';
+import { ProjectSetup } from 'components/projects/[id]/edit/ProjectSetup';
 import type { DashboardUser } from 'interfaces';
 import { DashboardLayout as Template } from 'layouts/DashboardLayout/DashboardLayout';
 import { getProjectContext } from 'lib/middleware';

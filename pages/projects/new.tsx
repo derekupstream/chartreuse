@@ -2,13 +2,13 @@ import type { GetServerSideProps } from 'next';
 import prisma from 'lib/prisma';
 
 import { serializeJSON } from 'lib/objects';
-import { ProjectSetup } from 'components/projects/[id]/edit';
+import { ProjectSetup } from 'components/projects/[id]/edit/ProjectSetup';
 import type { DashboardProps } from 'layouts/DashboardLayout/DashboardLayout';
 import { DashboardLayout as Template } from 'layouts/DashboardLayout/DashboardLayout';
 import { checkLogin } from 'lib/middleware';
 import { createProjectFromTemplate } from 'lib/projects/templates/createProjectFromTemplate';
 import type { Project } from '@prisma/client';
-
+import { categoryByType } from 'lib/projects/categories';
 type PageProps = DashboardProps & { project?: Project; template?: Pick<Project, 'name'> };
 
 export const getServerSideProps: GetServerSideProps = async context => {
@@ -40,7 +40,11 @@ const NewProjectPage = (pageProps: PageProps) => {
         user={pageProps.user}
         project={pageProps.project}
         template={pageProps.template}
-        successPath={id => `/projects/${id}/single-use-items`}
+        successPath={(id, category) => {
+          const { steps } = categoryByType(category);
+          const firstStep = steps[1].path; // skip projections step
+          return `/projects/${id}${firstStep}`;
+        }}
       />
     </Template>
   );

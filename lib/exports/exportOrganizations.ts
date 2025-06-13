@@ -7,11 +7,12 @@ import type {
   LaborCost,
   ReusableLineItem,
   SingleUseLineItem,
-  WasteHaulingCost
+  WasteHaulingCost,
+  DishwasherSimple
 } from '@prisma/client';
 import ExcelJS from 'exceljs';
 
-import { getDishwasherStats } from 'lib/calculator/calculations/getDishwasherStats';
+import { getDishwasherStats } from 'lib/calculator/calculations/dishwashing/getDishwasherStats';
 import { poundsToTons } from 'lib/calculator/constants/conversions';
 import type { Frequency } from 'lib/calculator/constants/frequency';
 import { getAnnualOccurrence } from 'lib/calculator/constants/frequency';
@@ -21,7 +22,7 @@ import { getProjectUtilities } from 'lib/calculator/constants/utilities';
 import { getAllProjections } from 'lib/calculator/getProjections';
 import type { AllProjectsSummary as _AllProjectsSummary, ProjectionsResponse } from 'lib/calculator/getProjections';
 import { round } from 'lib/calculator/utils';
-import { getReusableProducts } from 'lib/inventory/getReusableProducts';
+import { getReusableProducts } from 'lib/inventory/assets/reusables/getReusableProducts';
 import { getSingleUseProducts } from 'lib/inventory/getSingleUseProducts';
 import type { ReusableProduct, SingleUseProduct } from 'lib/inventory/types/products';
 import prisma from 'lib/prisma';
@@ -31,6 +32,7 @@ interface ProjectData extends Project {
   org: Org;
   account: Account;
   dishwashers: Dishwasher[];
+  dishwashersSimple: DishwasherSimple[];
   otherExpenses: OtherExpense[];
   laborCosts: LaborCost[];
   reusableItems: ReusableLineItem[];
@@ -83,7 +85,7 @@ function getExportFile(data: AllProjectsSummary, products: SingleUseProduct[], r
   addSingleUseSheet(workbook, data, products);
   addReusablesSheet(workbook, data, reusableProducts);
   addAdditionalCostsSheet(workbook, data);
-  addDishwasherSheet(workbook, data);
+  addDishwasherSheet(workbook, data, products);
 
   return workbook;
 }
@@ -172,9 +174,9 @@ function addProjectsSheet(workbook: ExcelJS.Workbook, data: AllProjectsSummary) 
       'Single-Use_baseline': project.projections.singleUseResults.summary.annualUnits.baseline,
       'Single-Use_forecast': project.projections.singleUseResults.summary.annualUnits.forecast,
       'Single-Use_change': project.projections.singleUseResults.summary.annualUnits.change,
-      Waste_baseline: project.projections.environmentalResults.annualWasteChanges.total.baseline,
-      Waste_forecast: project.projections.environmentalResults.annualWasteChanges.total.forecast,
-      Waste_change: project.projections.environmentalResults.annualWasteChanges.total.change,
+      Waste_baseline: project.projections.environmentalResults.annualWasteChanges.summary.baseline,
+      Waste_forecast: project.projections.environmentalResults.annualWasteChanges.summary.forecast,
+      Waste_change: project.projections.environmentalResults.annualWasteChanges.summary.change,
       GHG_baseline: project.projections.environmentalResults.annualGasEmissionChanges.total.baseline,
       GHG_forecast: project.projections.environmentalResults.annualGasEmissionChanges.total.forecast,
       GHG_change: project.projections.environmentalResults.annualGasEmissionChanges.total.change,
@@ -195,7 +197,10 @@ function addProjectsSheet(workbook: ExcelJS.Workbook, data: AllProjectsSummary) 
   sheet.addRows(rows);
 }
 
-function getProduct<T extends SingleUseProduct>(products: T[], productId: string): { description: string } {
+function getProduct<T extends SingleUseProduct | ReusableProduct>(
+  products: T[],
+  productId: string
+): { description: string } {
   return products.find(product => product.id === productId) || { description: '' };
 }
 
@@ -332,7 +337,7 @@ function getAnnualCost({ frequency, cost }: { frequency: string; cost: number })
 }
 
 // Define Reusables Worksheet
-function addDishwasherSheet(workbook: ExcelJS.Workbook, data: AllProjectsSummary) {
+function addDishwasherSheet(workbook: ExcelJS.Workbook, data: AllProjectsSummary, products: SingleUseProduct[]) {
   const sheet = workbook.addWorksheet('Dishwasher Usage', worksheetOptions);
 
   sheet.columns = [
@@ -350,10 +355,16 @@ function addDishwasherSheet(workbook: ExcelJS.Workbook, data: AllProjectsSummary
   ];
   sheet.addRows(
     data.projects
-      .filter(project => project.dishwashers.length > 0)
+      .filter(project => project.dishwashers.length > 0 || project.dishwashersSimple.length > 0)
       .map(project => {
         const rates = getProjectUtilities(project);
-        const stats = getDishwasherStats({ dishwasher: project.dishwashers[0], rates });
+        const racksUsed = project.singleUseItems.reduce((sum, item) => {
+          const reusableItemCountPerRack = products.find(
+            product => product.id === item.productId
+          )?.reusableItemCountPerRack;
+          return sum + (reusableItemCountPerRack ? item.unitsPerCase / reusableItemCountPerRack : 0);
+        }, 0);
+        const stats = getDishwasherStats({ dishwasher: project.dishwashers[0], rates, racksUsed });
         const rows: SheetRow[] = [
           {
             type: 'Electric Usage (kWh)',

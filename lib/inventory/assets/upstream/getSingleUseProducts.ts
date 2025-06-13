@@ -8,6 +8,7 @@ import { PRODUCT_TYPES } from 'lib/calculator/constants/product-types';
 import { csvToNumber } from 'lib/csv';
 
 import type { SingleUseProduct } from '../../types/products';
+import { dishrackUsage } from 'lib/calculator/constants/dishrackUsage';
 
 // These items were provided by Upstream. They could also live in a database one day
 const csvFile = process.cwd() + '/lib/inventory/assets/upstream/single-use-products-data.csv';
@@ -21,14 +22,15 @@ type CSVColumn =
   | 'Box Weight (lbs)'
   | 'Box Weight as % of Gross Weight'
   | 'Gross Case Weight (lbs)'
-  | 'Box Weight (lbs)'
+  | 'Box Weight per item (lbs)'
   | 'Item Weight (lbs)'
   | 'Net Case Weight (lbs)' // to determine unit weight
   | 'Primary Material'
   | 'Primary Material Weight per Unit (lbs)'
   | 'Secondary Material (Lining/Wrapper)'
   | 'Size/Options'
-  | 'Second Material Weight per Unit (lbs)';
+  | 'Second Material Weight per Unit (lbs)'
+  | 'dishcatid'; // for looking up dishrack usage
 
 type CSVRow = {
   [field in CSVColumn]: string;
@@ -73,17 +75,22 @@ function csvRowToSingleUseProduct(csvProduct: CSVRow): SingleUseProduct {
   const productId = csvProduct['Product ID'];
   const unitsPerCase = csvToNumber(csvProduct['Case Count (Units per Case)']);
   const grossCaseWeight = csvToNumber(csvProduct['Gross Case Weight (lbs)']);
+  const boxWeightPerItem = csvToNumber(csvProduct['Box Weight per item (lbs)']);
   const boxPercentWeight = csvToNumber(csvProduct['Box Weight as % of Gross Weight']) / 100;
   const boxWeight = grossCaseWeight * boxPercentWeight;
-  const netCaseWeight = grossCaseWeight - boxWeight;
-  const itemWeight = netCaseWeight / unitsPerCase;
+  // const netCaseWeight = grossCaseWeight - boxWeight;
+  const itemWeight = csvToNumber(csvProduct['Item Weight (lbs)']);
   const secondaryMaterialWeightPerUnit = csvToNumber(csvProduct['Second Material Weight per Unit (lbs)']);
   const primaryMaterialWeightPerUnit =
     secondaryMaterialWeightPerUnit > 0 ? itemWeight - secondaryMaterialWeightPerUnit : itemWeight;
 
+  const catId = csvToNumber(csvProduct['dishcatid']);
+  const reusableItemCountPerRack = dishrackUsage.get(catId)?.items_per_rack;
+
   return {
     id: productId,
     boxWeight,
+    boxWeightPerItem,
     category: category.id,
     description: csvProduct['Product Description'],
     type: type.id,
@@ -93,6 +100,7 @@ function csvRowToSingleUseProduct(csvProduct: CSVRow): SingleUseProduct {
     primaryMaterialWeightPerUnit,
     secondaryMaterial: material2?.id,
     secondaryMaterialWeightPerUnit,
-    size: csvProduct['Size/Options'] || 'Standard' // product id 52 has no size set
+    size: csvProduct['Size/Options'] || 'Standard', // product id 52 has no size set
+    reusableItemCountPerRack
   };
 }

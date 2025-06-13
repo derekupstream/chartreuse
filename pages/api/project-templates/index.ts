@@ -13,7 +13,7 @@ const handler = nc<NextApiRequest, NextApiResponse>({ onError, onNoMatch });
 handler.use(getUser).get(getTemplatesEndpoint);
 
 async function getTemplatesEndpoint(req: NextApiRequestWithUser, res: NextApiResponse<Project[]>) {
-  const templates = await getTemplates();
+  const templates = await getTemplates(req.user);
 
   return res.status(200).json(templates);
 }

@@ -1,10 +1,10 @@
 import { Typography } from 'antd';
 import styled from 'styled-components';
 
-import Card from '../../projections/components/Card';
-import { Value } from '../../projections/components/KPICard';
-import PercentTag from '../../projections/components/PercentTag';
-import { CardTitle } from '../../projections/components/styles';
+import Card from '../../projections/components/common/Card';
+import { Value } from '../../projections/components/common/KPICard';
+import PercentTag from '../../projections/components/common/PercentTag';
+import { CardTitle } from '../../projections/components/common/styles';
 
 export const Header = styled.div`
   display: flex;

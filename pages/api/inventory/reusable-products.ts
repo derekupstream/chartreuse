@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import nc from 'next-connect';
 
-import { getReusableProducts } from 'lib/inventory/getReusableProducts';
+import { getReusableProducts } from 'lib/inventory/assets/reusables/getReusableProducts';
 import type { NextApiRequestWithUser } from 'lib/middleware';
 import { onError, onNoMatch, getUser } from 'lib/middleware';
 

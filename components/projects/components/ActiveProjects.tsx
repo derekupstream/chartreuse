@@ -7,7 +7,7 @@ import { useEffect } from 'react';
 import { useCopyProject, useDeleteProject } from 'client/projects';
 import { useGetProjects } from 'client/projects';
 import ContentLoader from 'components/common/ContentLoader';
-import type { ProjectMetadata } from 'components/projects/[id]/edit';
+import type { ProjectMetadata } from 'components/projects/[id]/edit/ProjectSetup';
 import * as S from 'layouts/styles';
 
 interface PopulatedProject extends Project {
@@ -61,9 +61,12 @@ export function ActiveProjects() {
 
   if (projects?.length === 0) {
     return (
-      <Typography.Text>
-        You have no active projects. Click ‘+ Start custom project’ above to get started.
-      </Typography.Text>
+      <Card style={{ height: 280, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <Typography.Text>
+          You have no active projects. Select a template or click <strong>+ Start custom project</strong> above to get
+          started.
+        </Typography.Text>
+      </Card>
     );
   }
 

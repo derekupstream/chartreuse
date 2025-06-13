@@ -18,7 +18,8 @@ type MaterialName =
   | 'Plastic (LDPE)'
   | 'Compostable Plastic (PLA)'
   | 'EPS Foam'
-  | 'Aluminum';
+  | 'Aluminum'
+  | 'PET';
 
 type MaterialOption = {
   id: number;
@@ -103,6 +104,9 @@ export const MATERIALS: MaterialOption[] = [
   }
 ];
 
+// Maybe it would be cleaner to let primaryMaterial be undefined? this is only used for bottle station products
+export const NO_MATERIAL_ID = -1;
+
 const LB_TO_MTCO2 = 0.000453592;
 
 export const REUSABLE_MATERIALS = [
@@ -116,7 +120,8 @@ export const REUSABLE_MATERIALS = [
   { id: 107, name: 'Melamine', mtco2ePerLb: 0.000965, waterUsageGalPerLb: 5.9529 },
   { id: 108, name: 'Recycled Stainless Steel', mtco2ePerLb: 1.8065 * LB_TO_MTCO2, waterUsageGalPerLb: 14.94273 },
   { id: 109, name: 'Recycled Aluminum', mtco2ePerLb: 5.935 * LB_TO_MTCO2, waterUsageGalPerLb: 12.6471 },
-  { id: 110, name: 'Plastic (#5 PP)', mtco2ePerLb: 0.000775, waterUsageGalPerLb: 3.8735 }
+  { id: 110, name: 'Plastic (#5 PP)', mtco2ePerLb: 0.000775, waterUsageGalPerLb: 3.8735 },
+  { id: 111, name: 'Polycarbonate', mtco2ePerLb: 0.00075, waterUsageGalPerLb: 3.03798 }
 ] as const;
 
 // only Upstream can use Recycled Stainless Steel and Recycled Aluminum

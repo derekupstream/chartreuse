@@ -3,10 +3,12 @@ import type { ProjectionsResponse } from 'lib/calculator/getProjections';
 import prisma from 'lib/prisma';
 
 import { pages } from './config';
+import { ProjectCategory } from '@prisma/client';
 
 export type ProjectProjection = {
   slug: string;
   projections: ProjectionsResponse;
+  projectCategory: ProjectCategory;
   templateParams: { projectId: string; slug: string };
 };
 
@@ -38,7 +40,12 @@ export async function getSharedProjections(slug: string) {
     projects.map(async ({ slug, project }): Promise<ProjectProjection | null> => {
       if (project) {
         const projections = await getProjections(project.id);
-        return { projections, slug, templateParams: { projectId: project.id, slug } };
+        return {
+          projections,
+          slug,
+          projectCategory: project.category,
+          templateParams: { projectId: project.id, slug }
+        };
       }
       return null;
     })

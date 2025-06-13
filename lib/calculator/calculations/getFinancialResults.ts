@@ -1,9 +1,10 @@
-import type { DishWasherStatic, DishWasherOptions, ProjectInventory } from '../../inventory/types/projects';
-import { ANNUAL_DISHWASHER_CONSUMPTION, BUILDING_WATER_HEATER, BOOSTER_WATER_HEATER } from '../constants/dishwashers';
+import type { DishWasherStatic, DishWasherOptions, ProjectInventory } from 'lib/inventory/types/projects';
+
 import { getAnnualOccurrence } from '../constants/frequency';
+import { dishwasherUtilityUsage } from './dishwashing/getDishwasherUtilityUsage';
 import { getChangeSummaryRowRounded, round } from '../utils';
 
-import { getSingleUseProductSummary } from './getSingleUseResults';
+import { getSingleUseProductSummary } from './foodware/getSingleUseResults';
 
 interface FinancialResults {
   annualCostChanges: AnnualCostChanges;
@@ -66,7 +67,7 @@ function calculateAnnualCostChanges(project: ProjectInventory): AnnualCostChange
     return sum + oneTimeCost * item.annualRepurchasePercentage;
   }, 0);
 
-  const singleUseProductSummary = getSingleUseProductSummary(project.singleUseItems);
+  const singleUseProductSummary = getSingleUseProductSummary(project.singleUseItems, project.isEventProject);
 
   const singleUseProductChange = singleUseProductSummary.annualCost.change;
 
@@ -75,12 +76,20 @@ function calculateAnnualCostChanges(project: ProjectInventory): AnnualCostChange
   for (const dishwasher of project.dishwashers) {
     utilitiesBaseline += dishwasherAnnualCost(
       dishwasher,
-      { operatingDays: dishwasher.operatingDays, racksPerDay: dishwasher.racksPerDay },
+      {
+        operatingDays: dishwasher.operatingDays,
+        racksPerDay: dishwasher.racksPerDay,
+        calculatedRacksUsed: project.racksUsedForEventProjects
+      },
       project.utilityRates
     );
     utilitiesforecast += dishwasherAnnualCost(
       dishwasher,
-      { operatingDays: dishwasher.newOperatingDays, racksPerDay: dishwasher.newRacksPerDay },
+      {
+        operatingDays: dishwasher.newOperatingDays,
+        racksPerDay: dishwasher.newRacksPerDay,
+        calculatedRacksUsed: project.racksUsedForEventProjects
+      },
       project.utilityRates
     );
   }
@@ -135,48 +144,6 @@ function dishwasherAnnualCost(
 ) {
   const { electric, gas, water } = dishwasherAnnualCostBreakdown(dishwasher, options, rates);
   return round(electric + gas + water, 2);
-}
-
-// Hidden: dishwasher calulcations: C85, C86
-export function dishwasherUtilityUsage(dishwasher: DishWasherStatic, options: DishWasherOptions) {
-  const washerProfile = ANNUAL_DISHWASHER_CONSUMPTION.find(conf => {
-    return (
-      dishwasher.temperature === conf.temperature &&
-      dishwasher.type === conf.type &&
-      dishwasher.energyStarCertified === conf.energyStar
-    );
-  });
-
-  if (!washerProfile) {
-    throw new Error(
-      'Unidentified dishwasher configuration: ' + dishwasher.type + ', ' + dishwasher.temperature + ' temp'
-    );
-  }
-
-  const operatingDaysPerYear = options.operatingDays;
-  const waterUsage = washerProfile.values.waterUsePerRack * options.racksPerDay * operatingDaysPerYear; // gallons per year
-
-  // Hidden: dishwasher calulcations: C85, C86
-  let electricUsage = 0;
-  let gasUsage = 0;
-
-  if (dishwasher.buildingWaterHeaterFuelType === 'Electric') {
-    electricUsage = waterUsage * BUILDING_WATER_HEATER.electricEnergyUsage; // kWh per year
-    // add booster energy, if applicable
-    if (dishwasher.temperature === 'High') {
-      const boosterConsumption = waterUsage * BOOSTER_WATER_HEATER.electricEnergyUsage;
-      electricUsage += boosterConsumption;
-    }
-  } else if (dishwasher.buildingWaterHeaterFuelType === 'Gas') {
-    gasUsage = waterUsage * BUILDING_WATER_HEATER.gasEnergyUsage; // therm per year
-    // add booster energy, if applicable
-    if (dishwasher.temperature === 'High') {
-      const boosterConsumption = waterUsage * BOOSTER_WATER_HEATER.gasEnergyUsage;
-      gasUsage += boosterConsumption;
-    }
-  }
-
-  return { electricUsage, gasUsage, waterUsage };
 }
 
 function getBaselineWasteHaulingAnnualCost(project: ProjectInventory) {

@@ -9,7 +9,7 @@ const handler = projectHandler();
 
 handler.get(getItems).post(addOrUpdateItem).delete(deleteItem);
 
-async function getItems(req: NextApiRequestWithUser, res: NextApiResponse<{ lineItems?: ReusableLineItem[] }>) {
+async function getItems(req: NextApiRequestWithUser, res: NextApiResponse<ReusableLineItem[]>) {
   const projectId = req.query.id as string;
 
   if (typeof projectId !== 'string') throw new Error('No project id provided');
@@ -20,7 +20,7 @@ async function getItems(req: NextApiRequestWithUser, res: NextApiResponse<{ line
     }
   });
 
-  return res.status(200).json({ lineItems });
+  return res.status(200).json(lineItems);
 }
 
 async function addOrUpdateItem(req: NextApiRequestWithUser, res: NextApiResponse) {

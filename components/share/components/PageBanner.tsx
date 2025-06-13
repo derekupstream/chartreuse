@@ -55,7 +55,15 @@ const DesktopElement = styled.div`
   }
 `;
 
-export function PageBanner() {
+export function PageBanner({
+  title = 'Reuse for On-Site Dining',
+  description = 'The results below are based on data from real businesses that model the environmental impact and economic savings of switching to reusables for on-site dining.',
+  isProjectTemplate
+}: {
+  title?: string | null;
+  description?: string | null;
+  isProjectTemplate?: boolean;
+}) {
   return (
     <BannerCard>
       <BannerCardBackground>
@@ -76,22 +84,23 @@ export function PageBanner() {
           paddingTop: 24
         }}
       >
+        {/* {isProjectTemplate && ( */}
         <Typography.Paragraph
           style={{ margin: '1em 0', lineHeight: '1em', display: 'flex', gap: '8px', alignItems: 'end' }}
         >
           <BarChartOutlined style={{ fontSize: '1.2em' }} />A CUSTOM DATA DASHBOARD
         </Typography.Paragraph>
+        {/* )} */}
         {/* <div style={{ maxWidth: 300 }}>
           <Image src={pageBannerBackgroundSrc} alt='' />
         </div> */}
         {/* <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 24px' }}> */}
         <Typography.Title level={1} style={{ margin: 0, padding: 0, textAlign: 'center' }}>
-          Reuse for On-Site Dining
+          {title}
         </Typography.Title>
         <DesktopElement>
           <Typography.Title level={5} style={{ maxWidth: 500, textAlign: 'center' }}>
-            The results below are based on data from real businesses that model the environmental impact and economic
-            savings of switching to reusables for on-site dining.
+            {description}
           </Typography.Title>
           {/* <Typography.Title level={5} style={{ margin: 0, padding: 0 }}>
             <ul>

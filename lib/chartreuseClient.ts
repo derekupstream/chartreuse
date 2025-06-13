@@ -1,4 +1,4 @@
-import type { Project } from '@prisma/client';
+import type { Project, ProjectCategory } from '@prisma/client';
 
 import type { InventoryInput } from 'lib/inventory/saveInventoryRecords';
 import type { ProjectInventory } from 'lib/inventory/types/projects';
@@ -26,6 +26,7 @@ export type ProjectInput = {
   budget?: number;
   templateDescription?: string;
   isTemplate?: boolean;
+  category: ProjectCategory;
 
   utilityRates: {
     water: number;

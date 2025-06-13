@@ -22,5 +22,5 @@ export async function getSingleUseProducts({ orgId }: { orgId: string }) {
     return result;
   }
 
-  return getAllProducts();
+  return getUpstreamProducts();
 }

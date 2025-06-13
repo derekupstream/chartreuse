@@ -93,12 +93,12 @@ export default function Accounts({ user }: LoggedinProps) {
 
   return (
     <Space direction='vertical' size='large' style={{ width: '100%' }}>
-      <S.SpaceBetween>
+      <S.HeaderRow>
         <Typography.Title>Accounts</Typography.Title>
         <Button type='primary' onClick={handleAddAcount} icon={<PlusOutlined />}>
           Add account
         </Button>
-      </S.SpaceBetween>
+      </S.HeaderRow>
       {data.length > 0 && <Table columns={columns} dataSource={data} pagination={false} />}
       {data.length === 0 && (
         <Typography.Text>

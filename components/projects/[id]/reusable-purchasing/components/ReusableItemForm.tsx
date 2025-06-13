@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 
 import type { ReusableProduct } from 'lib/inventory/types/products';
 
-import type { ReusableFormValues } from '../reusable-purchasing';
+import type { ReusableFormValues } from '../ReusablePurchasingStep';
 
 import FirstStepForm from './ReusableBaselineForm';
 import SecondStepForm from './ReusableForecastForm';

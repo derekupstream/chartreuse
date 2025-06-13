@@ -6,7 +6,7 @@ import { useEffect } from 'react';
 import { requiredRule } from 'utils/forms';
 
 import * as S from '../../styles';
-import type { ReusableFormValues } from '../reusable-purchasing';
+import type { ReusableFormValues } from '../ReusablePurchasingStep';
 
 type Props = {
   input: Partial<ReusableFormValues>;

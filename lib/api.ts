@@ -1,7 +1,6 @@
 import useSWR from 'swr';
 import useSWRMutation from 'swr/mutation';
 
-import type { ProjectionsResponse } from 'lib/calculator/getProjections';
 import type { SubscriptionResponse } from 'lib/stripe/getCustomerSubscription';
 import type { SubscriptionProduct } from 'lib/stripe/getSubscriptionProduct';
 import type { TrialRequestBody } from 'pages/api/stripe/create-subscription';
@@ -86,8 +85,4 @@ export const members = {
   }
 };
 
-export const projects = {
-  useGetProjections(projectId?: string) {
-    return _useGET<ProjectionsResponse>(projectId ? '/api/projects/' + projectId + '/projections' : null);
-  }
-};
+export const projects = {};
