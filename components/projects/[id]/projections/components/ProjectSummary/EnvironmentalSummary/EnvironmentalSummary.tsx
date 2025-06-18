@@ -154,19 +154,18 @@ export const EnvironmentalSummary: React.FC<Props> = ({ data, hideWaterUsage, is
 
       <Row gutter={[30, 24]}>
         <StyledCol xs={24} lg={12}>
-          <Card>
-            <SectionTitle>Your {isEventProject ? 'total' : 'annual'} waste changes</SectionTitle>
-
-            <BigNumberWrapper>
-              <BigNumber
-                value={changeValueInPounds(
-                  isEventProject ? data.eventProjectWaste.summary.change : data.annualWasteChanges.summary.change,
-                  options
-                )}
-              />
-            </BigNumberWrapper>
-
-            <Chart data={annualWasteData} seriesField='wasteType' />
+          <KPICard
+            style={{ height: '100%' }}
+            title={`Your ${isEventProject ? 'total' : 'annual'} waste changes`}
+            changePercent={
+              isEventProject
+                ? data.eventProjectWaste.summary.changePercent * -1
+                : data.annualWasteChanges.summary.changePercent * -1
+            }
+            changeStr={`${changeValueInPounds(isEventProject ? data.eventProjectWaste.summary.change : data.annualWasteChanges.summary.change, options)}`}
+          >
+            <br />
+            <Chart data={waterData} seriesField='wasteType' />
             <ViewResultsWrapper>
               <Typography.Text style={{ marginRight: '20px' }}>View results in:</Typography.Text>
               <Radio.Group onChange={onChangeResults} defaultValue={units}>
@@ -174,7 +173,7 @@ export const EnvironmentalSummary: React.FC<Props> = ({ data, hideWaterUsage, is
                 <Radio.Button value='tons'>tons</Radio.Button>
               </Radio.Group>
             </ViewResultsWrapper>
-          </Card>
+          </KPICard>
         </StyledCol>
         {!hideWaterUsage && (
           <StyledCol xs={24} lg={12}>
@@ -193,15 +192,15 @@ export const EnvironmentalSummary: React.FC<Props> = ({ data, hideWaterUsage, is
         )}
 
         <StyledCol xs={24} lg={hideWaterUsage ? 12 : 24}>
-          <Card style={{ height: '100%' }}>
-            <SectionTitle>Your {isEventProject ? 'total' : 'annual'} GHG changes</SectionTitle>
-
-            <BigNumberWrapper>
-              <BigNumber value={`${changeValue(data.annualGasEmissionChanges.total.change)} MTCO2e`} />
-            </BigNumberWrapper>
-
+          <KPICard
+            style={{ height: '100%' }}
+            title={`Your ${isEventProject ? 'total' : 'annual'} GHG changes`}
+            changePercent={data.annualGasEmissionChanges.total.changePercent * -1}
+            changeStr={`${changeValue(data.annualGasEmissionChanges.total.change)} MTCO2e`}
+          >
+            <br />
             <Chart data={ghgData} seriesField='wasteType' />
-          </Card>
+          </KPICard>
         </StyledCol>
       </Row>
     </SectionContainer>

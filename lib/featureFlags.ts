@@ -7,7 +7,7 @@ export function isEventProjectsEnabled({ id, isUpstream }: { id: string; isUpstr
   if (id === eugeneOrgId || id === madhaviOrgId) {
     return true;
   }
-  return isUpstream;
+  return isUpstream || process.env.NODE_ENV === 'development';
 }
 
 export async function isEventProjectsEnabledForOrg({ orgId }: { orgId: string }) {
