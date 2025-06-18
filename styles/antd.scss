@@ -1,11 +1,12 @@
+@use "sass:color";
 /* @import '~antd/lib/style/themes/default.less';*/
 /* @import '~antd/dist/antd.less';*/
 /* @import '~antd/es/popover/style/index.css';*/
 // @import '~@antv/xflow/dist/index.css';
 
-@primary-color: #2bbe50;
-// @link-color: #2bbe50;
-// @font-family: 'Poppins', Helvetica, Arial, sans-serif;
+$primary-color: #2bbe50;
+// $link-color: #2bbe50;
+// $font-family: 'Poppins', Helvetica, Arial, sans-serif;
 
 body {
   margin: 0;
@@ -18,7 +19,7 @@ body {
 }
 
 h1.ant-typography {
-  //color: #2bbe50; //@primary-color;
+  //color: #2bbe50; //$primary-color;
   font-weight: 700;
   margin-top: 0;
 }
@@ -29,7 +30,7 @@ h5.ant-typography {
 }
 
 .ant-spin-text {
-  color: @primary-color;
+  color: $primary-color;
 }
 
 .ant-steps-item-description {
@@ -43,8 +44,8 @@ h5.ant-typography {
   color: #1b4539 !important;
 
   &:hover {
-    background-color: darken(#95ee49, 10%);
-    border-color: darken(#95ee49, 10%);
+    background-color: color.adjust(#95ee49, $lightness: -10%);
+    border-color: color.adjust(#95ee49, $lightness: -10%);
   }
 }
 
@@ -117,5 +118,4 @@ hr {
   border: none;
   border-top: solid 2px #aaa;
   margin: 0;
-}
-
+} 

@@ -17,13 +17,13 @@ import { getProjectContext } from 'lib/middleware';
 import { ConfigProvider, theme, ThemeConfig } from 'antd';
 import * as gtag from '../lib/ga';
 
-import 'styles/antd.less';
-import 'styles/print.less';
+import 'styles/antd.scss';
+import 'styles/print.scss';
 // import '@antv/xflow/dist/index.css';
-import 'components/share/components/ProjectionAssumptions/styles.less';
-import 'components/share/components/ProjectionAssumptions/SmallSize.styles.less';
-import 'components/share/components/ProjectionAssumptions/MidSize.styles.less';
-import 'components/share/components/ProjectionAssumptions/LargeSize.styles.less';
+import 'components/share/components/ProjectionAssumptions/styles.scss';
+import 'components/share/components/ProjectionAssumptions/SmallSize.styles.scss';
+import 'components/share/components/ProjectionAssumptions/MidSize.styles.scss';
+import 'components/share/components/ProjectionAssumptions/LargeSize.styles.scss';
 
 // Track initial pageview
 if (typeof window !== 'undefined') {
