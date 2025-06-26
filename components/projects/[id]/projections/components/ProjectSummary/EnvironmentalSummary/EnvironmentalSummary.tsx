@@ -165,7 +165,7 @@ export const EnvironmentalSummary: React.FC<Props> = ({ data, hideWaterUsage, is
             changeStr={`${changeValueInPounds(isEventProject ? data.eventProjectWaste.summary.change : data.annualWasteChanges.summary.change, options)}`}
           >
             <br />
-            <Chart data={waterData} seriesField='wasteType' />
+            <Chart data={annualWasteData} seriesField='wasteType' />
             <ViewResultsWrapper>
               <Typography.Text style={{ marginRight: '20px' }}>View results in:</Typography.Text>
               <Radio.Group onChange={onChangeResults} defaultValue={units}>
