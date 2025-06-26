@@ -50,7 +50,7 @@ export async function duplicateProject({
       isTemplate: skipTemplateProperties ? false : project.isTemplate,
       templateDescription: skipTemplateProperties ? null : project.templateDescription,
       templateId: project.isTemplate ? id : null,
-      publicSlug: project.isTemplate ? null : project.publicSlug,
+      publicSlug: null, // private by default, also publicSlug is unique
       eventFoodwareItems: {
         createMany: {
           data: project.eventFoodwareItems.map(({ id, projectId, ...item }) => item)
