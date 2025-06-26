@@ -6,8 +6,8 @@ const artworkById: Record<string, { src: string; height?: number; width?: number
   '124': { src: '/images/foodware/fork.png', width: 100 },
   '125': { src: '/images/foodware/spoon.png', width: 100 },
   '126': { src: '/images/foodware/knife.png', height: 100 },
-  '164': { src: '/images/foodware/14_oz_bowl.png', height: 100 },
-  '163': { src: '/images/foodware/20_oz_bowl.png', width: 100 },
+  '165': { src: '/images/foodware/14_oz_bowl.png', height: 100 },
+  '164': { src: '/images/foodware/20_oz_bowl.png', width: 100 },
   '169': { src: '/images/foodware/16_oz_cup.png', height: 100 },
   '170': { src: '/images/foodware/22_oz_cup.png', height: 100 },
   '171': { src: '/images/foodware/waterstation.png', width: 100 }
