@@ -229,7 +229,6 @@ export function LineItemSummary({
       )}
 
       <Card style={{ marginRight: 0 }}>
-        {/* <CardTitle>{labels.greenHouseGasLabel}</CardTitle> */}
         <div style={{ display: 'flex', gap: '20px' }}>
           <Section>
             <CardTitle>{labels.greenHouseGasLabel}</CardTitle>
@@ -241,8 +240,9 @@ export function LineItemSummary({
         </div>
         <Body>
           <Section style={hideWaterUsage ? { width: '100%' } : {}}>
+            {/* if reusable, don't show change percent - according to madhavi :) */}
             <KPIContent
-              changePercent={annualGHG.changePercent === 0 ? 0 : annualGHG.changePercent * -1}
+              changePercent={annualGHG.changePercent === 0 || variant === 'reusable' ? 0 : annualGHG.changePercent * -1}
               changeStr={changeValue(annualGHG.change * -1) + ' MTCO2e'}
             />
             {/* <ChartTitle>Annual {title} total changes</ChartTitle> */}
