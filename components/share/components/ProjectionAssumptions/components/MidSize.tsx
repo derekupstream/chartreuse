@@ -510,7 +510,8 @@ export function MidSize() {
         </li>
         <li className='c6 li-bullet-0'>
           <span className='c2'>
-            The total required drying surface area was used to calculate the number of commercial drying racks needed.{' '}
+            The total required drying surface area was used to calculate the number of commercial drying racks
+            needed.{' '}
           </span>
         </li>
       </ul>

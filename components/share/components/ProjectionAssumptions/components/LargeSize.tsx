@@ -520,7 +520,8 @@ export function LargeSize() {
         </li>
         <li className='c1 c11 li-bullet-0'>
           <span className='c4 c2'>
-            The total required drying surface area was used to calculate the number of commercial drying racks needed.{' '}
+            The total required drying surface area was used to calculate the number of commercial drying racks
+            needed.{' '}
           </span>
         </li>
       </ul>

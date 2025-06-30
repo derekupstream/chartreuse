@@ -1,15 +1,5 @@
 import { TEMPLATES } from '../projects/templates/config';
 
-const DEV_PAGES = [
-  {
-    slug: 'yolo',
-    orgName: 'YOLO',
-    orgId: '73c6307a-a88c-44bf-bb40-5e72547055ac',
-    title: 'YOLO!',
-    templates: TEMPLATES.dev
-  }
-] as const;
-
 const upstreamOrgId = '79cb54a3-8b75-4841-93d4-a23fd1c07553';
 
 const PRODUCTION_PAGES = [
@@ -18,6 +8,17 @@ const PRODUCTION_PAGES = [
     title: 'Onsite Dining',
     orgId: upstreamOrgId,
     templates: TEMPLATES.production
+  }
+] as const;
+
+const DEV_PAGES = [
+  ...PRODUCTION_PAGES, // include these in case we need to run against prod data in dev
+  {
+    slug: 'yolo',
+    orgName: 'YOLO',
+    orgId: '73c6307a-a88c-44bf-bb40-5e72547055ac',
+    title: 'YOLO!',
+    templates: TEMPLATES.dev
   }
 ] as const;
 

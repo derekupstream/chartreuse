@@ -1,8 +1,8 @@
 import { Typography } from 'antd';
 
-import { LargeSize } from './LargeSize';
-import { MidSize } from './MidSize';
-import { SmallSize } from './SmallSize';
+import { LargeSize } from './components/LargeSize';
+import { MidSize } from './components/MidSize';
+import { SmallSize } from './components/SmallSize';
 
 export function ProjectionAssumptions() {
   return (

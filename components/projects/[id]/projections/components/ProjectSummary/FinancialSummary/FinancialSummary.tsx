@@ -24,11 +24,10 @@ const tooltipVariants = [
     additionalExpenses1: '(2): $945',
     additionalExpenses2: '(2): $40',
     dishwashingSpecs: 'Commercial Under Counter, High Temperature, Energy star certified, Electric Fuel',
-    dishwashingRacks: '42',
-    dishwashingEnergyUsage: '3,047.46 kWh',
-    dishwashingWaterUsage: '11,300.4 gal',
-    dishwashingUtilityCost: '$475',
-    dishwashingPlaceSettings: '5',
+    dishwashingRacks: '45',
+    dishwashingEnergyUsage: '3,535.89 kWh',
+    dishwashingWaterUsage: '49,632.63 L',
+    dishwashingUtilityCost: '$484',
     laborHours: '~1 hour/day',
     laborRate: '$20/hour',
     reusableReturnRate: '85%'
@@ -41,11 +40,10 @@ const tooltipVariants = [
     additionalExpenses1: '(5): $2,362',
     additionalExpenses2: '(4): $79',
     dishwashingSpecs: 'Stationary Single Tank Door dishwasher, High Temperature, Energy star certified, Electric Fuel',
-    dishwashingRacks: '112',
-    dishwashingEnergyUsage: '9,811.72 kWh',
-    dishwashingWaterUsage: '36,383.2 gal',
-    dishwashingUtilityCost: '$1,529.57',
-    dishwashingPlaceSettings: '5',
+    dishwashingRacks: '119',
+    dishwashingEnergyUsage: '10,367.83 kWh',
+    dishwashingWaterUsage: '145,531.34 L',
+    dishwashingUtilityCost: '$1,419',
     laborHours: '~3 hours/day',
     laborRate: '$20/hour',
     reusableReturnRate: '80%'
@@ -58,11 +56,10 @@ const tooltipVariants = [
     additionalExpenses1: '(8): $3,780',
     additionalExpenses2: '(5): $99',
     dishwashingSpecs: 'Single Tank Conveyor, High Temperature, Energy star certified, Electric Fuel',
-    dishwashingRacks: '168',
-    dishwashingEnergyUsage: '11,575.62 kWh',
-    dishwashingWaterUsage: '42,924 gal',
-    dishwashingUtilityCost: '$1,804',
-    dishwashingPlaceSettings: '5',
+    dishwashingRacks: '209',
+    dishwashingEnergyUsage: '14,321.72 kWh',
+    dishwashingWaterUsage: '201,031.39 L',
+    dishwashingUtilityCost: '$1,960',
     laborHours: '~5 hours/day',
     laborRate: '$20/hour',
     reusableReturnRate: '75%'
@@ -72,6 +69,7 @@ const tooltipVariants = [
 const FinancialSummary: React.FC<Props> = ({ data: financialResults, businessSize }) => {
   const { abbreviation: currencyAbbreviation } = useCurrency();
   const showTooltips = typeof businessSize === 'number';
+  console.log('businessSize', businessSize);
   const tooltipVars = typeof businessSize === 'number' ? tooltipVariants[businessSize] : tooltipVariants[0];
   console.log('financialResults', currencyAbbreviation);
   return (
@@ -114,6 +112,7 @@ const FinancialSummary: React.FC<Props> = ({ data: financialResults, businessSiz
                     <ul style={{ paddingLeft: '1em', margin: 0 }}>
                       <li>Single-use foodware waste hauling cost: {tooltipVars.wasteHaulingSingleUseCost}</li>
                       <li>Reusable foodware waste hauling cost: {tooltipVars.wasteHaulingReusableCost}</li>
+                      <li>Assumes $22/cubic yard.</li>
                     </ul>
                   </InfoIcon>
                 )
@@ -145,6 +144,8 @@ const FinancialSummary: React.FC<Props> = ({ data: financialResults, businessSiz
                     Initial reusable item purchasing:
                     <br />
                     3:1 ratio of reusable items to daily disposable items
+                    <br />
+                    Accounts for a 98% return rate
                   </InfoIcon>
                 )
               }
@@ -160,6 +161,7 @@ const FinancialSummary: React.FC<Props> = ({ data: financialResults, businessSiz
                       <li>Commercial under-counter Energy Star dishwasher: {tooltipVars.additionalExpenses0}</li>
                       <li>Commercial drying racks {tooltipVars.additionalExpenses1}</li>
                       <li>Bus tubs/return stations {tooltipVars.additionalExpenses2}</li>
+                      <li>Dishwasher installation: $1,500</li>
                     </ul>
                   </InfoIcon>
                 )
@@ -186,7 +188,11 @@ const FinancialSummary: React.FC<Props> = ({ data: financialResults, businessSiz
               title='Reusables restocking'
               icon={
                 showTooltips && (
-                  <InfoIcon>Return rate of reusable foodware items: {tooltipVars.reusableReturnRate}</InfoIcon>
+                  <InfoIcon>
+                    Return rate of reusable foodware items: {tooltipVars.reusableReturnRate}
+                    <br />
+                    Accounts for a 98% return rate
+                  </InfoIcon>
                 )
               }
               value={formatToDollar(financialResults.annualCostChanges.reusableProductCosts, currencyAbbreviation)}
@@ -217,7 +223,6 @@ const FinancialSummary: React.FC<Props> = ({ data: financialResults, businessSiz
                       <li>Annual dishwashing energy usage: {tooltipVars.dishwashingEnergyUsage}</li>
                       <li>Annual dishwashing water usage: {tooltipVars.dishwashingWaterUsage}</li>
                       <li>Annual dishwashing utility cost: {tooltipVars.dishwashingUtilityCost}</li>
-                      <li>Place settings per commercial dishwashing rack: {tooltipVars.dishwashingPlaceSettings}</li>
                     </ul>
                   </InfoIcon>
                 )

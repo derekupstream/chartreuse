@@ -21,9 +21,9 @@ import 'styles/antd.scss';
 import 'styles/print.scss';
 // import '@antv/xflow/dist/index.css';
 import 'components/share/components/ProjectionAssumptions/styles.scss';
-import 'components/share/components/ProjectionAssumptions/SmallSize.styles.scss';
-import 'components/share/components/ProjectionAssumptions/MidSize.styles.scss';
-import 'components/share/components/ProjectionAssumptions/LargeSize.styles.scss';
+import 'components/share/components/ProjectionAssumptions/components/SmallSize.styles.scss';
+import 'components/share/components/ProjectionAssumptions/components/MidSize.styles.scss';
+import 'components/share/components/ProjectionAssumptions/components/LargeSize.styles.scss';
 
 // Track initial pageview
 if (typeof window !== 'undefined') {

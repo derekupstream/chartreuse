@@ -162,7 +162,7 @@ export function SharedPage({
               {data.projectCategory === 'event' ? (
                 <EventProjectSummary data={data.projections} />
               ) : (
-                <ProjectSummary data={data.projections} />
+                <ProjectSummary data={data.projections} businessSize={businessSize} />
               )}
             </span>
             <div className='page-break' />
