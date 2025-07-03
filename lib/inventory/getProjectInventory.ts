@@ -70,7 +70,6 @@ export async function getProjectInventory(projectId: string): Promise<ProjectInv
 
   // get utility rates
   const utilityRates = getProjectUtilities(project);
-
   // map db model types to frontend types
   const products = await getSingleUseProducts({ orgId: project.orgId });
   const reusableProducts = await getReusableProductsWithBottleStation();
@@ -82,7 +81,6 @@ export async function getProjectInventory(projectId: string): Promise<ProjectInv
   const foodwareItems = project.eventFoodwareItems.map(item => mapFoodwareItem(item, products, reusableProducts));
   const foodwareSingleUseItems = foodwareItems.map(item => mapFoodwareSingleUseItem(item));
   const foodwareReusableItems = foodwareItems.map(item => mapFoodwareReusableItem(item));
-
   const allSingleUseItems = [...singleUseItems, ...foodwareSingleUseItems];
   // only calculate racks used for dishwashers if the project is an event
   const racksUsedForEventProjects =
@@ -190,7 +188,7 @@ function mapSingleUseItem(
 ): ProjectInventory['singleUseItems'][number] {
   const product = products.find(product => product.id === singleUseItem.productId);
   if (!product) {
-    throw new Error('Product not found. Product Id: ' + singleUseItem.productId);
+    throw new Error('Single Use Product not found. Product Id: ' + singleUseItem.productId);
   }
 
   const category = PRODUCT_CATEGORIES.find(c => c.id === product.category);

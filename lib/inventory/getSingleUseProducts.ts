@@ -16,6 +16,7 @@ const assetsByOrg: Record<string, () => Promise<SingleUseProduct[]>> = {
 };
 
 export async function getSingleUseProducts({ orgId }: { orgId: string }) {
+  return getAllProducts();
   if (assetsByOrg[orgId]) {
     const result = await assetsByOrg[orgId]();
     console.log('Retrieved custom inventory for org', { count: result.length, orgId });
