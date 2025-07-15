@@ -11,6 +11,7 @@ import { InfoRow as StyledInfoRow } from '../../styles';
 
 import Forecast from './Forecast';
 import InitialCosts from './InitialCosts';
+import { DisabledLink } from 'components/common/DisabledLink';
 
 export type ReusableItemRecord = {
   lineItem: ReusableLineItem;
@@ -54,15 +55,7 @@ export const ItemRow: FC<Props> = ({ item, onEdit, onDelete, readOnly }) => {
         {/* <Typography.Title level={5}>{item.lineItem.productName || item.product?.description}</Typography.Title> */}
         {!readOnly && (
           <>
-            <a
-              href='#'
-              onClick={e => {
-                onEdit(item);
-                e.preventDefault();
-              }}
-            >
-              Edit
-            </a>
+            <DisabledLink onClick={() => onEdit(item)}>Edit</DisabledLink>
             <Typography.Text style={{ opacity: '.25' }}> | </Typography.Text>
             <Popconfirm
               title='Are you sure to delete this item?'
@@ -70,7 +63,7 @@ export const ItemRow: FC<Props> = ({ item, onEdit, onDelete, readOnly }) => {
               okText='Yes'
               cancelText='No'
             >
-              <a href='#'>Delete</a>
+              <DisabledLink>Delete</DisabledLink>
             </Popconfirm>
           </>
         )}

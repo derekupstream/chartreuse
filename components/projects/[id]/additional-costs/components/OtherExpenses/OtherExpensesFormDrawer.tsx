@@ -3,7 +3,7 @@ import { Button, Col, Form, Input, Popover, Row, Typography } from 'antd';
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
 import React from 'react';
-
+import { DisabledLink } from 'components/common/DisabledLink';
 import CurrencySymbol from 'components/_app/CurrencySymbol';
 import { useSimpleMutation } from 'hooks/useSimpleQuery';
 import {
@@ -56,7 +56,7 @@ const OtherExpensesFormDrawer: React.FC<Props> = ({ input, onClose }) => {
       <p>
         For additional details on how to categorize your expenses,{' '}
         <Popover content={OtherExpensesDetails} placement='bottom' trigger='click'>
-          <a href='#'>view help</a>
+          <DisabledLink>view help</DisabledLink>
         </Popover>
         .
       </p>

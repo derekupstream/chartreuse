@@ -5,6 +5,7 @@ import { useState } from 'react';
 
 import CurrencySymbol from 'components/_app/CurrencySymbol';
 import ContentLoader from 'components/common/ContentLoader';
+import { DisabledLink } from 'components/common/DisabledLink';
 import { useSimpleMutation, useSimpleQuery } from 'hooks/useSimpleQuery';
 import { OTHER_EXPENSES_FREQUENCIES } from 'lib/calculator/constants/other-expenses';
 import { formatToDollar } from 'lib/calculator/utils';
@@ -99,15 +100,13 @@ const LaborSection = ({ projectId, readOnly }: { projectId: string; readOnly: bo
                 <Subtitle>{labor.description}</Subtitle>
                 {!readOnly && (
                   <>
-                    <a
-                      href='#'
+                    <DisabledLink
                       onClick={e => {
                         onEdit(labor);
-                        e.preventDefault();
                       }}
                     >
                       Edit
-                    </a>
+                    </DisabledLink>
                     <Typography.Text style={{ opacity: '.25' }}> | </Typography.Text>
                     <Popconfirm
                       title='Are you sure to delete this item?'
@@ -115,7 +114,7 @@ const LaborSection = ({ projectId, readOnly }: { projectId: string; readOnly: bo
                       okText='Yes'
                       cancelText='No'
                     >
-                      <a href='#'>Delete</a>
+                      <DisabledLink>Delete</DisabledLink>
                     </Popconfirm>
                   </>
                 )}

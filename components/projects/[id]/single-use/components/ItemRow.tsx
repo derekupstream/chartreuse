@@ -8,6 +8,7 @@ import type { SingleUseLineItem } from 'lib/inventory/types/projects';
 import { PRODUCT_TYPES_MAP } from 'lib/calculator/constants/product-types';
 import { MATERIAL_MAP } from 'lib/calculator/constants/materials';
 import * as S from '../../styles';
+import { DisabledLink } from 'components/common/DisabledLink';
 
 export type SingleUseItemRecord = {
   lineItem: SingleUseLineItem;
@@ -131,15 +132,7 @@ export const ItemRow = ({
         </Typography.Paragraph>
         {!readOnly && (
           <>
-            <a
-              href='#'
-              onClick={e => {
-                onEdit(item);
-                e.preventDefault();
-              }}
-            >
-              Edit
-            </a>
+            <DisabledLink onClick={() => onEdit(item)}>Edit</DisabledLink>
             <Typography.Text style={{ opacity: '.25' }}> | </Typography.Text>
             <Popconfirm
               title='Are you sure you want to delete this item?'
@@ -147,7 +140,7 @@ export const ItemRow = ({
               okText='Yes'
               cancelText='No'
             >
-              <a href='#'>Delete</a>
+              <DisabledLink>Delete</DisabledLink>
             </Popconfirm>
           </>
         )}
