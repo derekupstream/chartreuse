@@ -49,6 +49,8 @@ export async function duplicateProject({
       // template properties
       isTemplate: skipTemplateProperties ? false : project.isTemplate,
       templateDescription: skipTemplateProperties ? null : project.templateDescription,
+      projectionsTitle: project.projectionsTitle,
+      projectionsDescription: project.projectionsDescription,
       templateId: project.isTemplate ? id : null,
       publicSlug: null, // private by default, also publicSlug is unique
       eventFoodwareItems: {

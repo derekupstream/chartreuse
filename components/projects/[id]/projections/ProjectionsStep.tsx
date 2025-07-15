@@ -26,7 +26,6 @@ const StyledCol = styled(Col)`
 
 export type ProjectionsView = 'summary' | 'single_use_details' | 'reusable_details';
 
-const defaultProjectionsTitle = 'Savings projections';
 const defaultProjectionsDescription = `These graphs - showing the financial and environmental impacts of reducing single-use items - can help you make the case for reuse and make data driven decisions on how to move forward. You can also print a PDF for sharing and distribution.`;
 
 export const ProjectionsStep = ({ project, readOnly }: { project: ProjectContext['project']; readOnly: boolean }) => {
@@ -99,11 +98,11 @@ export const ProjectionsStep = ({ project, readOnly }: { project: ProjectContext
             onChange: handleProjectionsTitleChange
           }}
         >
-          {projectionsTitle || defaultProjectionsTitle}
+          {projectionsTitle || project.name}
         </Typography.Title>
         <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
           <PrintButton printRef={printRef} pdfTitle={`${project.name} - Chart-Reuse`} />
-          <ShareButton projectId={project.id} publicSlug={project.publicSlug} />
+          {!project.isTemplate && <ShareButton projectId={project.id} publicSlug={project.publicSlug} />}
         </div>
       </div>
       <Typography.Title

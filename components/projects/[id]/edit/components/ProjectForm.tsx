@@ -120,7 +120,7 @@ export function ProjectForm({ actionLabel, org, project, template, onComplete }:
 
   const [showCustomUtilities, setShowCustomUtilities] = useState(project ? !project?.USState : false);
 
-  const isUpstream = org.isUpstream;
+  const isUpstream = org.isUpstream || process.env.NODE_ENV === 'development';
 
   function toggleCustomUtilities(value: boolean) {
     setShowCustomUtilities(value);

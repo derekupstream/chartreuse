@@ -22,7 +22,8 @@ async function toggleProjectPublic(req: NextApiRequestWithUser, res: NextApiResp
 
   await prisma.project.update<Prisma.ProjectUpdateArgs>({
     where: {
-      id: req.query.id as string
+      id: req.query.id as string,
+      isTemplate: false // dont allow sharing templates
     },
     data: {
       publicSlug

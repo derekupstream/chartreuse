@@ -70,6 +70,11 @@ export const getProjectContext: GetServerSideProps = async context => {
             isUpstream: true,
             name: true
           }
+        },
+        template: {
+          select: {
+            templateDescription: true
+          }
         }
       }
     });
@@ -82,7 +87,11 @@ export const getProjectContext: GetServerSideProps = async context => {
     const projectContext: ProjectContext = {
       // @ts-ignore - fix DashboardUser type to match
       user,
-      project,
+      project: {
+        ...project,
+        projectionsDescription: project.projectionsDescription || project.template?.templateDescription || null,
+        projectionsTitle: project.projectionsTitle || project.name || null
+      },
       org: user.org,
       readOnly: project.isTemplate && !user.org.isUpstream
     };
