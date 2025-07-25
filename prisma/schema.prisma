@@ -42,6 +42,7 @@ model Org {
   isUpstream           Boolean   @default(false)
   currency             String    @default("USD")
   useMetricSystem      Boolean   @default(false)
+  useShrinkageRate     Boolean   @default(false) // If true, org uses shrinkage rate instead of return rate
   users                User[]
   accounts             Account[]
   projects             Project[]

@@ -11,6 +11,8 @@ export type OrgSetupFields = {
   orgName: string;
   numberOfClientAccounts: number;
   currency: string;
+  useShrinkageRate?: boolean;
+  useMetricSystem?: boolean;
 };
 
 type Props = {
@@ -64,9 +66,16 @@ export function OrgSetupForm({ onSubmit, isLoading }: Props) {
         </Form.Item>
 
         <Form.Item label='Measurements Display' name='useMetricSystem'>
-          <Radio.Group>
+          <Radio.Group style={{ display: 'flex', flexDirection: 'row', gap: '10px' }}>
             <Radio value={false}>Standard</Radio>
             <Radio value={true}>Metric</Radio>
+          </Radio.Group>
+        </Form.Item>
+
+        <Form.Item label='Reusable Tracking Mode' name='useShrinkageRate' initialValue={false}>
+          <Radio.Group>
+            <Radio value={false}>Return Rate (%)</Radio>
+            <Radio value={true}>Shrinkage Rate (%)</Radio>
           </Radio.Group>
         </Form.Item>
 

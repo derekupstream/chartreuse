@@ -9,7 +9,15 @@ import { useEffect } from 'react';
 
 import { usePreventReload } from 'hooks/usePreventUnload';
 
-export function UsageStep({ readOnly, project }: { readOnly: boolean; project: ProjectContext['project'] }) {
+export function UsageStep({
+  readOnly,
+  project,
+  org
+}: {
+  readOnly: boolean;
+  project: ProjectContext['project'];
+  org: { useShrinkageRate: boolean };
+}) {
   const { setFooterState } = useFooterState();
   const { data: foodwareItems, isLoading: isLoadingLineItems } = useGetFoodwareLineItems(project.id);
   const { trigger: addOrUpdateFoodwareLineItem, isMutating: isSavingLineItem } = useAddOrUpdateFoodwareLineItem(
@@ -20,7 +28,13 @@ export function UsageStep({ readOnly, project }: { readOnly: boolean; project: P
   usePreventReload(isSavingLineItem || isSavingProjectUsage);
 
   // for now, all items have the same percentage. this is so in the future we might want to let users set a different percentage for each item.
-  const projectReturnPercentage = foodwareItems?.[0]?.reusableReturnPercentage || undefined;
+  const projectReturnPercentage = foodwareItems?.[0]?.reusableReturnPercentage;
+  const displayValue =
+    typeof projectReturnPercentage === 'number'
+      ? org.useShrinkageRate
+        ? 100 - projectReturnPercentage
+        : projectReturnPercentage
+      : undefined;
 
   function updateItem(id: string, reusableItemCount: number) {
     addOrUpdateFoodwareLineItem({
@@ -54,20 +68,21 @@ export function UsageStep({ readOnly, project }: { readOnly: boolean; project: P
           </InfoCard>
         </Col>
         <Col span={12}>
-          <InfoCard title='Return Rate'>
+          <InfoCard title={org.useShrinkageRate ? 'Shrinkage Rate' : 'Return Rate'}>
             {isLoadingLineItems ? (
               <InputNumber key='loading' style={{ minWidth: '20ch' }} size='large' />
             ) : (
               <InputNumber
                 key='loaded'
-                defaultValue={projectReturnPercentage}
-                placeholder='Enter return rate'
+                defaultValue={displayValue}
+                placeholder={org.useShrinkageRate ? 'Enter shrinkage rate' : 'Enter return rate'}
                 suffix='%'
                 style={{ minWidth: '20ch' }}
                 size='large'
                 onChange={value => {
                   if (typeof value === 'number') {
-                    updateProjectUsage({ reusableReturnPercentage: value });
+                    const toSave = org.useShrinkageRate ? 100 - value : value;
+                    updateProjectUsage({ reusableReturnPercentage: toSave });
                   }
                 }}
               />

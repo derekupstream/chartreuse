@@ -9,8 +9,11 @@ import prisma from 'lib/prisma';
 
 export type ProjectContext = {
   user: DashboardUser;
-  project: Project & { org: { isUpstream: boolean; name: string }; account: { name: string } };
-  org: Org;
+  project: Project & {
+    org: { isUpstream: boolean; name: string; useShrinkageRate: boolean };
+    account: { name: string };
+  };
+  org: Org & { useShrinkageRate: boolean };
   readOnly: boolean; // useful for templates
 };
 
@@ -68,7 +71,8 @@ export const getProjectContext: GetServerSideProps = async context => {
         org: {
           select: {
             isUpstream: true,
-            name: true
+            name: true,
+            useShrinkageRate: true
           }
         },
         template: {
@@ -92,7 +96,7 @@ export const getProjectContext: GetServerSideProps = async context => {
         projectionsDescription: project.projectionsDescription || project.template?.templateDescription || null,
         projectionsTitle: project.projectionsTitle || project.name || null
       },
-      org: user.org,
+      org: { ...user.org, useShrinkageRate: user.org.useShrinkageRate },
       readOnly: project.isTemplate && !user.org.isUpstream
     };
 

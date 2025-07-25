@@ -43,12 +43,14 @@ export default function OrgSetup() {
   });
 
   const handleOrgSetupCreation = useCallback(
-    ({ orgName, numberOfClientAccounts, currency }: OrgSetupFields) => {
+    ({ orgName, numberOfClientAccounts, currency, useShrinkageRate, useMetricSystem }: OrgSetupFields) => {
       updateOrganization.mutate(
         {
           orgName,
           numberOfClientAccounts,
-          currency
+          currency,
+          useShrinkageRate,
+          useMetricSystem
         },
         {
           onSuccess: () => {
