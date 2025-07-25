@@ -18,8 +18,6 @@ type Props = {
 const tooltipVariants = [
   // Small business
   {
-    wasteHaulingSingleUseCost: '~$114/month',
-    wasteHaulingReusableCost: '~$22/month',
     additionalExpenses0: '$3,216',
     additionalExpenses1: '(2): $945',
     additionalExpenses2: '(2): $40',
@@ -29,13 +27,10 @@ const tooltipVariants = [
     dishwashingWaterUsage: '49,632.63 L',
     dishwashingUtilityCost: '$484',
     laborHours: '~1 hour/day',
-    laborRate: '$20/hour',
-    reusableReturnRate: '85%'
+    laborRate: '$20/hour'
   },
   // Medium size business
   {
-    wasteHaulingSingleUseCost: '~$391/month',
-    wasteHaulingReusableCost: '~$57/month',
     additionalExpenses0: '$5,006',
     additionalExpenses1: '(5): $2,362',
     additionalExpenses2: '(4): $79',
@@ -45,13 +40,10 @@ const tooltipVariants = [
     dishwashingWaterUsage: '145,531.34 L',
     dishwashingUtilityCost: '$1,419',
     laborHours: '~3 hours/day',
-    laborRate: '$20/hour',
-    reusableReturnRate: '80%'
+    laborRate: '$20/hour'
   },
   // Large business
   {
-    wasteHaulingSingleUseCost: '~$399/month',
-    wasteHaulingReusableCost: '~$84/month',
     additionalExpenses0: '$12,099',
     additionalExpenses1: '(8): $3,780',
     additionalExpenses2: '(5): $99',
@@ -61,8 +53,7 @@ const tooltipVariants = [
     dishwashingWaterUsage: '201,031.39 L',
     dishwashingUtilityCost: '$1,960',
     laborHours: '~5 hours/day',
-    laborRate: '$20/hour',
-    reusableReturnRate: '75%'
+    laborRate: '$20/hour'
   }
 ];
 
@@ -110,8 +101,6 @@ const FinancialSummary: React.FC<Props> = ({ data: financialResults, businessSiz
                 showTooltips && (
                   <InfoIcon maxWidth={450}>
                     <ul style={{ paddingLeft: '1em', margin: 0 }}>
-                      <li>Single-use foodware waste hauling cost: {tooltipVars.wasteHaulingSingleUseCost}</li>
-                      <li>Reusable foodware waste hauling cost: {tooltipVars.wasteHaulingReusableCost}</li>
                       <li>Assumes $22/cubic yard.</li>
                     </ul>
                   </InfoIcon>
@@ -138,17 +127,7 @@ const FinancialSummary: React.FC<Props> = ({ data: financialResults, businessSiz
 
             <FooterData
               title='Reusables purchasing'
-              icon={
-                showTooltips && (
-                  <InfoIcon maxWidth={400}>
-                    Initial reusable item purchasing:
-                    <br />
-                    3:1 ratio of reusable items to daily disposable items
-                    <br />
-                    Accounts for a 98% return rate
-                  </InfoIcon>
-                )
-              }
+              icon={showTooltips && <InfoIcon maxWidth={400}>Accounts for a 98% return rate</InfoIcon>}
               value={formatToDollar(financialResults.oneTimeCosts.reusableProductCosts, currencyAbbreviation)}
             />
             <FooterData
@@ -186,15 +165,7 @@ const FinancialSummary: React.FC<Props> = ({ data: financialResults, businessSiz
 
             <FooterData
               title='Reusables restocking'
-              icon={
-                showTooltips && (
-                  <InfoIcon>
-                    Return rate of reusable foodware items: {tooltipVars.reusableReturnRate}
-                    <br />
-                    Accounts for a 98% return rate
-                  </InfoIcon>
-                )
-              }
+              icon={showTooltips && <InfoIcon>Accounts for a 98% return rate</InfoIcon>}
               value={formatToDollar(financialResults.annualCostChanges.reusableProductCosts, currencyAbbreviation)}
             />
             <FooterData
