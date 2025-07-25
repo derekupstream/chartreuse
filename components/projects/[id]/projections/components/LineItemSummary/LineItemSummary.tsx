@@ -26,7 +26,8 @@ interface TableData {
 const LABELS = {
   single_use: {
     title: 'Single-use',
-    costsDescription: 'Your estimated annual savings',
+    costsDescription: 'Estimated annual savings',
+    unitsDescription: 'Reduction in single-use purchasing',
     greenHouseGasLabel: 'Greenhouse gas emissions',
     waterUsageLabel: 'Single-use foodware water usage',
     baselineLabel: 'Baseline',
@@ -35,6 +36,7 @@ const LABELS = {
   reusable: {
     title: 'Reusable',
     costsDescription: 'One-time versus Annually recurring costs',
+    unitsDescription: 'Repurchasing of reusable items',
     greenHouseGasLabel: 'Greenhouse gas emissions',
     waterUsageLabel: 'Water usage (including dishwashing)',
     baselineLabel: 'One-time',
@@ -197,14 +199,21 @@ export function LineItemSummary({
       )}
       {projectCategory !== 'event' && (
         <Card style={{ marginRight: 0 }}>
-          <CardTitle>{labels.costsDescription}</CardTitle>
+          <div style={{ display: 'flex', gap: '20px' }}>
+            <Section>
+              <CardTitle>{labels.costsDescription}</CardTitle>
+            </Section>
+
+            <Section>
+              <CardTitle>{labels.unitsDescription}</CardTitle>
+            </Section>
+          </div>
           <Body>
             <Section>
               <KPIContent
                 changePercent={annualCost.changePercent * -1}
                 changeStr={`${changeValue(annualCost.change * -1, { preUnit: currencySymbol }).toLocaleString()}`}
               />
-              {/* <ChartTitle>Annual Spending changes</ChartTitle> */}
               <BarChart
                 data={costsData}
                 formatter={(label, data) => `${data.label}: ${currencySymbol}${data.value.toLocaleString()}`}
@@ -217,7 +226,6 @@ export function LineItemSummary({
                 changePercent={annualUnits.changePercent * -1}
                 changeStr={changeValue(annualUnits.change * -1) + ' units'}
               />
-              {/* <ChartTitle>Annual {title} total changes</ChartTitle> */}
               <BarChart
                 data={unitCountData}
                 formatter={(label, data) => `${data.label}: ${data.value.toLocaleString()} pieces`}
