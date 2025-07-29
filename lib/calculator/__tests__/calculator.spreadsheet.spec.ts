@@ -162,10 +162,10 @@ describe('Predictions Calculator: Spreadsheet results from Upstream', () => {
         forecast: 24.76
       },
       waterUsage: {
-        baseline: 286726.74,
-        change: -157613.02,
-        forecast: 129113.72,
-        changePercent: -55
+        baseline: 214132.88,
+        change: -127274.97,
+        forecast: 86857.91,
+        changePercent: -59
       },
       weight: {
         baseline: 33731,

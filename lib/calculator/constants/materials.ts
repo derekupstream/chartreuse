@@ -34,25 +34,25 @@ export const MATERIALS: MaterialOption[] = [
     id: 0,
     name: 'Paper',
     mtco2ePerLb: 0.004685,
-    waterUsageGalPerLb: 0.5978
+    waterUsageGalPerLb: 3.694252415
   },
   {
     id: CORRUGATED_CARDBOARD_ID,
     name: CORRUGATED_CARDBOARD_NAME,
     mtco2ePerLb: CORRUGATED_CARDBOARD_GAS,
-    waterUsageGalPerLb: 3.03798
+    waterUsageGalPerLb: 3.69425241538224
   },
   {
     id: 2,
     name: 'Molded Fiber (Paper)',
     mtco2ePerLb: 0.004545,
-    waterUsageGalPerLb: 1.6527
+    waterUsageGalPerLb: 3.694252415
   },
   {
     id: 3,
     name: 'Molded Fiber (Plant)',
     mtco2ePerLb: 0.004685,
-    waterUsageGalPerLb: 1.6527
+    waterUsageGalPerLb: 3.694252415
   },
   {
     id: 4,
@@ -64,43 +64,43 @@ export const MATERIALS: MaterialOption[] = [
     id: 5,
     name: 'Plastic (#1 PET)',
     mtco2ePerLb: 0.0011,
-    waterUsageGalPerLb: 8.1325
+    waterUsageGalPerLb: 5.217247816
   },
   {
     id: 6,
     name: 'Plastic (#5 PP)',
     mtco2ePerLb: 0.000775,
-    waterUsageGalPerLb: 3.8735
+    waterUsageGalPerLb: 3.395884316
   },
   {
     id: 7,
     name: 'Plastic (#6 PS)',
     mtco2ePerLb: 0.001265,
-    waterUsageGalPerLb: 8.724
+    waterUsageGalPerLb: 7.206368481
   },
   {
     id: 8,
     name: 'Plastic (LDPE)',
     mtco2ePerLb: 0.000915,
-    waterUsageGalPerLb: 14.3271
+    waterUsageGalPerLb: 6.463443895
   },
   {
     id: 9,
     name: 'Compostable Plastic (PLA)',
     mtco2ePerLb: 0.00041,
-    waterUsageGalPerLb: 20.0946
+    waterUsageGalPerLb: 16.94347361
   },
   {
     id: 10,
     name: 'EPS Foam',
     mtco2ePerLb: 0.001265,
-    waterUsageGalPerLb: 15.4898
+    waterUsageGalPerLb: 9.274574666
   },
   {
     id: 11,
     name: 'Aluminum',
     mtco2ePerLb: 0.003755,
-    waterUsageGalPerLb: 9.4724
+    waterUsageGalPerLb: 8.76181398219435
   }
 ];
 
@@ -110,18 +110,18 @@ export const NO_MATERIAL_ID = -1;
 const LB_TO_MTCO2 = 0.000453592;
 
 export const REUSABLE_MATERIALS = [
-  { id: 100, name: 'Glass', mtco2ePerLb: 0.00028, waterUsageGalPerLb: 2.317 },
-  { id: 101, name: 'Ceramic', mtco2ePerLb: 0.000807234489390462, waterUsageGalPerLb: 2.601 },
-  { id: 102, name: 'Stainless Steel', mtco2ePerLb: 0.00119, waterUsageGalPerLb: 13.86775 },
-  { id: 103, name: 'Aluminum', mtco2ePerLb: 0.003085, waterUsageGalPerLb: 10.197 },
-  { id: 104, name: 'Polypropylene', mtco2ePerLb: 0.000775, waterUsageGalPerLb: 10.79 },
-  { id: 105, name: 'HDPE', mtco2ePerLb: 0.000725, waterUsageGalPerLb: 2.0768 },
-  { id: 106, name: 'SAN Plastic', mtco2ePerLb: 0.00098, waterUsageGalPerLb: 9.9297 },
-  { id: 107, name: 'Melamine', mtco2ePerLb: 0.000965, waterUsageGalPerLb: 5.9529 },
+  { id: 100, name: 'Glass', mtco2ePerLb: 0.00028, waterUsageGalPerLb: 2.589760363 },
+  { id: 101, name: 'Ceramic', mtco2ePerLb: 0.000807234489390462, waterUsageGalPerLb: 5.826840287 },
+  { id: 102, name: 'Stainless Steel', mtco2ePerLb: 0.00119, waterUsageGalPerLb: 6.73664842 },
+  { id: 103, name: 'Aluminum', mtco2ePerLb: 0.003085, waterUsageGalPerLb: 8.761813982 },
+  { id: 104, name: 'Polypropylene', mtco2ePerLb: 0.000775, waterUsageGalPerLb: 3.966258675 },
+  { id: 105, name: 'HDPE', mtco2ePerLb: 0.000725, waterUsageGalPerLb: 1.896849171 },
+  { id: 106, name: 'SAN Plastic', mtco2ePerLb: 0.00098, waterUsageGalPerLb: 3.198849171 },
+  { id: 107, name: 'Melamine', mtco2ePerLb: 0.000965, waterUsageGalPerLb: 3.198849171 },
   { id: 108, name: 'Recycled Stainless Steel', mtco2ePerLb: 1.8065 * LB_TO_MTCO2, waterUsageGalPerLb: 14.94273 },
   { id: 109, name: 'Recycled Aluminum', mtco2ePerLb: 5.935 * LB_TO_MTCO2, waterUsageGalPerLb: 12.6471 },
   { id: 110, name: 'Plastic (#5 PP)', mtco2ePerLb: 0.000775, waterUsageGalPerLb: 3.8735 },
-  { id: 111, name: 'Polycarbonate', mtco2ePerLb: 0.00075, waterUsageGalPerLb: 3.03798 }
+  { id: 111, name: 'Polycarbonate', mtco2ePerLb: 0.00075, waterUsageGalPerLb: 2.93155392312507 }
 ] as const;
 
 // only Upstream can use Recycled Stainless Steel and Recycled Aluminum
