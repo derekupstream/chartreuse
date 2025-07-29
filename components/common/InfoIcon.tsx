@@ -4,7 +4,7 @@ import { Tooltip, Popover } from 'antd';
 export function InfoIcon(props: { title?: string; children?: React.ReactNode; maxWidth?: number }) {
   return (
     <Popover
-      overlayInnerStyle={{ maxWidth: props.maxWidth || 350 }}
+      styles={{ body: { maxWidth: props.maxWidth || 350 } }}
       content={props.children}
       title={props.title}
       trigger={['hover', 'click']}

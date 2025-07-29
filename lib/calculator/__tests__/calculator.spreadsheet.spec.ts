@@ -122,7 +122,7 @@ describe('Predictions Calculator: Spreadsheet results from Upstream', () => {
     expect(results.summary.oneTimeCost).toBe(10046);
     expect(results.summary.annualCost).toBe(-30198);
     expect(results.summary.paybackPeriodsMonths).toBe(4);
-    expect(results.summary.annualROIPercent).toBe(200.6);
+    expect(results.summary.annualROIPercent).toBe(300.6);
   });
 
   it('calculates Single Use Product Results', () => {

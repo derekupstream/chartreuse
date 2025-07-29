@@ -78,7 +78,9 @@ const FinancialSummary: React.FC<Props> = ({ data: financialResults, businessSiz
               {formatToDollar(financialResults.summary.annualCost * -1, currencyAbbreviation)}
             </Value>
 
-            <Title>Annual program ROI</Title>
+            <Title>
+              Annual program ROI {showTooltips && <InfoIcon>ROI = Annual savings/one-time expenses</InfoIcon>}
+            </Title>
             <Value>{financialResults.summary.annualROIPercent}%</Value>
 
             <hr />

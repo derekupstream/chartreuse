@@ -196,20 +196,14 @@ function calculateSummary(project: ProjectInventory): FinancialSummary {
   const annualCost = calculateAnnualCostChanges(project).change;
   const oneTimeCost = calculateOneTimeCosts(project).total;
 
-  // =IF(E31<0,ROUND((E38/-E46)*12,1),"--")
   let paybackPeriodsMonths = 0; // Ask Sam: what should UI look like if payback period is -1?
   if (annualCost < 0) {
     paybackPeriodsMonths = Math.ceil(-1 * (oneTimeCost / annualCost) * 12);
   }
 
-  // =IF(E38<>0,IF(E38+E46>0,"0%",(-E46-E38)/E38),"0%")
   let annualROIPercent: number;
   if (oneTimeCost !== 0) {
-    if (oneTimeCost + annualCost > 0) {
-      annualROIPercent = 0;
-    } else {
-      annualROIPercent = round((100 * (-1 * annualCost - oneTimeCost)) / oneTimeCost, 2);
-    }
+    annualROIPercent = round((100 * (-1 * annualCost)) / oneTimeCost, 2);
   } else {
     annualROIPercent = 0;
   }
