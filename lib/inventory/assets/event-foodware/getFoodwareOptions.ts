@@ -53,5 +53,5 @@ function mapCsvRow(
     console.error(csvProduct);
     throw new Error('Could not find reusable product for foodware option: ' + csvProduct.eugenename);
   }
-  return { singleuse, title: csvProduct.crrproductdescription, reusable };
+  return { singleuse, title: csvProduct.eugenename, reusable };
 }
