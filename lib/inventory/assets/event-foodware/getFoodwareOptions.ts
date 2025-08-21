@@ -34,7 +34,12 @@ const promise = new Promise<FoodwareOption[]>(async (resolve, reject) => {
 });
 
 export async function getFoodwareOptions(): Promise<FoodwareOption[]> {
-  return await promise;
+  try {
+    return await promise;
+  } catch (error) {
+    console.error('Could not load foodware options:', error instanceof Error ? error.stack : error);
+    return [];
+  }
 }
 
 // dont use the calculated value from spreadsheet since it is rounded to 4 decimals

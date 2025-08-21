@@ -66,6 +66,7 @@ function mapCSVRow(csvProduct: CSVRow): ReusableProduct {
   const csvProductType = csvProduct['Product']?.trim() || '';
   const type = PRODUCT_TYPES.find(category => category.name === csvProductType);
   if (!type) {
+    console.log(PRODUCT_TYPES.map(type => type.name));
     throw new Error('Could not determine product type for CSV row: ' + csvProductType);
   }
   const csvPrimaryMaterial = csvProduct['Primary Material']?.trim() || '';
