@@ -24,6 +24,7 @@ import type { ProjectInput } from 'lib/chartreuseClient';
 import * as S from '../../styles';
 import { useMetricSystem } from 'components/_app/MetricSystemProvider';
 import { useCurrency } from 'components/_app/CurrencyProvider';
+import type { ProjectInventory } from 'lib/inventory/types/projects';
 
 // component and config for currency select is from the example at https://codesandbox.io/s/currency-wrapper-antd-input-3ynzo?file=/src/index.js
 // referenced at https://ant.design/components/input-number
@@ -303,7 +304,7 @@ export function ProjectForm({ actionLabel, org, project, template, onComplete }:
                 <InputNumber
                   min={0}
                   precision={2}
-                  defaultValue={project?.utilityRates?.electric}
+                  defaultValue={(project?.utilityRates as ProjectInventory['utilityRates'])?.electric}
                   step={0.1}
                   formatter={currencyFormatter(currencyAbbreviation)}
                   parser={currencyParser}
@@ -320,7 +321,7 @@ export function ProjectForm({ actionLabel, org, project, template, onComplete }:
                   min={0}
                   precision={2}
                   step={0.1}
-                  defaultValue={project?.utilityRates?.gas}
+                  defaultValue={(project?.utilityRates as ProjectInventory['utilityRates'])?.gas}
                   formatter={currencyFormatter(currencyAbbreviation)}
                   parser={currencyParser}
                   style={{ width: '100px' }}
@@ -335,7 +336,7 @@ export function ProjectForm({ actionLabel, org, project, template, onComplete }:
                   min={0}
                   precision={2}
                   step={0.1}
-                  defaultValue={project?.utilityRates?.water}
+                  defaultValue={(project?.utilityRates as ProjectInventory['utilityRates'])?.water}
                   formatter={currencyFormatter(currencyAbbreviation)}
                   parser={currencyParser}
                   style={{ width: '100px' }}
