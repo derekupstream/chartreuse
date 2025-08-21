@@ -40,35 +40,21 @@ const currencyFormatter =
 
 const currencyParser = (val = ''): number => {
   try {
-    // for when the input gets clears
+    // Handle empty input
     if (typeof val === 'string' && !val.length) {
-      val = '0.0';
+      return 0;
     }
 
-    // detecting and parsing between comma and dot
-    const group = new Intl.NumberFormat(locale).format(1111).replace(/1/g, '');
-    const decimal = new Intl.NumberFormat(locale).format(1.1).replace(/1/g, '');
-    let reversedVal = val.replace(new RegExp('\\' + group, 'g'), '');
-    reversedVal = reversedVal.replace(new RegExp('\\' + decimal, 'g'), '.');
-    //  => 1232.21 €
+    // Remove currency symbols and other non-numeric characters except decimal point
+    const cleanVal = val.toString().replace(/[^0-9.]/g, '');
 
-    // removing everything except the digits and dot
-    reversedVal = reversedVal.replace(/[^0-9.]/g, '');
-    //  => 1232.21
+    // Parse as float
+    const result = parseFloat(cleanVal);
 
-    // appending digits properly
-    const digitsAfterDecimalCount = (reversedVal.split('.')[1] || []).length;
-    const needsDigitsAppended = digitsAfterDecimalCount > 2;
-
-    let result = parseFloat(reversedVal);
-    if (needsDigitsAppended) {
-      // Note: Javascript returns a number when multiplying a string by a number, but TS does not understand this
-      result = (reversedVal as unknown as number) * Math.pow(10, digitsAfterDecimalCount - 2);
-    }
-
+    // Return 0 if NaN, otherwise return the parsed number
     return Number.isNaN(result) ? 0 : result;
   } catch (error) {
-    console.error(error);
+    console.error('Error parsing currency value:', error);
     return 0;
   }
 };
@@ -111,10 +97,11 @@ export function ProjectForm({ actionLabel, org, project, template, onComplete }:
   const [form] = Form.useForm();
   const { abbreviation: currencyAbbreviation } = useCurrency();
   const autofocusRef = useRef<InputRef>(null);
-  const [disabledSave, setDisabledSave] = useState(true);
+  const [disabledSave, setDisabledSave] = useState(false);
   const displayAsMetric = useMetricSystem();
-  function handleFormChange() {
+  function handleFormChange(changedFields: any[], allFields: any[]) {
     const hasErrors = form.getFieldsError().some(({ errors }) => errors.length);
+    // Enable save button when there are no errors
     setDisabledSave(hasErrors);
   }
 
@@ -169,6 +156,12 @@ export function ProjectForm({ actionLabel, org, project, template, onComplete }:
       autofocusRef.current.focus();
     }
   }, [autofocusRef]);
+
+  // Initialize disabled state based on form validity
+  useEffect(() => {
+    const hasErrors = form.getFieldsError().some(({ errors }) => errors.length);
+    setDisabledSave(hasErrors);
+  }, [form]);
 
   if (org.accounts.length === 0) {
     return <Alert message='You need to create an account before you can create a project' type='error' showIcon />;
@@ -310,10 +303,15 @@ export function ProjectForm({ actionLabel, org, project, template, onComplete }:
                 <InputNumber
                   min={0}
                   precision={2}
+                  defaultValue={project?.utilityRates?.electric}
                   step={0.1}
                   formatter={currencyFormatter(currencyAbbreviation)}
                   parser={currencyParser}
                   style={{ width: '100px' }}
+                  onChange={value => {
+                    // for some reason the form does not put up changes to this input, so adding an onchange handler for now
+                    form.setFieldValue(['utilityRates', 'electric'], value);
+                  }}
                 />
                 <Typography.Text style={{ fontSize: '0.8em' }}> /kWh</Typography.Text>
               </Form.Item>
@@ -322,9 +320,13 @@ export function ProjectForm({ actionLabel, org, project, template, onComplete }:
                   min={0}
                   precision={2}
                   step={0.1}
+                  defaultValue={project?.utilityRates?.gas}
                   formatter={currencyFormatter(currencyAbbreviation)}
                   parser={currencyParser}
                   style={{ width: '100px' }}
+                  onChange={value => {
+                    form.setFieldValue(['utilityRates', 'gas'], value);
+                  }}
                 />
                 <Typography.Text style={{ fontSize: '0.8em' }}> /therm</Typography.Text>
               </Form.Item>
@@ -333,9 +335,13 @@ export function ProjectForm({ actionLabel, org, project, template, onComplete }:
                   min={0}
                   precision={2}
                   step={0.1}
+                  defaultValue={project?.utilityRates?.water}
                   formatter={currencyFormatter(currencyAbbreviation)}
                   parser={currencyParser}
                   style={{ width: '100px' }}
+                  onChange={value => {
+                    form.setFieldValue(['utilityRates', 'water'], value);
+                  }}
                 />
                 <Typography.Text style={{ fontSize: '0.8em' }}>
                   {' '}
