@@ -19,17 +19,22 @@ import type { SingleUseItemRecord } from './components/ItemRow';
 import { ItemRow } from './components/ItemRow';
 import { SummaryRow } from './components/SummaryRow';
 import SingleUseForm from './components/SingleUseForm';
+import { ImportButton } from './components/ImportButton';
 
 type ServerSideProps = {
   project: Project;
   user: DashboardUser;
+  isUpstream: boolean;
   readOnly: boolean;
 };
 
-export function SingleUseStep({ project, readOnly }: ServerSideProps) {
+export function SingleUseStep({ project, isUpstream, readOnly }: ServerSideProps) {
   const [formStep, setFormStep] = useState<number>(1);
   const [isDrawerVisible, setIsDrawerVisible] = useState<boolean>(false);
   const [lineItem, setLineItem] = useState<SingleUseLineItem | null>(null);
+
+  isUpstream = isUpstream || process.env.NODE_ENV === 'development';
+
   const { data: singleUseProducts, isLoading: isLoadingSingleUseProducts } = useGetSingleUseProducts();
   const {
     data: lineItems,
@@ -96,17 +101,22 @@ export function SingleUseStep({ project, readOnly }: ServerSideProps) {
 
   return (
     <S.Wrapper>
-      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Typography.Title level={1}>Single-use purchasing</Typography.Title>
-        {hasItems && !readOnly && (
-          <Button
-            type='primary'
-            onClick={addItem}
-            icon={<PlusOutlined />}
-            style={{ paddingRight: '4em', paddingLeft: '4em' }}
-          >
-            Add a single-use item
-          </Button>
+        {!readOnly && (
+          <div style={{ display: 'flex', gap: '1em' }}>
+            {isUpstream && <ImportButton projectId={project.id} onImport={refreshLineItems} />}
+            {hasItems && (
+              <Button
+                type='primary'
+                onClick={addItem}
+                icon={<PlusOutlined />}
+                style={{ paddingRight: '4em', paddingLeft: '4em' }}
+              >
+                Add a single-use item
+              </Button>
+            )}
+          </div>
         )}
       </div>
       <Typography.Title level={5}>
@@ -120,7 +130,7 @@ export function SingleUseStep({ project, readOnly }: ServerSideProps) {
           {!hasItems && !readOnly && (
             <EmptyState
               label='Add a single-use item'
-              message={`You have no single-use items yet. Click '+ Add a single-use item' above to get started.`}
+              message={`You have no single-use items yet. Use 'Import from Excel' to bulk import items or click '+ Add a single-use item' to add items individually.`}
               onClick={addItem}
             />
           )}

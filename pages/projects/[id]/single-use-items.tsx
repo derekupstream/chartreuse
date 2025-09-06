@@ -10,10 +10,10 @@ export const getServerSideProps: GetServerSideProps = async context => {
   return result;
 };
 
-function SingleUsePage({ project, user, readOnly }: ProjectContext) {
+function SingleUsePage({ project, org, user, readOnly }: ProjectContext) {
   return (
     <ProjectStepsLayout currentStepIndex={1} project={project} title={`${project.name} - Single Use Items`} user={user}>
-      <SingleUseStep project={project!} user={user} readOnly={readOnly} />
+      <SingleUseStep project={project!} isUpstream={org.isUpstream} user={user} readOnly={readOnly} />
     </ProjectStepsLayout>
   );
 }

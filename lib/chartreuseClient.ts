@@ -1,6 +1,7 @@
 import type { Project, ProjectCategory } from '@prisma/client';
 
 import type { InventoryInput } from 'lib/inventory/saveInventoryRecords';
+import type { ImportedSingleUseLineItem } from 'lib/inventory/importSingleUseLineItemsFromExcel';
 import type { ProjectInventory } from 'lib/inventory/types/projects';
 import type { ReusableLineItem, SingleUseLineItem } from 'lib/inventory/types/projects';
 import type { MailChimpEvent } from 'lib/mailchimp/sendEvent';
@@ -104,6 +105,10 @@ class Client {
 
   addSingleUseLineItem(projectId: string, lineItem: SingleUseLineItem) {
     return http.POST(`/api/projects/${projectId}/single-use-items`, lineItem);
+  }
+
+  bulkImportSingleUseLineItems(projectId: string, items: ImportedSingleUseLineItem[]) {
+    return http.POST(`/api/projects/${projectId}/single-use-items/bulk-import`, { items });
   }
 
   deleteSingleUseItem(projectId: string, lineItemId: string) {
