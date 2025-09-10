@@ -29,10 +29,7 @@ async function bulkImportItems(req: NextApiRequestWithUser, res: NextApiResponse
 
     // Validate that all products exist in the catalog
     const availableProducts = await getSingleUseProducts({ orgId: project.orgId });
-    console.log(
-      'availableProducts',
-      availableProducts.map(p => p.id)
-    );
+
     const availableProductIds = new Set(availableProducts.map(p => p.id));
 
     const productIds = items.map(item => item.productId);
@@ -56,7 +53,7 @@ async function bulkImportItems(req: NextApiRequestWithUser, res: NextApiResponse
             frequency: item.frequency,
             // Set new values to be the same as current values initially
             newCaseCost: item.caseCost,
-            newCasesPurchased: item.casesPurchased,
+            newCasesPurchased: 0,
             projectId: projectId as string
           }
         })
