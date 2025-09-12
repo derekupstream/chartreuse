@@ -1,3 +1,4 @@
+import { ProjectCategory } from '@prisma/client';
 import { getProjectInventory } from 'lib/inventory/getProjectInventory';
 
 import { getAnnualSummary } from './calculations/getAnnualSummary';
@@ -39,6 +40,7 @@ export interface ProjectData {
   id: string;
   orgId: string;
   name: string;
+  category: ProjectCategory;
   account: {
     name: string;
   };
