@@ -353,66 +353,6 @@ export function ProjectForm({ actionLabel, org, project, template, onComplete }:
           )}
         </Form.Item>
 
-        <Typography.Title level={4}>Traffic patterns</Typography.Title>
-
-        <Form.Item {...verticalLayout} label='On average, how many customers do you serve daily?' name='customers'>
-          <Slider
-            marks={{
-              50: 50,
-              250: 250,
-              500: 500,
-              1000: '1000+'
-            }}
-            min={50}
-            max={1000}
-            step={50}
-            style={{ marginTop: 0 }}
-          />
-        </Form.Item>
-
-        <Form.Item
-          {...verticalLayout}
-          label='What percent of your daily volume is dine-in vs. take-out?'
-          name='dineInVsTakeOut'
-        >
-          <Slider
-            marks={{
-              0: 'Dine-in',
-              100: { style: { width: '100px' }, label: 'Take-out' }
-            }}
-            style={{ marginTop: 0 }}
-          />
-        </Form.Item>
-
-        <Form.Item {...verticalLayout} label='Where is the food primarily prepared?' name='whereIsFoodPrepared'>
-          <S.RadioGroup
-            style={{ width: '100%' }}
-            options={WhereFoodIsPrepared.map(wfp => ({
-              label: wfp,
-              value: wfp
-            }))}
-            optionType='button'
-          />
-        </Form.Item>
-
-        <Typography.Title level={4}>Dishwashing</Typography.Title>
-
-        <Form.Item
-          {...verticalLayout}
-          label='What type of dishwashing capacity best describes your operation?'
-          name='dishwashingType'
-        >
-          <Select placeholder='Select dishwashing type'>
-            {dishwashingTypes.map(type => {
-              return (
-                <Select.Option key={type} value={type}>
-                  {type}
-                </Select.Option>
-              );
-            })}
-          </Select>
-        </Form.Item>
-
         {isUpstream && !project?.templateId && (
           <Card title='Template settings' style={{ marginBottom: '1em' }}>
             <Form.Item name='isTemplate' valuePropName='checked'>
