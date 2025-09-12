@@ -16,6 +16,7 @@ import { Wrapper } from '../styles';
 import { LineItemSummary } from './components/LineItemSummary/LineItemSummary';
 import { EventProjectSummary } from './components/EventProjectSummary';
 import { ProjectSummary } from './components/ProjectSummary/ProjectSummary';
+import { isEugeneOrg } from 'lib/featureFlags';
 
 const StyledCol = styled(Col)`
   @media print {
@@ -68,6 +69,14 @@ export const ProjectionsStep = ({ project, readOnly }: { project: ProjectContext
       message.error('Failed to update projections title');
     }
   }
+
+  const sidebarMenuItems = isEugeneOrg({ id: project.orgId })
+    ? [{ key: 'summary', label: 'Summary' }]
+    : [
+        { key: 'summary', label: 'Summary' },
+        { key: 'single_use_details', label: 'Single-use details' },
+        { key: 'reusable_details', label: 'Reusable details' }
+      ];
 
   if (isLoading) {
     return (
@@ -124,11 +133,7 @@ export const ProjectionsStep = ({ project, readOnly }: { project: ProjectContext
             selectedKeys={[view]}
             onSelect={onSelect}
             mode={'vertical'}
-            items={[
-              { key: 'summary', label: 'Summary' },
-              { key: 'single_use_details', label: 'Single-use details' },
-              { key: 'reusable_details', label: 'Reusable details' }
-            ]}
+            items={sidebarMenuItems}
           />
         </Col>
         <StyledCol span={19}>

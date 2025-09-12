@@ -21,3 +21,10 @@ export async function isEventProjectsEnabledForOrg({ orgId }: { orgId: string })
   }
   return isEventProjectsEnabled({ id: org.id, isUpstream: org.isUpstream });
 }
+
+export function isEugeneOrg({ id }: { id: string }) {
+  if (id === eugeneOrgId) {
+    return true;
+  }
+  return false; // process.env.NODE_ENV === 'development';
+}
