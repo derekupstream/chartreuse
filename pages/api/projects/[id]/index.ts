@@ -52,9 +52,10 @@ async function updateProject(req: NextApiRequestWithUser, res: NextApiResponse<R
     if (USState) {
       throw new Error('Cannot set both US state and utility rates');
     }
-    if (!utilityRates.water || !utilityRates.electric || !utilityRates.gas) {
-      throw new Error('Must set water, electric, and gas rates');
-    }
+    // add default values if not set
+    utilityRates.water = utilityRates.water || 0;
+    utilityRates.electric = utilityRates.electric || 0;
+    utilityRates.gas = utilityRates.gas || 0;
   } else {
     throw new Error('Please enter utility rates');
   }

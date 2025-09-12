@@ -33,7 +33,11 @@ async function createProject(req: NextApiRequestWithUser, res: NextApiResponse<{
     if (USState) {
       throw new Error('Cannot set both US state and utility rates');
     }
-    if (!utilityRates.water || !utilityRates.electric || !utilityRates.gas) {
+    if (
+      typeof utilityRates.water !== 'number' ||
+      typeof utilityRates.electric !== 'number' ||
+      typeof utilityRates.gas !== 'number'
+    ) {
       throw new Error('Must set water, electric, and gas rates');
     }
   } else {
