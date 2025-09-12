@@ -156,7 +156,7 @@ export const EnvironmentalSummary: React.FC<Props> = ({ data, hideWaterUsage, is
         <StyledCol xs={24} lg={12}>
           <KPICard
             style={{ height: '100%' }}
-            title={`Your ${isEventProject ? 'total' : 'annual'} waste changes`}
+            title={isEventProject ? 'Waste to landfill prevented' : `Annual waste changes`}
             changePercent={
               isEventProject
                 ? data.eventProjectWaste.summary.changePercent * -1
@@ -179,7 +179,7 @@ export const EnvironmentalSummary: React.FC<Props> = ({ data, hideWaterUsage, is
           <StyledCol xs={24} lg={12}>
             <KPICard
               style={{ height: '100%' }}
-              title={`Your ${isEventProject ? 'total' : 'annual'} water usage changes`}
+              title={isEventProject ? `Water Usage` : `Annual water usage changes`}
               changePercent={data.annualWaterUsageChanges.total.changePercent * -1}
               changeStr={`${changeValueInGallons(data.annualWaterUsageChanges.total.change, {
                 displayAsMetric
@@ -194,7 +194,7 @@ export const EnvironmentalSummary: React.FC<Props> = ({ data, hideWaterUsage, is
         <StyledCol xs={24} lg={hideWaterUsage ? 12 : 24}>
           <KPICard
             style={{ height: '100%' }}
-            title={`Your ${isEventProject ? 'total' : 'annual'} GHG changes`}
+            title={isEventProject ? 'GHG Emissions' : `Annual GHG changes`}
             changePercent={data.annualGasEmissionChanges.total.changePercent * -1}
             changeStr={`${changeValue(data.annualGasEmissionChanges.total.change)} MTCO2e`}
           >
