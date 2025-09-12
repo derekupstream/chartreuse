@@ -4,12 +4,10 @@ import neatCsv from 'neat-csv';
 
 import { ALL_MATERIALS, REUSABLE_MATERIALS } from 'lib/calculator/constants/materials';
 import { PRODUCT_CATEGORIES } from 'lib/calculator/constants/product-categories';
-import { PRODUCT_TYPES } from 'lib/calculator/constants/reusable-product-types';
+import { PRODUCT_TYPES, BOTTLE_STATION_PRODUCT_ID } from 'lib/calculator/constants/reusable-product-types';
 import { csvToNumber } from 'lib/csv';
 
 import type { ReusableProduct } from '../../types/products';
-
-export const BOTTLE_STATION_PRODUCT_ID = '171';
 
 // These items were provided by Upstream. They could also live in a database one day
 const csvFile = process.cwd() + '/lib/inventory/assets/reusables/reusable-products-data.csv';

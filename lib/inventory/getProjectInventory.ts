@@ -15,12 +15,10 @@ import type { LaborCostCategory } from '../calculator/constants/labor-categories
 import type { OtherExpenseCategory } from '../calculator/constants/other-expenses';
 import { PRODUCT_CATEGORIES } from '../calculator/constants/product-categories';
 import type { USState } from '../calculator/constants/utilities';
+import { BOTTLE_STATION_PRODUCT_ID } from '../calculator/constants/reusable-product-types';
 import { getProjectUtilities } from '../calculator/constants/utilities';
 
-import {
-  BOTTLE_STATION_PRODUCT_ID,
-  getReusableProductsWithBottleStation
-} from './assets/reusables/getReusableProducts';
+import { getReusableProductsWithBottleStation } from './assets/reusables/getReusableProducts';
 import { getSingleUseProducts } from './getSingleUseProducts';
 import type { FoodwareSelection, ReusableProduct, SingleUseProduct } from './types/products';
 import type {
@@ -161,14 +159,17 @@ function mapReusableItem(reusableItem: ReusableLineItem, products: ReusableProdu
 
 function mapFoodwareReusableItem(item: FoodwareSelection): ProjectInventory['reusableItems'][number] {
   const product = item.reusableProduct;
+  const isBottleStation = product.id === BOTTLE_STATION_PRODUCT_ID;
   // we want to only consider the impact of lost reusable items
   const lossRate = 1 - item.reusableReturnPercentage / 100;
+  // assume bottle stations do not need to be 'replaced'
+  const unitsPerCase = isBottleStation ? 0 : item.reusableItemCount * lossRate;
   return {
     id: item.id,
     categoryName: 'N/A',
     newCaseCost: 0,
     newCasesPurchased: 1,
-    unitsPerCase: item.reusableItemCount * lossRate,
+    unitsPerCase,
     productId: product.id,
     projectId: item.projectId,
     product,

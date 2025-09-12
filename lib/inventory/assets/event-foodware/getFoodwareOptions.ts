@@ -5,7 +5,6 @@ import neatCsv from 'neat-csv';
 import { ReusableProduct, SingleUseProduct } from 'lib/inventory/types/products';
 import { getReusableProductsWithBottleStation } from '../reusables/getReusableProducts';
 import { getSingleUseProducts } from '../upstream/getSingleUseProducts';
-
 const csvFile = process.cwd() + '/lib/inventory/assets/event-foodware/foodware-options.csv';
 type CSVColumn = 'eugenename' | 'crrproductdescription' | 'crrid' | 'crsuid';
 

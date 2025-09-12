@@ -46,6 +46,8 @@ export const PRODUCT_TYPES = [
   { id: 31, name: 'Drinking Water Station' }
 ] as const;
 
+export const BOTTLE_STATION_PRODUCT_ID = '171';
+
 export const PRODUCT_TYPES_MAP = PRODUCT_TYPES.reduce(
   (acc, product) => {
     acc[product.id] = product.name;

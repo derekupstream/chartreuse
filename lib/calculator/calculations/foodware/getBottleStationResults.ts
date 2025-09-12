@@ -1,5 +1,5 @@
 import type { ProjectInventory } from 'lib/inventory/types/projects';
-import { BOTTLE_STATION_PRODUCT_ID } from 'lib/inventory/assets/reusables/getReusableProducts';
+import { BOTTLE_STATION_PRODUCT_ID } from '../../constants/reusable-product-types';
 
 type BottleStationResults = {
   bottlesSaved: number;
@@ -9,7 +9,7 @@ export function getBottleCountForBottleStation(stationsPurchased: number): numbe
   return Math.round((stationsPurchased * gallonsUsedPerBottleStation) / gallonsPerBottle);
 }
 
-const gallonsUsedPerBottleStation = 27.1515;
+export const gallonsUsedPerBottleStation = 27.1515;
 const gallonsPerBottle = 0.132;
 
 export function getBottleStationResults(project: ProjectInventory): BottleStationResults {

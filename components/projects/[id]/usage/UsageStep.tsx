@@ -9,6 +9,9 @@ import { useEffect, useState, useMemo } from 'react';
 
 import { usePreventReload } from 'hooks/usePreventUnload';
 import { FoodwareLineItem } from 'lib/projects/getProjectFoodwareLineItems';
+import { BOTTLE_STATION_PRODUCT_ID } from 'lib/calculator/constants/reusable-product-types';
+import { ReusableItemRow } from './components/ReusableItemRow';
+import { WaterStationRow } from './components/WaterStationRow';
 
 export function UsageStep({
   readOnly,
@@ -32,16 +35,25 @@ export function UsageStep({
 
   usePreventReload(isSavingLineItem || isSavingProjectUsage);
 
+  const foodwareWithoutWaterStation = useMemo(() => {
+    return foodwareItems?.filter(item => item.reusableProduct.id !== BOTTLE_STATION_PRODUCT_ID);
+  }, [foodwareItems]);
+
+  const waterStation = useMemo(() => {
+    return foodwareItems?.find(item => item.reusableProduct.id === BOTTLE_STATION_PRODUCT_ID);
+  }, [foodwareItems]);
+
   // for now, all items have the same percentage. this is so in the future we might want to let users set a different percentage for each item.
   const allItemsHaveSamePercentage = useMemo(
     () =>
-      foodwareItems?.every(item =>
-        foodwareItems.every(i => i.reusableReturnPercentage === item.reusableReturnPercentage)
+      foodwareWithoutWaterStation?.every(item =>
+        foodwareWithoutWaterStation.every(i => i.reusableReturnPercentage === item.reusableReturnPercentage)
       ),
-    [foodwareItems]
+    [foodwareWithoutWaterStation]
   );
 
-  const projectReturnPercentage = allItemsHaveSamePercentage && foodwareItems?.[0]?.reusableReturnPercentage;
+  const projectReturnPercentage =
+    allItemsHaveSamePercentage && foodwareWithoutWaterStation?.[0]?.reusableReturnPercentage;
   const displayValue =
     typeof projectReturnPercentage === 'number'
       ? org.useShrinkageRate
@@ -103,7 +115,7 @@ export function UsageStep({
                     disabled={advancedEditing}
                     placeholder={
                       advancedEditing
-                        ? calculateAverageReturnPercentage(foodwareItems, org.useShrinkageRate).toString()
+                        ? calculateAverageReturnPercentage(foodwareWithoutWaterStation, org.useShrinkageRate).toString()
                         : 'Set rate for all items'
                     }
                     suffix='%'
@@ -138,7 +150,7 @@ export function UsageStep({
           </InfoCard>
         </Col>
       </Row>
-      <InfoCard>
+      <InfoCard style={{ marginBottom: 24 }}>
         <Row>
           <Col span={12}>
             <Typography.Text strong>Item</Typography.Text>
@@ -162,164 +174,32 @@ export function UsageStep({
           <ContentLoader />
         ) : (
           <>
-            {foodwareItems?.length === 0 && <Typography.Text>No items added yet</Typography.Text>}
-            {foodwareItems?.map((item, index) => (
+            {foodwareWithoutWaterStation?.length === 0 && <Typography.Text>No items added yet</Typography.Text>}
+            {foodwareWithoutWaterStation?.map((item, index) => (
               <ReusableItemRow
                 key={item.id}
                 item={item}
                 useShrinkageRate={org.useShrinkageRate}
                 readOnly={readOnly}
                 updateItem={updateItem}
-                isLast={index === foodwareItems.length - 1}
+                isLast={index === foodwareWithoutWaterStation.length - 1}
                 advancedEditing={advancedEditing}
               />
             ))}
           </>
         )}
       </InfoCard>
+      {waterStation && (
+        <InfoCard style={{ padding: '12px 0' }}>
+          <WaterStationRow item={waterStation} readOnly={readOnly} updateItem={updateItem} />
+        </InfoCard>
+      )}
     </S.Wrapper>
   );
 }
 
-type ReusableItemRowProps = {
-  item: FoodwareLineItem;
-  useShrinkageRate: boolean;
-  readOnly: boolean;
-  updateItem: (id: string, reusableItemCount: number, reusableReturnPercentage?: number) => void;
-  isLast: boolean;
-  advancedEditing: boolean;
-};
-
-function ReusableItemRow({
-  item,
-  useShrinkageRate,
-  readOnly,
-  updateItem,
-  isLast,
-  advancedEditing
-}: ReusableItemRowProps) {
-  const itemReturnPercentage = item.reusableReturnPercentage;
-  const initialDisplayPercentage =
-    typeof itemReturnPercentage === 'number'
-      ? useShrinkageRate
-        ? 100 - itemReturnPercentage
-        : itemReturnPercentage
-      : undefined;
-
-  const initialDisplayAmount =
-    typeof initialDisplayPercentage === 'number' && item.reusableItemCount
-      ? Math.round((item.reusableItemCount * initialDisplayPercentage) / 100)
-      : undefined;
-
-  // State to track current values
-  const [currentAmount, setCurrentAmount] = useState<number | undefined>(initialDisplayAmount);
-  const [currentPercentage, setCurrentPercentage] = useState<number | undefined>(initialDisplayPercentage);
-
-  // Update state when item changes
-  useEffect(() => {
-    const newDisplayPercentage =
-      typeof itemReturnPercentage === 'number'
-        ? useShrinkageRate
-          ? 100 - itemReturnPercentage
-          : itemReturnPercentage
-        : undefined;
-
-    const newDisplayAmount =
-      typeof newDisplayPercentage === 'number' && item.reusableItemCount
-        ? Math.round((item.reusableItemCount * newDisplayPercentage) / 100)
-        : undefined;
-
-    setCurrentAmount(newDisplayAmount);
-    setCurrentPercentage(newDisplayPercentage);
-  }, [item.reusableReturnPercentage, item.reusableItemCount, useShrinkageRate]);
-
-  return (
-    <>
-      <Row justify='space-between' align='middle' key={item.id}>
-        <Col span={12}>
-          <S.CardTitle>{item.reusableProduct.description}</S.CardTitle>
-        </Col>
-        <Col span={6} style={{ textAlign: 'center' }}>
-          <InputNumber
-            placeholder='Enter quantity'
-            style={{ minWidth: '20ch' }}
-            size='large'
-            disabled={readOnly}
-            min={0}
-            defaultValue={item.reusableItemCount || undefined}
-            onChange={value => {
-              if (typeof value === 'number') {
-                updateItem(item.id, value, item.reusableReturnPercentage);
-              }
-            }}
-          />
-        </Col>
-        <Col span={6} style={{ textAlign: 'center' }}>
-          <InputNumber
-            placeholder={advancedEditing ? (useShrinkageRate ? 'Enter shrinkage amount' : 'Enter return amount') : '--'}
-            style={{ minWidth: '20ch' }}
-            size='large'
-            disabled={readOnly || !advancedEditing}
-            min={0}
-            value={currentAmount}
-            onChange={value => {
-              if (typeof value === 'number' && item.reusableItemCount) {
-                const newPercentage = Math.ceil((value * 100) / item.reusableItemCount);
-                const toSave = useShrinkageRate ? 100 - newPercentage : newPercentage;
-
-                // Update local state immediately
-                setCurrentAmount(value);
-                setCurrentPercentage(newPercentage);
-
-                updateItem(item.id, item.reusableItemCount, toSave);
-              } else if (value === null || value === undefined) {
-                setCurrentAmount(undefined);
-                setCurrentPercentage(undefined);
-              }
-            }}
-          />
-        </Col>
-        {/* {advancedEditing && (
-          <>
-            <Col span={6} style={{ textAlign: 'end' }}>
-              <InputNumber
-                min={0}
-                max={100}
-                placeholder={useShrinkageRate ? 'Enter shrinkage %' : 'Enter return %'}
-                suffix='%'
-                style={{ minWidth: '20ch' }}
-                size='large'
-                disabled={readOnly}
-                value={currentPercentage}
-                onChange={value => {
-                  if (typeof value === 'number') {
-                    const toSave = useShrinkageRate ? 100 - value : value;
-
-                    // Update local state immediately
-                    setCurrentPercentage(value);
-                    if (item.reusableItemCount) {
-                      const newAmount = Math.round((item.reusableItemCount * value) / 100);
-                      setCurrentAmount(newAmount);
-                    }
-
-                    updateItem(item.id, item.reusableItemCount, toSave);
-                  } else if (value === null || value === undefined) {
-                    setCurrentPercentage(undefined);
-                    setCurrentAmount(undefined);
-                  }
-                }}
-              />
-            </Col>
-          </>
-        )} */}
-      </Row>
-      {!isLast && <Divider />}
-    </>
-  );
-}
-
 const calculateAverageReturnPercentage = (foodwareItems: FoodwareLineItem[] = [], useShrinkageRate: boolean) => {
-  const totalReturnPercentage = foodwareItems.reduce((acc, item) => acc + item.reusableReturnPercentage, 0);
+  const totalReturnPercentage = foodwareItems.reduce((acc, item) => acc + item.reusableReturnPercentage || 0, 0);
   const returnPercentage = totalReturnPercentage / foodwareItems.length;
   return useShrinkageRate ? 100 - returnPercentage : returnPercentage;
 };
