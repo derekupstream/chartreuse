@@ -10,7 +10,8 @@ const artworkById: Record<string, { src: string; height?: number; width?: number
   '164': { src: '/images/foodware/20_oz_bowl.png', width: 100 },
   '169': { src: '/images/foodware/16_oz_cup.png', height: 100 },
   '170': { src: '/images/foodware/22_oz_cup.png', height: 100 },
-  '171': { src: '/images/foodware/waterstation.png', width: 100 }
+  '171': { src: '/images/foodware/waterstation.png', width: 100 },
+  '172': { src: '/images/foodware/16_oz_cup.png', height: 100 } // 8 oz cup
 };
 
 export function FoodwareArtwork({ reusableProductId }: { reusableProductId: string }) {
