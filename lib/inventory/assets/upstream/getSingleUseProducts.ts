@@ -58,13 +58,14 @@ function csvRowToSingleUseProduct(csvProduct: CSVRow): SingleUseProduct {
   if (!category) {
     throw new Error('Could not determine product category for CSV row: ' + csvProduct['Product Category']);
   }
-  const type = PRODUCT_TYPES.find(category => category.name === csvProduct['Product']);
+  const type = PRODUCT_TYPES.find(category => category.name === csvProduct['Product'].trim());
   if (!type) {
     throw new Error('Could not determine product type for CSV row: ' + csvProduct['Product']);
   }
   const material1 = MATERIALS.find(material => material.name === csvProduct['Primary Material']);
   if (!material1) {
-    throw new Error('Could not determine 1st material for CSV row: ' + csvProduct['Primary Material']);
+    console.table(csvProduct);
+    throw new Error('Could not determine Primary material for CSV row: ' + csvProduct['Primary Material']);
   }
   const material2 = MATERIALS.find(material => material.name === csvProduct['Secondary Material (Lining/Wrapper)']);
   if (csvProduct['Secondary Material (Lining/Wrapper)'] && !material2) {
