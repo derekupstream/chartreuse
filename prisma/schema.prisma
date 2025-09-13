@@ -123,6 +123,8 @@ model Project {
   projectionsDescription String?
   projectionsTitle       String?
   publicSlug             String?         @unique
+  recommendations        Json?
+  showRecommendations    Boolean         @default(true)
 }
 
 // a new model for "Foodware" tab, where we pair a single use and reusable product together

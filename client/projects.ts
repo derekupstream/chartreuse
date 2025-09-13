@@ -70,7 +70,10 @@ export function useToggleShareProject(projectId: MaybeString) {
 }
 
 export function useUpdateProjections(projectId: MaybeString) {
-  return usePUT<{ projectionsTitle: string | null; projectionsDescription: string | null }>(
-    `/api/projects/${projectId}/projections`
-  );
+  return usePUT<{
+    projectionsTitle?: string | null;
+    projectionsDescription?: string | null;
+    recommendations?: any;
+    showRecommendations?: boolean;
+  }>(`/api/projects/${projectId}/projections`);
 }

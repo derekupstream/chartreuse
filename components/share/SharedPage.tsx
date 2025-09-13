@@ -1,4 +1,4 @@
-import { Card, Col, Row, Menu, Slider, Typography } from 'antd';
+import { Col, Row, Menu, Slider, Typography } from 'antd';
 import { useRouter } from 'next/router';
 import { useEffect, useRef, useState } from 'react';
 import styled from 'styled-components';
@@ -10,12 +10,15 @@ import { EventProjectSummary } from 'components/projects/[id]/projections/compon
 import type { ProjectionsView } from 'components/projects/[id]/projections/ProjectionsStep';
 import { ProjectSummary } from 'components/projects/[id]/projections/components/ProjectSummary/ProjectSummary';
 import { LineItemSummary } from 'components/projects/[id]/projections/components/LineItemSummary/LineItemSummary';
+import Card from 'components/projects/[id]/projections/components/common/Card';
 import { ResponsiveWrapper } from 'components/projects/[id]/styles';
 
 import { ContentHeader } from './components/ContentHeader';
 import { PageBanner } from './components/PageBanner';
 import { PageFooter } from './components/PageFooter';
 import { SignupCard } from './components/SignupCard';
+import { SlateEditor } from 'components/common/SlateEditor';
+import { SectionContainer } from 'components/projects/[id]/projections/components/common/styles';
 
 type SharedPageView = ProjectionsView;
 
@@ -101,6 +104,15 @@ export function SharedPage({
     }
   }, [router.query.project, projections]);
 
+  const hasRecommendations = Boolean(
+    data.showRecommendations &&
+      // check if recommendations content has more than one line, or the first line at least has text
+      (data.recommendations?.length > 1 ||
+        (data.recommendations &&
+          data.recommendations[0].children.length &&
+          data.recommendations[0].children[0].text.length))
+  );
+
   return (
     <>
       <PageBanner title={bannerTitle} description={bannerDescription} />
@@ -126,6 +138,15 @@ export function SharedPage({
                 { key: 'reusable_details', label: 'Reusable details' }
               ]}
             />
+            {hasRecommendations && (
+              <Menu
+                style={{ width: '100%', marginBottom: 24 }}
+                selectedKeys={[view]}
+                onSelect={onSelect}
+                mode={'vertical'}
+                items={[{ key: 'recommendations', label: 'Recommendations' }]}
+              />
+            )}
             {isProjectTemplate && (
               <Card>
                 <Typography.Paragraph>Avg. Customers / day</Typography.Paragraph>
@@ -172,6 +193,13 @@ export function SharedPage({
             <span className={view === 'reusable_details' ? '' : 'print-only'}>
               <LineItemSummary variant='reusable' lineItemSummary={data.projections.reusableResults} />
             </span>
+            {hasRecommendations && view === 'recommendations' && (
+              <SectionContainer>
+                <Card>
+                  <SlateEditor readOnly value={data.recommendations} />
+                </Card>
+              </SectionContainer>
+            )}
             {/* <span className={view === 'assumptions' ? '' : 'print-only'}>
               <ProjectionAssumptions />
             </span> */}

@@ -16,6 +16,10 @@ import { Wrapper } from '../styles';
 import { LineItemSummary } from './components/LineItemSummary/LineItemSummary';
 import { EventProjectSummary } from './components/EventProjectSummary';
 import { ProjectSummary } from './components/ProjectSummary/ProjectSummary';
+import { SlateEditor } from 'components/common/SlateEditor';
+import { Switch } from 'antd';
+import Card from './components/common/Card';
+import { Divider, SectionHeader, SectionContainer } from './components/common/styles';
 import { isEugeneOrg } from 'lib/featureFlags';
 
 const StyledCol = styled(Col)`
@@ -25,7 +29,7 @@ const StyledCol = styled(Col)`
   }
 `;
 
-export type ProjectionsView = 'summary' | 'single_use_details' | 'reusable_details';
+export type ProjectionsView = 'summary' | 'single_use_details' | 'reusable_details' | 'recommendations';
 
 const defaultProjectionsDescription = `These graphs - showing the financial and environmental impacts of reducing single-use items - can help you make the case for reuse and make data driven decisions on how to move forward. You can also print a PDF for sharing and distribution.`;
 
@@ -35,6 +39,10 @@ export const ProjectionsStep = ({ project, readOnly }: { project: ProjectContext
   const { trigger: updateProjections } = useUpdateProjections(project.id);
   const [projectionsDescription, setProjectionsDescription] = useState(project.projectionsDescription);
   const [projectionsTitle, setProjectionsTitle] = useState(project.projectionsTitle);
+  const [recommendations, setRecommendations] = useState<any>(
+    project.recommendations || [{ type: 'paragraph', children: [{ text: '' }] }]
+  );
+  const [showRecommendations, setShowRecommendations] = useState<boolean>(project.showRecommendations || false);
 
   const { setFooterState } = useFooterState();
   useEffect(() => {
@@ -70,6 +78,24 @@ export const ProjectionsStep = ({ project, readOnly }: { project: ProjectContext
     }
   }
 
+  async function handleRecommendationsChange(value: any) {
+    setRecommendations(value);
+    try {
+      await updateProjections({ recommendations: value, showRecommendations });
+    } catch (error) {
+      setRecommendations(recommendations);
+      message.error('Failed to update recommendations');
+    }
+  }
+  async function handleShowRecommendationsChange(checked: boolean) {
+    setShowRecommendations(checked);
+    try {
+      await updateProjections({ recommendations, showRecommendations: checked });
+    } catch (error) {
+      setShowRecommendations(showRecommendations);
+      message.error('Failed to update recommendations visibility');
+    }
+  }
   const sidebarMenuItems = isEugeneOrg({ id: project.orgId })
     ? [{ key: 'summary', label: 'Summary' }]
     : [
@@ -129,11 +155,18 @@ export const ProjectionsStep = ({ project, readOnly }: { project: ProjectContext
       <Row gutter={24}>
         <Col span={5} className='dont-print-me'>
           <Menu
-            style={{ width: '100%' }}
+            style={{ width: '100%', marginBottom: 24 }}
             selectedKeys={[view]}
             onSelect={onSelect}
             mode={'vertical'}
             items={sidebarMenuItems}
+          />
+          <Menu
+            style={{ width: '100%' }}
+            selectedKeys={[view]}
+            onSelect={onSelect}
+            mode={'vertical'}
+            items={[{ key: 'recommendations', label: 'Recommendations' }]}
           />
         </Col>
         <StyledCol span={19}>
@@ -157,6 +190,25 @@ export const ProjectionsStep = ({ project, readOnly }: { project: ProjectContext
               lineItemSummary={data.reusableResults}
             />
           </span>
+          {view === 'recommendations' && (
+            <span className={view === 'recommendations' ? '' : 'print-only'}>
+              <SectionContainer>
+                <SectionHeader style={{ margin: 0 }}>Recommendations</SectionHeader>
+                <Divider />
+                <Card>
+                  {!readOnly && (
+                    <div style={{ marginBottom: -24, display: 'flex', justifyContent: 'flex-end' }}>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <Switch checked={showRecommendations} onChange={handleShowRecommendationsChange} />
+                        <span>Show on shared page</span>
+                      </span>
+                    </div>
+                  )}
+                  <SlateEditor value={recommendations} onChange={handleRecommendationsChange} readOnly={readOnly} />
+                </Card>
+              </SectionContainer>
+            </span>
+          )}
         </StyledCol>
       </Row>
     </Wrapper>

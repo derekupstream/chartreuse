@@ -10,6 +10,8 @@ export type ProjectProjection = {
   projections: ProjectionsResponse;
   projectCategory: ProjectCategory;
   templateParams: { projectId: string; slug: string };
+  recommendations?: any;
+  showRecommendations?: boolean;
 };
 
 export async function getSharedProjections(slug: string) {
@@ -44,7 +46,9 @@ export async function getSharedProjections(slug: string) {
           projections,
           slug,
           projectCategory: project.category,
-          templateParams: { projectId: project.id, slug }
+          templateParams: { projectId: project.id, slug },
+          recommendations: project.recommendations,
+          showRecommendations: project.showRecommendations
         };
       }
       return null;

@@ -20,7 +20,7 @@ async function getProjectionsHandler(req: NextApiRequestWithUser, res: NextApiRe
 }
 
 async function updateProjectionsHandler(req: NextApiRequestWithUser, res: NextApiResponse) {
-  const { projectionsTitle, projectionsDescription } = req.body;
+  const { projectionsTitle, projectionsDescription, recommendations, showRecommendations } = req.body;
   const projectId = req.query.id;
 
   if (typeof projectId !== 'string') throw new Error('No project id provided');
@@ -31,7 +31,9 @@ async function updateProjectionsHandler(req: NextApiRequestWithUser, res: NextAp
     },
     data: {
       projectionsTitle,
-      projectionsDescription
+      projectionsDescription,
+      ...(recommendations !== undefined ? { recommendations } : {}),
+      ...(showRecommendations !== undefined ? { showRecommendations } : {})
     }
   });
 
