@@ -13,6 +13,7 @@ export type ModifyFoodwareLineItemRequest = {
   reusableProductId?: string;
   reusableItemCount?: number;
   reusableReturnPercentage?: number;
+  waterUsageGallons?: number;
 };
 
 const handler = projectHandler();

@@ -8,7 +8,7 @@ import { getSingleUseProducts } from 'lib/inventory/getSingleUseProducts';
 
 export type FoodwareLineItem = Pick<
   PrismaEventFoodwareLineItem,
-  'id' | 'reusableItemCount' | 'reusableReturnPercentage' | 'projectId'
+  'id' | 'reusableItemCount' | 'reusableReturnPercentage' | 'projectId' | 'waterUsageGallons'
 > & {
   singleUseProduct: SingleUseProduct;
   reusableProduct: ReusableProduct;

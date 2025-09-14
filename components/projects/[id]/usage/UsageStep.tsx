@@ -71,6 +71,13 @@ export function UsageStep({
     });
   }
 
+  function updateWaterStation(id: string, waterUsageGallons?: number) {
+    addOrUpdateFoodwareLineItem({
+      id,
+      waterUsageGallons
+    });
+  }
+
   useEffect(() => {
     setFooterState({ path: '/usage', stepCompleted: true });
   }, [setFooterState]);
@@ -191,7 +198,7 @@ export function UsageStep({
       </InfoCard>
       {waterStation && (
         <InfoCard style={{ padding: '12px 0' }}>
-          <WaterStationRow item={waterStation} readOnly={readOnly} updateItem={updateItem} />
+          <WaterStationRow item={waterStation} readOnly={readOnly} updateItem={updateWaterStation} />
         </InfoCard>
       )}
     </S.Wrapper>

@@ -103,7 +103,12 @@ export function getLineItemWaterUsage({
   frequency: Frequency;
   lineItem: Pick<
     ReusableLineItemPopulatedWithProduct | SingleUseLineItemPopulated,
-    'casesPurchased' | 'newCasesPurchased' | 'unitsPerCase' | 'product'
+    | 'casesPurchased'
+    | 'newCasesPurchased'
+    | 'unitsPerCase'
+    | 'product'
+    | 'baselineWaterUsageGallons'
+    | 'forecastWaterUsageGallons'
   >;
   isEventProject: boolean;
 }) {
@@ -143,8 +148,12 @@ export function getLineItemWaterUsage({
 
   // Column: AX
   const total = getChangeSummaryRowRounded(
-    primaryWater.baseline + secondaryWater.baseline + shippingBoxWater.baseline,
-    primaryWater.forecast + secondaryWater.forecast + shippingBoxWater.forecast,
+    lineItem.baselineWaterUsageGallons
+      ? lineItem.baselineWaterUsageGallons
+      : primaryWater.baseline + secondaryWater.baseline + shippingBoxWater.baseline,
+    lineItem.forecastWaterUsageGallons
+      ? lineItem.forecastWaterUsageGallons
+      : primaryWater.forecast + secondaryWater.forecast + shippingBoxWater.forecast,
     0
   );
 

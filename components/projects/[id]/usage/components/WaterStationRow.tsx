@@ -7,27 +7,29 @@ import { gallonsUsedPerBottleStation } from 'lib/calculator/calculations/foodwar
 
 import { FoodwareLineItem } from 'lib/projects/getProjectFoodwareLineItems';
 import { useMetricSystem } from 'components/_app/MetricSystemProvider';
-import { valueInGallons } from 'lib/number';
+import { valueInGallons, LITER_TO_GALLON } from 'lib/number';
 
 type WaterStationRowProps = {
   item: FoodwareLineItem;
   readOnly: boolean;
-  updateItem: (id: string, reusableItemCount: number, reusableReturnPercentage?: number) => void;
+  updateItem: (id: string, waterUsageGallons: number) => void;
 };
 
 export function WaterStationRow({ item, readOnly, updateItem }: WaterStationRowProps) {
   const displayAsMetric = useMetricSystem();
   // State to track current values
-  const [currentAmount, setCurrentAmount] = useState<number | undefined>(item.reusableItemCount);
+  const [currentAmount, setCurrentAmount] = useState<number | undefined>(
+    valueInGallons(item.waterUsageGallons || 0, { displayAsMetric })
+  );
 
   // Update state when item changes
   useEffect(() => {
-    // const gallonsUsed = getBottleCountForBottleStation(item.reusableItemCount);
-    setCurrentAmount(item.reusableItemCount);
-  }, [item.reusableItemCount]);
+    if (typeof item.waterUsageGallons === 'number') {
+      setCurrentAmount(valueInGallons(item.waterUsageGallons, { displayAsMetric }));
+    }
+  }, [item.waterUsageGallons]);
 
   const gallonsPerStation = valueInGallons(gallonsUsedPerBottleStation, { displayAsMetric });
-  const gallonsUsed = item.reusableItemCount * gallonsUsedPerBottleStation;
 
   return (
     <>
@@ -38,10 +40,10 @@ export function WaterStationRow({ item, readOnly, updateItem }: WaterStationRowP
           </S.CardTitle>
         </Col>
         <Col span={12} style={{ display: 'flex', alignItems: 'center', gap: 12, justifyContent: 'flex-end' }}>
-          <Typography.Text style={{ whiteSpace: 'nowrap' }}>Quantity</Typography.Text>
+          <Typography.Text style={{ whiteSpace: 'nowrap' }}>Water Usage</Typography.Text>
           <InputNumber
-            addonAfter={`${gallonsUsed.toFixed(2)} ${displayAsMetric ? 'L' : 'gal'}`}
-            placeholder='Enter quantity'
+            addonAfter={`${displayAsMetric ? 'L' : 'gal'}`}
+            placeholder='Enter water usage'
             style={{ minWidth: '20ch' }}
             size='large'
             disabled={readOnly}
@@ -49,10 +51,10 @@ export function WaterStationRow({ item, readOnly, updateItem }: WaterStationRowP
             value={currentAmount}
             onChange={value => {
               if (typeof value === 'number') {
-                // Update local state immediately
                 setCurrentAmount(value);
-
-                updateItem(item.id, value, 0);
+                // Convert to gallons for storage (database stores in gallons)
+                const gallonsValue = displayAsMetric ? value * LITER_TO_GALLON : value;
+                updateItem(item.id, gallonsValue);
               } else if (value === null || value === undefined) {
                 setCurrentAmount(undefined);
               }

@@ -28,7 +28,8 @@ import type {
   ReusableLineItemPopulated,
   CalculatorDishWasherSimple
 } from './types/projects';
-import { getBottleCountForBottleStation } from 'lib/calculator/calculations/foodware/getBottleStationResults';
+
+const gallonsPerBottle = 0.132;
 
 export async function getProjectInventory(projectId: string): Promise<ProjectInventory> {
   const project = await prisma.project.findFirst({
@@ -134,6 +135,7 @@ function mapFoodwareItem(
     projectId: item.projectId,
     reusableItemCount: item.reusableItemCount,
     reusableReturnPercentage: item.reusableReturnPercentage,
+    waterUsageGallons: item.waterUsageGallons ?? undefined,
     reusableProduct: reusableProducts.find(product => product.id === item.reusableProductId)!,
     singleUseProduct: products.find(product => product.id === item.singleUseProductId)!
   };
@@ -177,7 +179,8 @@ function mapFoodwareReusableItem(item: FoodwareSelection): ProjectInventory['reu
     annualRepurchasePercentage: 0,
     caseCost: 0,
     casesPurchased: 0,
-    productName: product.description
+    productName: product.description,
+    forecastWaterUsageGallons: item.waterUsageGallons ?? undefined
   };
 }
 
@@ -215,7 +218,9 @@ function mapFoodwareSingleUseItem(item: FoodwareSelection): ProjectInventory['si
   // for water stations, we want to consider the impact of water bottles
   const unitsPerCase =
     item.reusableProduct.id === BOTTLE_STATION_PRODUCT_ID
-      ? getBottleCountForBottleStation(item.reusableItemCount)
+      ? item.waterUsageGallons
+        ? Math.round(item.waterUsageGallons / gallonsPerBottle)
+        : 0
       : item.reusableItemCount;
 
   return {
@@ -234,7 +239,8 @@ function mapFoodwareSingleUseItem(item: FoodwareSelection): ProjectInventory['si
     newCasesPurchased: 0,
     projectId: item.projectId,
     frequency: 'Annually',
-    productId: product.id
+    productId: product.id,
+    baselineWaterUsageGallons: item.waterUsageGallons
   };
 }
 

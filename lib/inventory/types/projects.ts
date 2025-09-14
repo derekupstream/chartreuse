@@ -71,6 +71,8 @@ export interface SingleUseLineItemPopulated extends SingleUseLineItem {
   totalUnits: number;
   product: SingleUseProduct;
   records: SingleUseLineItemRecord[];
+  baselineWaterUsageGallons?: number; // from water station foodware item
+  forecastWaterUsageGallons?: number; // from water station foodware item
 }
 
 // recurring products are purchased once except for lost or broken items that need repurchase
@@ -94,6 +96,8 @@ export interface ReusableLineItemPopulated extends ReusableLineItem {
   // totalCost: number;
   // totalUnits: number;
   product?: ReusableProduct;
+  baselineWaterUsageGallons?: number; // from water station foodware item
+  forecastWaterUsageGallons?: number; // from water station foodware item
 }
 
 export interface ReusableLineItemPopulatedWithProduct extends Omit<ReusableLineItemPopulated, 'product'> {

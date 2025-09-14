@@ -137,6 +137,7 @@ model EventFoodwareLineItem {
   reusableProductId        String
   reusableItemCount        Int      @default(0)
   reusableReturnPercentage Float    @default(0) // out of 100
+  waterUsageGallons        Float? // Optional field for water station usage in gallons
   projectId                String   @db.Uuid
   project                  Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
 }
