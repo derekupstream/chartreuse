@@ -19,13 +19,13 @@ export function WaterStationRow({ item, readOnly, updateItem }: WaterStationRowP
   const displayAsMetric = useMetricSystem();
   // State to track current values
   const [currentAmount, setCurrentAmount] = useState<number | undefined>(
-    valueInGallons(item.waterUsageGallons || 0, { displayAsMetric })
+    parseFloat(valueInGallons(item.waterUsageGallons || 0, { displayAsMetric }).toFixed(2))
   );
 
   // Update state when item changes
   useEffect(() => {
     if (typeof item.waterUsageGallons === 'number') {
-      setCurrentAmount(valueInGallons(item.waterUsageGallons, { displayAsMetric }));
+      parseFloat(valueInGallons(item.waterUsageGallons, { displayAsMetric }).toFixed(2));
     }
   }, [item.waterUsageGallons]);
 
@@ -37,6 +37,9 @@ export function WaterStationRow({ item, readOnly, updateItem }: WaterStationRowP
         <Col span={12}>
           <S.CardTitle style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             {item.reusableProduct.description}
+            <InfoIcon>
+              We estimate {gallonsPerStation.toFixed(2)} {displayAsMetric ? 'L' : 'gal'} used per water station
+            </InfoIcon>
           </S.CardTitle>
         </Col>
         <Col span={12} style={{ display: 'flex', alignItems: 'center', gap: 12, justifyContent: 'flex-end' }}>
@@ -60,9 +63,6 @@ export function WaterStationRow({ item, readOnly, updateItem }: WaterStationRowP
               }
             }}
           />
-          <InfoIcon>
-            We estimate {gallonsPerStation.toFixed(2)} {displayAsMetric ? 'L' : 'gal'} used per water station
-          </InfoIcon>
         </Col>
       </Row>
     </>
