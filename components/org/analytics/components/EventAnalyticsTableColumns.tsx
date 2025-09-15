@@ -2,17 +2,15 @@ import { Col, Row, Typography } from 'antd';
 import type { ReactNode } from 'react';
 
 import type { ProjectSummary } from 'lib/calculator/getProjections';
-import { formatToDollar } from 'lib/calculator/utils';
 import { useMetricSystem } from 'components/_app/MetricSystemProvider';
 import { valueInPounds } from 'lib/number';
 import { defaultFormatter } from '../utils';
-import { useCurrency } from 'components/_app/CurrencyProvider';
 
 export const columns = [
   {
     title: 'Name',
     key: 'name',
-    render: (record: ProjectSummary) => {
+    render: (record: ProjectSummary & { useShrinkageRate: boolean }) => {
       const displayAsMetric = useMetricSystem();
       return (
         <>
@@ -23,23 +21,24 @@ export const columns = [
             {record.account.name}
           </Typography.Paragraph>
           <Typography.Text style={{ fontWeight: 500, lineHeight: 2 }}>
-            Estimated savings
+            Single-use reduction
             <br />
-            Waste reduction <span style={{ color: 'grey' }}>({displayAsMetric ? 'kg' : 'lb'})</span>
+            Waste to landfill prevention <span style={{ color: 'grey' }}>({displayAsMetric ? 'kg' : 'lb'})</span>
             <br />
-            Single-use reduction <span style={{ color: 'grey' }}>(units)</span>
+            GHG emissions <span style={{ color: 'grey' }}>(MTC02e)</span>
             <br />
-            GHG reduction <span style={{ color: 'grey' }}>(MTC02e)</span>
+            Water usage <span style={{ color: 'grey' }}>({displayAsMetric ? 'L' : 'gal'})</span>
+            <br />
+            {record.useShrinkageRate ? 'Shrinkage rate' : 'Return rate'}
           </Typography.Text>
         </>
       );
     }
   },
   {
-    title: 'Baseline',
-    key: 'baseline',
+    title: 'Single-use items',
+    key: 'singleuse',
     render: (record: ProjectSummary) => {
-      const { abbreviation: currencyAbbreviation } = useCurrency();
       const displayAsMetric = useMetricSystem();
       return (
         <>
@@ -48,26 +47,27 @@ export const columns = [
           </Typography.Title>
           <Typography.Paragraph>&nbsp;</Typography.Paragraph>
           <Typography.Text style={{ lineHeight: 2 }}>
-            {formatToDollar(record.projections.annualSummary.dollarCost.baseline, currencyAbbreviation)}
+            {record.projections.annualSummary.singleUseProductCount.baseline.toLocaleString()}
             <br />
             {valueInPounds(record.projections.annualSummary.wasteWeight.baseline, {
               displayAsMetric,
               displayAsTons: false
             }).toLocaleString()}
             <br />
-            {record.projections.annualSummary.singleUseProductCount.baseline.toLocaleString()}
-            <br />
             {record.projections.annualSummary.greenhouseGasEmissions.total.baseline.toLocaleString()}
+            <br />
+            {record.projections.environmentalResults.annualWaterUsageChanges.total.baseline.toLocaleString()}
+            <br />
+            &nbsp;{/* return rate */}
           </Typography.Text>
         </>
       );
     }
   },
   {
-    title: 'Forecast',
-    key: 'forecast',
+    title: 'Reusable items',
+    key: 'reusable',
     render: (record: ProjectSummary) => {
-      const { abbreviation: currencyAbbreviation } = useCurrency();
       const displayAsMetric = useMetricSystem();
       return (
         <>
@@ -76,16 +76,18 @@ export const columns = [
           </Typography.Title>
           <Typography.Paragraph>&nbsp;</Typography.Paragraph>
           <Typography.Text style={{ lineHeight: 2 }}>
-            {formatToDollar(record.projections.annualSummary.dollarCost.forecast, currencyAbbreviation)}
+            0
             <br />
             {valueInPounds(record.projections.annualSummary.wasteWeight.forecast, {
               displayAsMetric,
               displayAsTons: false
             }).toLocaleString()}
             <br />
-            {record.projections.annualSummary.singleUseProductCount.forecast.toLocaleString()}
-            <br />
             {record.projections.annualSummary.greenhouseGasEmissions.total.forecast.toLocaleString()}
+            <br />
+            {record.projections.environmentalResults.annualWaterUsageChanges.total.baseline.toLocaleString()}
+            <br />
+            &nbsp;{/* return rate */}
           </Typography.Text>
         </>
       );
@@ -95,8 +97,7 @@ export const columns = [
     // think of these changes as 'reductions', hence we multiply them * -1
     title: '',
     key: 'change',
-    render: (record: ProjectSummary) => {
-      const { abbreviation: currencyAbbreviation } = useCurrency();
+    render: (record: ProjectSummary & { useShrinkageRate: boolean }) => {
       const displayAsMetric = useMetricSystem();
       return (
         <>
@@ -105,16 +106,17 @@ export const columns = [
           </Typography.Title>
           <Typography.Paragraph>&nbsp;</Typography.Paragraph>
           <Typography.Text style={{ lineHeight: 2 }}>
-            <ReductionValue
-              value={record.projections.annualSummary.dollarCost}
-              formatter={val => formatToDollar(val, currencyAbbreviation)}
-            />
+            <ReductionValue value={record.projections.annualSummary.singleUseProductCount} />
             <ReductionValue
               value={record.projections.annualSummary.wasteWeight}
               formatter={val => defaultFormatter(valueInPounds(val, { displayAsMetric, displayAsTons: false }))}
             />
-            <ReductionValue value={record.projections.annualSummary.singleUseProductCount} />
             <ReductionValue value={record.projections.annualSummary.greenhouseGasEmissions.total} />
+            <ReductionValue value={record.projections.environmentalResults.annualWaterUsageChanges.total} />
+            {record.useShrinkageRate
+              ? record.projections.reusableResults.summary.returnRate?.shrinkageRate
+              : record.projections.reusableResults.summary.returnRate?.returnRate}
+            %
           </Typography.Text>
         </>
       );

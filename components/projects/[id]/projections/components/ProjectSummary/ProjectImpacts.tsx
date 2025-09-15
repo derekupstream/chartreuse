@@ -30,7 +30,7 @@ export const ProjectImpacts: React.FC<Props> = ({ data, showTitle }) => {
   const secondLabel = 'Forecast';
   const savingsData = [
     { label: firstLabel, value: data.dollarCost.baseline },
-    { label: 'Forecast', value: data.dollarCost.forecast }
+    { label: secondLabel, value: data.dollarCost.forecast }
   ];
 
   const singleUseData = [

@@ -1,7 +1,7 @@
 import type { ProjectInventory, ReusableLineItemPopulatedWithProduct } from 'lib/inventory/types/projects';
 import { REUSABLE_MATERIALS } from '../../constants/materials';
 import { PRODUCT_CATEGORIES } from '../../constants/product-categories';
-import { PRODUCT_TYPES } from '../../constants/reusable-product-types';
+import { PRODUCT_TYPES, BOTTLE_STATION_PRODUCT_ID } from '../../constants/reusable-product-types';
 import { getChangeSummaryRow } from '../../utils';
 
 import { getDishwasherGasEmissions, getLineItemGasEmissions } from '../ghg/getAnnualGasEmissionChanges';
@@ -9,13 +9,15 @@ import { getDishwasherWaterUsage } from '../water/getAnnualWaterUsageChanges';
 import { getLineItemWaterUsage } from '../water/getAnnualWaterUsageChanges';
 import type { PurchasingSummaryColumn, ProductForecastResults } from './lineItemUtils';
 import { getResultsByType, annualLineItemCost, annualLineItemCaseCount } from './lineItemUtils';
+import { getReturnRate } from './getReturnRate';
 
 export function getReusableResults(inventory: ProjectInventory): ProductForecastResults {
   const summary = getReusableProductSummary(
     inventory.reusableItems,
     inventory.dishwashers,
     inventory.racksUsedForEventProjects,
-    inventory.isEventProject
+    inventory.isEventProject,
+    inventory.foodwareItems
   );
   const resultsByType = getResultsByType({
     categories: PRODUCT_CATEGORIES,
@@ -36,7 +38,8 @@ export function getReusableProductSummary(
   reusableItems: ProjectInventory['reusableItems'],
   diswashers: ProjectInventory['dishwashers'],
   racksUsedForEventProjects: ProjectInventory['racksUsedForEventProjects'],
-  isEventProject: boolean
+  isEventProject: boolean,
+  foodwareLineItems: ProjectInventory['foodwareItems']
 ): ProductForecastResults['summary'] {
   const baseline = reusableItems.reduce<PurchasingSummaryColumn>(
     (column, item) => {
@@ -127,7 +130,6 @@ export function getReusableProductSummary(
   // include the forecasted dishwasher emissions for both one-time and recurring gas emissions
   const dishwasherEmissions = getDishwasherGasEmissions(diswashers, racksUsedForEventProjects);
   const dishwasherWaterUsage = getDishwasherWaterUsage(diswashers, racksUsedForEventProjects).forecast;
-
   return {
     annualCost: getChangeSummaryRow(baseline.annualCost, forecast.annualCost),
     annualGHG: getChangeSummaryRow(
@@ -144,6 +146,7 @@ export function getReusableProductSummary(
       lineItemForecast: forecast.annualWater,
       total: dishwasherWaterUsage + forecast.annualWater
     },
+    returnRate: getReturnRate({ foodwareLineItems }),
     annualUnits: getChangeSummaryRow(baseline.annualUnits, forecast.annualUnits),
     productCount: getChangeSummaryRow(baseline.productCount, forecast.productCount)
   };

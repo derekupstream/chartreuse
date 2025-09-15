@@ -31,7 +31,8 @@ export const getServerSideProps: GetServerSideProps<PageProps> = async context =
       where: {
         accountId: user.accountId || undefined,
         orgId: user.org.id,
-        category: projectCategory
+        category: projectCategory,
+        isTemplate: false
       },
       include: {
         account: true,
@@ -54,7 +55,8 @@ export const getServerSideProps: GetServerSideProps<PageProps> = async context =
         where: {
           accountId: user.accountId || undefined,
           orgId: user.org.id,
-          category: otherCategory
+          category: otherCategory,
+          isTemplate: false
         },
         include: {
           account: true,

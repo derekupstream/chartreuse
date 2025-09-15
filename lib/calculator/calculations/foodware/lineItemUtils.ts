@@ -24,6 +24,12 @@ export type ProductForecastResults = {
     annualGHG: ChangeSummary;
     annualWater?: ChangeSummary; // for single-use items
     reusableWater?: { lineItemForecast: number; dishwasherForecast: number; total: number }; // we dont use baseline/forecast for reusable items
+    // only applicable for reusable items
+    returnRate?: {
+      shrinkageRate: number;
+      returnRate: number;
+      allItemsHaveSamePercentage: boolean;
+    };
     productCount: ChangeSummary;
   };
   resultsByType: {

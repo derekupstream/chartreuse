@@ -28,7 +28,8 @@ export const getServerSideProps: GetServerSideProps<PageProps> = async context =
   const [projects, projectsInOtherCategory] = await Promise.all([
     prisma.project.findMany({
       where: {
-        category: projectCategory
+        category: projectCategory,
+        isTemplate: false
       },
       include: {
         account: true,

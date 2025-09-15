@@ -9,22 +9,27 @@ const ChartContainer = styled.div`
 
 type Props = {
   data: { baseline: number; forecast: number };
+  isEventProject: boolean;
   formatter?: (datum: any) => string;
 };
 
 // ref: https://ant-design-charts-v1.antgroup.com/en/examples/bar/grouped#basic
 
-export default function GroupedBar({ data, formatter = (val: number) => val?.toLocaleString() }: Props) {
+export default function GroupedBar({
+  data,
+  isEventProject,
+  formatter = (val: number) => val?.toLocaleString()
+}: Props) {
   const config = {
     data: [
       {
         label: '',
-        type: 'Baseline',
+        type: isEventProject ? 'Single-use' : 'Baseline',
         value: data.baseline
       },
       {
         label: '',
-        type: 'Forecast',
+        type: isEventProject ? 'Reusable' : 'Forecast',
         value: data.forecast
       }
     ],

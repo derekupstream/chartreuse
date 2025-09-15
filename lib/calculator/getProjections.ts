@@ -56,6 +56,7 @@ export interface AllProjectsSummary {
     singleUse: SummaryValues;
     waste: SummaryValues;
     gas: SummaryValues;
+    water: SummaryValues;
   };
   projects: ProjectSummary[];
 }
@@ -81,13 +82,19 @@ export async function getAllProjections(_projects: ProjectData[]): Promise<AllPr
       acc.gas.baseline = acc.gas.baseline + curr.projections.annualSummary.greenhouseGasEmissions.total.baseline;
       acc.gas.forecast = acc.gas.forecast + curr.projections.annualSummary.greenhouseGasEmissions.total.forecast;
       acc.gas.forecasts.push(curr.projections.annualSummary.greenhouseGasEmissions.total.forecast);
+      acc.water.baseline =
+        acc.water.baseline + curr.projections.environmentalResults.annualWaterUsageChanges.total.baseline;
+      acc.water.forecast =
+        acc.water.forecast + curr.projections.environmentalResults.annualWaterUsageChanges.total.forecast;
+      acc.water.forecasts.push(curr.projections.environmentalResults.annualWaterUsageChanges.total.forecast);
       return acc;
     },
     {
       savings: defaultSummary(),
       singleUse: defaultSummary(),
       waste: defaultSummary(),
-      gas: defaultSummary()
+      gas: defaultSummary(),
+      water: defaultSummary()
     }
   );
 

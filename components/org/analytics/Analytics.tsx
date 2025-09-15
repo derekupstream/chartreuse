@@ -3,7 +3,7 @@ import type { Org, ProjectCategory, User } from '@prisma/client';
 import type { SelectProps } from 'antd';
 import { Button, Col, Form, Row, Select, Table, Typography, Divider, Tabs } from 'antd';
 import { useRouter } from 'next/router';
-import { useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import styled from 'styled-components';
 
 import ContentLoader from 'components/common/ContentLoader';
@@ -16,12 +16,14 @@ import type { AllProjectsSummary, ProjectSummary } from 'lib/calculator/getProje
 import { formatToDollar } from 'lib/calculator/utils';
 import { requestDownload } from 'lib/files';
 import { useMetricSystem } from 'components/_app/MetricSystemProvider';
-import { valueInPounds, formattedValueInPounds } from 'lib/number';
-import { SummaryCardWithGraph } from './components/SummaryCardWithGraph';
+import { valueInPounds, formattedValueInPounds, formattedValueInGallons, valueInGallons } from 'lib/number';
+import { SummaryCardWithGraph, SummaryCard } from './components/SummaryCardWithGraph';
 import { useCurrency } from 'components/_app/CurrencyProvider';
 import { columns } from './components/AnalyticsTableColumns';
+import { columns as eventColumns } from './components/EventAnalyticsTableColumns';
 
 import * as S2 from '../../../layouts/styles';
+import { getReturnOrShrinkageRate } from 'components/projects/[id]/usage/UsageStep';
 
 const StyledCol = styled(Col)`
   @media print {
@@ -111,12 +113,47 @@ export function AnalyticsPage({
         project.projections.annualSummary.singleUseProductCount.changePercent;
       return {
         ...project,
+        hasNoData:
+          project.projections.singleUseResults.summary.annualUnits.baseline === 0 &&
+          project.projections.singleUseResults.summary.annualUnits.forecast === 0 &&
+          project.projections.reusableResults.summary.annualUnits.baseline === 0 &&
+          project.projections.reusableResults.summary.annualUnits.forecast === 0,
+        isEventProject: project.category === 'event',
+        useShrinkageRate: user.org.useShrinkageRate,
         score
       };
     })
     .sort((a, b) => a.score - b.score);
 
+  const projectHasData = rows.some(project => !project.hasNoData);
   const spacing = 24;
+
+  const bottlesSaved = data.projects.reduce((acc, project) => {
+    if (project.category === 'event') {
+      acc += project.projections.bottleStationResults.bottlesSaved;
+    }
+    return acc;
+  }, 0);
+
+  const singleUseItemsAvoided = data.projects.reduce((acc, project) => {
+    if (project.category === 'event') {
+      acc += project.projections.annualSummary.singleUseProductCount.change * -1;
+    }
+    return acc;
+  }, 0);
+
+  const { displayValue: returnRateDisplayValue, returnRatelabel } = useMemo(() => {
+    const avgReturnRate =
+      data.projects.reduce((acc, project) => {
+        const returnRate = project.projections.reusableResults.summary.returnRate?.returnRate ?? 100;
+        return returnRate + acc;
+      }, 0) / data.projects.length;
+
+    return getReturnOrShrinkageRate({
+      returnRate: avgReturnRate,
+      useShrinkageRate: user.org.useShrinkageRate
+    });
+  }, [data.projects, user.org]);
 
   return (
     <div ref={printRef}>
@@ -175,32 +212,86 @@ export function AnalyticsPage({
       <Spacer vertical={spacing} />
 
       <Row gutter={[24, 24]}>
+        {bottlesSaved > 0 && (
+          <StyledCol xs={24} lg={12}>
+            <SummaryCard
+              label='Water bottles avoided'
+              value={`${Math.round(bottlesSaved).toLocaleString()} bottles`}
+              projectHasData={projectHasData}
+            />
+          </StyledCol>
+        )}
+        {projectCategory === 'event' && (
+          <StyledCol xs={24} lg={12}>
+            <SummaryCard
+              label='Single-use items avoided'
+              value={`${Math.round(singleUseItemsAvoided).toLocaleString()} items`}
+              projectHasData={projectHasData}
+            />
+          </StyledCol>
+        )}
+        {projectCategory !== 'event' && (
+          <StyledCol xs={24} md={12}>
+            <SummaryCardWithGraph
+              label='Estimated Savings'
+              projectHasData={projectHasData}
+              isEventProject={false}
+              formatter={val => formatToDollar(val, currencyAbbreviation)}
+              value={data.summary.savings}
+            />
+          </StyledCol>
+        )}
+        {projectCategory !== 'event' && (
+          <StyledCol xs={24} md={12}>
+            <SummaryCardWithGraph
+              label='Single-Use Reduction'
+              isEventProject={false}
+              projectHasData={projectHasData}
+              units='units'
+              value={data.summary.singleUse}
+            />
+          </StyledCol>
+        )}
         <StyledCol xs={24} md={12}>
           <SummaryCardWithGraph
-            label='Estimated Savings'
-            formatter={val => formatToDollar(val, currencyAbbreviation)}
-            value={data.summary.savings}
-          />
-        </StyledCol>
-        <StyledCol xs={24} md={12}>
-          <SummaryCardWithGraph label='Single-Use Reduction' units='units' value={data.summary.singleUse} />
-        </StyledCol>
-        <StyledCol xs={24} md={12}>
-          <SummaryCardWithGraph
-            label='Waste Reduction'
+            label={projectCategory === 'event' ? 'Waste to landfill prevented' : 'Waste reduction'}
+            isEventProject={projectCategory === 'event'}
+            projectHasData={projectHasData}
             units={displayAsMetric ? 'kg' : 'lbs'}
-            formatter={val =>
-              formattedValueInPounds(valueInPounds(val, { displayAsMetric, displayAsTons: false }), {
-                displayAsMetric,
-                displayAsTons: false
-              })
-            }
+            formatter={val => valueInPounds(val, { displayAsMetric, displayAsTons: false })}
             value={data.summary.waste}
           />
         </StyledCol>
         <StyledCol xs={24} md={12}>
-          <SummaryCardWithGraph label='GHG Reduction' units='MTC02e' value={data.summary.gas} />
+          <SummaryCardWithGraph
+            label={projectCategory === 'event' ? 'GHG emissions' : 'GHG reduction'}
+            isEventProject={projectCategory === 'event'}
+            projectHasData={projectHasData}
+            units='MTC02e'
+            value={data.summary.gas}
+          />
         </StyledCol>
+        {projectCategory === 'event' && (
+          <>
+            <StyledCol xs={24} lg={12}>
+              <SummaryCard
+                label={returnRatelabel}
+                value={`${returnRateDisplayValue}%`}
+                projectHasData={projectHasData}
+              />
+            </StyledCol>
+            <StyledCol xs={24} md={12}>
+              <SummaryCardWithGraph
+                label={projectCategory === 'event' ? `Water usage` : `Annual water usage changes`}
+                isEventProject={projectCategory === 'event'}
+                projectHasData={projectHasData}
+                units={displayAsMetric ? 'L' : 'gal'}
+                value={data.summary.water}
+                formatter={val => valueInGallons(val, { displayAsMetric })}
+              />
+            </StyledCol>
+          </>
+        )}
       </Row>
 
       <div className='page-break' />
@@ -223,14 +314,14 @@ export function AnalyticsPage({
         <Table<ProjectSummary>
           className='dont-print-me'
           dataSource={rows}
-          columns={columns}
+          columns={projectCategory === 'event' ? eventColumns : columns}
           rowKey='id'
           pagination={{ hideOnSinglePage: true }}
         />
         <Table<ProjectSummary>
           className='print-only'
           dataSource={rows}
-          columns={columns}
+          columns={projectCategory === 'event' ? eventColumns : columns}
           rowKey='id'
           pagination={{ hideOnSinglePage: true, pageSize: rows.length }}
         />

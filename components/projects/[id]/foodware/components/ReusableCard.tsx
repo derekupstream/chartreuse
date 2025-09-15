@@ -15,7 +15,7 @@ export const ReusableCard: FC<Props> = ({ item }) => {
       <Typography.Title level={4} style={{ marginTop: 0 }}>
         Material
       </Typography.Title>
-      <Typography.Text>{MATERIAL_MAP[item.reusableProduct.primaryMaterial]?.name}</Typography.Text>
+      <Typography.Text>{MATERIAL_MAP[item.reusableProduct.primaryMaterial]?.name ?? 'N/A'}</Typography.Text>
     </InfoCard>
   );
 };

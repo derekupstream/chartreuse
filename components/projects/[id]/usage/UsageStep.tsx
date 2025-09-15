@@ -12,6 +12,7 @@ import { FoodwareLineItem } from 'lib/projects/getProjectFoodwareLineItems';
 import { BOTTLE_STATION_PRODUCT_ID } from 'lib/calculator/constants/reusable-product-types';
 import { ReusableItemRow } from './components/ReusableItemRow';
 import { WaterStationRow } from './components/WaterStationRow';
+import { getReturnRate } from 'lib/calculator/calculations/foodware/getReturnRate';
 
 export function UsageStep({
   readOnly,
@@ -42,24 +43,19 @@ export function UsageStep({
   const waterStation = useMemo(() => {
     return foodwareItems?.find(item => item.reusableProduct.id === BOTTLE_STATION_PRODUCT_ID);
   }, [foodwareItems]);
+  const { displayValue, returnRatelabel, allItemsHaveSamePercentage } = useMemo(() => {
+    const { returnRate, allItemsHaveSamePercentage } = getReturnRate({
+      foodwareLineItems: foodwareWithoutWaterStation ?? []
+    });
 
-  // for now, all items have the same percentage. this is so in the future we might want to let users set a different percentage for each item.
-  const allItemsHaveSamePercentage = useMemo(
-    () =>
-      foodwareWithoutWaterStation?.every(item =>
-        foodwareWithoutWaterStation.every(i => i.reusableReturnPercentage === item.reusableReturnPercentage)
-      ),
-    [foodwareWithoutWaterStation]
-  );
-
-  const projectReturnPercentage =
-    allItemsHaveSamePercentage && foodwareWithoutWaterStation?.[0]?.reusableReturnPercentage;
-  const displayValue =
-    typeof projectReturnPercentage === 'number'
-      ? org.useShrinkageRate
-        ? 100 - projectReturnPercentage
-        : projectReturnPercentage
-      : undefined;
+    return {
+      ...getReturnOrShrinkageRate({
+        returnRate,
+        useShrinkageRate: org.useShrinkageRate
+      }),
+      allItemsHaveSamePercentage
+    };
+  }, [foodwareWithoutWaterStation, org]);
 
   // Advanced editing state
   const [advancedEditing, setAdvancedEditing] = useState(!isLoadingLineItems && !allItemsHaveSamePercentage);
@@ -109,7 +105,7 @@ export function UsageStep({
           </InfoCard>
         </Col>
         <Col span={12}>
-          <InfoCard title={org.useShrinkageRate ? 'Shrinkage Rate' : 'Return Rate'}>
+          <InfoCard title={returnRatelabel}>
             <Row gutter={[16, 0]} align='middle'>
               <Col flex='auto'>
                 {isLoadingLineItems ? (
@@ -210,3 +206,17 @@ const calculateAverageReturnPercentage = (foodwareItems: FoodwareLineItem[] = []
   const returnPercentage = totalReturnPercentage / foodwareItems.length;
   return useShrinkageRate ? 100 - returnPercentage : returnPercentage;
 };
+
+export function getReturnOrShrinkageRate({
+  returnRate,
+  useShrinkageRate
+}: {
+  returnRate?: number;
+  useShrinkageRate: boolean;
+}) {
+  const displayValue = typeof returnRate === 'number' ? (useShrinkageRate ? 100 - returnRate : returnRate) : undefined;
+  return {
+    displayValue,
+    returnRatelabel: useShrinkageRate ? 'Shrinkage rate' : 'Return rate'
+  };
+}

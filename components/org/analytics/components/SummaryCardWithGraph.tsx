@@ -25,11 +25,15 @@ export interface PageProps {
 
 export const SummaryCardWithGraph = ({
   label,
+  projectHasData,
+  isEventProject,
   units,
   value,
   formatter = defaultFormatter
 }: {
   label: string;
+  projectHasData: boolean;
+  isEventProject: boolean;
   units?: string;
   value: SummaryValues;
   formatter?: (val: number) => string | ReactNode;
@@ -49,13 +53,56 @@ export const SummaryCardWithGraph = ({
             <strong>{label}</strong>
           </Typography.Paragraph>
           <KPIValue>
-            {formatter(change)} <span style={{ fontSize: '.6em' }}>{units}</span>
+            {projectHasData ? (
+              <>
+                {formatter(change)} <span style={{ fontSize: '.6em' }}>{units}</span>
+              </>
+            ) : (
+              'N/A'
+            )}
           </KPIValue>
         </Col>
         <Col xs={24} sm={11}>
-          <GroupedBar data={graphData} formatter={val => (val ? formatter(val) : val)} />
+          {projectHasData ? (
+            <GroupedBar
+              isEventProject={isEventProject}
+              data={graphData}
+              formatter={val => (val ? formatter(val) : val)}
+            />
+          ) : (
+            <div />
+          )}
         </Col>
       </Row>
+    </Card>
+  );
+};
+
+export const SummaryCard = ({
+  label,
+  projectHasData,
+  units,
+  value
+}: {
+  label: string;
+  projectHasData: boolean;
+  units?: string;
+  value: string;
+}) => {
+  return (
+    <Card style={{ height: '100%' }}>
+      <Typography.Paragraph>
+        <strong>{label}</strong>
+      </Typography.Paragraph>
+      <KPIValue>
+        {projectHasData ? (
+          <>
+            {value} {units && <span style={{ fontSize: '.6em' }}>{units}</span>}
+          </>
+        ) : (
+          'N/A'
+        )}
+      </KPIValue>
     </Card>
   );
 };

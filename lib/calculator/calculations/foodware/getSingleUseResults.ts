@@ -29,7 +29,7 @@ export function getSingleUseResults(inventory: ProjectInventory): ProductForecas
 export function getSingleUseProductSummary(
   singleUseItems: ProjectInventory['singleUseItems'],
   isEventProject: boolean
-): ProductForecastResults['summary'] {
+): Omit<ProductForecastResults['summary'], 'returnRate'> {
   const baseline = singleUseItems.reduce<PurchasingSummaryColumn>(
     (column, item) => {
       const { caseCost, casesPurchased, frequency, product, unitsPerCase } = item;
