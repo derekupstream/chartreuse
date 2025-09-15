@@ -258,7 +258,7 @@ export function AnalyticsPage({
             isEventProject={projectCategory === 'event'}
             projectHasData={projectHasData}
             units={displayAsMetric ? 'kg' : 'lbs'}
-            formatter={val => valueInPounds(val, { displayAsMetric, displayAsTons: false })}
+            formatter={val => valueInPounds(val, { displayAsMetric, displayAsTons: false }).toLocaleString()}
             value={data.summary.waste}
           />
         </StyledCol>
