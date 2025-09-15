@@ -22,7 +22,7 @@ export const getServerSideProps: GetServerSideProps<PageProps> = async context =
   const accountIds = (context.query.accounts as string | undefined)?.split(',');
   const projectIds = (context.query.projects as string | undefined)?.split(',');
   const categoryRaw = (context.query.category as ProjectCategory | undefined) || 'default';
-  const projectCategory = ProjectCategory[categoryRaw as keyof typeof ProjectCategory] || 'default';
+  let projectCategory = ProjectCategory[categoryRaw as keyof typeof ProjectCategory] || 'default';
 
   const otherCategory = projectCategory === 'event' ? 'default' : 'event';
 
@@ -50,6 +50,7 @@ export const getServerSideProps: GetServerSideProps<PageProps> = async context =
 
   // org uses event projects by default
   if (projects.length === 0 && projectsInOtherCategory > 0) {
+    projectCategory = 'event';
     [projects, projectsInOtherCategory] = await Promise.all([
       prisma.project.findMany({
         where: {
