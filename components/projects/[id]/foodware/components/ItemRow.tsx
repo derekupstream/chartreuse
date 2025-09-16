@@ -55,7 +55,7 @@ export const ItemRow: FC<Props> = ({ item, onEdit, onDelete, readOnly }) => {
           <Typography.Title level={5} style={{ marginBottom: '0.5em', marginTop: 0 }}>
             {PRODUCT_TYPES_MAP[item.reusableProduct.type]}
           </Typography.Title>
-          <Typography.Paragraph style={{ fontSize: 12 }}>{item.reusableProduct.description}</Typography.Paragraph>
+          <Typography.Paragraph style={{ fontSize: 12 }}>{item.foodwareTitle}</Typography.Paragraph>
           {/* <Typography.Title level={5}>{item.lineItem.productName || item.product?.description}</Typography.Title> */}
           {!readOnly && (
             <>

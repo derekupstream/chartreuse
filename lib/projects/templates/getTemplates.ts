@@ -1,5 +1,5 @@
 import type { Project } from '@prisma/client';
-import { isEventProjectsEnabledForOrg } from 'lib/featureFlags';
+import { isEventProjectsEnabledForOrg } from 'lib/isEventProjectsEnabledForOrg';
 import prisma from 'lib/prisma';
 
 // import { TEMPLATES } from './config';

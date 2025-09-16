@@ -10,7 +10,7 @@ import onError from 'lib/middleware/onError';
 import onNoMatch from 'lib/middleware/onNoMatch';
 import prisma from 'lib/prisma';
 import { trackEvent } from 'lib/tracking';
-import { isEventProjectsEnabledForOrg } from 'lib/featureFlags';
+import { isEventProjectsEnabledForOrg } from 'lib/isEventProjectsEnabledForOrg';
 
 const handler = nc<NextApiRequest, NextApiResponse>({ onError, onNoMatch });
 

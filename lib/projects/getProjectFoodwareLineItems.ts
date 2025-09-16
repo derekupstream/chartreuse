@@ -5,6 +5,7 @@ import prisma from 'lib/prisma';
 
 import { getReusableProductsWithBottleStation } from 'lib/inventory/assets/reusables/getReusableProducts';
 import { getSingleUseProducts } from 'lib/inventory/getSingleUseProducts';
+import { FoodwareOption, getFoodwareOptions } from 'lib/inventory/assets/event-foodware/getFoodwareOptions';
 
 export type FoodwareLineItem = Pick<
   PrismaEventFoodwareLineItem,
@@ -12,6 +13,7 @@ export type FoodwareLineItem = Pick<
 > & {
   singleUseProduct: SingleUseProduct;
   reusableProduct: ReusableProduct;
+  foodwareTitle: string;
 };
 
 export async function getProjectFoodwareLineItems(projectId: string): Promise<FoodwareLineItem[]> {
@@ -23,7 +25,8 @@ export async function getProjectFoodwareLineItems(projectId: string): Promise<Fo
       orgId: true
     }
   });
-  const [singleUseProducts, reusableProducts] = await Promise.all([
+  const [foodwareOptions, singleUseProducts, reusableProducts] = await Promise.all([
+    getFoodwareOptions(),
     getSingleUseProducts({ orgId }),
     getReusableProductsWithBottleStation()
   ]);
@@ -36,11 +39,18 @@ export async function getProjectFoodwareLineItems(projectId: string): Promise<Fo
     }
   });
   const foodwareItems = items
-    .map(item => ({
-      ...item,
-      singleUseProduct: singleUseProducts.find(p => p.id === item.singleUseProductId)!,
-      reusableProduct: reusableProducts.find(p => p.id === item.reusableProductId)!
-    }))
+    .map(item => {
+      const foodwareOption = foodwareOptions.find(
+        o => o.reusable.id === item.reusableProductId && o.singleuse.id === item.singleUseProductId
+      );
+      const reusableProduct = reusableProducts.find(p => p.id === item.reusableProductId);
+      return {
+        ...item,
+        foodwareTitle: foodwareOption?.title || reusableProduct?.description || 'N/A',
+        singleUseProduct: singleUseProducts.find(p => p.id === item.singleUseProductId)!,
+        reusableProduct: reusableProduct!
+      };
+    })
     // sanity check
     .filter(item => item.reusableProduct && item.singleUseProduct);
   return foodwareItems;

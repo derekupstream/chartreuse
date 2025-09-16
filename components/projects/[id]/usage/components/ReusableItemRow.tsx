@@ -60,7 +60,7 @@ export function ReusableItemRow({
     <>
       <Row justify='space-between' align='middle' key={item.id}>
         <Col span={12}>
-          <S.CardTitle>{item.reusableProduct.description}</S.CardTitle>
+          <S.CardTitle>{item.foodwareTitle}</S.CardTitle>
         </Col>
         <Col span={6} style={{ textAlign: 'center' }}>
           <InputNumber
