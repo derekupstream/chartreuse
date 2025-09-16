@@ -72,7 +72,11 @@ export function ReusableItemRow({
             defaultValue={item.reusableItemCount || undefined}
             onChange={value => {
               if (typeof value === 'number') {
-                updateItem(item.id, value, item.reusableReturnPercentage);
+                // calculate new percentage based on current amount to maintain the same currentAmount
+                const newPercentage = currentAmount && value > 0 ? Math.ceil((currentAmount * 100) / value) : 0;
+                const toSave = useShrinkageRate ? 100 - newPercentage : newPercentage;
+                updateItem(item.id, value, toSave);
+                setCurrentPercentage(newPercentage);
               }
             }}
           />
@@ -82,7 +86,7 @@ export function ReusableItemRow({
             placeholder={advancedEditing ? (useShrinkageRate ? 'Enter shrinkage amount' : 'Enter return amount') : '--'}
             style={{ minWidth: '20ch' }}
             size='large'
-            disabled={readOnly || !advancedEditing}
+            disabled={readOnly || !advancedEditing || !item.reusableItemCount}
             min={0}
             value={currentAmount}
             onChange={value => {

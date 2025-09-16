@@ -203,7 +203,7 @@ export function UsageStep({
 
 const calculateAverageReturnPercentage = (foodwareItems: FoodwareLineItem[] = [], useShrinkageRate: boolean) => {
   const totalReturnPercentage = foodwareItems.reduce((acc, item) => acc + item.reusableReturnPercentage || 0, 0);
-  const returnPercentage = totalReturnPercentage / foodwareItems.length;
+  const returnPercentage = Math.round((totalReturnPercentage / foodwareItems.length) * 100) / 100;
   return useShrinkageRate ? 100 - returnPercentage : returnPercentage;
 };
 
