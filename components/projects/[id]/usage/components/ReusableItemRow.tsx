@@ -1,4 +1,4 @@
-import { Col, Divider, InputNumber, Row } from 'antd';
+import { Col, Divider, InputNumber, Row, message } from 'antd';
 import * as S from '../../styles';
 import { useEffect, useState } from 'react';
 
@@ -8,7 +8,7 @@ type ReusableItemRowProps = {
   item: FoodwareLineItem;
   useShrinkageRate: boolean;
   readOnly: boolean;
-  updateItem: (id: string, reusableItemCount: number, reusableReturnPercentage?: number) => void;
+  updateItem: (id: string, reusableItemCount: number, reusableReturnCount?: number) => void;
   isLast: boolean;
   advancedEditing: boolean;
 };
@@ -21,40 +21,46 @@ export function ReusableItemRow({
   isLast,
   advancedEditing
 }: ReusableItemRowProps) {
-  const itemReturnPercentage = item.reusableReturnPercentage;
-  const initialDisplayPercentage =
-    typeof itemReturnPercentage === 'number'
-      ? useShrinkageRate
-        ? 100 - itemReturnPercentage
-        : itemReturnPercentage
-      : undefined;
-
-  const initialDisplayAmount =
-    typeof initialDisplayPercentage === 'number' && item.reusableItemCount
-      ? Math.round((item.reusableItemCount * initialDisplayPercentage) / 100)
-      : undefined;
-
+  const itemCount = item.reusableItemCount;
+  const itemReturnCount = item.reusableReturnCount;
+  const itemReturnOrShrinkageCount = useShrinkageRate ? itemCount - itemReturnCount : itemReturnCount;
   // State to track current values
-  const [currentAmount, setCurrentAmount] = useState<number | undefined>(initialDisplayAmount);
-  const [currentPercentage, setCurrentPercentage] = useState<number | undefined>(initialDisplayPercentage);
+  const [currentAmount, setCurrentAmount] = useState<number | undefined>(itemReturnOrShrinkageCount);
+
+  // Validation helper functions
+  const validateQuantity = (value: number): boolean => {
+    if (value < 0) {
+      message.error('Quantity cannot be negative');
+      return false;
+    }
+    if (!Number.isInteger(value)) {
+      message.error('Quantity must be a whole number');
+      return false;
+    }
+    return true;
+  };
+
+  const validateReturnOrShrinkageAmount = (value: number, totalQuantity: number): boolean => {
+    if (value < 0) {
+      message.error(`${useShrinkageRate ? 'Shrinkage' : 'Return'} amount cannot be negative`);
+      return false;
+    }
+    if (value > totalQuantity) {
+      message.error(`${useShrinkageRate ? 'Shrinkage' : 'Return'} amount cannot exceed total quantity`);
+      return false;
+    }
+    if (!Number.isInteger(value)) {
+      message.error(`${useShrinkageRate ? 'Shrinkage' : 'Return'} amount must be a whole number`);
+      return false;
+    }
+    return true;
+  };
 
   // Update state when item changes
   useEffect(() => {
-    const newDisplayPercentage =
-      typeof itemReturnPercentage === 'number'
-        ? useShrinkageRate
-          ? 100 - itemReturnPercentage
-          : itemReturnPercentage
-        : undefined;
-
-    const newDisplayAmount =
-      typeof newDisplayPercentage === 'number' && item.reusableItemCount
-        ? Math.round((item.reusableItemCount * newDisplayPercentage) / 100)
-        : undefined;
-
-    setCurrentAmount(newDisplayAmount);
-    setCurrentPercentage(newDisplayPercentage);
-  }, [item.reusableReturnPercentage, item.reusableItemCount, useShrinkageRate]);
+    const itemReturnOrShrinkageCount = useShrinkageRate ? itemCount - itemReturnCount : itemReturnCount;
+    setCurrentAmount(itemReturnOrShrinkageCount);
+  }, [item.reusableItemCount, itemReturnCount, useShrinkageRate]);
 
   return (
     <>
@@ -69,14 +75,29 @@ export function ReusableItemRow({
             size='large'
             disabled={readOnly}
             min={0}
+            step={1}
+            precision={0}
             defaultValue={item.reusableItemCount || undefined}
             onChange={value => {
               if (typeof value === 'number') {
-                // calculate new percentage based on current amount to maintain the same currentAmount
-                const newPercentage = currentAmount && value > 0 ? Math.ceil((currentAmount * 100) / value) : 0;
-                const toSave = useShrinkageRate ? 100 - newPercentage : newPercentage;
-                updateItem(item.id, value, toSave);
-                setCurrentPercentage(newPercentage);
+                // Validate quantity
+                if (!validateQuantity(value)) {
+                  return;
+                }
+
+                // Calculate new return count while maintaining current amount
+                const newReturnCount = currentAmount
+                  ? useShrinkageRate
+                    ? value - currentAmount
+                    : item.reusableReturnCount
+                  : undefined;
+
+                // Validate the calculated return count
+                if (newReturnCount !== undefined && !validateReturnOrShrinkageAmount(newReturnCount ?? 0, value)) {
+                  return;
+                }
+
+                updateItem(item.id, value, newReturnCount);
               }
             }}
           />
@@ -88,20 +109,26 @@ export function ReusableItemRow({
             size='large'
             disabled={readOnly || !advancedEditing || !item.reusableItemCount}
             min={0}
+            max={item.reusableItemCount || undefined}
+            step={1}
+            precision={0}
             value={currentAmount}
             onChange={value => {
               if (typeof value === 'number' && item.reusableItemCount) {
-                const newPercentage = Math.ceil((value * 100) / item.reusableItemCount);
-                const toSave = useShrinkageRate ? 100 - newPercentage : newPercentage;
+                // Validate return/shrinkage amount
+                if (!validateReturnOrShrinkageAmount(value, item.reusableItemCount)) {
+                  return;
+                }
+
+                const toSave = useShrinkageRate ? item.reusableItemCount - value : value;
 
                 // Update local state immediately
                 setCurrentAmount(value);
-                setCurrentPercentage(newPercentage);
 
                 updateItem(item.id, item.reusableItemCount, toSave);
               } else if (value === null || value === undefined) {
                 setCurrentAmount(undefined);
-                setCurrentPercentage(undefined);
+                updateItem(item.id, item.reusableItemCount, undefined);
               }
             }}
           />

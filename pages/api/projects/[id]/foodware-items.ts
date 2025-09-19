@@ -12,6 +12,7 @@ export type ModifyFoodwareLineItemRequest = {
   singleUseProductId?: string;
   reusableProductId?: string;
   reusableItemCount?: number;
+  reusableReturnCount?: number;
   reusableReturnPercentage?: number;
   waterUsageGallons?: number;
 };
@@ -33,17 +34,24 @@ async function getItems(req: NextApiRequestWithUser, res: NextApiResponse<Foodwa
 async function addOrUpdateItem(req: NextApiRequestWithUser, res: NextApiResponse) {
   let lineItem: PrismaEventFoodwareLineItem;
 
-  if (req.body.id) {
+  const body = req.body as ModifyFoodwareLineItemRequest;
+
+  if (body.id) {
     lineItem = await prisma.eventFoodwareLineItem.update({
       where: {
-        id: req.body.id
+        id: body.id
       },
-      data: req.body
+      data: body
     });
   } else {
-    if (!req.body.projectId) throw new Error('Project id is required to add an item');
+    if (!body.projectId) throw new Error('Project id is required to add an item');
     lineItem = await prisma.eventFoodwareLineItem.create({
-      data: req.body
+      data: {
+        ...body,
+        projectId: body.projectId!,
+        singleUseProductId: body.singleUseProductId!,
+        reusableProductId: body.reusableProductId!
+      }
     });
   }
 

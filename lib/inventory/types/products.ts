@@ -24,6 +24,7 @@ export type FoodwareSelection = {
   projectId: string;
   reusableItemCount: number;
   reusableReturnPercentage: number;
+  reusableReturnCount: number;
   waterUsageGallons?: number;
   singleUseProduct: SingleUseProduct;
   reusableProduct: ReusableProduct;

@@ -43,9 +43,11 @@ export function UsageStep({
   const waterStation = useMemo(() => {
     return foodwareItems?.find(item => item.reusableProduct.id === BOTTLE_STATION_PRODUCT_ID);
   }, [foodwareItems]);
+
   const { displayValue, returnRatelabel, allItemsHaveSamePercentage } = useMemo(() => {
     const { returnRate, allItemsHaveSamePercentage } = getReturnRate({
-      foodwareLineItems: foodwareWithoutWaterStation ?? []
+      foodwareLineItems: foodwareWithoutWaterStation ?? [],
+      rounded: true
     });
 
     return {
@@ -59,11 +61,12 @@ export function UsageStep({
 
   // Advanced editing state
   const [advancedEditing, setAdvancedEditing] = useState(!isLoadingLineItems && !allItemsHaveSamePercentage);
-  function updateItem(id: string, reusableItemCount: number, reusableReturnPercentage?: number) {
+  function updateItem(id: string, reusableItemCount: number, reusableReturnCount?: number) {
     addOrUpdateFoodwareLineItem({
       id,
       reusableItemCount,
-      reusableReturnPercentage
+      reusableReturnCount,
+      reusableReturnPercentage: 0
     });
   }
 
@@ -116,11 +119,7 @@ export function UsageStep({
                     // defaultValue={advancedEditing ? undefined : displayValue}
                     value={advancedEditing ? undefined : displayValue}
                     disabled={advancedEditing}
-                    placeholder={
-                      advancedEditing
-                        ? calculateAverageReturnPercentage(foodwareWithoutWaterStation, org.useShrinkageRate).toString()
-                        : 'Set rate for all items'
-                    }
+                    placeholder={advancedEditing ? displayValue?.toString() : 'Set rate for all items'}
                     suffix='%'
                     style={{ minWidth: '20ch' }}
                     size='large'
@@ -202,8 +201,12 @@ export function UsageStep({
 }
 
 const calculateAverageReturnPercentage = (foodwareItems: FoodwareLineItem[] = [], useShrinkageRate: boolean) => {
-  const totalReturnPercentage = foodwareItems.reduce((acc, item) => acc + item.reusableReturnPercentage || 0, 0);
-  const returnPercentage = Math.round((totalReturnPercentage / foodwareItems.length) * 100) / 100;
+  const foodwareWithReusables = foodwareItems.filter(item => item.reusableItemCount && item.reusableReturnCount);
+  const totalReturnPercentage = foodwareWithReusables.reduce((acc, item) => {
+    const returnPercentage = Math.round((item.reusableReturnCount * 100) / item.reusableItemCount);
+    return acc + returnPercentage;
+  }, 0);
+  const returnPercentage = Math.round((totalReturnPercentage / foodwareWithReusables.length) * 100) / 100;
   return useShrinkageRate ? 100 - returnPercentage : returnPercentage;
 };
 
@@ -214,7 +217,12 @@ export function getReturnOrShrinkageRate({
   returnRate?: number;
   useShrinkageRate: boolean;
 }) {
-  const displayValue = typeof returnRate === 'number' ? (useShrinkageRate ? 100 - returnRate : returnRate) : undefined;
+  const displayValue =
+    typeof returnRate === 'number'
+      ? useShrinkageRate
+        ? Math.round((100 - returnRate) * 100) / 100
+        : returnRate
+      : undefined;
   return {
     displayValue,
     returnRatelabel: useShrinkageRate ? 'Shrinkage rate' : 'Return rate'

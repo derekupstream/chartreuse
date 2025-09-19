@@ -5,6 +5,7 @@ import type { NextApiResponse } from 'next';
 import { handlerWithUser } from 'lib/middleware';
 import type { NextApiRequestWithUser } from 'lib/middleware';
 import prisma from 'lib/prisma';
+import { BOTTLE_STATION_PRODUCT_ID } from 'lib/calculator/constants/reusable-product-types';
 
 export type UpdateProjectUsageRequest = {
   eventGuestCount?: number;
@@ -21,7 +22,7 @@ async function updateProjectUsage(req: NextApiRequestWithUser, res: NextApiRespo
   const { eventGuestCount, reusableReturnPercentage, projectId } = req.body;
 
   if (typeof eventGuestCount === 'number') {
-    const project = await prisma.project.update<Prisma.ProjectUpdateArgs>({
+    await prisma.project.update<Prisma.ProjectUpdateArgs>({
       where: {
         id: req.query.id as string
       },
@@ -34,9 +35,13 @@ async function updateProjectUsage(req: NextApiRequestWithUser, res: NextApiRespo
   if (typeof reusableReturnPercentage === 'number') {
     await prisma.eventFoodwareLineItem.updateMany({
       where: {
-        projectId
+        projectId,
+        reusableProductId: {
+          not: BOTTLE_STATION_PRODUCT_ID
+        }
       },
       data: {
+        reusableReturnCount: 0, // this will be calculated from the percentage going forward, unless user enables advanced editing again
         reusableReturnPercentage
       }
     });
