@@ -160,8 +160,8 @@ export function LineItemSummary({
             product: item.title,
             baselineSpending: baseline,
             forecastSpending: forecast,
-            forecastStr: formatNumber(forecast, changeType, currencyAbbreviation),
-            baselineStr: formatNumber(baseline, changeType, currencyAbbreviation),
+            forecastStr: formatNumber(forecast || 0, changeType, currencyAbbreviation),
+            baselineStr: formatNumber(baseline || 0, changeType, currencyAbbreviation),
             change: baseline ? (
               <ChangeColumn>
                 <span>

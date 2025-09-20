@@ -165,9 +165,9 @@ function mapFoodwareReusableItem(item: FoodwareSelection): ProjectInventory['reu
   const isBottleStation = product.id === BOTTLE_STATION_PRODUCT_ID;
   const returnPercent = item.reusableReturnPercentage
     ? item.reusableReturnPercentage
-    : item.reusableReturnCount / item.reusableItemCount;
+    : (item.reusableReturnCount / item.reusableItemCount) * 100;
   // we want to only consider the impact of lost reusable items
-  const lossRate = 1 - returnPercent;
+  const lossRate = 1 - returnPercent / 100;
   // assume bottle stations do not need to be 'replaced'
   const unitsPerCase = isBottleStation ? 0 : item.reusableItemCount * lossRate;
   return {

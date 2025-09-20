@@ -58,9 +58,12 @@ export function ReusableItemRow({
 
   // Update state when item changes
   useEffect(() => {
-    const itemReturnOrShrinkageCount = useShrinkageRate ? itemCount - itemReturnCount : itemReturnCount;
+    const itemReturnOrShrinkageCount = useShrinkageRate
+      ? item.reusableItemCount - item.reusableReturnCount
+      : item.reusableReturnCount;
+    console.log('set current amount', itemReturnOrShrinkageCount, item.reusableItemCount, item.reusableReturnCount);
     setCurrentAmount(itemReturnOrShrinkageCount);
-  }, [item.reusableItemCount, itemReturnCount, useShrinkageRate]);
+  }, [item.reusableItemCount, item.reusableReturnCount, useShrinkageRate]);
 
   return (
     <>
@@ -80,18 +83,21 @@ export function ReusableItemRow({
             defaultValue={item.reusableItemCount || undefined}
             onChange={value => {
               if (typeof value === 'number') {
-                // Validate quantity
+                // // Validate quantity
                 if (!validateQuantity(value)) {
                   return;
                 }
 
-                // Calculate new return count while maintaining current amount
-                const newReturnCount = currentAmount
-                  ? useShrinkageRate
-                    ? value - currentAmount
-                    : item.reusableReturnCount
-                  : undefined;
-
+                // When useShrinkageRate = true, calculate new return count by subtracting currentAmount, which is the current shrinkage rate
+                const shrinkageCount = item.reusableItemCount - item.reusableReturnCount;
+                const newReturnCount = useShrinkageRate
+                  ? // if the new quantity is less than return, use the new quantity as return
+                    value < shrinkageCount
+                    ? 0
+                    : value - shrinkageCount
+                  : value < item.reusableReturnCount
+                    ? value
+                    : item.reusableReturnCount;
                 // Validate the calculated return count
                 if (newReturnCount !== undefined && !validateReturnOrShrinkageAmount(newReturnCount ?? 0, value)) {
                   return;

@@ -25,11 +25,14 @@ export function getReturnRate({
       i => i.reusableReturnPercentage > 0 && i.reusableReturnPercentage === item.reusableReturnPercentage
     )
   );
-  const averageReturnPercentage = foodwareWithoutWaterStation.length
-    ? foodwareWithoutWaterStation.reduce((acc, item) => {
+  const foodwareWithReusables = foodwareWithoutWaterStation.filter(
+    item => item.reusableItemCount && item.reusableReturnCount
+  );
+  const averageReturnPercentage = foodwareWithReusables.length
+    ? foodwareWithReusables.reduce((acc, item) => {
         const returnPercentage = Math.round((item.reusableReturnCount * 100) / item.reusableItemCount);
         return acc + returnPercentage;
-      }, 0) / foodwareWithoutWaterStation.length
+      }, 0) / foodwareWithReusables.length
     : 100;
   const globalReturnRate = allItemsHaveSamePercentage
     ? // consider projects with no items to have a return rate of 100%
