@@ -68,7 +68,7 @@ export function ReusableItemRow({
   return (
     <>
       <Row justify='space-between' align='middle' key={item.id}>
-        <Col span={12}>
+        <Col span={8}>
           <S.CardTitle>{item.foodwareTitle}</S.CardTitle>
         </Col>
         <Col span={6} style={{ textAlign: 'center' }}>
@@ -172,6 +172,9 @@ export function ReusableItemRow({
             </Col>
           </>
         )} */}
+        <Col span={4} style={{ textAlign: 'center', opacity: 0.5 }}>
+          {Math.round((itemReturnOrShrinkageCount / item.reusableItemCount) * 100)}%
+        </Col>
       </Row>
       {!isLast && <Divider />}
     </>

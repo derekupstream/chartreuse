@@ -171,7 +171,11 @@ export const ProjectionsStep = ({ project, readOnly }: { project: ProjectContext
         </Col>
         <StyledCol span={19}>
           <span className={view === 'summary' ? '' : 'print-only'}>
-            {project.category === 'event' ? <EventProjectSummary data={data} /> : <ProjectSummary data={data} />}
+            {project.category === 'event' ? (
+              <EventProjectSummary data={data} useShrinkageRate={project.org.useShrinkageRate} />
+            ) : (
+              <ProjectSummary data={data} />
+            )}
           </span>
           <div className='page-break' />
           <span className={view === 'single_use_details' ? '' : 'print-only'}>

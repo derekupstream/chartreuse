@@ -31,7 +31,13 @@ function ProjectionsPage({ projects, org }: ServerSideProps) {
   const title = `${org.name} | Projections`;
   return (
     <SharedPageLayout title={title}>
-      <SharedPage orgName={org.name} pageTitle={title} projections={projects.filter(isTruthy)} isProjectTemplate />
+      <SharedPage
+        orgName={org.name}
+        useShrinkageRate={org.useShrinkageRate}
+        pageTitle={title}
+        projections={projects.filter(isTruthy)}
+        isProjectTemplate
+      />
     </SharedPageLayout>
   );
 }

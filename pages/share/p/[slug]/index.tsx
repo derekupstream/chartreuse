@@ -33,6 +33,7 @@ function ProjectionsPage({ project, projections, org }: ServerSideProps) {
     <SharedPageLayout title={title}>
       <SharedPage
         orgName={org.name}
+        useShrinkageRate={org.useShrinkageRate}
         pageTitle={title}
         bannerTitle={project.projectionsTitle}
         bannerDescription={project.projectionsDescription}

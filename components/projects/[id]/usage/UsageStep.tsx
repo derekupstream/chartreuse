@@ -154,7 +154,7 @@ export function UsageStep({
       </Row>
       <InfoCard style={{ marginBottom: 24 }}>
         <Row>
-          <Col span={12}>
+          <Col span={8}>
             <Typography.Text strong>Item</Typography.Text>
           </Col>
           <Col span={6} style={{ textAlign: 'center' }}>
@@ -162,6 +162,9 @@ export function UsageStep({
           </Col>
           <Col span={6} style={{ textAlign: 'center' }}>
             <Typography.Text strong>{org.useShrinkageRate ? 'Shrinkage Amount' : 'Return Amount'}</Typography.Text>
+          </Col>
+          <Col span={4} style={{ textAlign: 'center' }}>
+            <Typography.Text strong>{org.useShrinkageRate ? 'Shrinkage %' : 'Return %'}</Typography.Text>
           </Col>
           {/* {advancedEditing && (
             <>

@@ -56,7 +56,8 @@ export function SharedPage({
   pageTitle,
   isProjectTemplate,
   bannerTitle,
-  bannerDescription
+  bannerDescription,
+  useShrinkageRate
 }: {
   orgName: string;
   projections: ProjectProjection[];
@@ -64,6 +65,7 @@ export function SharedPage({
   isProjectTemplate?: boolean;
   bannerTitle?: string | null;
   bannerDescription?: string | null;
+  useShrinkageRate: boolean;
 }) {
   const [view, setView] = useState<SharedPageView>('summary');
   const [data, setData] = useState(projections[0]);
@@ -181,7 +183,7 @@ export function SharedPage({
             </DesktopElement>
             <span className={view === 'summary' ? '' : 'print-only'}>
               {data.projectCategory === 'event' ? (
-                <EventProjectSummary data={data.projections} />
+                <EventProjectSummary data={data.projections} useShrinkageRate={useShrinkageRate} />
               ) : (
                 <ProjectSummary data={data.projections} businessSize={businessSize} />
               )}

@@ -1,5 +1,5 @@
 import { Row, Col, Typography } from 'antd';
-import React from 'react';
+import React, { useMemo } from 'react';
 import styled from 'styled-components';
 
 import { useMetricSystem } from 'components/_app/MetricSystemProvider';
@@ -14,6 +14,7 @@ import { Divider, SectionContainer, SectionHeader, ChartTitle } from './common/s
 import { ProjectCategory } from '@prisma/client';
 
 import { EnvironmentalSummary } from './ProjectSummary/EnvironmentalSummary/EnvironmentalSummary';
+import { getReturnOrShrinkageRate } from '../../usage/UsageStep';
 const StyledCol = styled(Col)`
   @media print {
     flex: 0 0 50% !important;
@@ -23,10 +24,12 @@ const StyledCol = styled(Col)`
 type Props = {
   data: ProjectionsResponse;
   showTitle?: boolean;
+  useShrinkageRate: boolean;
 };
 
 export const EventProjectSummary: React.FC<Props> = ({
-  data: { annualSummary, environmentalResults, bottleStationResults },
+  data: { reusableResults, annualSummary, environmentalResults, bottleStationResults },
+  useShrinkageRate,
   showTitle
 }) => {
   const { symbol: currencySymbol } = useCurrency();
@@ -54,6 +57,13 @@ export const EventProjectSummary: React.FC<Props> = ({
     { label: firstLabel, value: annualSummary.greenhouseGasEmissions.total.baseline },
     { label: secondLabel, value: annualSummary.greenhouseGasEmissions.total.forecast }
   ];
+  const { displayValue: returnRateDisplayValue, returnRatelabel } = useMemo(() => {
+    const returnRate = reusableResults.summary.returnRate?.returnRate ?? 100;
+    return getReturnOrShrinkageRate({
+      returnRate,
+      useShrinkageRate
+    });
+  }, [reusableResults, useShrinkageRate]);
 
   return (
     <>
@@ -97,6 +107,9 @@ export const EventProjectSummary: React.FC<Props> = ({
               value={`${changeValue(annualSummary.singleUseProductCount.change * -1)} items`}
               subtitle=''
             />
+          </StyledCol>
+          <StyledCol xs={24} lg={12}>
+            <SingleValueKPICard title={returnRatelabel} value={`${returnRateDisplayValue}%`} subtitle='' />
           </StyledCol>
           {/* <StyledCol xs={24} lg={12}>
             <SingleValueKPICard
