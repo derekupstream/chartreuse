@@ -1,7 +1,7 @@
 import type { ProjectInventory, ReusableLineItemPopulatedWithProduct } from 'lib/inventory/types/projects';
 import { REUSABLE_MATERIALS } from '../../constants/materials';
 import { PRODUCT_CATEGORIES } from '../../constants/product-categories';
-import { PRODUCT_TYPES, BOTTLE_STATION_PRODUCT_ID } from '../../constants/reusable-product-types';
+import { PRODUCT_TYPES } from '../../constants/reusable-product-types';
 import { getChangeSummaryRow } from '../../utils';
 
 import { getDishwasherGasEmissions, getLineItemGasEmissions } from '../ghg/getAnnualGasEmissionChanges';

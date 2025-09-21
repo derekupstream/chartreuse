@@ -70,10 +70,11 @@ export function UsageStep({
     });
   }
 
-  function updateWaterStation(id: string, waterUsageGallons?: number) {
+  function updateWaterStation(id: string, waterUsageGallons?: number, reusableItemCount?: number) {
     addOrUpdateFoodwareLineItem({
       id,
-      waterUsageGallons
+      waterUsageGallons,
+      reusableItemCount
     });
   }
 

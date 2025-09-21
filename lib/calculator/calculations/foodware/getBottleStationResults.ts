@@ -16,7 +16,11 @@ export function getBottleStationResults(project: ProjectInventory): BottleStatio
   const bottleStationProduct = project.foodwareItems.find(
     item => item.reusableProduct.id === BOTTLE_STATION_PRODUCT_ID
   );
-  const waterUsageGallons = bottleStationProduct?.waterUsageGallons ?? 0;
-  const bottlesSaved = Math.round(waterUsageGallons / gallonsPerBottle);
+  if (!bottleStationProduct) {
+    return { bottlesSaved: 0 };
+  }
+  const waterPerStation = bottleStationProduct.waterUsageGallons ?? 0;
+  const totalWaterUsageGallons = waterPerStation * bottleStationProduct.reusableItemCount;
+  const bottlesSaved = Math.round(totalWaterUsageGallons / gallonsPerBottle);
   return { bottlesSaved };
 }
