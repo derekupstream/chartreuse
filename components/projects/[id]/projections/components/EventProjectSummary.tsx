@@ -109,7 +109,11 @@ export const EventProjectSummary: React.FC<Props> = ({
             />
           </StyledCol>
           <StyledCol xs={24} lg={12}>
-            <SingleValueKPICard title={returnRatelabel} value={`${returnRateDisplayValue}%`} subtitle='' />
+            <SingleValueKPICard
+              title={returnRatelabel}
+              value={`${Math.round((returnRateDisplayValue ?? 0) * 100) / 100}%`}
+              subtitle=''
+            />
           </StyledCol>
           {/* <StyledCol xs={24} lg={12}>
             <SingleValueKPICard

@@ -276,7 +276,7 @@ export function AnalyticsPage({
             <StyledCol xs={24} lg={12}>
               <SummaryCard
                 label={returnRatelabel}
-                value={`${returnRateDisplayValue}%`}
+                value={`${Math.round((returnRateDisplayValue ?? 0) * 100) / 100}%`}
                 projectHasData={projectHasData}
               />
             </StyledCol>
