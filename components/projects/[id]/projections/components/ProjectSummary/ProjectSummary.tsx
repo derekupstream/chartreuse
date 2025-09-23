@@ -3,7 +3,15 @@ import { ProjectImpacts } from './ProjectImpacts';
 import FinancialSummary from './FinancialSummary/FinancialSummary';
 import { EnvironmentalSummary } from './EnvironmentalSummary/EnvironmentalSummary';
 
-export function ProjectSummary({ data, businessSize }: { data: ProjectionsResponse; businessSize?: number }) {
+export function ProjectSummary({
+  data,
+  businessSize,
+  isOnSiteDiningProject
+}: {
+  data: ProjectionsResponse;
+  businessSize?: number;
+  isOnSiteDiningProject?: boolean;
+}) {
   return (
     <>
       <ProjectImpacts data={data.annualSummary} />

@@ -193,7 +193,11 @@ export function SharedPage({
               <LineItemSummary variant='single_use' lineItemSummary={data.projections.singleUseResults} />
             </span>
             <span className={view === 'reusable_details' ? '' : 'print-only'}>
-              <LineItemSummary variant='reusable' lineItemSummary={data.projections.reusableResults} />
+              <LineItemSummary
+                variant='reusable'
+                lineItemSummary={data.projections.reusableResults}
+                isOnSiteDiningProjectReusables
+              />
             </span>
             {hasRecommendations && view === 'recommendations' && (
               <SectionContainer>

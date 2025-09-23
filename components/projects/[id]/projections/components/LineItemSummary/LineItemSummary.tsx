@@ -44,6 +44,16 @@ const LABELS = {
   }
 };
 
+// override the labels for the on-site dining project so that there is only one title on the first row
+const LABELS_ON_SITE_DINING = {
+  single_use: LABELS.single_use,
+  reusable: {
+    ...LABELS.reusable,
+    costsDescription: 'Repurchasing of reusable items',
+    unitsDescription: ''
+  }
+};
+
 type VariantType = keyof typeof LABELS;
 
 type RowType = 'productCategory' | 'productType' | 'material';
@@ -61,13 +71,16 @@ export function LineItemSummary({
   variant,
   showTitle,
   hideWaterUsage,
-  projectCategory
+  projectCategory,
+  isOnSiteDiningProjectReusables
 }: {
   lineItemSummary: ProjectionsResponse['singleUseResults'] | ProjectionsResponse['reusableResults'];
   variant: VariantType;
   showTitle?: boolean;
   hideWaterUsage?: boolean;
   projectCategory?: ProjectCategory;
+  // a UI hack to fix the display the project impact for the shared "on-site dining"project in lib/share/config.ts, where the baseline and forecast are the same
+  isOnSiteDiningProjectReusables?: boolean;
 }) {
   const [rowType, setRowType] = useState<RowType>('productType');
   const [changeType, setChangeType] = useState<ChangeType>(projectCategory === 'event' ? 'waste' : 'cost');
@@ -89,7 +102,7 @@ export function LineItemSummary({
     setDisplayWeightAsMetric(e.target.value === 'metric');
   }
 
-  const labels = LABELS[variant];
+  const labels = isOnSiteDiningProjectReusables ? LABELS_ON_SITE_DINING[variant] : LABELS[variant];
 
   const { annualCost, annualUnits, annualGHG, annualWater, reusableWater } = lineItemSummary.summary;
 
@@ -210,10 +223,17 @@ export function LineItemSummary({
           </div>
           <Body>
             <Section>
-              <KPIContent
-                changePercent={annualCost.changePercent * -1}
-                changeStr={`${changeValue(annualCost.change * -1, { preUnit: currencySymbol }).toLocaleString()}`}
-              />
+              {/* if on-site dining project and reusables, show the baseline cost because the change is 0 */}
+              {isOnSiteDiningProjectReusables ? (
+                <KPIContent
+                  changeStr={`${changeValue(annualCost.baseline, { preUnit: currencySymbol }).toLocaleString()}`}
+                />
+              ) : (
+                <KPIContent
+                  changePercent={annualCost.changePercent * -1}
+                  changeStr={`${changeValue(annualCost.change * -1, { preUnit: currencySymbol }).toLocaleString()}`}
+                />
+              )}
               <BarChart
                 data={costsData}
                 formatter={(label, data) => `${data.label}: ${currencySymbol}${data.value.toLocaleString()}`}
@@ -222,10 +242,15 @@ export function LineItemSummary({
             </Section>
 
             <Section>
-              <KPIContent
-                changePercent={annualUnits.changePercent * -1}
-                changeStr={changeValue(annualUnits.change * -1) + ' units'}
-              />
+              {/* if on-site dining project and reusables, show the baseline cost because the change is 0 */}
+              {isOnSiteDiningProjectReusables ? (
+                <KPIContent changeStr={changeValue(annualUnits.baseline) + ' units'} />
+              ) : (
+                <KPIContent
+                  changePercent={annualUnits.changePercent * -1}
+                  changeStr={changeValue(annualUnits.change * -1) + ' units'}
+                />
+              )}
               <BarChart
                 data={unitCountData}
                 formatter={(label, data) => `${data.label}: ${data.value.toLocaleString()} pieces`}
