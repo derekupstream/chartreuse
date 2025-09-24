@@ -147,7 +147,9 @@ export function ProjectForm({ actionLabel, org, project, template, onComplete }:
     });
     const USState = form.getFieldValue('USState');
     if (!USState && !showCustomUtilities) {
-      form.setFieldValue('USState', locationData.state_short);
+      if (STATES.some(state => state.name === locationData.state)) {
+        form.setFieldValue('USState', locationData.state);
+      }
     }
   };
 
