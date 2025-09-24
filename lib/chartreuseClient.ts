@@ -20,6 +20,14 @@ export type ProjectInput = {
   id?: string;
   name: string;
   metadata: any;
+  location: {
+    city: string;
+    state: string;
+    country: string;
+    latitude: number;
+    longitude: number;
+    formatted: string;
+  };
   accountId: string;
   orgId: string;
   USState: string | null;

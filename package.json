@@ -62,6 +62,7 @@
     "@beam-australia/react-env": "^3.1.1",
     "@swc/core": "^1.10.16",
     "@swc/jest": "^0.2.37",
+    "@types/google.maps": "^3.58.1",
     "@types/gtag.js": "^0.0.19",
     "@types/jest": "^29.2.4",
     "@types/lodash": "^4.14.192",

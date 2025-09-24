@@ -156,11 +156,11 @@ function addProjectsSheet(workbook: ExcelJS.Workbook, data: AllProjectsSummary) 
     { header: 'Electric Utility ($/kWh)', key: 'electricRate', width: 20 },
     { header: 'Water Utility', key: 'waterRate', width: 20 },
     { header: 'US State', key: 'USState', width: 20 },
-    { header: 'Project Type', key: 'projectType', width: 20 },
-    { header: 'Daily Customers', key: 'dailyCustomers', width: 20 },
-    { header: 'Dine-in vs Take-out', key: 'dineInVsTakeOut', width: 20 },
-    { header: 'Food Prep', key: 'whereIsFoodPrepared', width: 20 },
-    { header: 'Dishwashing Type', key: 'dishwashingType', width: 30 }
+    { header: 'Project Type', key: 'projectType', width: 20 }
+    // { header: 'Daily Customers', key: 'dailyCustomers', width: 20 },
+    // { header: 'Dine-in vs Take-out', key: 'dineInVsTakeOut', width: 20 },
+    // { header: 'Food Prep', key: 'whereIsFoodPrepared', width: 20 },
+    // { header: 'Dishwashing Type', key: 'dishwashingType', width: 30 }
   ];
 
   const rows = data.projects.map(project => {

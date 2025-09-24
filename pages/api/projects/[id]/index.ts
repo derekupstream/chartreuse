@@ -41,7 +41,8 @@ async function updateProject(req: NextApiRequestWithUser, res: NextApiResponse<R
     singleUseReductionPercentage,
     isTemplate,
     templateDescription,
-    category
+    category,
+    location
   } = req.body;
 
   if (USState) {
@@ -72,6 +73,7 @@ async function updateProject(req: NextApiRequestWithUser, res: NextApiResponse<R
       currency,
       utilityRates: utilityRates || Prisma.JsonNull,
       budget,
+      location,
       isTemplate: isTemplate,
       templateDescription: templateDescription || undefined,
       singleUseReductionPercentage,

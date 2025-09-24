@@ -19,8 +19,18 @@ handler.use(getUser).get(getProjects).post(createProject).delete(deleteProject);
 export type PopulatedProject = Project & { account: Account };
 
 async function createProject(req: NextApiRequestWithUser, res: NextApiResponse<{ project: Project }>) {
-  const { category, name, metadata, accountId, USState, currency, utilityRates, templateDescription, isTemplate } =
-    req.body as ProjectInput;
+  const {
+    category,
+    name,
+    metadata,
+    location,
+    accountId,
+    USState,
+    currency,
+    utilityRates,
+    templateDescription,
+    isTemplate
+  } = req.body as ProjectInput;
 
   const isEventProjectsEnabled = await isEventProjectsEnabledForOrg({ orgId: req.user.orgId! });
   const categorySafe = isEventProjectsEnabled ? category : 'default';
@@ -51,6 +61,7 @@ async function createProject(req: NextApiRequestWithUser, res: NextApiResponse<{
       USState: USState || undefined,
       currency,
       utilityRates: utilityRates || undefined,
+      location,
       isTemplate: isTemplate,
       templateDescription: templateDescription || undefined,
       category: categorySafe,

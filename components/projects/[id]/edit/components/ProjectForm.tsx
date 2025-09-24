@@ -13,7 +13,6 @@ import {
   Alert,
   Card
 } from 'antd';
-import { hasAccessToCategory, categories } from 'lib/projects/categories';
 import type { Store } from 'antd/lib/form/interface';
 import { useRef, useEffect, useState } from 'react';
 
@@ -21,14 +20,18 @@ import type { DashboardUser } from 'interfaces';
 import { STATES } from 'lib/calculator/constants/utilities';
 import type { ProjectInput } from 'lib/chartreuseClient';
 
-import * as S from '../../styles';
 import { useMetricSystem } from 'components/_app/MetricSystemProvider';
 import { useCurrency } from 'components/_app/CurrencyProvider';
 import type { ProjectInventory } from 'lib/inventory/types/projects';
+import LocationInput from 'components/common/LocationInput';
+import type { LocationData } from 'components/common/LocationInput';
 
 // component and config for currency select is from the example at https://codesandbox.io/s/currency-wrapper-antd-input-3ynzo?file=/src/index.js
 // referenced at https://ant.design/components/input-number
 const locale = 'en-us';
+
+// Google Maps API key for location input
+const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
 
 const currencyFormatter =
   (selectedCurrOpt: string) =>
@@ -110,9 +113,43 @@ export function ProjectForm({ actionLabel, org, project, template, onComplete }:
 
   const isUpstream = org.isUpstream || process.env.NODE_ENV === 'development';
 
+  const currentLocation = project?.location as ProjectInput['location'] | null;
+  const initialValues = {
+    accountId: org.accounts[0].id,
+    customers: 0,
+    dineInVsTakeOut: 0,
+    category: 'default',
+    currency: currencyAbbreviation,
+    ...((project?.metadata as any) || {}),
+    ...(project || {}),
+    projectLocation: currentLocation?.formatted,
+    projectCity: currentLocation?.city,
+    projectState: currentLocation?.state,
+    projectCountry: currentLocation?.country,
+    projectLatitude: currentLocation?.latitude,
+    projectLongitude: currentLocation?.longitude
+  };
+
   function toggleCustomUtilities(value: boolean) {
     setShowCustomUtilities(value);
   }
+
+  // Handle location selection
+  const handleLocationSelect = (locationData: LocationData) => {
+    // Update form with structured location data
+    form.setFieldsValue({
+      projectLocation: locationData.formatted_address,
+      projectCity: locationData.city,
+      projectState: locationData.state,
+      projectCountry: locationData.country,
+      projectLatitude: locationData.latitude,
+      projectLongitude: locationData.longitude
+    });
+    const USState = form.getFieldValue('USState');
+    if (!USState) {
+      form.setFieldValue('USState', locationData.state_short);
+    }
+  };
 
   async function saveProject({
     name,
@@ -122,6 +159,12 @@ export function ProjectForm({ actionLabel, org, project, template, onComplete }:
     utilityRates = null,
     isTemplate,
     templateDescription,
+    projectLocation,
+    projectCity,
+    projectState,
+    projectCountry,
+    projectLatitude,
+    projectLongitude,
     // category,
     ...metadata
   }: Store) {
@@ -129,6 +172,14 @@ export function ProjectForm({ actionLabel, org, project, template, onComplete }:
       id: project?.id,
       name,
       metadata,
+      location: {
+        formatted: projectLocation,
+        city: projectCity,
+        state: projectState,
+        country: projectCountry,
+        latitude: projectLatitude,
+        longitude: projectLongitude
+      },
       accountId,
       USState,
       currency,
@@ -188,15 +239,7 @@ export function ProjectForm({ actionLabel, org, project, template, onComplete }:
         form={form}
         onFieldsChange={handleFormChange}
         layout='horizontal'
-        initialValues={{
-          accountId: org.accounts[0].id,
-          customers: 0,
-          dineInVsTakeOut: 0,
-          category: 'default',
-          currency: currencyAbbreviation,
-          ...((project?.metadata as any) || {}),
-          ...(project || {})
-        }}
+        initialValues={initialValues}
         onFinish={saveProject as any}
       >
         <Form.Item
@@ -258,10 +301,42 @@ export function ProjectForm({ actionLabel, org, project, template, onComplete }:
           </Select>
         </Form.Item>
 
+        {/* Location Input */}
+        {GOOGLE_MAPS_API_KEY && (
+          <LocationInput
+            apiKey={GOOGLE_MAPS_API_KEY}
+            name='projectLocation'
+            label='Project Location'
+            placeholder='Enter city, state, country...'
+            onLocationSelect={handleLocationSelect}
+            showAddressBreakdown={false}
+            types={['(cities)']}
+            value={(project?.location as ProjectInput['location'])?.formatted}
+          />
+        )}
+
+        {/* Hidden fields to store structured location data */}
+        <Form.Item name='projectCity' style={{ display: 'none' }}>
+          <Input />
+        </Form.Item>
+        <Form.Item name='projectState' style={{ display: 'none' }}>
+          <Input />
+        </Form.Item>
+        <Form.Item name='projectCountry' style={{ display: 'none' }}>
+          <Input />
+        </Form.Item>
+        <Form.Item name='projectLatitude' style={{ display: 'none' }}>
+          <Input />
+        </Form.Item>
+        <Form.Item name='projectLongitude' style={{ display: 'none' }}>
+          <Input />
+        </Form.Item>
+
         <Form.Item
           label='Utility Rates'
           required
           {...verticalLayout}
+          labelAlign='left'
           style={{
             marginBottom: '0'
           }}
@@ -272,9 +347,9 @@ export function ProjectForm({ actionLabel, org, project, template, onComplete }:
             value={showCustomUtilities}
           >
             <Radio style={{ width: '40%' }} value={false}>
-              Select by US State
+              By US State
             </Radio>
-            <Radio value={true}>Enter custom rates</Radio>
+            <Radio value={true}>Custom</Radio>
           </Radio.Group>
           <br />
           <br />

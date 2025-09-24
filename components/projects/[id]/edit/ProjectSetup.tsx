@@ -80,7 +80,11 @@ export function ProjectSetup({
 
   async function saveBudget(values: BudgetFormValues) {
     try {
-      const newProject = { ...project, ...values } as ProjectInput;
+      const newProject = {
+        ...project,
+        location: project?.location as ProjectInput['location'],
+        ...values
+      } as ProjectInput;
       const result = await chartreuseClient.updateProject(newProject);
       onComplete(result.project.id, result.project.category);
     } catch (error) {

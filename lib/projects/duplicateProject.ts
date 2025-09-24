@@ -39,6 +39,7 @@ export async function duplicateProject({
   const newProject = await prisma.project.create({
     data: {
       ...project,
+      location: project.location as any,
       recommendations: project.recommendations as any,
       createdAt: new Date(),
       updatedAt: new Date(),
