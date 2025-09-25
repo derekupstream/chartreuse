@@ -64,9 +64,10 @@ export type USState = (typeof STATES)[number]['name'];
 export type UtilityRates = { gas: number; electric: number; water: number };
 
 function getUtilitiesByState(state: USState): UtilityRates {
-  const localRates = STATES.find(s => s.name === state);
+  let localRates = STATES.find(s => s.name === state);
   if (!localRates) {
-    throw new Error(`No utilities rates for state ${state}`);
+    console.error(`No utilities rates for state ${state}`);
+    localRates = STATES[0];
   }
   return {
     ...localRates,
