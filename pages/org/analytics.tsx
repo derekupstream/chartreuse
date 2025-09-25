@@ -48,9 +48,10 @@ export const getServerSideProps: GetServerSideProps<PageProps> = async context =
     })
   ]);
 
+  console.log('projectsInOtherCategory', projects.length, projectsInOtherCategory);
+
   // org uses event projects by default
   if (projects.length === 0 && projectsInOtherCategory > 0) {
-    projectCategory = 'event';
     [projects, projectsInOtherCategory] = await Promise.all([
       prisma.project.findMany({
         where: {
@@ -72,6 +73,7 @@ export const getServerSideProps: GetServerSideProps<PageProps> = async context =
         }
       })
     ]);
+    projectCategory = 'event';
   }
 
   const filteredProjects = projects.filter(p => {
@@ -97,6 +99,8 @@ export const getServerSideProps: GetServerSideProps<PageProps> = async context =
       .filter(p => (accountIds ? !accountIds.includes(p.accountId) : true)),
     'name'
   );
+
+  console.log('allProjects', projectsInOtherCategory, allProjects.length);
 
   return {
     props: serializeJSON({
