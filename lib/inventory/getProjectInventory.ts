@@ -29,6 +29,7 @@ import type {
   CalculatorDishWasherSimple
 } from './types/projects';
 
+const gallonsUsedPerBottleStation = 27.15;
 const gallonsPerBottle = 0.132;
 
 export async function getProjectInventory(projectId: string): Promise<ProjectInventory> {
@@ -219,11 +220,12 @@ function mapSingleUseItem(
 
 function mapFoodwareSingleUseItem(item: FoodwareSelection): ProjectInventory['singleUseItems'][number] {
   const product = item.singleUseProduct;
-  // for water stations, we want to consider the impact of water bottles
+  // for water stations, we want to consider the impact of water bottle single use items
+  const bottleWaterUsage = item.waterUsageGallons || gallonsUsedPerBottleStation;
   const unitsPerCase =
     item.reusableProduct.id === BOTTLE_STATION_PRODUCT_ID
-      ? item.waterUsageGallons
-        ? Math.round(item.waterUsageGallons / gallonsPerBottle)
+      ? bottleWaterUsage
+        ? Math.round(bottleWaterUsage / gallonsPerBottle)
         : 0
       : item.reusableItemCount;
 

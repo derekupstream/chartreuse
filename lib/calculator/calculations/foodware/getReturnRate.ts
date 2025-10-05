@@ -29,24 +29,27 @@ export function getReturnRate({
     item => item.reusableItemCount && item.reusableReturnCount
   );
   const averageReturnPercentage = foodwareWithReusables.length
-    ? foodwareWithReusables.reduce((acc, item) => {
-        const returnPercentage = Math.round((item.reusableReturnCount * 100) / item.reusableItemCount);
-        return acc + returnPercentage;
-      }, 0) / foodwareWithReusables.length
-    : 100;
-  const globalReturnRate = allItemsHaveSamePercentage
+    ? (foodwareWithReusables.reduce((acc, item) => acc + item.reusableReturnCount, 0) * 100) /
+      foodwareWithReusables.reduce((acc, item) => acc + item.reusableItemCount, 0)
+    : 1;
+
+  console.log('', averageReturnPercentage);
+  const returnRate = allItemsHaveSamePercentage
     ? // consider projects with no items to have a return rate of 100%
       (foodwareWithoutWaterStation?.[0]?.reusableReturnPercentage ?? 100)
-    : undefined;
-
-  // these could currently always be the same, but leaving them separate in case logic changes
-  const returnRate = globalReturnRate ?? averageReturnPercentage;
+    : averageReturnPercentage;
+  const shrinkageRate = 1 - returnRate;
   // round to 2 decimal places if rounded is true
-  const formattedReturnRate = rounded ? Math.round(returnRate * 100) / 100 : returnRate;
-
+  const formattedReturnRate = rounded ? formatPercentage(returnRate) : returnRate;
+  const formattedShrinkageRate = rounded ? formatPercentage(shrinkageRate) : shrinkageRate;
+  console.log({ returnRate, shrinkageRate, formattedReturnRate, formattedShrinkageRate });
   return {
     returnRate: formattedReturnRate,
-    shrinkageRate: Math.round((100 - formattedReturnRate) * 100) / 100,
+    shrinkageRate: formattedShrinkageRate,
     allItemsHaveSamePercentage
   };
 }
+
+const formatPercentage = (percentage: number) => {
+  return parseFloat(percentage.toFixed(2).replace(/0+$/, ''));
+};

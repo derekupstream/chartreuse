@@ -61,7 +61,6 @@ export function ReusableItemRow({
     const itemReturnOrShrinkageCount = useShrinkageRate
       ? item.reusableItemCount - item.reusableReturnCount
       : item.reusableReturnCount;
-    console.log('set current amount', itemReturnOrShrinkageCount, item.reusableItemCount, item.reusableReturnCount);
     setCurrentAmount(itemReturnOrShrinkageCount);
   }, [item.reusableItemCount, item.reusableReturnCount, useShrinkageRate]);
 
@@ -173,7 +172,9 @@ export function ReusableItemRow({
           </>
         )} */}
         <Col span={4} style={{ textAlign: 'center', opacity: 0.5 }}>
-          {Math.round((itemReturnOrShrinkageCount / item.reusableItemCount) * 100)}%
+          {item.reusableItemCount
+            ? Math.round((itemReturnOrShrinkageCount / item.reusableItemCount) * 100) + '%'
+            : 'N/A'}
         </Col>
       </Row>
       {!isLast && <Divider />}

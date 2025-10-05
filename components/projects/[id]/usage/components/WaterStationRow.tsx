@@ -64,6 +64,7 @@ export function WaterStationRow({ item, readOnly, updateItem }: WaterStationRowP
             disabled={readOnly}
             min={0}
             step={1}
+            status={currentQuantity === 0 ? 'error' : undefined}
             precision={0}
             value={currentQuantity}
             onChange={value => {
@@ -80,12 +81,12 @@ export function WaterStationRow({ item, readOnly, updateItem }: WaterStationRowP
         <Col span={6} style={{ alignItems: 'center' }}>
           <InputNumber
             addonAfter={`${displayAsMetric ? 'L' : 'gal'}`}
-            placeholder='Enter water usage'
             style={{ minWidth: '20ch' }}
             size='large'
             disabled={readOnly}
             min={0}
-            value={currentAmount}
+            placeholder={!currentAmount ? '27.15' : 'Enter water usage'}
+            value={currentAmount === 0 ? '' : currentAmount}
             onChange={value => {
               if (typeof value === 'number') {
                 setCurrentAmount(value);

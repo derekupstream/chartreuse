@@ -5,6 +5,7 @@ import type { NextApiRequestWithUser } from 'lib/middleware';
 import { projectHandler } from 'lib/middleware';
 import { getProjectFoodwareLineItems } from 'lib/projects/getProjectFoodwareLineItems';
 import prisma from 'lib/prisma';
+import { BOTTLE_STATION_PRODUCT_ID } from 'lib/calculator/constants/reusable-product-types';
 
 export type ModifyFoodwareLineItemRequest = {
   id?: string;
@@ -45,8 +46,13 @@ async function addOrUpdateItem(req: NextApiRequestWithUser, res: NextApiResponse
     });
   } else {
     if (!body.projectId) throw new Error('Project id is required to add an item');
+    const isWaterStation = body.reusableProductId === BOTTLE_STATION_PRODUCT_ID;
+    const reusableItemCount = isWaterStation ? 1 : 0;
+    const waterUsageGallons = isWaterStation ? 27.15 : 0;
     lineItem = await prisma.eventFoodwareLineItem.create({
       data: {
+        reusableItemCount,
+        waterUsageGallons,
         ...body,
         projectId: body.projectId!,
         singleUseProductId: body.singleUseProductId!,

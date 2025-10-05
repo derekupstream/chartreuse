@@ -146,7 +146,7 @@ export function UsageStep({
                   }}
                 >
                   <Switch checked={advancedEditing} onChange={setAdvancedEditing} />
-                  <Typography.Text>Edit line items</Typography.Text>
+                  <Typography.Text>Edit individual items</Typography.Text>
                 </div>
               </Col>
             </Row>
