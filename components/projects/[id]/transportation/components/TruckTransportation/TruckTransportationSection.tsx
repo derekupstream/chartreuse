@@ -134,7 +134,7 @@ export const TruckTransportationSection = ({ projectId, readOnly }: { projectId:
               <Col span={8}></Col>
               <Col span={8}>
                 <InfoCard theme='forecast'>
-                  <Typography.Title level={5}>Tranportation</Typography.Title>
+                  <Typography.Title level={5}>Transportation</Typography.Title>
                   <table>
                     <thead>
                       <tr>
