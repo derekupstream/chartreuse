@@ -113,9 +113,11 @@ export const columns = [
             />
             <ReductionValue value={record.projections.annualSummary.greenhouseGasEmissions.total} />
             <ReductionValue value={record.projections.environmentalResults.annualWaterUsageChanges.total} />
-            {record.useShrinkageRate
-              ? record.projections.reusableResults.summary.returnRate?.shrinkageRate
-              : record.projections.reusableResults.summary.returnRate?.returnRate}
+            {Math.round(
+              ((record.useShrinkageRate
+                ? record.projections.reusableResults.summary.returnRate?.shrinkageRate
+                : record.projections.reusableResults.summary.returnRate?.returnRate) ?? 0) * 100
+            ) / 100}
             %
           </Typography.Text>
         </>
