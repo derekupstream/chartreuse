@@ -5,10 +5,6 @@ type BottleStationResults = {
   bottlesSaved: number;
 };
 
-export function getBottleCountForBottleStation(stationsPurchased: number): number {
-  return Math.round((stationsPurchased * gallonsUsedPerBottleStation) / gallonsPerBottle);
-}
-
 export const gallonsUsedPerBottleStation = 27.1515;
 const gallonsPerBottle = 0.132;
 
@@ -21,6 +17,6 @@ export function getBottleStationResults(project: ProjectInventory): BottleStatio
   }
   const waterPerStation = bottleStationProduct.waterUsageGallons ?? 0;
   const totalWaterUsageGallons = waterPerStation * bottleStationProduct.reusableItemCount;
-  const bottlesSaved = Math.round(totalWaterUsageGallons / gallonsPerBottle);
+  const bottlesSaved = Math.floor(totalWaterUsageGallons / gallonsPerBottle);
   return { bottlesSaved };
 }

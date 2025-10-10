@@ -32,7 +32,7 @@ export function getSingleUseProductSummary(
 ): Omit<ProductForecastResults['summary'], 'returnRate'> {
   const baseline = singleUseItems.reduce<PurchasingSummaryColumn>(
     (column, item) => {
-      const { caseCost, casesPurchased, frequency, product, unitsPerCase } = item;
+      const { caseCost, casesPurchased, frequency, unitsPerCase } = item;
 
       const annualCost = annualLineItemCost({
         caseCost,

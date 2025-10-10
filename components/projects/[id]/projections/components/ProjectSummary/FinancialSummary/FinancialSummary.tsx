@@ -60,9 +60,7 @@ const tooltipVariants = [
 const FinancialSummary: React.FC<Props> = ({ data: financialResults, businessSize }) => {
   const { abbreviation: currencyAbbreviation } = useCurrency();
   const showTooltips = typeof businessSize === 'number';
-  console.log('businessSize', businessSize);
   const tooltipVars = typeof businessSize === 'number' ? tooltipVariants[businessSize] : tooltipVariants[0];
-  console.log('financialResults', currencyAbbreviation);
   return (
     <SectionContainer>
       <SectionHeader>Financial summary</SectionHeader>

@@ -19,7 +19,6 @@ export async function getProjections(projectId: string) {
   const singleUseResults = getSingleUseResults(inventory);
   const reusableResults = getReusableResults(inventory);
   const bottleStationResults = getBottleStationResults(inventory);
-
   return {
     annualSummary,
     environmentalResults,

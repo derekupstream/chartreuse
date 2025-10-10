@@ -100,8 +100,6 @@ export const getServerSideProps: GetServerSideProps<PageProps> = async context =
     'name'
   );
 
-  console.log('allProjects', projectsInOtherCategory, allProjects.length);
-
   return {
     props: serializeJSON({
       allAccounts,

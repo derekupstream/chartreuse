@@ -33,7 +33,6 @@ export function getReturnRate({
       foodwareWithReusables.reduce((acc, item) => acc + item.reusableItemCount, 0)
     : 1;
 
-  console.log('', averageReturnPercentage);
   const returnRate = allItemsHaveSamePercentage
     ? // consider projects with no items to have a return rate of 100%
       (foodwareWithoutWaterStation?.[0]?.reusableReturnPercentage ?? 100)
@@ -42,7 +41,6 @@ export function getReturnRate({
   // round to 2 decimal places if rounded is true
   const formattedReturnRate = rounded ? formatPercentage(returnRate) : returnRate;
   const formattedShrinkageRate = rounded ? formatPercentage(shrinkageRate) : shrinkageRate;
-  console.log({ returnRate, shrinkageRate, formattedReturnRate, formattedShrinkageRate });
   return {
     returnRate: formattedReturnRate,
     shrinkageRate: formattedShrinkageRate,

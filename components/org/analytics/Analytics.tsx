@@ -137,7 +137,7 @@ export function AnalyticsPage({
 
   const singleUseItemsAvoided = data.projects.reduce((acc, project) => {
     if (project.category === 'event') {
-      acc += project.projections.annualSummary.singleUseProductCount.change * -1;
+      acc += project.projections.singleUseResults.summary.annualUnits.change * -1;
     }
     return acc;
   }, 0);
