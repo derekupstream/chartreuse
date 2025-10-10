@@ -289,6 +289,7 @@ export function AnalyticsPage({
                 units={displayAsMetric ? 'L' : 'gal'}
                 value={data.summary.water}
                 formatter={val => valueInGallons(val, { displayAsMetric })}
+                reverseChangePercent={projectCategory === 'event'}
               />
             </StyledCol>
           </>
