@@ -162,7 +162,7 @@ export const EnvironmentalSummary: React.FC<Props> = ({ data, hideWaterUsage, is
                 ? data.eventProjectWaste.summary.changePercent * -1
                 : data.annualWasteChanges.summary.changePercent * -1
             }
-            changeStr={`${changeValueInPounds(isEventProject ? data.eventProjectWaste.summary.change : data.annualWasteChanges.summary.change, options)}`}
+            changeStr={`${changeValueInPounds(isEventProject ? data.eventProjectWaste.summary.change * -1 : data.annualWasteChanges.summary.change, options)}`}
           >
             <br />
             <Chart data={annualWasteData} seriesField='wasteType' />
