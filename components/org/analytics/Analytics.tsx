@@ -269,6 +269,7 @@ export function AnalyticsPage({
             projectHasData={projectHasData}
             units='MTC02e'
             value={data.summary.gas}
+            reverseChangePercent={projectCategory === 'event'}
           />
         </StyledCol>
         {projectCategory === 'event' && (

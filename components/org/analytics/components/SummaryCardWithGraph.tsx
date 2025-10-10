@@ -29,13 +29,15 @@ export const SummaryCardWithGraph = ({
   isEventProject,
   units,
   value,
-  formatter = defaultFormatter
+  formatter = defaultFormatter,
+  reverseChangePercent
 }: {
   label: string;
   projectHasData: boolean;
   isEventProject: boolean;
   units?: string;
   value: SummaryValues;
+  reverseChangePercent?: boolean;
   formatter?: (val: number) => string | ReactNode;
 }) => {
   const graphData = {
@@ -43,7 +45,7 @@ export const SummaryCardWithGraph = ({
     forecast: value.forecast
   };
 
-  const change = (value.forecast - value.baseline) * -1;
+  const change = (value.forecast - value.baseline) * (reverseChangePercent ? 1 : -1);
 
   return (
     <Card style={{ height: '100%' }}>
