@@ -1,8 +1,9 @@
 const madhaviOrgId = '52490efb-743d-40a4-9b45-dcee0eba40be';
 const eugeneOrgId = '3f42a5c7-0fdd-436a-983b-6067a3804ef4';
+const seattleOrgId = '0b80ab18-886c-4c09-afad-7cafc1d47a78';
 
 export function isEventProjectsEnabled({ id, isUpstream }: { id: string; isUpstream: boolean }) {
-  if (id === eugeneOrgId || id === madhaviOrgId) {
+  if (id === eugeneOrgId || id === madhaviOrgId || id === seattleOrgId) {
     return true;
   }
   return isUpstream || process.env.NODE_ENV === 'development';
