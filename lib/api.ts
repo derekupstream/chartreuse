@@ -6,6 +6,7 @@ import type { SubscriptionProduct } from 'lib/stripe/getSubscriptionProduct';
 import type { TrialRequestBody } from 'pages/api/stripe/create-subscription';
 
 import * as http from './http';
+import { ProjectTag } from '@prisma/client';
 
 function _useGET<T = unknown>(path: string | undefined | null, query: any = {}) {
   const requestUrl = path ? path + _getQueryString(query) : null;
@@ -86,3 +87,19 @@ export const members = {
 };
 
 export const projects = {};
+
+export const fetchTags = async (orgId: string): Promise<ProjectTag[]> => {
+  const response = await fetch(`/api/tags?orgId=${orgId}`);
+  if (!response.ok) throw new Error('Failed to fetch tags');
+  return response.json();
+};
+
+export const addTag = async (orgId: string, label: string): Promise<ProjectTag> => {
+  const response = await fetch(`/api/tags?orgId=${orgId}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ label })
+  });
+  if (!response.ok) throw new Error('Failed to create tag');
+  return response.json();
+};

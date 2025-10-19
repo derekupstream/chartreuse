@@ -1,5 +1,5 @@
 import { CopyOutlined, DeleteOutlined, EditOutlined } from '@ant-design/icons';
-import type { Project, Account } from '@prisma/client';
+import type { Project, Account, ProjectTagRelation } from '@prisma/client';
 import { Button, Card, Col, message, Popconfirm, Row, Space, Typography } from 'antd';
 import Link from 'next/link';
 import { useEffect } from 'react';
@@ -12,9 +12,10 @@ import * as S from 'layouts/styles';
 
 interface PopulatedProject extends Project {
   account: Account;
+  tags: ProjectTagRelation[];
 }
 
-export function ActiveProjects() {
+export function ActiveProjects({ tagIdsFilter }: { tagIdsFilter: string[] }) {
   const { data: { projects } = {}, isLoading, mutate: refreshProjects, error } = useGetProjects();
   const { trigger: triggerCopy, isMutating: copyProjectIsLoading } = useCopyProject();
   const { trigger: triggerDelete, isMutating: deleteProjectIsLoading } = useDeleteProject();
@@ -70,9 +71,24 @@ export function ActiveProjects() {
     );
   }
 
+  const filteredProjects =
+    (tagIdsFilter.length > 0
+      ? projects?.filter((project: PopulatedProject) => {
+          return project.tags.some(tag => tagIdsFilter.includes(tag.tagId));
+        })
+      : projects) || [];
+
+  if (filteredProjects.length === 0) {
+    return (
+      <Card style={{ height: 280, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <Typography.Text>No projects found</Typography.Text>
+      </Card>
+    );
+  }
+
   return (
     <Row gutter={[20, 20]}>
-      {projects?.map((project: PopulatedProject) => {
+      {filteredProjects.map((project: PopulatedProject) => {
         return (
           <Col xs={24} md={12} lg={8} key={project.id}>
             <Card style={{ height: '100%' }} bodyStyle={{ height: '100%', display: 'flex', flexDirection: 'column' }}>

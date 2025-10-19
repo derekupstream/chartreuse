@@ -86,7 +86,7 @@ export function getProjectUtilities(project: {
       utilities.water = utilities.water * LITER_TO_GALLON;
     }
     return utilities;
-  } else if (project.utilityRates?.electric && project.utilityRates?.gas && project.utilityRates?.water) {
+  } else if (project.utilityRates?.electric || project.utilityRates?.gas || project.utilityRates?.water) {
     // Note: if useMetricSystem is true, we expect the user will assume their rate is for 1000 liters, not 1000 gallons
     // but since values are in gallons, we need to convert the rate to gallons
     const rates = { ...project.utilityRates };

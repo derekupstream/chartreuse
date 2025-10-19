@@ -1,27 +1,34 @@
 import { PlusOutlined } from '@ant-design/icons';
-import { Button, Tabs, Typography } from 'antd';
+import { Button, Tabs, Typography, Select } from 'antd';
 import { useRouter } from 'next/router';
+import { useState } from 'react';
 
 import { useSubscription } from 'hooks/useSubscription';
 import * as S from 'layouts/styles';
 
 import { ActiveProjects } from './components/ActiveProjects';
 import { ProjectTemplates } from './components/ProjectTemplates';
+import { useTags } from 'hooks/useTags';
 
 export const ProjectsDashboard = ({
+  orgId,
   isUpstream,
   showTemplateByDefault
 }: {
+  orgId: string;
   isUpstream: boolean;
   showTemplateByDefault: boolean;
 }) => {
   const router = useRouter();
+  const { tags } = useTags(orgId); // TODO: get org id from context
   //const { subscriptionStatus } = useSubscription();
   // temporary hack to allow Post-Landfill Action Network to have more projects
   // const projectLimit = orgId === '8793767e-ed9c-4adf-bb45-ba1c45378288' ? 4 : 1;
 
   // disable the project limit per Derek
   const projectLimitReached = false; // data?.projects && subscriptionStatus !== 'Active' && data.projects.length >= projectLimit;
+
+  const [tagIdsFilter, setTagIdsFilter] = useState<string[]>([]);
 
   function upgradeAccount() {
     router.push('/subscription');
@@ -71,14 +78,25 @@ export const ProjectsDashboard = ({
           {
             label: `Active Projects`,
             key: 'active',
-            children: <ActiveProjects />
+            children: <ActiveProjects tagIdsFilter={tagIdsFilter} />
           },
           {
             label: `Templates`,
             key: 'templates',
-            children: <ProjectTemplates isUpstream={isUpstream} />
+            children: <ProjectTemplates isUpstream={isUpstream} tagIdsFilter={tagIdsFilter} />
           }
         ]}
+        tabBarExtraContent={{
+          right: (
+            <Select
+              mode='multiple'
+              placeholder='Select tags to filter projects'
+              style={{ marginBottom: 16, width: '300px' }}
+              options={tags.map(tag => ({ label: tag.label, value: tag.id }))}
+              onChange={setTagIdsFilter}
+            />
+          )
+        }}
       />
     </>
   );

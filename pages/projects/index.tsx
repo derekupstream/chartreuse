@@ -17,7 +17,13 @@ export const getServerSideProps: GetServerSideProps = async context => {
 };
 
 const ProjectsPage = ({ user, query }: ProjectsPageProps) => {
-  return <ProjectsDashboard isUpstream={user.org.isUpstream} showTemplateByDefault={query?.view === 'templates'} />;
+  return (
+    <ProjectsDashboard
+      orgId={user.org.id}
+      isUpstream={user.org.isUpstream}
+      showTemplateByDefault={query?.view === 'templates'}
+    />
+  );
 };
 
 ProjectsPage.getLayout = (page: React.ReactNode, pageProps: PageProps) => {

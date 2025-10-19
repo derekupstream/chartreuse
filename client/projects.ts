@@ -1,4 +1,4 @@
-import type { Project, TruckTransportationCost } from '@prisma/client';
+import type { TruckTransportationCost } from '@prisma/client';
 import type { ReusableLineItem } from 'lib/inventory/types/projects';
 import type { SingleUseLineItem } from 'lib/inventory/types/projects';
 import type { PopulatedProject } from 'pages/api/projects/index';
@@ -16,7 +16,7 @@ export function useGetProjects() {
 }
 
 export function useGetProjectTemplates() {
-  return useGET<Project[]>('/api/project-templates');
+  return useGET<PopulatedProject[]>('/api/project-templates');
 }
 
 export function useCopyProject() {

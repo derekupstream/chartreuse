@@ -24,6 +24,7 @@ import { columns as eventColumns } from './components/EventAnalyticsTableColumns
 
 import * as S2 from '../../../layouts/styles';
 import { getReturnOrShrinkageRate } from 'components/projects/[id]/usage/UsageStep';
+import { useTags } from 'hooks/useTags';
 
 const StyledCol = styled(Col)`
   @media print {
@@ -52,6 +53,7 @@ export function AnalyticsPage({
   showCategoryTabs
 }: PageProps) {
   const router = useRouter();
+  const { tags } = useTags(user.org.id);
   const displayAsMetric = useMetricSystem();
   const { abbreviation: currencyAbbreviation } = useCurrency();
   // for printing
@@ -63,32 +65,53 @@ export function AnalyticsPage({
 
   const selectedProjects = typeof router.query.projects === 'string' ? router.query.projects.split(',') : [];
 
-  const options: SelectProps['options'] = [
-    {
-      label: 'Filter by Account',
-      options: allAccounts?.map(account => ({
-        label: account.name,
-        value: account.id
-      }))
-    },
-    {
-      label: 'Filter by Project',
-      options: allProjects?.map(project => ({
-        label: project.name,
-        value: project.id
-      }))
+  const options: SelectProps['options'] = useMemo(() => {
+    const _options: SelectProps['options'] = [
+      {
+        label: 'Filter by Project',
+        options: allProjects?.map(project => ({
+          label: project.name,
+          value: project.id
+        }))
+      }
+    ];
+    if (allAccounts && allAccounts.length > 1) {
+      _options.unshift({
+        label: 'Filter by Account',
+        options: allAccounts?.map(account => ({
+          label: account.name,
+          value: account.id
+        }))
+      });
     }
-  ];
+    if (tags.length > 0) {
+      _options.unshift({
+        label: 'Filter by Tag',
+        options: tags?.map(tag => ({
+          label: tag.label,
+          value: tag.id
+        }))
+      });
+    }
+    return _options;
+  }, [tags, allProjects, allAccounts]);
 
-  function handleChange(value: string[]) {
+  function handleFilterChange(value: string[]) {
     const accountIds = value.filter(id => allAccounts?.some(project => project.id === id));
     const projectIds = value.filter(id => allProjects?.some(project => project.id === id));
+    const tagIds = value.filter(id => tags?.some(tag => tag.id === id));
     let updatedPath = router.asPath.split('?')[0];
+    if (projectCategory !== 'default') {
+      updatedPath += `?category=${projectCategory}`;
+    }
     if (accountIds.length) {
       updatedPath += `?accounts=${accountIds.join(',')}`;
     }
     if (projectIds.length) {
       updatedPath += `${updatedPath.includes('?') ? '&' : '?'}projects=${projectIds.join(',')}`;
+    }
+    if (tagIds.length) {
+      updatedPath += `${updatedPath.includes('?') ? '&' : '?'}tags=${tagIds.join(',')}`;
     }
     router.replace(updatedPath);
   }
@@ -200,7 +223,7 @@ export function AnalyticsPage({
               mode='multiple'
               defaultValue={selectedProjects}
               placeholder='Select Projects'
-              onChange={handleChange}
+              onChange={handleFilterChange}
               options={options}
             />
           </Form.Item>

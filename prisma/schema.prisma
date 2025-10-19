@@ -49,6 +49,8 @@ model Org {
   invites              Invite[]
   stripeCustomerId     String?
   stripeSubscriptionId String?
+
+  projectTags ProjectTag[]
 }
 
 model Account {
@@ -126,6 +128,8 @@ model Project {
   publicSlug             String?         @unique
   recommendations        Json?
   showRecommendations    Boolean         @default(true)
+
+  tags ProjectTagRelation[]
 }
 
 // a new model for "Foodware" tab, where we pair a single use and reusable product together
@@ -270,4 +274,23 @@ model DishwasherSimple {
 enum Role {
   ORG_ADMIN
   ACCOUNT_ADMIN
+}
+
+model ProjectTag {
+  id        String   @id @default(uuid()) @db.Uuid
+  label String
+  index Int
+  orgId String @db.Uuid
+  org   Org    @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  projects ProjectTagRelation[]
+}
+
+model ProjectTagRelation {
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  tag       ProjectTag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  projectId String @db.Uuid
+  tagId     String @db.Uuid
+
+  @@id([projectId, tagId])
 }

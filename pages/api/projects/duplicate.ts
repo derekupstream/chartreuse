@@ -7,9 +7,9 @@ import { duplicateProject } from 'lib/projects/duplicateProject';
 
 const handler = projectHandler();
 
-handler.post(duplicateProjectionsHandler);
+handler.post(duplicateProjectHandler);
 
-async function duplicateProjectionsHandler(req: NextApiRequestWithUser, res: NextApiResponse) {
+async function duplicateProjectHandler(req: NextApiRequestWithUser, res: NextApiResponse) {
   const projectId = req.body.id as string;
   const accounts = await prisma.account.findMany({
     where: {

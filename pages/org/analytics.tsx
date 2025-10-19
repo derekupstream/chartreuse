@@ -21,6 +21,7 @@ export const getServerSideProps: GetServerSideProps<PageProps> = async context =
 
   const accountIds = (context.query.accounts as string | undefined)?.split(',');
   const projectIds = (context.query.projects as string | undefined)?.split(',');
+  const tagIds = (context.query.tags as string | undefined)?.split(',');
   const categoryRaw = (context.query.category as ProjectCategory | undefined) || 'default';
   let projectCategory = ProjectCategory[categoryRaw as keyof typeof ProjectCategory] || 'default';
 
@@ -36,7 +37,8 @@ export const getServerSideProps: GetServerSideProps<PageProps> = async context =
       },
       include: {
         account: true,
-        org: true
+        org: true,
+        tags: true
       }
     }),
     prisma.project.count({
@@ -47,8 +49,6 @@ export const getServerSideProps: GetServerSideProps<PageProps> = async context =
       }
     })
   ]);
-
-  console.log('projectsInOtherCategory', projects.length, projectsInOtherCategory);
 
   // org uses event projects by default
   if (projects.length === 0 && projectsInOtherCategory > 0) {
@@ -62,7 +62,8 @@ export const getServerSideProps: GetServerSideProps<PageProps> = async context =
         },
         include: {
           account: true,
-          org: true
+          org: true,
+          tags: true
         }
       }),
       prisma.project.count({
@@ -80,11 +81,12 @@ export const getServerSideProps: GetServerSideProps<PageProps> = async context =
     if (accountIds || projectIds) {
       return accountIds?.includes(p.accountId) || projectIds?.includes(p.id);
     }
+    if (tagIds) {
+      return tagIds.some(id => p.tags.some(t => t.tagId === id));
+    }
     return true;
   });
-
   const data = await getAllProjections(filteredProjects);
-
   const allAccounts = sortBy(
     uniqBy(
       projects.map(p => ({ id: p.accountId, name: p.account.name })),
@@ -94,12 +96,12 @@ export const getServerSideProps: GetServerSideProps<PageProps> = async context =
   );
   const allProjects = sortBy(
     projects
-      .map(p => ({ id: p.id, accountId: p.accountId, name: `${p.account.name}: ${p.name}` }))
+      .map(p => ({ id: p.id, accountId: p.accountId, name: `${p.account.name}: ${p.name}`, tags: p.tags }))
       // remove projects included already in the account filter
-      .filter(p => (accountIds ? !accountIds.includes(p.accountId) : true)),
+      .filter(p => (accountIds ? !accountIds.includes(p.accountId) : true))
+      .filter(p => (tagIds ? !tagIds.some(id => p.tags.some(t => t.tagId === id)) : true)),
     'name'
   );
-
   return {
     props: serializeJSON({
       allAccounts,

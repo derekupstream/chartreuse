@@ -10,6 +10,7 @@ import prisma from 'lib/prisma';
 export type ProjectContext = {
   user: DashboardUser;
   project: Project & {
+    tagIds: string[];
     org: { isUpstream: boolean; name: string; useShrinkageRate: boolean };
     account: { name: string };
   };
@@ -79,6 +80,11 @@ export const getProjectContext: GetServerSideProps = async context => {
           select: {
             templateDescription: true
           }
+        },
+        tags: {
+          select: {
+            tagId: true
+          }
         }
       }
     });
@@ -93,6 +99,7 @@ export const getProjectContext: GetServerSideProps = async context => {
       user,
       project: {
         ...project,
+        tagIds: project.tags.map(tag => tag.tagId),
         projectionsDescription: project.projectionsDescription || project.template?.templateDescription || null,
         projectionsTitle: project.projectionsTitle || project.name || null
       },

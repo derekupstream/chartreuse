@@ -78,19 +78,19 @@ export function ProjectSetup({
     }
   }
 
-  async function saveBudget(values: BudgetFormValues) {
-    try {
-      const newProject = {
-        ...project,
-        location: project?.location as ProjectInput['location'],
-        ...values
-      } as ProjectInput;
-      const result = await chartreuseClient.updateProject(newProject);
-      onComplete(result.project.id, result.project.category);
-    } catch (error) {
-      message.error((error as Error)?.message || (error as any).error);
-    }
-  }
+  // async function saveBudget(values: BudgetFormValues) {
+  //   try {
+  //     const newProject = {
+  //       ...project,
+  //       location: project?.location as ProjectInput['location'],
+  //       ...values
+  //     } as ProjectInput;
+  //     const result = await chartreuseClient.updateProject(newProject);
+  //     onComplete(result.project.id, result.project.category);
+  //   } catch (error) {
+  //     message.error((error as Error)?.message || (error as any).error);
+  //   }
+  // }
 
   function onComplete(projectId: string, category: ProjectCategory) {
     const urlRedirect = typeof router.query.redirect === 'string' ? router.query.redirect : null;
@@ -127,9 +127,9 @@ export function ProjectSetup({
                 onComplete={saveProject}
               />
             )}
-            {currentStepIndex === 1 && project && (
+            {/* {currentStepIndex === 1 && project && (
               <BudgetForm project={project} onComplete={saveBudget} onSkip={onComplete} />
-            )}
+            )} */}
           </div>
         </Wrapper>
       </Space>

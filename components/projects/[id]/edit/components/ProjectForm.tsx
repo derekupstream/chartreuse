@@ -1,4 +1,5 @@
 import type { Project } from '@prisma/client';
+import { DeleteOutlined } from '@ant-design/icons';
 import {
   Button,
   InputNumber,
@@ -9,9 +10,12 @@ import {
   Checkbox,
   Input,
   Typography,
-  Slider,
+  Space,
   Alert,
-  Card
+  Card,
+  Tag,
+  Modal,
+  Tooltip
 } from 'antd';
 import type { Store } from 'antd/lib/form/interface';
 import { useRef, useEffect, useState } from 'react';
@@ -25,6 +29,7 @@ import { useCurrency } from 'components/_app/CurrencyProvider';
 import type { ProjectInventory } from 'lib/inventory/types/projects';
 import LocationInput from 'components/common/LocationInput';
 import type { LocationData } from 'components/common/LocationInput';
+import { useTags } from 'hooks/useTags';
 
 // component and config for currency select is from the example at https://codesandbox.io/s/currency-wrapper-antd-input-3ynzo?file=/src/index.js
 // referenced at https://ant.design/components/input-number
@@ -110,6 +115,7 @@ export function ProjectForm({ actionLabel, org, project, template, onComplete }:
   }
 
   const [showCustomUtilities, setShowCustomUtilities] = useState(project ? !project?.USState : false);
+  const { confirm } = Modal;
 
   const isUpstream = org.isUpstream || process.env.NODE_ENV === 'development';
 
@@ -167,6 +173,7 @@ export function ProjectForm({ actionLabel, org, project, template, onComplete }:
     projectCountry,
     projectLatitude,
     projectLongitude,
+    tagIds,
     // category,
     ...metadata
   }: Store) {
@@ -183,6 +190,7 @@ export function ProjectForm({ actionLabel, org, project, template, onComplete }:
         longitude: projectLongitude
       },
       accountId,
+      tagIds,
       USState,
       currency,
       utilityRates,
@@ -217,6 +225,7 @@ export function ProjectForm({ actionLabel, org, project, template, onComplete }:
     setDisabledSave(hasErrors);
   }, [form]);
 
+  const { tags, loading, createTag, deleteTag } = useTags(org.id);
   if (org.accounts.length === 0) {
     return <Alert message='You need to create an account before you can create a project' type='error' showIcon />;
   }
@@ -332,6 +341,58 @@ export function ProjectForm({ actionLabel, org, project, template, onComplete }:
         </Form.Item>
         <Form.Item name='projectLongitude' style={{ display: 'none' }}>
           <Input />
+        </Form.Item>
+
+        <Form.Item label='Tags' name='tagIds'>
+          <Select
+            mode='tags'
+            style={{ width: '100%' }}
+            placeholder='Add a tag'
+            loading={loading}
+            optionRender={option => {
+              return (
+                <Space
+                  key={option.value}
+                  style={{ display: 'flex', width: '270px', alignItems: 'center', justifyContent: 'space-between' }}
+                >
+                  <div
+                    style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                  >
+                    {option.label}
+                  </div>
+                  <Tooltip title='Delete tag'>
+                    <DeleteOutlined
+                      type='close'
+                      onClick={e => {
+                        e.stopPropagation();
+                        confirm({
+                          title: 'Are you sure you want to delete this tag?',
+                          onOk: async () => {
+                            await deleteTag(option.value as string);
+                            form.setFieldValue(
+                              'tagIds',
+                              form.getFieldValue('tagIds').filter((t: string) => t !== option.value)
+                            );
+                          }
+                        });
+                      }}
+                    />
+                  </Tooltip>
+                </Space>
+              );
+            }}
+            options={tags.map(tag => ({ label: tag.label, value: tag.id }))}
+            onChange={async (value: string[]) => {
+              const newTag = value.find((tag: string) => !tags.some(t => t.id === tag));
+              if (newTag) {
+                const newTagResult = await createTag(newTag);
+                if (newTagResult) {
+                  const validTags = value.filter((tag: string) => tag !== newTag);
+                  form.setFieldValue('tagIds', [...validTags, newTagResult.id]);
+                }
+              }
+            }}
+          />
         </Form.Item>
 
         <Form.Item

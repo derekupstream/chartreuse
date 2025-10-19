@@ -1,11 +1,12 @@
 import type { Project } from '@prisma/client';
 import { isEventProjectsEnabledForOrg } from 'lib/isEventProjectsEnabledForOrg';
 import prisma from 'lib/prisma';
+import type { PopulatedProject } from 'pages/api/projects/index';
 
 // import { TEMPLATES } from './config';
 // const templates = process.env.NODE_ENV === 'production' ? TEMPLATES.production : TEMPLATES.dev;
 
-export async function getTemplates({ orgId }: { orgId: string }): Promise<Project[]> {
+export async function getTemplates({ orgId }: { orgId: string }): Promise<PopulatedProject[]> {
   const isEventProjectsEnabled = await isEventProjectsEnabledForOrg({ orgId });
 
   const templates = await prisma.project.findMany({
@@ -16,6 +17,10 @@ export async function getTemplates({ orgId }: { orgId: string }): Promise<Projec
         : {
             not: 'event'
           }
+    },
+    include: {
+      account: true,
+      tags: true
     }
   });
   return templates.map(template => ({

@@ -1,7 +1,7 @@
-import type { Account, Project } from '@prisma/client';
+import type { Account, Project, ProjectTagRelation } from '@prisma/client';
 import type { NextApiRequest, NextApiResponse } from 'next';
 import nc from 'next-connect';
-
+import { v4 as uuidv4 } from 'uuid';
 import type { ProjectMetadata } from 'components/projects/[id]/edit/ProjectSetup';
 import type { ProjectInput } from 'lib/chartreuseClient';
 import type { NextApiRequestWithUser } from 'lib/middleware/getUser';
@@ -16,7 +16,7 @@ const handler = nc<NextApiRequest, NextApiResponse>({ onError, onNoMatch });
 
 handler.use(getUser).get(getProjects).post(createProject).delete(deleteProject);
 
-export type PopulatedProject = Project & { account: Account };
+export type PopulatedProject = Project & { account: Account; tags: ProjectTagRelation[] };
 
 async function createProject(req: NextApiRequestWithUser, res: NextApiResponse<{ project: Project }>) {
   const {
@@ -29,6 +29,7 @@ async function createProject(req: NextApiRequestWithUser, res: NextApiResponse<{
     currency,
     utilityRates,
     templateDescription,
+    tagIds = [],
     isTemplate
   } = req.body as ProjectInput;
 
@@ -77,8 +78,14 @@ async function createProject(req: NextApiRequestWithUser, res: NextApiResponse<{
       }
     },
     include: {
-      org: true
+      org: true,
+      tags: true
     }
+  });
+
+  // Connect tags after project creation
+  await prisma.projectTagRelation.createMany({
+    data: tagIds.map(tagId => ({ projectId: project.id, tagId }))
   });
 
   await trackEvent({
@@ -100,7 +107,8 @@ async function getProjects(req: NextApiRequestWithUser, res: NextApiResponse<{ p
       isTemplate: false
     },
     include: {
-      account: true
+      account: true,
+      tags: true
     }
   });
 

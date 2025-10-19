@@ -7,6 +7,7 @@ import type { ProjectMetadata } from 'components/projects/[id]/edit/ProjectSetup
 import { handlerWithUser } from 'lib/middleware';
 import type { NextApiRequestWithUser } from 'lib/middleware';
 import prisma from 'lib/prisma';
+import type { ProjectInput } from 'lib/chartreuseClient';
 
 const handler = handlerWithUser();
 
@@ -38,12 +39,13 @@ async function updateProject(req: NextApiRequestWithUser, res: NextApiResponse<R
     currency,
     utilityRates,
     budget,
-    singleUseReductionPercentage,
+    // singleUseReductionPercentage,
     isTemplate,
     templateDescription,
     category,
+    tagIds,
     location
-  } = req.body;
+  } = req.body as ProjectInput;
 
   if (USState) {
     if (utilityRates) {
@@ -76,7 +78,7 @@ async function updateProject(req: NextApiRequestWithUser, res: NextApiResponse<R
       location,
       isTemplate: isTemplate,
       templateDescription: templateDescription || undefined,
-      singleUseReductionPercentage,
+      // singleUseReductionPercentage,
       account: {
         connect: {
           id: accountId
@@ -87,6 +89,19 @@ async function updateProject(req: NextApiRequestWithUser, res: NextApiResponse<R
           id: orgId
         }
       }
+    }
+  });
+
+  await prisma.$transaction(async tx => {
+    await tx.projectTagRelation.deleteMany({
+      where: {
+        projectId: project.id
+      }
+    });
+    if (tagIds) {
+      await tx.projectTagRelation.createMany({
+        data: tagIds.map(tagId => ({ projectId: project.id, tagId }))
+      });
     }
   });
 

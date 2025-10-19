@@ -42,6 +42,7 @@ export type ProjectInput = {
     gas: number;
     electric: number;
   } | null;
+  tagIds?: string[];
 };
 
 export type InviteMemberInput = {

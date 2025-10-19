@@ -7,8 +7,9 @@ import { useGetProjectTemplates, useCopyProject, useDeleteProject } from 'client
 import ContentLoader from 'components/common/ContentLoader';
 import * as S from 'layouts/styles';
 import { PlusOutlined } from '@ant-design/icons';
+import projects, { PopulatedProject } from 'pages/api/projects';
 
-export function ProjectTemplates({ isUpstream }: { isUpstream: boolean }) {
+export function ProjectTemplates({ isUpstream, tagIdsFilter }: { isUpstream: boolean; tagIdsFilter: string[] }) {
   const { data: templates, isLoading, error, mutate: refreshTemplates } = useGetProjectTemplates();
   const { trigger: triggerCopy, isMutating: copyProjectIsLoading } = useCopyProject();
   const { trigger: triggerDelete, isMutating: deleteProjectIsLoading } = useDeleteProject();
@@ -60,10 +61,24 @@ export function ProjectTemplates({ isUpstream }: { isUpstream: boolean }) {
       </Card>
     );
   }
+  const filteredTemplates =
+    (tagIdsFilter.length > 0
+      ? templates?.filter(project => {
+          return project.tags.some(tag => tagIdsFilter.includes(tag.tagId));
+        })
+      : templates) || [];
+
+  if (filteredTemplates.length === 0) {
+    return (
+      <Card style={{ height: 280, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <Typography.Text>No templates found</Typography.Text>
+      </Card>
+    );
+  }
 
   return (
     <Row gutter={[20, 20]}>
-      {templates?.map(template => {
+      {filteredTemplates.map(template => {
         return (
           <Col xs={24} md={12} lg={8} key={template.id}>
             <Card

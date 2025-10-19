@@ -14,7 +14,7 @@ export async function duplicateProject({
   skipTemplateProperties?: boolean;
 }) {
   // find the project to duplicate, do not include template fields
-  const { createdAt, id, name, orgId, ...project } = await prisma.project.findUniqueOrThrow({
+  const { createdAt, id, name, orgId, tags, ...project } = await prisma.project.findUniqueOrThrow({
     where: {
       id: projectId
     },
@@ -29,7 +29,8 @@ export async function duplicateProject({
       eventFoodwareItems: true,
       reusableItems: true,
       dishwashers: true,
-      wasteHaulingCosts: true
+      wasteHaulingCosts: true,
+      tags: true
     }
   });
   const targetAccountId = _targetAccountId || project.accountId;
@@ -94,6 +95,18 @@ export async function duplicateProject({
     include: {
       singleUseItems: true
     }
+  });
+
+  // maek sure we dont copy tags from a different org
+  const tagsFromOrg = await prisma.projectTag.findMany({
+    where: {
+      orgId: targetOrgId
+    }
+  });
+
+  const tagsToCopy = tags.filter(tag => tagsFromOrg.some(t => t.id === tag.tagId));
+  await prisma.projectTagRelation.createMany({
+    data: tagsToCopy.map(tag => ({ projectId: newProject.id, tagId: tag.tagId }))
   });
 
   // create new records for the single use items
