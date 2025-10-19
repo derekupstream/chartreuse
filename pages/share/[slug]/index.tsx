@@ -33,6 +33,7 @@ function ProjectionsPage({ projects, org }: ServerSideProps) {
     <SharedPageLayout title={title}>
       <SharedPage
         orgName={org.name}
+        dashboardTitle='Public Calculator'
         useShrinkageRate={org.useShrinkageRate}
         pageTitle={title}
         projections={projects.filter(isTruthy)}

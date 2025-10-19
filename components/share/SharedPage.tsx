@@ -52,6 +52,7 @@ const StyledLeftCol = styled(Col)`
 `;
 
 export function SharedPage({
+  dashboardTitle,
   projections,
   pageTitle,
   isProjectTemplate,
@@ -59,6 +60,7 @@ export function SharedPage({
   bannerDescription,
   useShrinkageRate
 }: {
+  dashboardTitle: string;
   orgName: string;
   projections: ProjectProjection[];
   pageTitle: string;
@@ -117,7 +119,7 @@ export function SharedPage({
 
   return (
     <>
-      <PageBanner title={bannerTitle} description={bannerDescription} />
+      <PageBanner dashboardTitle={dashboardTitle} title={bannerTitle} description={bannerDescription} />
       <ResponsiveWrapper ref={printRef} style={{ marginTop: 0 }}>
         <MobileElement>
           <ContentHeader

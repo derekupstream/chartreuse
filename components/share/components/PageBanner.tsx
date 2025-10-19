@@ -60,10 +60,12 @@ const DesktopElement = styled.div`
 
 export function PageBanner({
   title = 'Reuse for On-Site Dining\nCalculator',
+  dashboardTitle,
   description = '', //'The results below are based on data from real businesses that model the environmental impact and economic savings of switching to reusables for on-site dining.',
   isProjectTemplate
 }: {
   title?: string | null;
+  dashboardTitle: string;
   description?: string | null;
   isProjectTemplate?: boolean;
 }) {
@@ -77,7 +79,8 @@ export function PageBanner({
         <Typography.Paragraph
           style={{
             position: 'absolute',
-            top: '1.5em',
+            top: '2em',
+            opacity: 0.8,
             left: 0,
             right: 0,
             fontSize: '1.2em',
@@ -116,7 +119,7 @@ export function PageBanner({
           }}
         >
           <BarChartOutlined style={{ color: '#9bef52', fontSize: '1.2em' }} />
-          Public Calculator
+          {dashboardTitle}
         </Typography.Paragraph>
         {/* )} */}
         {/* <div style={{ maxWidth: 300 }}>
@@ -139,7 +142,15 @@ export function PageBanner({
           {title}
         </Typography.Title>
         <DesktopElement>
-          <Typography.Title level={5} style={{ maxWidth: 500, textAlign: 'center' }}>
+          <Typography.Title
+            level={5}
+            style={{
+              color: 'white',
+              maxWidth: 650,
+              fontWeight: 600,
+              textAlign: 'center'
+            }}
+          >
             {description}
           </Typography.Title>
           {/* <Typography.Title level={5} style={{ margin: 0, padding: 0 }}>
