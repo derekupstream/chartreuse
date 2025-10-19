@@ -110,7 +110,7 @@ export function ActiveProjects() {
                   </Popconfirm>
                 </S.Actions>
                 <S.ProjectInfo>
-                  <S.ProjectType>Location Type</S.ProjectType>
+                  <S.ProjectType>Project Type</S.ProjectType>
                   <Typography.Text>{(project?.metadata as ProjectMetadata)?.type}</Typography.Text>
                 </S.ProjectInfo>
               </div>
