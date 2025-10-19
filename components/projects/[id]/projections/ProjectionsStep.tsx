@@ -96,7 +96,10 @@ export const ProjectionsStep = ({ project, readOnly }: { project: ProjectContext
       message.error('Failed to update recommendations visibility');
     }
   }
-  const sidebarMenuItems = isEugeneOrg({ id: project.orgId })
+
+  const hideSingleAndReusableDetailsForEugeneOrg = isEugeneOrg({ id: project.orgId });
+
+  const sidebarMenuItems = hideSingleAndReusableDetailsForEugeneOrg
     ? [{ key: 'summary', label: 'Summary' }]
     : [
         { key: 'summary', label: 'Summary' },
@@ -177,23 +180,27 @@ export const ProjectionsStep = ({ project, readOnly }: { project: ProjectContext
               <ProjectSummary data={data} />
             )}
           </span>
-          <div className='page-break' />
-          <span className={view === 'single_use_details' ? '' : 'print-only'}>
-            <LineItemSummary
-              showTitle
-              variant='single_use'
-              projectCategory={project.category}
-              lineItemSummary={data.singleUseResults}
-            />
-          </span>
-          <span className={view === 'reusable_details' ? '' : 'print-only'}>
-            <LineItemSummary
-              showTitle
-              variant='reusable'
-              projectCategory={project.category}
-              lineItemSummary={data.reusableResults}
-            />
-          </span>
+          {!hideSingleAndReusableDetailsForEugeneOrg && (
+            <>
+              <div className='page-break' />
+              <span className={view === 'single_use_details' ? '' : 'print-only'}>
+                <LineItemSummary
+                  showTitle
+                  variant='single_use'
+                  projectCategory={project.category}
+                  lineItemSummary={data.singleUseResults}
+                />
+              </span>
+              <span className={view === 'reusable_details' ? '' : 'print-only'}>
+                <LineItemSummary
+                  showTitle
+                  variant='reusable'
+                  projectCategory={project.category}
+                  lineItemSummary={data.reusableResults}
+                />
+              </span>
+            </>
+          )}
           {view === 'recommendations' && (
             <span className={view === 'recommendations' ? '' : 'print-only'}>
               <SectionContainer>

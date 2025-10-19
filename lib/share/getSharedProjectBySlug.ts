@@ -22,6 +22,7 @@ export async function getSharedProjectBySlug(publicSlug: string) {
       id: true,
       orgId: true,
       publicSlug: true,
+      name: true,
       category: true,
       projectionsTitle: true,
       projectionsDescription: true,
@@ -52,6 +53,5 @@ export async function getSharedProjectBySlug(publicSlug: string) {
     recommendations: project.recommendations,
     showRecommendations: project.showRecommendations
   };
-
   return { org, project, projections: projections };
 }

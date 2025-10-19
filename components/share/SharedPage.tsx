@@ -19,6 +19,7 @@ import { PageFooter } from './components/PageFooter';
 import { SignupCard } from './components/SignupCard';
 import { SlateEditor } from 'components/common/SlateEditor';
 import { SectionContainer } from 'components/projects/[id]/projections/components/common/styles';
+import { isEugeneOrg } from 'lib/featureFlags';
 
 type SharedPageView = ProjectionsView;
 
@@ -53,6 +54,7 @@ const StyledLeftCol = styled(Col)`
 
 export function SharedPage({
   dashboardTitle,
+  orgId,
   projections,
   pageTitle,
   isProjectTemplate,
@@ -61,6 +63,7 @@ export function SharedPage({
   useShrinkageRate
 }: {
   dashboardTitle: string;
+  orgId?: string;
   orgName: string;
   projections: ProjectProjection[];
   pageTitle: string;
@@ -117,6 +120,15 @@ export function SharedPage({
           data.recommendations[0].children[0].text.length))
   );
 
+  const hideSingleAndReusableDetailsForEugeneOrg = isEugeneOrg({ id: orgId ?? '' });
+
+  const sidebarMenuItems = hideSingleAndReusableDetailsForEugeneOrg
+    ? [{ key: 'summary', label: 'Overview' }]
+    : [
+        { key: 'summary', label: 'Overview' },
+        { key: 'single_use_details', label: 'Single-use details' },
+        { key: 'reusable_details', label: 'Reusable details' }
+      ];
   return (
     <>
       <PageBanner dashboardTitle={dashboardTitle} title={bannerTitle} description={bannerDescription} />
@@ -136,11 +148,7 @@ export function SharedPage({
               selectedKeys={[view]}
               onSelect={onSelect}
               mode={'vertical'}
-              items={[
-                { key: 'summary', label: 'Overview' },
-                { key: 'single_use_details', label: 'Single-use details' },
-                { key: 'reusable_details', label: 'Reusable details' }
-              ]}
+              items={sidebarMenuItems}
             />
             {hasRecommendations && (
               <Menu
@@ -190,17 +198,21 @@ export function SharedPage({
                 <ProjectSummary data={data.projections} businessSize={businessSize} />
               )}
             </span>
-            <div className='page-break' />
-            <span className={view === 'single_use_details' ? '' : 'print-only'}>
-              <LineItemSummary variant='single_use' lineItemSummary={data.projections.singleUseResults} />
-            </span>
-            <span className={view === 'reusable_details' ? '' : 'print-only'}>
-              <LineItemSummary
-                variant='reusable'
-                lineItemSummary={data.projections.reusableResults}
-                isOnSiteDiningProjectReusables
-              />
-            </span>
+            {!hideSingleAndReusableDetailsForEugeneOrg && (
+              <>
+                <div className='page-break' />
+                <span className={view === 'single_use_details' ? '' : 'print-only'}>
+                  <LineItemSummary variant='single_use' lineItemSummary={data.projections.singleUseResults} />
+                </span>
+                <span className={view === 'reusable_details' ? '' : 'print-only'}>
+                  <LineItemSummary
+                    variant='reusable'
+                    lineItemSummary={data.projections.reusableResults}
+                    isOnSiteDiningProjectReusables
+                  />
+                </span>
+              </>
+            )}
             {hasRecommendations && view === 'recommendations' && (
               <SectionContainer>
                 <Card>
