@@ -109,6 +109,9 @@ async function getProjects(req: NextApiRequestWithUser, res: NextApiResponse<{ p
     include: {
       account: true,
       tags: true
+    },
+    orderBy: {
+      createdAt: 'desc'
     }
   });
 

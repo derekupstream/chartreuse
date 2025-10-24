@@ -1,14 +1,21 @@
 import { PlusOutlined } from '@ant-design/icons';
 import { Button, Tabs, Typography, Select } from 'antd';
 import { useRouter } from 'next/router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { useSubscription } from 'hooks/useSubscription';
 import * as S from 'layouts/styles';
 
-import { ActiveProjects } from './components/ActiveProjects';
+import { ActiveProjects, type SortOrder } from './components/ActiveProjects';
 import { ProjectTemplates } from './components/ProjectTemplates';
 import { useTags } from 'hooks/useTags';
+
+const sortOptions: { label: string; value: SortOrder }[] = [
+  { label: 'Project Name', value: 'name' },
+  { label: 'Project Type', value: 'type' },
+  { label: 'Date Created', value: 'created' }
+  // { label: 'Date of Project', value: 'projectDate' }
+];
 
 export const ProjectsDashboard = ({
   orgId,
@@ -29,6 +36,17 @@ export const ProjectsDashboard = ({
   const projectLimitReached = false; // data?.projects && subscriptionStatus !== 'Active' && data.projects.length >= projectLimit;
 
   const [tagIdsFilter, setTagIdsFilter] = useState<string[]>([]);
+
+  const [sortOrder, setSortOrder] = useState('created');
+
+  useEffect(() => {
+    setSortOrder(localStorage.getItem('projectSortOrder') || 'created');
+  }, []);
+
+  const handleSortChange = (value: string) => {
+    setSortOrder(value);
+    localStorage.setItem('projectSortOrder', value);
+  };
 
   function upgradeAccount() {
     router.push('/subscription');
@@ -78,7 +96,7 @@ export const ProjectsDashboard = ({
           {
             label: `Active Projects`,
             key: 'active',
-            children: <ActiveProjects tagIdsFilter={tagIdsFilter} />
+            children: <ActiveProjects tagIdsFilter={tagIdsFilter} sortOrder={sortOrder as SortOrder} />
           },
           {
             label: `Templates`,
@@ -88,13 +106,23 @@ export const ProjectsDashboard = ({
         ]}
         tabBarExtraContent={{
           right: (
-            <Select
-              mode='multiple'
-              placeholder='Select tags to filter projects'
-              style={{ marginBottom: 16, width: '300px' }}
-              options={tags.map(tag => ({ label: tag.label, value: tag.id }))}
-              onChange={setTagIdsFilter}
-            />
+            <div style={{ display: 'flex', gap: 16 }}>
+              <Select
+                mode='multiple'
+                placeholder='Filter projects by tag'
+                style={{ marginBottom: 16, width: '200px' }}
+                options={tags.map(tag => ({ label: tag.label, value: tag.id }))}
+                onChange={setTagIdsFilter}
+              />
+              <Select
+                value={sortOrder}
+                placeholder='Sort by'
+                labelRender={value => <span>Sort by {value.label}</span>}
+                style={{ marginBottom: 16, width: '200px' }}
+                options={sortOptions}
+                onChange={handleSortChange}
+              />
+            </div>
           )
         }}
       />
