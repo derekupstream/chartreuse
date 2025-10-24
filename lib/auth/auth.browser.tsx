@@ -50,7 +50,7 @@ export const AuthProvider: React.FC<{ children: any }> = ({ children }) => {
     const unsubscribe = onIdTokenChanged(auth, async (_firebaseUser: FirebaseUser | null) => {
       const emailIsBlacklisted = _firebaseUser?.email && isBlacklistedEmail(_firebaseUser.email);
 
-      if (process.env.NEXT_PUBLIC_REMOTE_USER_ID) {
+      if (process.env.NEXT_PUBLIC_REMOTE_USER_ID || process.env.NEXT_PUBLIC_REMOTE_USER_EMAIL) {
         // ignore firebase auth for remote user
         return;
       }

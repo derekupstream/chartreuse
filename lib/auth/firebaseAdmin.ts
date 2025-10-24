@@ -1,8 +1,20 @@
 import admin from 'firebase-admin';
 
+import prisma from 'lib/prisma';
+
 export const verifyIdToken = async (token?: string): Promise<{ uid: string }> => {
   if (typeof process.env.NEXT_PUBLIC_REMOTE_USER_ID === 'string') {
     return { uid: process.env.NEXT_PUBLIC_REMOTE_USER_ID };
+  }
+  if (typeof process.env.NEXT_PUBLIC_REMOTE_USER_EMAIL === 'string') {
+    const user = await prisma.user.findUnique({
+      where: {
+        email: process.env.NEXT_PUBLIC_REMOTE_USER_EMAIL
+      }
+    });
+    if (user) {
+      return { uid: user.id };
+    }
   }
   if (!token) {
     throw new Error('Request requires authentication');
