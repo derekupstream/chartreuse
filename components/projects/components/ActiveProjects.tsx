@@ -1,5 +1,5 @@
 import { CopyOutlined, DeleteOutlined, EditOutlined } from '@ant-design/icons';
-import type { Project, Account, ProjectTagRelation } from '@prisma/client';
+import type { Project, Account, ProjectTagRelation, ProjectTag } from '@prisma/client';
 import { Button, Card, Col, Divider, message, Popconfirm, Row, Space, Typography } from 'antd';
 import Link from 'next/link';
 import { useEffect, useMemo } from 'react';
@@ -10,24 +10,35 @@ import ContentLoader from 'components/common/ContentLoader';
 import type { ProjectMetadata } from 'components/projects/[id]/edit/ProjectSetup';
 import * as S from 'layouts/styles';
 
-export type SortOrder = 'name' | 'type' | 'created' | 'projectDate';
+export type SortOrder = 'name' | 'type' | 'created' | 'projectDate' | 'tag';
 
 interface PopulatedProject extends Project {
   account: Account;
   tags: ProjectTagRelation[];
 }
 
-export function ActiveProjects({ tagIdsFilter, sortOrder }: { tagIdsFilter: string[]; sortOrder: SortOrder }) {
+interface ActiveProjectsProps {
+  tagIdsFilter: string[];
+  sortOrder: SortOrder;
+  tags: ProjectTag[];
+}
+
+export function ActiveProjects({ tagIdsFilter, sortOrder, tags }: ActiveProjectsProps) {
   const { data: { projects } = {}, isLoading, mutate: refreshProjects, error } = useGetProjects();
 
   const sortedProjects = useMemo<PopulatedProject[]>(() => {
     return (projects || []).sort((a, b) => {
       if (sortOrder === 'name') {
-        return a.name.localeCompare(b.name);
+        return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
       } else if (sortOrder === 'type') {
-        return (a.metadata as any)?.type.localeCompare((b.metadata as any)?.type);
+        const typeA = (a.metadata as any)?.type || '';
+        const typeB = (b.metadata as any)?.type || '';
+        return typeA.toLowerCase().localeCompare(typeB.toLowerCase());
       } else if (sortOrder === 'created') {
         return a.createdAt > b.createdAt;
+      } else if (sortOrder === 'tag') {
+        // For tag sorting, we'll group by tag in the render section
+        return 0;
       }
     });
   }, [projects, sortOrder]);
@@ -40,8 +51,20 @@ export function ActiveProjects({ tagIdsFilter, sortOrder }: { tagIdsFilter: stri
         typeArr.push(type);
       }
     }
-    return typeArr.sort();
+    return typeArr.sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
   }, [sortedProjects]);
+
+  const sortedTags = useMemo<string[]>(() => {
+    // Get unique tag labels from the tags array (sorted alphabetically, case-insensitive)
+    const uniqueTagLabels = Array.from(
+      new Set(
+        tags
+          .filter(tag => sortedProjects.some(project => project.tags.some(pt => pt.tagId === tag.id)))
+          .map(tag => tag.label)
+      )
+    );
+    return uniqueTagLabels.sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
+  }, [tags, sortedProjects]);
 
   useEffect(() => {
     if (error) {
@@ -97,6 +120,35 @@ export function ActiveProjects({ tagIdsFilter, sortOrder }: { tagIdsFilter: stri
         </Row>
       </>
     ));
+  }
+
+  if (sortOrder === 'tag') {
+    return sortedTags.map(tagLabel => {
+      // Find the tag ID for this label
+      const tag = tags.find(t => t.label === tagLabel);
+      if (!tag) return null;
+
+      // Filter projects that have this tag, then sort alphabetically by name (case-insensitive)
+      const projectsWithTag = filteredProjects
+        .filter(project => project.tags.some(pt => pt.tagId === tag.id))
+        .sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
+
+      return (
+        <>
+          <Typography.Title level={3} style={{ opacity: 0.4 }}>
+            {tagLabel}
+          </Typography.Title>
+          <Divider style={{ marginTop: 0 }} />
+          <Row gutter={[20, 20]}>
+            {projectsWithTag.map(project => (
+              <Col xs={24} md={12} lg={8} key={`${project.id}-${tag.id}`}>
+                <ProjectCard project={project} refreshProjects={refreshProjects} />
+              </Col>
+            ))}
+          </Row>
+        </>
+      );
+    });
   }
 
   return (

@@ -13,7 +13,8 @@ import { useTags } from 'hooks/useTags';
 const sortOptions: { label: string; value: SortOrder }[] = [
   { label: 'Project Name', value: 'name' },
   { label: 'Project Type', value: 'type' },
-  { label: 'Date Created', value: 'created' }
+  { label: 'Date Created', value: 'created' },
+  { label: 'Tags', value: 'tag' }
   // { label: 'Date of Project', value: 'projectDate' }
 ];
 
@@ -96,7 +97,7 @@ export const ProjectsDashboard = ({
           {
             label: `Active Projects`,
             key: 'active',
-            children: <ActiveProjects tagIdsFilter={tagIdsFilter} sortOrder={sortOrder as SortOrder} />
+            children: <ActiveProjects tagIdsFilter={tagIdsFilter} sortOrder={sortOrder as SortOrder} tags={tags} />
           },
           {
             label: `Templates`,
