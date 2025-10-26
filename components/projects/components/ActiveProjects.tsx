@@ -47,7 +47,7 @@ export function ActiveProjects({ tagIdsFilter, sortOrder, tags }: ActiveProjects
     const typeArr: string[] = [];
     for (let i = 0; i < sortedProjects.length; i++) {
       const type = (sortedProjects[i].metadata as any)?.type;
-      if (type !== undefined && !typeArr.includes(type)) {
+      if (type !== undefined && type !== null && !typeArr.includes(type)) {
         typeArr.push(type);
       }
     }
