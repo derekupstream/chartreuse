@@ -92,7 +92,7 @@ export function ActiveProjects({ tagIdsFilter, sortOrder, tags }: ActiveProjects
       ? sortedProjects?.filter((project: PopulatedProject) => {
           return project.tags.some(tag => tagIdsFilter.includes(tag.tagId));
         })
-      : projects) || [];
+      : sortedProjects) || [];
 
   if (filteredProjects.length === 0) {
     return (

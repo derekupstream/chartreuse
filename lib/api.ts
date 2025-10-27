@@ -88,6 +88,23 @@ export const members = {
 
 export const projects = {};
 
+export function useGetTags(orgId: string | undefined | null) {
+  return _useGET<ProjectTag[]>('/api/tags', { orgId });
+}
+
+export function useCreateTag(orgId: string) {
+  return useSWRMutation<unknown, Error, string, { label: string }>(`/api/tags?orgId=${orgId}`, (url, { arg }) =>
+    http.POST(url, arg)
+  );
+}
+
+export function useDeleteTag(orgId: string) {
+  return useSWRMutation<unknown, Error, string, { tagId: string }>(`/api/tags?orgId=${orgId}`, (url, { arg }) =>
+    http.DELETE(url, arg)
+  );
+}
+
+// Legacy functions for backward compatibility
 export const fetchTags = async (orgId: string): Promise<ProjectTag[]> => {
   const response = await fetch(`/api/tags?orgId=${orgId}`);
   if (!response.ok) throw new Error('Failed to fetch tags');
