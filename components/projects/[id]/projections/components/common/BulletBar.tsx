@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import styled from 'styled-components';
+import type { BulletConfig } from '@ant-design/plots';
 import dynamic from 'next/dynamic';
 // lazy import because ant-design charts does not work with SSR
 const Bullet = dynamic(() => import('@ant-design/plots/es/components/bullet'), { ssr: false });
@@ -19,7 +20,7 @@ export function KPIBullet({ data, formatter = (val: number) => val?.toLocaleStri
   const targetField = 'Median';
   const forecastField = 'Forecast';
 
-  const config = {
+  const config: BulletConfig = {
     data: [
       {
         title: '',

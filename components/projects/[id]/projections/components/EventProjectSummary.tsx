@@ -9,12 +9,13 @@ import { changeValue, formattedValueInPounds, valueInPounds, changeValueInPounds
 
 import { useCurrency } from 'components/_app/CurrencyProvider';
 import BarChart from './common/BarChart';
-import Card from './common/KPICard';
+import KpiCard from './common/KPICard';
 import { Divider, SectionContainer, SectionHeader, ChartTitle } from './common/styles';
 import { ProjectCategory } from '@prisma/client';
 
 import { EnvironmentalSummary } from './ProjectSummary/EnvironmentalSummary/EnvironmentalSummary';
 import { getReturnOrShrinkageRate } from '../../usage/UsageStep';
+import { SingleUseItemBar } from './common/SingleUseItemBar';
 const StyledCol = styled(Col)`
   @media print {
     flex: 0 0 50% !important;
@@ -65,6 +66,15 @@ export const EventProjectSummary: React.FC<Props> = ({
     });
   }, [reusableResults, useShrinkageRate]);
 
+  const singleUseItemsAvoided = annualSummary.singleUseProductCount.change * -1;
+  const bottlesAvoided = bottleStationResults.bottlesSaved;
+  const foodwareItemsAvoided = singleUseItemsAvoided - bottlesAvoided;
+
+  const showBottlesAndFoodwareBreakdown = bottlesAvoided > 0 && foodwareItemsAvoided > 0;
+
+  const bottlesRate = singleUseItemsAvoided ? bottlesAvoided / singleUseItemsAvoided : 0;
+
+  console.log('showBottlesAndFoodwareBreakdown', showBottlesAndFoodwareBreakdown);
   return (
     <>
       <SectionContainer>
@@ -92,22 +102,37 @@ export const EventProjectSummary: React.FC<Props> = ({
               subtitle=''
             />
           </StyledCol> */}
-          {bottleStationResults.bottlesSaved > 0 && (
+          {showBottlesAndFoodwareBreakdown ? (
             <StyledCol xs={24} lg={12}>
-              <SingleValueKPICard
-                title='Water bottles avoided'
-                value={`${Math.round(bottleStationResults.bottlesSaved).toLocaleString()} bottles`}
-                subtitle=''
-              />
+              <KpiCard changeStr={singleUseItemsAvoided.toLocaleString() + ' items'} title='Single-use items avoided'>
+                <SingleUseItemBar
+                  data={{ bottles: bottlesAvoided, foodware: foodwareItemsAvoided }}
+                  formatter={(datum: any) => datum.toLocaleString()}
+                />
+              </KpiCard>
             </StyledCol>
+          ) : (
+            !showBottlesAndFoodwareBreakdown && (
+              <>
+                {bottleStationResults.bottlesSaved > 0 && (
+                  <StyledCol xs={24} lg={12}>
+                    <SingleValueKPICard
+                      title='Water bottles avoided'
+                      value={`${Math.round(bottlesAvoided).toLocaleString()} bottles`}
+                      subtitle=''
+                    />
+                  </StyledCol>
+                )}
+                <StyledCol xs={24} lg={12}>
+                  <SingleValueKPICard
+                    title='Single-use items avoided'
+                    value={`${changeValue(singleUseItemsAvoided)} items`}
+                    subtitle=''
+                  />
+                </StyledCol>
+              </>
+            )
           )}
-          <StyledCol xs={24} lg={12}>
-            <SingleValueKPICard
-              title='Single-use items avoided'
-              value={`${changeValue(annualSummary.singleUseProductCount.change * -1)} items`}
-              subtitle=''
-            />
-          </StyledCol>
           <StyledCol xs={24} lg={12}>
             <SingleValueKPICard
               title={returnRatelabel}
