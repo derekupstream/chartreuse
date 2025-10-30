@@ -15,7 +15,7 @@ export function getBottleStationResults(project: ProjectInventory): BottleStatio
   if (!bottleStationProduct) {
     return { bottlesSaved: 0 };
   }
-  const waterPerStation = bottleStationProduct.waterUsageGallons ?? 0;
+  const waterPerStation = bottleStationProduct.waterUsageGallons || 27.15;
   const totalWaterUsageGallons = waterPerStation * bottleStationProduct.reusableItemCount;
   const bottlesSaved = Math.floor(totalWaterUsageGallons / gallonsPerBottle);
   return { bottlesSaved };
