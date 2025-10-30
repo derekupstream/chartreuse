@@ -93,7 +93,7 @@ export function useGetTags(orgId: string | undefined | null) {
 }
 
 export function useCreateTag(orgId: string) {
-  return useSWRMutation<unknown, Error, string, { label: string }>(`/api/tags?orgId=${orgId}`, (url, { arg }) =>
+  return useSWRMutation<{ id: string }, Error, string, { label: string }>(`/api/tags?orgId=${orgId}`, (url, { arg }) =>
     http.POST(url, arg)
   );
 }
