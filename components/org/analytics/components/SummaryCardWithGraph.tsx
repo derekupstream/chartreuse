@@ -6,6 +6,7 @@ import Card from 'components/projects/[id]/projections/components/common/Card';
 import GroupedBar from 'components/projects/[id]/projections/components/common/GroupedBar';
 import type { SummaryValues, AllProjectsSummary } from 'lib/calculator/getProjections';
 import { defaultFormatter } from '../utils';
+import { SingleUseItemBar } from 'components/projects/[id]/projections/components/common/SingleUseItemBar';
 
 const KPIValue = styled(Typography.Title)`
   margin: 0 !important;
@@ -105,6 +106,50 @@ export const SummaryCard = ({
           'N/A'
         )}
       </KPIValue>
+    </Card>
+  );
+};
+
+export const SummaryCardSingleUseBreakdown = ({
+  label,
+  projectHasData,
+  bottleAvoided,
+  foodwareItemsAvoided
+}: {
+  label: string;
+  projectHasData: boolean;
+  bottleAvoided: number;
+  foodwareItemsAvoided: number;
+}) => {
+  const totalItemsAvoided = bottleAvoided + foodwareItemsAvoided;
+  return (
+    <Card style={{ height: '100%' }}>
+      <Row>
+        <Col xs={24} sm={13}>
+          <Typography.Paragraph>
+            <strong>{label}</strong>
+          </Typography.Paragraph>
+          <KPIValue>
+            {projectHasData ? (
+              <>
+                {defaultFormatter(totalItemsAvoided)} <span style={{ fontSize: '.6em' }}>items</span>
+              </>
+            ) : (
+              'N/A'
+            )}
+          </KPIValue>
+        </Col>
+        <Col xs={24} sm={11}>
+          {projectHasData ? (
+            <SingleUseItemBar
+              data={{ bottles: bottleAvoided, foodware: foodwareItemsAvoided }}
+              formatter={(datum: any) => datum.toLocaleString()}
+            />
+          ) : (
+            <div />
+          )}
+        </Col>
+      </Row>
     </Card>
   );
 };

@@ -17,7 +17,7 @@ import { formatToDollar } from 'lib/calculator/utils';
 import { requestDownload } from 'lib/files';
 import { useMetricSystem } from 'components/_app/MetricSystemProvider';
 import { valueInPounds, formattedValueInPounds, formattedValueInGallons, valueInGallons } from 'lib/number';
-import { SummaryCardWithGraph, SummaryCard } from './components/SummaryCardWithGraph';
+import { SummaryCardWithGraph, SummaryCard, SummaryCardSingleUseBreakdown } from './components/SummaryCardWithGraph';
 import { useCurrency } from 'components/_app/CurrencyProvider';
 import { columns } from './components/AnalyticsTableColumns';
 import { columns as eventColumns } from './components/EventAnalyticsTableColumns';
@@ -165,6 +165,9 @@ export function AnalyticsPage({
     return acc;
   }, 0);
 
+  const foodwareItemsAvoided = singleUseItemsAvoided - bottlesSaved;
+  const showBottlesAndFoodwareBreakdown = bottlesSaved > 0 && foodwareItemsAvoided > 0;
+
   const { displayValue: returnRateDisplayValue, returnRatelabel } = useMemo(() => {
     const avgReturnRate =
       data.projects.reduce((acc, project) => {
@@ -244,11 +247,21 @@ export function AnalyticsPage({
             />
           </StyledCol>
         )}
-        {projectCategory === 'event' && (
+        {projectCategory === 'event' && !showBottlesAndFoodwareBreakdown && (
           <StyledCol xs={24} lg={12}>
             <SummaryCard
               label='Single-use items avoided'
               value={`${Math.round(singleUseItemsAvoided).toLocaleString()} items`}
+              projectHasData={projectHasData}
+            />
+          </StyledCol>
+        )}
+        {projectCategory === 'event' && showBottlesAndFoodwareBreakdown && (
+          <StyledCol xs={24} lg={12}>
+            <SummaryCardSingleUseBreakdown
+              label='Single-use items avoided'
+              bottleAvoided={bottlesSaved}
+              foodwareItemsAvoided={foodwareItemsAvoided}
               projectHasData={projectHasData}
             />
           </StyledCol>

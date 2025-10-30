@@ -72,9 +72,6 @@ export const EventProjectSummary: React.FC<Props> = ({
 
   const showBottlesAndFoodwareBreakdown = bottlesAvoided > 0 && foodwareItemsAvoided > 0;
 
-  const bottlesRate = singleUseItemsAvoided ? bottlesAvoided / singleUseItemsAvoided : 0;
-
-  console.log('showBottlesAndFoodwareBreakdown', showBottlesAndFoodwareBreakdown);
   return (
     <>
       <SectionContainer>
