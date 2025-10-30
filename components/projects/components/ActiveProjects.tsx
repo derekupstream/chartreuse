@@ -27,7 +27,7 @@ export function ActiveProjects({ tagIdsFilter, sortOrder, tags }: ActiveProjects
   const { data: { projects } = {}, isLoading, mutate: refreshProjects, error } = useGetProjects();
 
   const sortedProjects = useMemo<PopulatedProject[]>(() => {
-    return (projects || []).sort((a, b) => {
+    return (projects || []).slice().sort((a, b) => {
       if (sortOrder === 'name') {
         return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
       } else if (sortOrder === 'type') {
