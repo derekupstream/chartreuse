@@ -21,20 +21,20 @@ export function SingleUseItemBar({ data }: Props) {
     data: [
       {
         title: '',
-        ranges: [data.foodware, data.bottles]
+        measures: [data.foodware, data.bottles]
       }
     ],
     measureField: 'measures',
     rangeField: 'ranges',
     xField: 'title',
     color: {
-      ranges: ['#E0FACA', '#95EE49'],
-      measures: [],
+      measures: ['#E0FACA', '#95EE49'],
+      ranges: [],
       target: []
     },
     mapField: {
-      ranges: ['Foodware', 'Bottles'],
-      measures: [],
+      measures: ['Foodware', 'Bottles'],
+      ranges: [],
       target: []
     },
     axis: {

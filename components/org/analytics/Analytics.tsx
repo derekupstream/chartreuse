@@ -167,7 +167,6 @@ export function AnalyticsPage({
 
   const foodwareItemsAvoided = singleUseItemsAvoided - bottlesSaved;
   const showBottlesAndFoodwareBreakdown = bottlesSaved > 0 && foodwareItemsAvoided > 0;
-
   const { displayValue: returnRateDisplayValue, returnRatelabel } = useMemo(() => {
     const avgReturnRate =
       data.projects.reduce((acc, project) => {

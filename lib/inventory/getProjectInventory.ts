@@ -221,7 +221,7 @@ function mapSingleUseItem(
 function mapFoodwareSingleUseItem(item: FoodwareSelection): ProjectInventory['singleUseItems'][number] {
   const product = item.singleUseProduct;
   // for water stations, we want to consider the impact of water bottle single use items
-  const waterPerStation = item.waterUsageGallons ?? 0;
+  const waterPerStation = item.waterUsageGallons || 27.15;
   const totalWaterUsageGallons = waterPerStation * item.reusableItemCount;
   const unitsPerCase =
     item.reusableProduct.id === BOTTLE_STATION_PRODUCT_ID
