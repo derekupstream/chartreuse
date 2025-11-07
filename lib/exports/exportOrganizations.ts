@@ -59,6 +59,7 @@ export async function getOrgExport(orgId: string) {
       account: true,
       org: true,
       dishwashers: true,
+      dishwashersSimple: true,
       otherExpenses: true,
       laborCosts: true,
       reusableItems: true,
@@ -353,6 +354,7 @@ function addDishwasherSheet(workbook: ExcelJS.Workbook, data: AllProjectsSummary
     { header: 'Account', key: 'account', width: 30 },
     { header: 'Organization', key: 'org', width: 30 }
   ];
+
   sheet.addRows(
     data.projects
       .filter(project => project.dishwashers.length > 0 || project.dishwashersSimple.length > 0)

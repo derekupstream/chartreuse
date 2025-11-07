@@ -67,7 +67,6 @@ export async function getProjectInventory(projectId: string): Promise<ProjectInv
   if (!project) {
     throw new Error('Project not found. Project Id: ' + projectId);
   }
-
   // get utility rates
   const utilityRates = getProjectUtilities(project);
   // map db model types to frontend types
