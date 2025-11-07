@@ -14,8 +14,8 @@ const sortOptions: { label: string; value: SortOrder }[] = [
   { label: 'Project Name', value: 'name' },
   { label: 'Project Type', value: 'type' },
   { label: 'Date Created', value: 'created' },
-  { label: 'Tags', value: 'tag' }
-  // { label: 'Date of Project', value: 'projectDate' }
+  { label: 'Tags', value: 'tag' },
+  { label: 'Project Date', value: 'projectDate' }
 ];
 
 export const ProjectsDashboard = ({

@@ -30,7 +30,10 @@ async function createProject(req: NextApiRequestWithUser, res: NextApiResponse<{
     utilityRates,
     templateDescription,
     tagIds = [],
-    isTemplate
+    isTemplate,
+    dateType,
+    startDate,
+    endDate
   } = req.body as ProjectInput;
 
   const isEventProjectsEnabled = await isEventProjectsEnabledForOrg({ orgId: req.user.orgId! });
@@ -55,6 +58,10 @@ async function createProject(req: NextApiRequestWithUser, res: NextApiResponse<{
     throw new Error('Please enter utility rates');
   }
 
+  // Convert date strings to Date objects if provided
+  const startDateValue = startDate ? new Date(startDate) : undefined;
+  const endDateValue = endDate ? new Date(endDate) : undefined;
+
   const project = await prisma.project.create({
     data: {
       name: name.trim(),
@@ -66,6 +73,9 @@ async function createProject(req: NextApiRequestWithUser, res: NextApiResponse<{
       isTemplate: isTemplate,
       templateDescription: templateDescription || undefined,
       category: categorySafe,
+      dateType: dateType || undefined,
+      startDate: startDateValue,
+      endDate: endDateValue,
       account: {
         connect: {
           id: accountId

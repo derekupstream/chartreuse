@@ -31,6 +31,7 @@
     "analytics": "^0.8.16",
     "antd": "^5.24.0",
     "date-fns": "^2.29.3",
+    "dayjs": "^1.11.19",
     "exceljs": "^4.3.0",
     "firebase": "^10.9.0",
     "firebase-admin": "^13.4.0",

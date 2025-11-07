@@ -43,6 +43,11 @@ export type ProjectInput = {
     electric: number;
   } | null;
   tagIds?: string[];
+
+  // date fields for event projects
+  dateType?: 'date' | 'dateRange' | null;
+  startDate?: Date | string | null;
+  endDate?: Date | string | null;
 };
 
 export type InviteMemberInput = {

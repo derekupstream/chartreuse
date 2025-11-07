@@ -44,7 +44,10 @@ async function updateProject(req: NextApiRequestWithUser, res: NextApiResponse<R
     templateDescription,
     category,
     tagIds,
-    location
+    location,
+    dateType,
+    startDate,
+    endDate
   } = req.body as ProjectInput;
 
   if (USState) {
@@ -63,6 +66,10 @@ async function updateProject(req: NextApiRequestWithUser, res: NextApiResponse<R
     throw new Error('Please enter utility rates');
   }
 
+  // Convert date strings to Date objects if provided, or null to clear
+  const startDateValue = startDate !== undefined ? (startDate ? new Date(startDate) : null) : undefined;
+  const endDateValue = endDate !== undefined ? (endDate ? new Date(endDate) : null) : undefined;
+
   const project = await prisma.project.update<Prisma.ProjectUpdateArgs>({
     where: {
       id: req.query.id as string
@@ -78,6 +85,9 @@ async function updateProject(req: NextApiRequestWithUser, res: NextApiResponse<R
       location,
       isTemplate: isTemplate,
       templateDescription: templateDescription || undefined,
+      dateType: dateType !== undefined ? dateType : undefined,
+      startDate: startDateValue,
+      endDate: endDateValue,
       // singleUseReductionPercentage,
       account: {
         connect: {

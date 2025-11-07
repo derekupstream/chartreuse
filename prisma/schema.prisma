@@ -129,6 +129,11 @@ model Project {
   recommendations        Json?
   showRecommendations    Boolean         @default(true)
 
+  // date fields for event projects
+  dateType   String? // "date" | "dateRange"
+  startDate  DateTime? @db.Date
+  endDate    DateTime? @db.Date
+
   tags ProjectTagRelation[]
 }
 

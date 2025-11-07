@@ -3,6 +3,7 @@ import type { Project, Account, ProjectTagRelation, ProjectTag } from '@prisma/c
 import { Button, Card, Col, Divider, message, Popconfirm, Row, Space, Typography } from 'antd';
 import Link from 'next/link';
 import { useEffect, useMemo } from 'react';
+import dayjs from 'dayjs';
 
 import { useCopyProject, useDeleteProject } from 'client/projects';
 import { useGetProjects } from 'client/projects';
@@ -27,7 +28,16 @@ export function ActiveProjects({ tagIdsFilter, sortOrder, tags }: ActiveProjects
   const { data: { projects } = {}, isLoading, mutate: refreshProjects, error } = useGetProjects();
 
   const sortedProjects = useMemo<PopulatedProject[]>(() => {
-    return (projects || []).slice().sort((a, b) => {
+    let projectsToSort = (projects || []).slice();
+
+    // Filter out projects without dates when sorting by projectDate
+    if (sortOrder === 'projectDate') {
+      projectsToSort = projectsToSort.filter(project => {
+        return project.startDate != null;
+      });
+    }
+
+    return projectsToSort.sort((a, b) => {
       if (sortOrder === 'name') {
         return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
       } else if (sortOrder === 'type') {
@@ -35,11 +45,17 @@ export function ActiveProjects({ tagIdsFilter, sortOrder, tags }: ActiveProjects
         const typeB = (b.metadata as any)?.type || '';
         return typeA.toLowerCase().localeCompare(typeB.toLowerCase());
       } else if (sortOrder === 'created') {
-        return a.createdAt > b.createdAt;
+        return a.createdAt > b.createdAt ? -1 : 1;
+      } else if (sortOrder === 'projectDate') {
+        if (!a.startDate || !b.startDate) return 0;
+        const dateA = dayjs(a.startDate);
+        const dateB = dayjs(b.startDate);
+        return dateA.isBefore(dateB) ? -1 : dateA.isAfter(dateB) ? 1 : 0;
       } else if (sortOrder === 'tag') {
         // For tag sorting, we'll group by tag in the render section
         return 0;
       }
+      return 0;
     });
   }, [projects, sortOrder]);
 
@@ -94,6 +110,30 @@ export function ActiveProjects({ tagIdsFilter, sortOrder, tags }: ActiveProjects
         })
       : sortedProjects) || [];
 
+  // Group projects by month for projectDate sorting
+  const projectsByMonth = useMemo(() => {
+    if (sortOrder !== 'projectDate') return {};
+    const grouped: Record<string, PopulatedProject[]> = {};
+    filteredProjects.forEach(project => {
+      if (project.startDate) {
+        const monthKey = dayjs(project.startDate).format('YYYY-MM');
+        if (!grouped[monthKey]) {
+          grouped[monthKey] = [];
+        }
+        grouped[monthKey].push(project);
+      }
+    });
+    return grouped;
+  }, [filteredProjects, sortOrder]);
+
+  // Get sorted month keys (most recent first) for projectDate sorting
+  const sortedMonthKeys = useMemo(() => {
+    if (sortOrder !== 'projectDate') return [];
+    return Object.keys(projectsByMonth).sort((a, b) => {
+      return dayjs(b).isBefore(dayjs(a)) ? -1 : 1;
+    });
+  }, [projectsByMonth, sortOrder]);
+
   if (filteredProjects.length === 0) {
     return (
       <Card style={{ height: 280, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -142,6 +182,29 @@ export function ActiveProjects({ tagIdsFilter, sortOrder, tags }: ActiveProjects
           <Row gutter={[20, 20]}>
             {projectsWithTag.map(project => (
               <Col xs={24} md={12} lg={8} key={`${project.id}-${tag.id}`}>
+                <ProjectCard project={project} refreshProjects={refreshProjects} />
+              </Col>
+            ))}
+          </Row>
+        </>
+      );
+    });
+  }
+
+  if (sortOrder === 'projectDate') {
+    return sortedMonthKeys.map(monthKey => {
+      const monthProjects = projectsByMonth[monthKey];
+      const monthLabel = dayjs(monthKey).format('MMMM YYYY');
+
+      return (
+        <>
+          <Typography.Title level={3} style={{ opacity: 0.4 }}>
+            {monthLabel}
+          </Typography.Title>
+          <Divider style={{ marginTop: 0 }} />
+          <Row gutter={[20, 20]}>
+            {monthProjects.map(project => (
+              <Col xs={24} md={12} lg={8} key={project.id}>
                 <ProjectCard project={project} refreshProjects={refreshProjects} />
               </Col>
             ))}

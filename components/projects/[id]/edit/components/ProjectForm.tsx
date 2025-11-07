@@ -15,8 +15,18 @@ import {
   Card,
   Tag,
   Modal,
-  Tooltip
+  Tooltip,
+  DatePicker
 } from 'antd';
+import dayjs from 'dayjs';
+import type { Dayjs } from 'dayjs';
+import weekday from 'dayjs/plugin/weekday';
+import localeData from 'dayjs/plugin/localeData';
+import 'dayjs/locale/en';
+
+// Extend dayjs with required plugins for Ant Design DatePicker
+dayjs.extend(weekday);
+dayjs.extend(localeData);
 import type { Store } from 'antd/lib/form/interface';
 import { useRef, useEffect, useState } from 'react';
 
@@ -120,20 +130,33 @@ export function ProjectForm({ actionLabel, org, project, template, onComplete }:
   const isUpstream = org.isUpstream || process.env.NODE_ENV === 'development';
 
   const currentLocation = project?.location as ProjectInput['location'] | null;
+  const projectMetadata = (project?.metadata as any) || {};
+  const initialProjectType = projectMetadata.type || '';
+  const [projectType, setProjectType] = useState<string>(initialProjectType);
+  const initialDateType = project?.dateType as 'date' | 'dateRange' | null | undefined;
+  const [dateType, setDateType] = useState<'date' | 'dateRange' | null>(initialDateType || null);
+
   const initialValues = {
     accountId: org.accounts[0].id,
     customers: 0,
     dineInVsTakeOut: 0,
     category: 'default',
     currency: currencyAbbreviation,
-    ...((project?.metadata as any) || {}),
+    ...projectMetadata,
     ...(project || {}),
     projectLocation: currentLocation?.formatted,
     projectCity: currentLocation?.city,
     projectState: currentLocation?.state,
     projectCountry: currentLocation?.country,
     projectLatitude: currentLocation?.latitude,
-    projectLongitude: currentLocation?.longitude
+    projectLongitude: currentLocation?.longitude,
+    dateType: project?.dateType || null,
+    startDate: project?.startDate
+      ? dayjs(project.startDate instanceof Date ? project.startDate : new Date(project.startDate as string))
+      : null,
+    endDate: project?.endDate
+      ? dayjs(project.endDate instanceof Date ? project.endDate : new Date(project.endDate as string))
+      : null
   };
 
   function toggleCustomUtilities(value: boolean) {
@@ -174,10 +197,13 @@ export function ProjectForm({ actionLabel, org, project, template, onComplete }:
     projectLatitude,
     projectLongitude,
     tagIds,
+    dateType,
+    startDate,
+    endDate,
     // category,
     ...metadata
   }: Store) {
-    const params: ProjectInput = {
+    const params = {
       id: project?.id,
       name,
       metadata,
@@ -198,7 +224,14 @@ export function ProjectForm({ actionLabel, org, project, template, onComplete }:
       templateDescription,
       orgId: org.id,
       // project type determines category
-      category: metadata.type === 'Event' ? 'event' : 'default'
+      category: metadata.type === 'Event' ? 'event' : 'default',
+      // date fields for event projects - only include if Event, otherwise set to null to clear
+      dateType: metadata.type === 'Event' ? dateType || null : null,
+      startDate: metadata.type === 'Event' && startDate ? (startDate as Dayjs).format('YYYY-MM-DD') : null,
+      endDate:
+        metadata.type === 'Event' && dateType === 'dateRange' && endDate
+          ? (endDate as Dayjs).format('YYYY-MM-DD')
+          : null
     };
 
     if (showCustomUtilities) {
@@ -207,7 +240,7 @@ export function ProjectForm({ actionLabel, org, project, template, onComplete }:
       params.utilityRates = null;
     }
 
-    onComplete(params);
+    onComplete(params as ProjectInput);
   }
 
   // make some inputs vertical so that nested layout for custom utilities can be horizontal: https://stackoverflow.com/questions/64451233/how-to-set-the-layout-horizontal-inside-for-few-form-item-while-keeping-for
@@ -224,6 +257,14 @@ export function ProjectForm({ actionLabel, org, project, template, onComplete }:
     const hasErrors = form.getFieldsError().some(({ errors }) => errors.length);
     setDisabledSave(hasErrors);
   }, [form]);
+
+  // Sync projectType state with form value
+  useEffect(() => {
+    const formType = form.getFieldValue('type');
+    if (formType && formType !== projectType) {
+      setProjectType(formType);
+    }
+  }, [form, projectType]);
 
   const { tags, loading, createTag, deleteTag } = useTags(org.id);
   if (org.accounts.length === 0) {
@@ -279,7 +320,18 @@ export function ProjectForm({ actionLabel, org, project, template, onComplete }:
             }
           ]}
         >
-          <Select placeholder='Project Type' disabled={!!template}>
+          <Select
+            placeholder='Project Type'
+            disabled={!!template}
+            onChange={value => {
+              setProjectType(value);
+              // Reset date fields when switching away from Event
+              if (value !== 'Event') {
+                setDateType(null);
+                form.setFieldsValue({ dateType: null, startDate: null, endDate: null });
+              }
+            }}
+          >
             {projectTypes.map(type => {
               return (
                 <Select.Option key={type} value={type}>
@@ -289,6 +341,73 @@ export function ProjectForm({ actionLabel, org, project, template, onComplete }:
             })}
           </Select>
         </Form.Item>
+
+        {/* Date fields for Event projects */}
+        {projectType === 'Event' && (
+          <>
+            <Form.Item {...verticalLayout} label='Date Type' name='dateType'>
+              <Radio.Group
+                onChange={e => {
+                  setDateType(e.target.value);
+                  // Clear endDate when switching to single date
+                  if (e.target.value === 'date') {
+                    form.setFieldsValue({ endDate: null });
+                  }
+                }}
+                value={dateType}
+              >
+                <Radio value='date'>Date</Radio>
+                <Radio value='dateRange'>Date Range</Radio>
+              </Radio.Group>
+            </Form.Item>
+
+            {dateType && (
+              <>
+                <Form.Item
+                  {...verticalLayout}
+                  label={dateType === 'dateRange' ? 'Start Date' : 'Date'}
+                  name='startDate'
+                  rules={[
+                    {
+                      required: true,
+                      message: 'Date is required!'
+                    }
+                  ]}
+                >
+                  <DatePicker style={{ width: '100%' }} />
+                </Form.Item>
+
+                {dateType === 'dateRange' && (
+                  <Form.Item
+                    {...verticalLayout}
+                    label='End Date'
+                    name='endDate'
+                    rules={[
+                      {
+                        validator: (_rule, value) => {
+                          if (!value) {
+                            return Promise.resolve();
+                          }
+                          const startDate = form.getFieldValue('startDate');
+                          if (!startDate) {
+                            return Promise.resolve();
+                          }
+                          if (dayjs(value).isBefore(dayjs(startDate), 'day')) {
+                            return Promise.reject(new Error('End date must be after start date'));
+                          }
+                          return Promise.resolve();
+                        }
+                      }
+                    ]}
+                    dependencies={['startDate']}
+                  >
+                    <DatePicker style={{ width: '100%' }} />
+                  </Form.Item>
+                )}
+              </>
+            )}
+          </>
+        )}
 
         <Form.Item
           {...verticalLayout}
