@@ -76,22 +76,24 @@ export function PageBanner({
           <path d='M649.97 0L550.03 0 599.91 54.12 649.97 0z' className='shape-fill'></path>
         </svg> */}
 
-        <Typography.Paragraph
-          style={{
-            position: 'absolute',
-            top: '2em',
-            opacity: 0.8,
-            left: 0,
-            right: 0,
-            fontSize: '1.2em',
-            color: 'white',
-            textAlign: 'center'
-          }}
-        >
-          CALCULATE YOUR IMPACT
-          <br />
-          <CaretDownFilled />
-        </Typography.Paragraph>
+        {isProjectTemplate && (
+          <Typography.Paragraph
+            style={{
+              position: 'absolute',
+              top: '2em',
+              opacity: 0.8,
+              left: 0,
+              right: 0,
+              fontSize: '1.2em',
+              color: 'white',
+              textAlign: 'center'
+            }}
+          >
+            CALCULATE YOUR IMPACT
+            <br />
+            <CaretDownFilled />
+          </Typography.Paragraph>
+        )}
         <svg width='100%' height='100%' viewBox='0 0 100 102' preserveAspectRatio='none'>
           <path d='M0 0 L50 100 L100 0 Z' className='shape-fill' />
         </svg>

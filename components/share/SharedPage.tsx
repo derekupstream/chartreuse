@@ -131,7 +131,12 @@ export function SharedPage({
       ];
   return (
     <>
-      <PageBanner dashboardTitle={dashboardTitle} title={bannerTitle} description={bannerDescription} />
+      <PageBanner
+        dashboardTitle={dashboardTitle}
+        title={bannerTitle}
+        description={bannerDescription}
+        isProjectTemplate={isProjectTemplate}
+      />
       <ResponsiveWrapper ref={printRef} style={{ marginTop: 0 }}>
         <MobileElement>
           <ContentHeader
