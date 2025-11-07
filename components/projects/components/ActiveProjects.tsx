@@ -82,33 +82,15 @@ export function ActiveProjects({ tagIdsFilter, sortOrder, tags }: ActiveProjects
     return uniqueTagLabels.sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
   }, [tags, sortedProjects]);
 
-  useEffect(() => {
-    if (error) {
-      message.error((error as Error)?.message);
-    }
-  }, [error]);
-
-  if (isLoading) {
-    return <ContentLoader />;
-  }
-
-  if (projects?.length === 0) {
+  const filteredProjects = useMemo(() => {
     return (
-      <Card style={{ height: 280, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <Typography.Text>
-          You have no active projects. Select a template or click <strong>+ Start custom project</strong> above to get
-          started.
-        </Typography.Text>
-      </Card>
+      (tagIdsFilter.length > 0
+        ? sortedProjects?.filter((project: PopulatedProject) => {
+            return project.tags.some(tag => tagIdsFilter.includes(tag.tagId));
+          })
+        : sortedProjects) || []
     );
-  }
-
-  const filteredProjects =
-    (tagIdsFilter.length > 0
-      ? sortedProjects?.filter((project: PopulatedProject) => {
-          return project.tags.some(tag => tagIdsFilter.includes(tag.tagId));
-        })
-      : sortedProjects) || [];
+  }, [sortedProjects, tagIdsFilter]);
 
   // Group projects by month for projectDate sorting
   const projectsByMonth = useMemo(() => {
@@ -133,6 +115,27 @@ export function ActiveProjects({ tagIdsFilter, sortOrder, tags }: ActiveProjects
       return dayjs(b).isBefore(dayjs(a)) ? -1 : 1;
     });
   }, [projectsByMonth, sortOrder]);
+
+  useEffect(() => {
+    if (error) {
+      message.error((error as Error)?.message);
+    }
+  }, [error]);
+
+  if (isLoading) {
+    return <ContentLoader />;
+  }
+
+  if (projects?.length === 0) {
+    return (
+      <Card style={{ height: 280, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <Typography.Text>
+          You have no active projects. Select a template or click <strong>+ Start custom project</strong> above to get
+          started.
+        </Typography.Text>
+      </Card>
+    );
+  }
 
   if (filteredProjects.length === 0) {
     return (
