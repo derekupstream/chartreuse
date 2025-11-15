@@ -143,6 +143,10 @@ class Client {
   sendMailchimpEvent(name: MailChimpEvent) {
     return http.POST('/api/events', { name });
   }
+
+  updateOrgInviteCode(enabled: boolean) {
+    return http.POST<{ orgInviteCode: string | null }>('/api/org/invite-code', { enabled });
+  }
 }
 
 export default new Client();

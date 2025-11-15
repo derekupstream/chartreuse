@@ -15,73 +15,57 @@ import prisma from 'lib/prisma';
 
 export const getServerSideProps: GetServerSideProps = async context => {
   try {
-    const inviteId = context.query.inviteId as string;
+    const orgInviteCode = context.params?.orgInviteCode as string;
 
-    if (!inviteId) {
+    if (!orgInviteCode) {
       return {
-        props: { user: null, org: null, email: null, error: 'Invalid Invite' }
+        props: { org: null, error: 'Invalid Invite Code' }
       };
     }
 
-    const invite = await prisma.invite.findUnique({
+    const org = await prisma.org.findUnique({
       where: {
-        id: inviteId
+        orgInviteCode: orgInviteCode
       },
-      include: {
-        sentBy: true,
-        org: true
+      select: {
+        id: true,
+        name: true
       }
     });
 
-    if (!invite) {
+    if (!org) {
       return {
-        props: { user: null, org: null, email: null, error: 'Invalid Invite' }
-      };
-    }
-
-    if (invite.accepted) {
-      return {
-        props: {
-          user: null,
-          org: null,
-          email: null,
-          error: 'Invite was already accepted'
-        }
+        props: { org: null, error: 'Invalid Invite Code' }
       };
     }
 
     return {
       props: serializeJSON({
-        user: invite.sentBy,
-        org: invite.org,
-        email: invite.email
+        org
       })
     };
   } catch (error: any) {
-    return { props: { user: null, org: null, error: error.message } };
+    return { props: { org: null, error: error.message } };
   }
 };
 
 type Props = {
-  user?: {
-    name: string;
-    title: string;
-  };
   org?: {
+    id: string;
     name: string;
   };
-  email?: string;
   error?: string;
 };
 
-export default function Accept({ user, email, org, error }: Props) {
+export default function Invite({ org, error }: Props) {
   const { signup, loginWithProvider } = useAuth();
   const router = useRouter();
+  const orgInviteCode = router.query.orgInviteCode as string;
 
   const handleSignup = async ({ email, password, rememberMe }: FormValues) => {
     try {
       await signup({ email, password }, rememberMe);
-      router.push(`/invite-profile-setup?inviteId=${router?.query.inviteId}`);
+      router.push(`/invite-signup-setup?orgInviteCode=${orgInviteCode}`);
     } catch (error: any) {
       message.error(error.message);
     }
@@ -90,7 +74,7 @@ export default function Accept({ user, email, org, error }: Props) {
   const handleLoginWithProvider = async (provider: FirebaseAuthProvider, rememberMe: boolean) => {
     try {
       await loginWithProvider(provider, rememberMe);
-      router.push(`/invite-profile-setup?inviteId=${router?.query.inviteId}`);
+      router.push(`/invite-signup-setup?orgInviteCode=${orgInviteCode}`);
     } catch (error: any) {
       message.error(error.message);
     }
@@ -100,24 +84,20 @@ export default function Accept({ user, email, org, error }: Props) {
     return <MessagePage title='Oops!' message={error} />;
   }
 
-  if (!user || !org) {
+  if (!org) {
     return <PageLoader />;
   }
 
   return (
     <>
-      <Header title='Accept Invite' />
+      <Header title='Join Organization' />
 
       <main>
         <FormPageTemplate
           title={`Join ${org.name} on Chart-Reuse`}
-          subtitle={`${user?.name.trim()}${user?.title ? `, ${user.title.trim()}` : ''} from ${org?.name.trim()} has invited you to create a customer account on Chart-Reuse.`}
+          subtitle={`When you create your account, you'll automatically be added to the ${org.name} Chart-Reuse workspace. Let's get started.`}
         >
-          <SignupForm
-            onSubmit={handleSignup}
-            onSubmitWithProvider={handleLoginWithProvider}
-            initialValues={{ email }}
-          />
+          <SignupForm onSubmit={handleSignup} onSubmitWithProvider={handleLoginWithProvider} />
         </FormPageTemplate>
       </main>
     </>

@@ -1,7 +1,7 @@
 import type { GetServerSideProps } from 'next';
 
-import type { PageProps as MembersProps } from 'components/members';
-import Members from 'components/members';
+import type { PageProps as MembersProps } from 'components/members/MembersPage';
+import { MembersPage } from 'components/members/MembersPage';
 import { DashboardLayout as Template } from 'layouts/DashboardLayout/DashboardLayout';
 import { checkLogin } from 'lib/middleware';
 import { serializeJSON } from 'lib/objects';
@@ -25,12 +25,18 @@ export const getServerSideProps: GetServerSideProps<MembersProps> = async contex
         accepted: false
       }
     });
+    const org = await prisma.org.findUnique({
+      where: { id: response.props.user.orgId },
+      select: { orgInviteCode: true }
+    });
+
     return {
       props: serializeJSON({
         user: response.props.user,
         accounts: response.props.user.org.accounts,
         users,
-        invites
+        invites,
+        org: { orgInviteCode: org?.orgInviteCode || null }
       })
     };
   } else {
@@ -38,11 +44,11 @@ export const getServerSideProps: GetServerSideProps<MembersProps> = async contex
   }
 };
 
-const MembersPage = (props: MembersProps) => {
-  return <Members {...props} />;
+const Members = (props: MembersProps) => {
+  return <MembersPage {...props} />;
 };
 
-MembersPage.getLayout = (page: React.ReactNode, pageProps: PageProps) => {
+Members.getLayout = (page: React.ReactNode, pageProps: PageProps) => {
   return (
     <Template {...pageProps} selectedMenuItem='members' title='Members'>
       {page}
@@ -50,4 +56,4 @@ MembersPage.getLayout = (page: React.ReactNode, pageProps: PageProps) => {
   );
 };
 
-export default MembersPage;
+export default Members;
