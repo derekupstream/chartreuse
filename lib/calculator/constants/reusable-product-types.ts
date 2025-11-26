@@ -43,7 +43,11 @@ export const PRODUCT_TYPES = [
   { id: 21, name: 'Food Tray' },
   { id: 24, name: 'Bowl' },
   { id: 30, name: 'Ramekin' },
-  { id: 31, name: 'Drinking Water Station' }
+  { id: 31, name: 'Drinking Water Station' },
+  { id: 32, name: 'Bowl Lid' },
+  { id: 33, name: 'Pizza Box' },
+  { id: 34, name: 'Hot Cup' },
+  { id: 35, name: 'Hot Cup Lid' }
 ] as const;
 
 export const BOTTLE_STATION_PRODUCT_ID = '171';
