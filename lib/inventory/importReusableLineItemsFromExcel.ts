@@ -1,20 +1,20 @@
 import ExcelJS from 'exceljs';
 
-export interface ImportedSingleUseLineItem {
+export interface ImportedReusableLineItem {
   productId: string;
   caseCost: number;
   casesPurchased: number;
   unitsPerCase: number;
-  frequency: string; // Default to 'annually' since template shows annual data
+  annualRepurchasePercentage: number; // Default to 0.1 (10%)
 }
 
 export interface ImportResult {
   success: boolean;
-  items: ImportedSingleUseLineItem[];
+  items: ImportedReusableLineItem[];
   errors: string[];
 }
 
-export function importSingleUseLineItemsFromExcel(file: Blob): Promise<ImportResult> {
+export function importReusableLineItemsFromExcel(file: Blob): Promise<ImportResult> {
   return new Promise((resolve, reject) => {
     const wb = new ExcelJS.Workbook();
     const reader = new FileReader();
@@ -26,7 +26,7 @@ export function importSingleUseLineItemsFromExcel(file: Blob): Promise<ImportRes
         .load(buffer)
         .then(async workbook => {
           try {
-            const result = convertWorkbookToSingleUseLineItems(workbook);
+            const result = convertWorkbookToReusableLineItems(workbook);
             resolve(result);
           } catch (error) {
             reject(error);
@@ -37,7 +37,7 @@ export function importSingleUseLineItemsFromExcel(file: Blob): Promise<ImportRes
   });
 }
 
-function convertWorkbookToSingleUseLineItems(workbook: ExcelJS.Workbook): ImportResult {
+function convertWorkbookToReusableLineItems(workbook: ExcelJS.Workbook): ImportResult {
   const sheet = workbook.getWorksheet('userinputs');
 
   if (!sheet) {
@@ -48,7 +48,7 @@ function convertWorkbookToSingleUseLineItems(workbook: ExcelJS.Workbook): Import
     };
   }
 
-  const items: ImportedSingleUseLineItem[] = [];
+  const items: ImportedReusableLineItem[] = [];
   const errors: string[] = [];
 
   // Find header row and column indices
@@ -145,7 +145,7 @@ function convertWorkbookToSingleUseLineItems(workbook: ExcelJS.Workbook): Import
       caseCost: caseCost!,
       casesPurchased: casesPurchased!,
       unitsPerCase: unitsPerCase!,
-      frequency: 'Annually' // Default frequency since template shows annual data
+      annualRepurchasePercentage: 0.1 // Default to 10% repurchase rate
     });
   });
 

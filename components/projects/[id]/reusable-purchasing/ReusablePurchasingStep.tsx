@@ -19,6 +19,7 @@ import * as S from '../styles';
 import type { ReusableItemRecord } from './components/ItemRow';
 import { ItemRow } from './components/ItemRow';
 import { ReusableItemForm } from './components/ReusableItemForm';
+import { ImportButton } from './components/ImportButton';
 import { useGetReusableProducts } from 'client/inventory';
 
 const SmallText = styled(Typography.Text)`
@@ -45,6 +46,8 @@ export interface ReusableFormValues {
 export const MISC_CATEGORY = -1;
 
 export function ReusablePurchasingStep({ isUpstream, readOnly }: { isUpstream: boolean; readOnly: boolean }) {
+  isUpstream = isUpstream || process.env.NODE_ENV === 'development';
+
   const [isDrawerVisible, setIsDrawerVisible] = useState<boolean>(false);
   const [formStep, setFormStep] = useState<number>(1);
   const [formValues, setFormValues] = useState<ReusableFormValues | null>(null);
@@ -134,17 +137,22 @@ export function ReusablePurchasingStep({ isUpstream, readOnly }: { isUpstream: b
 
   return (
     <S.Wrapper>
-      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Typography.Title level={1}>Reusables purchasing</Typography.Title>
-        {hasItems && !readOnly && (
-          <Button
-            type='primary'
-            onClick={addItem}
-            icon={<PlusOutlined />}
-            style={{ paddingRight: '4em', paddingLeft: '4em' }}
-          >
-            Add reusable item
-          </Button>
+        {!readOnly && (
+          <div style={{ display: 'flex', gap: '1em' }}>
+            {isUpstream && <ImportButton projectId={projectId} onImport={refreshLineItems} />}
+            {hasItems && (
+              <Button
+                type='primary'
+                onClick={addItem}
+                icon={<PlusOutlined />}
+                style={{ paddingRight: '4em', paddingLeft: '4em' }}
+              >
+                Add reusable item
+              </Button>
+            )}
+          </div>
         )}
       </div>
       <Typography.Title level={5}>
