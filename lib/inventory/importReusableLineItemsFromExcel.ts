@@ -5,7 +5,7 @@ export interface ImportedReusableLineItem {
   caseCost: number;
   casesPurchased: number;
   unitsPerCase: number;
-  annualRepurchasePercentage: number; // Default to 0.1 (10%)
+  annualRepurchasePercentage: number; // Default to 1.0 (100%)
 }
 
 export interface ImportResult {
@@ -145,7 +145,7 @@ function convertWorkbookToReusableLineItems(workbook: ExcelJS.Workbook): ImportR
       caseCost: caseCost!,
       casesPurchased: casesPurchased!,
       unitsPerCase: unitsPerCase!,
-      annualRepurchasePercentage: 0.1 // Default to 10% repurchase rate
+      annualRepurchasePercentage: 1.0 // Default to 100% repurchase rate (initial and annual quantities are the same)
     });
   });
 
