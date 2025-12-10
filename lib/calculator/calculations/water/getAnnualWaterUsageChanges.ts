@@ -21,23 +21,29 @@ export type AnnualWaterResults = {
 };
 
 export function getAnnualWaterUsageChanges(project: ProjectInventory): AnnualWaterResults {
-  const lineItems = project.singleUseItems.map(lineItem =>
+  // Filter out water station items (they have baselineWaterUsageGallons or forecastWaterUsageGallons set)
+  const singleUseItemsWithoutWaterStation = project.singleUseItems.filter(
+    item => !item.baselineWaterUsageGallons && !item.forecastWaterUsageGallons
+  );
+  const lineItems = singleUseItemsWithoutWaterStation.map(lineItem =>
     getLineItemWaterUsage({ lineItem, frequency: lineItem.frequency, isEventProject: project.isEventProject })
   );
   // console.log(lineItems);
-  const reusableLineItems = project.reusableItems
-    .filter(item => !!item.product)
-    .map(lineItem =>
-      getLineItemWaterUsage({
-        lineItem: {
-          ...(lineItem as ReusableLineItemPopulatedWithProduct),
-          // Do not include "one-time" emissions for reusables (aka baseline)
-          casesPurchased: 0
-        },
-        frequency: 'Annually',
-        isEventProject: project.isEventProject
-      })
-    );
+  // Filter out water station items from reusable items as well
+  const reusableItemsWithoutWaterStation = project.reusableItems.filter(
+    item => !!item.product && !item.baselineWaterUsageGallons && !item.forecastWaterUsageGallons
+  );
+  const reusableLineItems = reusableItemsWithoutWaterStation.map(lineItem =>
+    getLineItemWaterUsage({
+      lineItem: {
+        ...(lineItem as unknown as ReusableLineItemPopulatedWithProduct),
+        // Do not include "one-time" emissions for reusables (aka baseline)
+        casesPurchased: 0
+      },
+      frequency: 'Annually',
+      isEventProject: project.isEventProject
+    })
+  );
   // console.log(reusableLineItems);
   const lineItemResults = [...lineItems, ...reusableLineItems].reduce(
     (sum, item) => {

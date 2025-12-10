@@ -3,6 +3,7 @@ import styled from 'styled-components';
 
 import Card from './Card';
 import PercentTag from './PercentTag';
+import { ReactNode } from 'react';
 import { CardTitle } from './styles';
 
 export const Value = styled(Typography.Text)`
@@ -39,7 +40,7 @@ type Props = {
   forecast?: number;
   changeStr: string;
   changePercent?: number;
-  title?: string;
+  title?: string | ReactNode;
   style?: any;
 };
 

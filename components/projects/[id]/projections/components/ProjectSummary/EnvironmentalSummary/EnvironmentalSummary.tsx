@@ -1,5 +1,6 @@
 import type { RadioChangeEvent } from 'antd';
-import { Radio, Typography, Row, Col } from 'antd';
+import { Radio, Typography, Row, Col, Tooltip } from 'antd';
+import { InfoCircleOutlined } from '@ant-design/icons';
 import { useState } from 'react';
 import styled from 'styled-components';
 
@@ -179,7 +180,14 @@ export const EnvironmentalSummary: React.FC<Props> = ({ data, hideWaterUsage, is
           <StyledCol xs={24} lg={12}>
             <KPICard
               style={{ height: '100%' }}
-              title={isEventProject ? `Water Usage` : `Annual water usage changes`}
+              title={
+                <span>
+                  {isEventProject ? 'Water Usage' : 'Annual water usage changes'}{' '}
+                  <Tooltip title='This metric covers water used specifically for foodware: the manufacturing of single-use items or the washing of reusables.'>
+                    <InfoCircleOutlined style={{ fontSize: '14px', color: '#8c8c8c', cursor: 'help' }} />
+                  </Tooltip>
+                </span>
+              }
               changePercent={data.annualWaterUsageChanges.total.changePercent * -1}
               changeStr={`${changeValueInGallons(data.annualWaterUsageChanges.total.change, {
                 displayAsMetric
