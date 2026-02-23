@@ -1,29 +1,35 @@
 import type { GetServerSideProps } from 'next';
 
 import { createSupabaseServerPropsClient } from 'lib/auth/supabaseServer';
-import prisma from 'lib/prisma';
 
 // Handles the OAuth redirect from Supabase after Google sign-in.
-// Exchanges the code for a session, then routes to setup or app.
+// Exchanges the code for a session, then routes to setup.
+// The /setup/trial page handles routing existing users to /projects.
 export const getServerSideProps: GetServerSideProps = async context => {
   const { code } = context.query;
 
   if (typeof code === 'string') {
-    const supabase = createSupabaseServerPropsClient(context);
-    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+    try {
+      const supabase = createSupabaseServerPropsClient(context);
+      const { error } = await supabase.auth.exchangeCodeForSession(code);
 
-    if (!error && data.user) {
-      const existingUser = await prisma.user.findUnique({ where: { id: data.user.id } });
-      if (!existingUser) {
+      if (!error) {
         return { redirect: { permanent: false, destination: '/setup/trial' } };
       }
-      return { redirect: { permanent: false, destination: '/projects' } };
+
+      console.error('exchangeCodeForSession error:', error);
+    } catch (err) {
+      console.error('Auth callback error:', err);
     }
   }
 
-  return { redirect: { permanent: false, destination: '/login' } };
+  return { redirect: { permanent: false, destination: '/login?error=auth' } };
 };
 
 export default function AuthCallback() {
-  return null;
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>
+      <p>Signing you in...</p>
+    </div>
+  );
 }

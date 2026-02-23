@@ -10,12 +10,20 @@ import { useAuth } from 'hooks/useAuth';
 import { FormPageTemplate } from 'layouts/FormPageLayout';
 import { useCreateTrial } from 'lib/api';
 import { getUserFromContext } from 'lib/middleware';
+import prisma from 'lib/prisma';
 
 export const getServerSideProps: GetServerSideProps = async context => {
   const { authUser } = await getUserFromContext(context);
   if (!authUser) {
     return { redirect: { permanent: false, destination: '/login' } };
   }
+
+  // If user already has an account, skip setup and go straight to the app
+  const existingUser = await prisma.user.findUnique({ where: { id: authUser.id } });
+  if (existingUser) {
+    return { redirect: { permanent: false, destination: '/projects' } };
+  }
+
   return { props: {} };
 };
 
