@@ -18,12 +18,13 @@
 
 ### Auth Modernization
 
-- [ ] **AUTH-01**: User can sign in with email and password via Better Auth (replaces Firebase)
+- [ ] **AUTH-01**: User can sign in with email and password via Supabase Auth (replaces Firebase)
 - [ ] **AUTH-02**: User session persists across browser refresh without re-login
-- [ ] **AUTH-03**: User can reset password via email link (Mailgun delivery)
+- [ ] **AUTH-03**: User can reset password via email link (Supabase-delivered)
 - [ ] **AUTH-04**: All protected routes (pages + API) remain protected after Firebase cutover
 - [ ] **AUTH-05**: `firebase`, `firebase-admin`, and `nookies` packages removed from codebase
 - [ ] **AUTH-06**: All Firebase environment variables removed from Vercel and Heroku deployments
+- [ ] **AUTH-07**: Supabase project provisioned with Prisma connected to Supabase PostgreSQL
 
 ### Calculator Enhancements
 
@@ -120,6 +121,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | AUTH-04 | Phase 2 | Pending |
 | AUTH-05 | Phase 2 | Pending |
 | AUTH-06 | Phase 2 | Pending |
+| AUTH-07 | Phase 2 | Pending |
 | CALC-01 | Phase 3 | Pending |
 | CALC-02 | Phase 3 | Pending |
 | CALC-03 | Phase 3 | Pending |
@@ -150,7 +152,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | AI-05 | Phase 4 | Pending |
 
 **Coverage:**
-- v1 requirements: 38 total
+- v1 requirements: 39 total
 - Mapped to phases: 33
 - Unmapped: 0 ✓
 
