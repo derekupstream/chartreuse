@@ -1,7 +1,6 @@
 import { message } from 'antd';
 import type { GetServerSideProps } from 'next';
 import { useRouter } from 'next/router';
-import nookies from 'nookies';
 import { useCallback } from 'react';
 
 import { Header } from 'components/common/Header';
@@ -13,28 +12,11 @@ import { useCreateTrial } from 'lib/api';
 import { getUserFromContext } from 'lib/middleware';
 
 export const getServerSideProps: GetServerSideProps = async context => {
-  const { firebaseToken } = await getUserFromContext(context);
-  if (!firebaseToken) {
-    console.warn('Missing firebase token. Redirect from trial setup to login');
-    return {
-      redirect: {
-        permanent: false,
-        destination: '/login'
-      }
-    };
+  const { authUser } = await getUserFromContext(context);
+  if (!authUser) {
+    return { redirect: { permanent: false, destination: '/login' } };
   }
-  const { emailVerified } = nookies.get(context);
-  if (!emailVerified) {
-    console.warn('Redirect from trial setup to verify email');
-    return {
-      redirect: {
-        permanent: false,
-        destination: '/email-verification'
-      }
-    };
-  }
-
-  return { props: { emailVerified: true } };
+  return { props: {} };
 };
 
 export default function TrialSetup() {
@@ -50,35 +32,23 @@ export default function TrialSetup() {
         return;
       }
       trigger(
+        { id: firebaseUser.uid, title, email, name, phone, orgName },
         {
-          id: firebaseUser.uid,
-          title,
-          email,
-          name,
-          phone,
-          orgName
-        },
-        {
-          onSuccess: () => {
-            router.push('/projects?view=templates');
-          },
-          onError: err => {
-            message.error((err as Error)?.message);
-          }
+          onSuccess: () => router.push('/projects?view=templates'),
+          onError: err => message.error((err as Error)?.message)
         }
       );
     },
-    [trigger, router, firebaseUser?.uid, firebaseUser?.email]
+    [trigger, router, firebaseUser]
   );
 
   return (
     <>
       <Header title='Start for free' />
-
       <main>
         <FormPageTemplate
-          title='Start for free'
-          subtitle='Try one project in Chart-Reuse for 30 days, risk free.  No credit card required. Upgrade at anytime!'
+          title='Create your account'
+          subtitle='Set up your organization to get started with Chart-Reuse.'
         >
           <TrialSetupForm onSubmit={createTrial as (values: unknown) => void} isLoading={isMutating} />
         </FormPageTemplate>

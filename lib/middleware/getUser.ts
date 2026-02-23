@@ -1,7 +1,7 @@
 import type { Prisma, User } from '@prisma/client';
 import type { NextApiRequest, NextApiResponse } from 'next';
 
-import { verifyIdToken } from 'lib/auth/firebaseAdmin';
+import { createSupabaseApiClient } from 'lib/auth/supabaseServer';
 import prisma from 'lib/prisma';
 
 export type NextApiRequestWithUser = NextApiRequest & {
@@ -9,20 +9,27 @@ export type NextApiRequestWithUser = NextApiRequest & {
 };
 
 export async function getUser(req: NextApiRequestWithUser, res: NextApiResponse, next: () => void) {
-  const cookies = req.cookies;
-  const token = await verifyIdToken(cookies.token);
+  const supabase = createSupabaseApiClient(req, res);
+  const {
+    data: { user: authUser }
+  } = await supabase.auth.getUser();
+
+  if (!authUser) {
+    res.status(401).send('Unauthorized');
+    return;
+  }
 
   const user = await prisma.user.findUnique<Prisma.UserFindUniqueArgs>({
-    where: {
-      id: token.uid
-    }
+    where: { id: authUser.id }
   });
+
   if (!user) {
     res.status(401).send('User not found');
-  } else {
-    req.user = user;
-    next();
+    return;
   }
+
+  req.user = user;
+  next();
 }
 
 export default getUser;

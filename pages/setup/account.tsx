@@ -3,55 +3,36 @@ import { message, Typography } from 'antd';
 import type { GetServerSideProps } from 'next';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import nookies from 'nookies';
-
 import { Header } from 'components/common/Header';
 import { PageLoader } from 'components/common/PageLoader';
 import AccountSetupForm from 'components/setup/account/AccountSetup';
 import { FormPageTemplate } from 'layouts/FormPageLayout';
-import { verifyIdToken } from 'lib/auth/firebaseAdmin';
 import type { AccountSetupFields } from 'lib/chartreuseClient';
 import chartreuseClient from 'lib/chartreuseClient';
 import { readSelectedTemplateCookie } from 'lib/cookies';
+import { getUserFromContext } from 'lib/middleware';
 import { serializeJSON } from 'lib/objects';
 import prisma from 'lib/prisma';
 
 export const getServerSideProps: GetServerSideProps = async context => {
   try {
-    const cookies = nookies.get(context);
-    const token = await verifyIdToken(cookies.token);
+    const { authUser } = await getUserFromContext(context);
+    if (!authUser) {
+      return { redirect: { permanent: false, destination: '/login' } };
+    }
 
     const user = await prisma.user.findUnique({
-      where: {
-        id: token.uid
-      },
-      include: {
-        org: true
-      }
+      where: { id: authUser.id },
+      include: { org: true }
     });
 
     if (!user) {
-      return {
-        redirect: {
-          permanent: false,
-          destination: '/setup'
-        }
-      };
+      return { redirect: { permanent: false, destination: '/setup/trial' } };
     }
 
-    return {
-      props: serializeJSON({
-        user: user,
-        org: user.org
-      })
-    };
+    return { props: serializeJSON({ user, org: user.org }) };
   } catch (error: any) {
-    return {
-      redirect: {
-        permanent: false,
-        destination: '/login'
-      }
-    };
+    return { redirect: { permanent: false, destination: '/login' } };
   }
 };
 

@@ -12,27 +12,14 @@ import chartreuseClient from 'lib/chartreuseClient';
 import { getUserFromContext } from 'lib/middleware';
 
 export const getServerSideProps: GetServerSideProps = async context => {
-  const { firebaseToken, user } = await getUserFromContext(context);
-  if (!firebaseToken) {
-    console.log('Redirect from org setup to login');
-    return {
-      redirect: {
-        permanent: false,
-        destination: '/login'
-      }
-    };
+  const { authUser, user } = await getUserFromContext(context);
+  if (!authUser) {
+    return { redirect: { permanent: false, destination: '/login' } };
   }
   if (!user) {
-    console.log('Redirect from org setup to trial setup');
-    return {
-      redirect: {
-        permanent: false,
-        destination: '/trial'
-      }
-    };
+    return { redirect: { permanent: false, destination: '/setup/trial' } };
   }
-
-  return { props: { emailVerified: true } };
+  return { props: {} };
 };
 
 export default function OrgSetup() {

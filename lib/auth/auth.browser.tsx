@@ -1,142 +1,82 @@
-import type { UserCredential } from 'firebase/auth';
-import {
-  onIdTokenChanged,
-  signOut,
-  signInWithEmailAndPassword,
-  signInWithPopup,
-  createUserWithEmailAndPassword,
-  setPersistence,
-  browserLocalPersistence,
-  sendPasswordResetEmail
-} from 'firebase/auth';
-import { setCookie, destroyCookie } from 'nookies';
-import { createContext, useEffect, useState, useCallback } from 'react';
+import type { User } from '@supabase/supabase-js';
+import { createContext, useCallback, useEffect, useState } from 'react';
 
-import type { FirebaseAuthProvider, FirebaseUser } from './firebaseClient';
-import { auth } from './firebaseClient';
-import { isBlacklistedEmail, assertEmailIsNotBlacklisted } from './userEmailBlacklist';
+import { createSupabaseBrowserClient } from './supabaseClient';
 
-export type { FirebaseUser };
-
-const WEB_HOST = process.env.NODE_ENV === 'production' ? 'https://app.chart-reuse.eco' : 'http://localhost:3000';
-
-export type Credentials = {
+// SessionUser maps Supabase User to the shape components expect
+export type SessionUser = {
+  uid: string;
   email: string;
-  password: string;
+  displayName: string | null;
 };
 
+export type { SessionUser as FirebaseUser }; // backward-compat alias
+
+function toSessionUser(user: User): SessionUser {
+  return {
+    uid: user.id,
+    email: user.email ?? '',
+    displayName: user.user_metadata?.full_name ?? user.user_metadata?.name ?? null
+  };
+}
+
 type AuthContextType = {
-  firebaseUser: FirebaseUser | null;
-  login: (credentials: Credentials, persist: boolean) => Promise<UserCredential | null>;
-  loginWithProvider: (provider: FirebaseAuthProvider, persist: boolean) => Promise<UserCredential | null>;
-  resetPassword: (credentials: { email: string }) => Promise<void>;
-  signup: (credentials: Credentials, persist: boolean) => Promise<UserCredential | null>;
+  firebaseUser: SessionUser | null;
+  signInWithGoogle: () => Promise<void>;
   signout: () => Promise<void>;
 };
 
 export const AuthContext = createContext<AuthContextType>({
   firebaseUser: null,
-  login: () => Promise.resolve(null),
-  loginWithProvider: () => Promise.resolve(null),
-  resetPassword: () => Promise.resolve(),
-  signup: () => Promise.resolve(null),
+  signInWithGoogle: () => Promise.resolve(),
   signout: () => Promise.resolve()
 });
 
 export const AuthProvider: React.FC<{ children: any }> = ({ children }) => {
-  const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
+  const [firebaseUser, setFirebaseUser] = useState<SessionUser | null>(null);
+  const supabase = createSupabaseBrowserClient();
 
   useEffect(() => {
-    const unsubscribe = onIdTokenChanged(auth, async (_firebaseUser: FirebaseUser | null) => {
-      const emailIsBlacklisted = _firebaseUser?.email && isBlacklistedEmail(_firebaseUser.email);
+    // Bypass for local dev remote user
+    if (process.env.NEXT_PUBLIC_REMOTE_USER_ID || process.env.NEXT_PUBLIC_REMOTE_USER_EMAIL) {
+      return;
+    }
 
-      if (process.env.NEXT_PUBLIC_REMOTE_USER_ID || process.env.NEXT_PUBLIC_REMOTE_USER_EMAIL) {
-        // ignore firebase auth for remote user
-        return;
-      }
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) setFirebaseUser(toSessionUser(session.user));
+    });
 
-      if (!_firebaseUser || emailIsBlacklisted) {
-        console.log('TODO: Log user out');
-        // for some reason, _firebaseUser is null when the user is logged out
+    const {
+      data: { subscription }
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        setFirebaseUser(toSessionUser(session.user));
+      } else {
         setFirebaseUser(null);
-        destroyCookie(null, 'token', {
-          path: '/' // setting path is required or this wont work
-        });
-        if (!isPublicUrl(window.location.href)) {
-          console.log('Send user to login');
+        if (typeof window !== 'undefined' && !isPublicUrl(window.location.href)) {
           window.location.href = '/login';
         }
-        return;
       }
-
-      setFirebaseUser(_firebaseUser);
-      const token = await _firebaseUser.getIdToken();
-      setCookie(null, 'token', token, {
-        path: '/'
-      });
     });
 
-    return () => unsubscribe();
+    return () => subscription.unsubscribe();
   }, []);
 
-  // force refresh the token every 10 minutes
-  useEffect(() => {
-    const handle = setInterval(
-      async () => {
-        const user = auth.currentUser;
-        if (user) await user.getIdToken(true);
-      },
-      10 * 60 * 1000
-    );
-
-    // clean up setInterval
-    return () => clearInterval(handle);
-  }, []);
-
-  const login = useCallback(async ({ email, password }: Credentials, persist: boolean) => {
-    assertEmailIsNotBlacklisted(email);
-    console.log('LOGIN', { email, password, persist });
-    if (!persist) {
-      await setPersistence(auth, browserLocalPersistence);
-    }
-    return signInWithEmailAndPassword(auth, email, password);
-  }, []);
-
-  const loginWithProvider = useCallback(async (provider: FirebaseAuthProvider, persist: boolean) => {
-    if (!persist) {
-      await setPersistence(auth, browserLocalPersistence);
-    }
-    return signInWithPopup(auth, provider);
-  }, []);
-
-  const signup = useCallback(async ({ email, password }: Credentials, persist: boolean) => {
-    assertEmailIsNotBlacklisted(email);
-    if (!persist) {
-      await setPersistence(auth, browserLocalPersistence);
-    }
-    return createUserWithEmailAndPassword(auth, email, password);
-  }, []);
-
-  const signout = useCallback(() => {
-    return signOut(auth).then(() => {
-      setFirebaseUser(null);
-      destroyCookie(null, 'token');
+  const signInWithGoogle = useCallback(async () => {
+    await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: `${window.location.origin}/auth/callback` }
     });
   }, []);
 
-  const resetPassword = useCallback(async ({ email }: { email: string }) => {
-    await sendPasswordResetEmail(auth, email, {
-      url: WEB_HOST + '/login'
-    });
+  const signout = useCallback(async () => {
+    await supabase.auth.signOut();
+    setFirebaseUser(null);
   }, []);
 
-  return (
-    <AuthContext.Provider value={{ firebaseUser, login, loginWithProvider, signup, resetPassword, signout }}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={{ firebaseUser, signInWithGoogle, signout }}>{children}</AuthContext.Provider>;
 };
 
 function isPublicUrl(url: string) {
-  return ['login', 'share'].some(path => url.includes(path));
+  return ['login', 'share', 'auth/callback'].some(path => url.includes(path));
 }

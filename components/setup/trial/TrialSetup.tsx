@@ -90,7 +90,7 @@ export function TrialSetupForm({ onSubmit, isLoading }: Props) {
 
         <Form.Item>
           <Button type='primary' htmlType='submit' block loading={isLoading}>
-            Start trial
+            Get started
           </Button>
         </Form.Item>
 

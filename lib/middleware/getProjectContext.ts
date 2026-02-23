@@ -1,9 +1,8 @@
 import type { Project, Org } from '@prisma/client';
 import type { GetServerSideProps } from 'next';
-import nookies from 'nookies';
 
 import type { DashboardUser } from 'interfaces';
-import { verifyIdToken } from 'lib/auth/firebaseAdmin';
+import { createSupabaseServerPropsClient } from 'lib/auth/supabaseServer';
 import { serializeJSON } from 'lib/objects';
 import prisma from 'lib/prisma';
 
@@ -15,7 +14,7 @@ export type ProjectContext = {
     account: { name: string };
   };
   org: Org & { useShrinkageRate: boolean };
-  readOnly: boolean; // useful for templates
+  readOnly: boolean;
 };
 
 export const UserDataToInclude = {
@@ -41,61 +40,41 @@ export const UserDataToInclude = {
 
 export const getProjectContext: GetServerSideProps = async context => {
   try {
-    const cookies = nookies.get(context);
-    const token = await verifyIdToken(cookies.token);
+    const supabase = createSupabaseServerPropsClient(context);
+    const {
+      data: { user: authUser }
+    } = await supabase.auth.getUser();
+
+    if (!authUser) {
+      return { redirect: { permanent: false, destination: '/login' } };
+    }
 
     const user = await prisma.user.findUnique({
-      where: {
-        id: token.uid
-      },
+      where: { id: authUser.id },
       include: UserDataToInclude
     });
 
     if (!user) {
-      return {
-        redirect: {
-          permanent: false,
-          destination: '/setup/trial'
-        }
-      };
+      return { redirect: { permanent: false, destination: '/setup/trial' } };
     }
 
     const { id } = context.query;
     const project = await prisma.project.findUnique({
       where: { id: id as string },
       include: {
-        account: {
-          select: {
-            name: true
-          }
-        },
-        org: {
-          select: {
-            isUpstream: true,
-            name: true,
-            useShrinkageRate: true
-          }
-        },
-        template: {
-          select: {
-            templateDescription: true
-          }
-        },
-        tags: {
-          select: {
-            tagId: true
-          }
-        }
+        account: { select: { name: true } },
+        org: { select: { isUpstream: true, name: true, useShrinkageRate: true } },
+        template: { select: { templateDescription: true } },
+        tags: { select: { tagId: true } }
       }
     });
 
     if (!project) {
-      return {
-        notFound: true
-      };
+      return { notFound: true };
     }
+
     const projectContext: ProjectContext = {
-      // @ts-ignore - fix DashboardUser type to match
+      // @ts-ignore
       user,
       project: {
         ...project,
@@ -107,16 +86,9 @@ export const getProjectContext: GetServerSideProps = async context => {
       readOnly: project.isTemplate && !user.org.isUpstream
     };
 
-    return {
-      props: serializeJSON(projectContext)
-    };
+    return { props: serializeJSON(projectContext) };
   } catch (error: any) {
     console.error('Error getting project context', error);
-    return {
-      redirect: {
-        permanent: false,
-        destination: '/projects'
-      }
-    };
+    return { redirect: { permanent: false, destination: '/projects' } };
   }
 };

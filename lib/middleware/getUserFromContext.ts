@@ -1,32 +1,28 @@
 import type { Prisma } from '@prisma/client';
 import type { GetServerSidePropsContext } from 'next';
-import nookies from 'nookies';
 
-import { verifyIdToken } from 'lib/auth/firebaseAdmin';
+import { createSupabaseServerPropsClient } from 'lib/auth/supabaseServer';
 import prisma from 'lib/prisma';
 
-type DecodedIdToken = Awaited<ReturnType<typeof verifyIdToken>>;
+import { UserDataToInclude } from './getProjectContext';
 
 export async function getUserFromContext<T extends Partial<Prisma.UserInclude> = any>(
   context: GetServerSidePropsContext,
   dataToInclude: T = null as unknown as T
 ) {
-  let token: { uid: string; email?: string };
-  const cookies = nookies.get(context);
+  const supabase = createSupabaseServerPropsClient(context);
+  const {
+    data: { user: authUser }
+  } = await supabase.auth.getUser();
 
-  try {
-    token = await verifyIdToken(cookies.token);
-  } catch (error) {
-    console.warn('Error retrieving user from cookie:', error);
+  if (!authUser) {
     return {};
   }
 
   const user = await prisma.user.findUnique({
-    where: {
-      id: token.uid
-    },
+    where: { id: authUser.id },
     include: dataToInclude
   });
 
-  return { user, firebaseToken: token, verifiedEmail: cookies.verifiedEmail === 'true' };
+  return { user, authUser };
 }

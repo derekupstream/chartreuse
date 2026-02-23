@@ -2,14 +2,13 @@ import { message } from 'antd';
 import type { GetServerSideProps } from 'next';
 import { useRouter } from 'next/router';
 
+import { GoogleOutlined } from '@ant-design/icons';
+import { Button } from 'antd';
 import { Header } from 'components/common/Header';
 import { PageLoader } from 'components/common/PageLoader';
-import type { FormValues } from 'components/signup/SignupForm';
-import { SignupForm } from 'components/signup/SignupForm';
 import { useAuth } from 'hooks/useAuth';
 import { FormPageTemplate } from 'layouts/FormPageLayout';
 import MessagePage from 'layouts/MessagePageLayout';
-import type { FirebaseAuthProvider } from 'lib/auth/firebaseClient';
 import { serializeJSON } from 'lib/objects';
 import prisma from 'lib/prisma';
 
@@ -18,81 +17,48 @@ export const getServerSideProps: GetServerSideProps = async context => {
     const inviteId = context.query.inviteId as string;
 
     if (!inviteId) {
-      return {
-        props: { user: null, org: null, email: null, error: 'Invalid Invite' }
-      };
+      return { props: { user: null, org: null, email: null, error: 'Invalid Invite' } };
     }
 
     const invite = await prisma.invite.findUnique({
-      where: {
-        id: inviteId
-      },
-      include: {
-        sentBy: true,
-        org: true
-      }
+      where: { id: inviteId },
+      include: { sentBy: true, org: true }
     });
 
     if (!invite) {
-      return {
-        props: { user: null, org: null, email: null, error: 'Invalid Invite' }
-      };
+      return { props: { user: null, org: null, email: null, error: 'Invalid Invite' } };
     }
 
     if (invite.accepted) {
-      return {
-        props: {
-          user: null,
-          org: null,
-          email: null,
-          error: 'Invite was already accepted'
-        }
-      };
+      return { props: { user: null, org: null, email: null, error: 'Invite was already accepted' } };
     }
 
-    return {
-      props: serializeJSON({
-        user: invite.sentBy,
-        org: invite.org,
-        email: invite.email
-      })
-    };
+    return { props: serializeJSON({ user: invite.sentBy, org: invite.org, email: invite.email }) };
   } catch (error: any) {
     return { props: { user: null, org: null, error: error.message } };
   }
 };
 
 type Props = {
-  user?: {
-    name: string;
-    title: string;
-  };
-  org?: {
-    name: string;
-  };
+  user?: { name: string; title: string };
+  org?: { name: string };
   email?: string;
   error?: string;
 };
 
-export default function Accept({ user, email, org, error }: Props) {
-  const { signup, loginWithProvider } = useAuth();
+export default function Accept({ user, org, error }: Props) {
+  const { signInWithGoogle } = useAuth();
   const router = useRouter();
 
-  const handleSignup = async ({ email, password, rememberMe }: FormValues) => {
+  const handleSignInWithGoogle = async () => {
     try {
-      await signup({ email, password }, rememberMe);
-      router.push(`/invite-profile-setup?inviteId=${router?.query.inviteId}`);
-    } catch (error: any) {
-      message.error(error.message);
-    }
-  };
-
-  const handleLoginWithProvider = async (provider: FirebaseAuthProvider, rememberMe: boolean) => {
-    try {
-      await loginWithProvider(provider, rememberMe);
-      router.push(`/invite-profile-setup?inviteId=${router?.query.inviteId}`);
-    } catch (error: any) {
-      message.error(error.message);
+      // Store inviteId so the callback can redirect properly
+      if (router.query.inviteId) {
+        sessionStorage.setItem('pendingInviteId', router.query.inviteId as string);
+      }
+      await signInWithGoogle();
+    } catch (err: any) {
+      message.error(err.message);
     }
   };
 
@@ -107,17 +73,14 @@ export default function Accept({ user, email, org, error }: Props) {
   return (
     <>
       <Header title='Accept Invite' />
-
       <main>
         <FormPageTemplate
           title={`Join ${org.name} on Chart-Reuse`}
           subtitle={`${user?.name.trim()}${user?.title ? `, ${user.title.trim()}` : ''} from ${org?.name.trim()} has invited you to create a customer account on Chart-Reuse.`}
         >
-          <SignupForm
-            onSubmit={handleSignup}
-            onSubmitWithProvider={handleLoginWithProvider}
-            initialValues={{ email }}
-          />
+          <Button onClick={handleSignInWithGoogle} type='default' block size='large' icon={<GoogleOutlined />}>
+            Accept with Google
+          </Button>
         </FormPageTemplate>
       </main>
     </>

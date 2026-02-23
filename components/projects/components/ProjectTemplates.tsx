@@ -86,7 +86,7 @@ export function ProjectTemplates({ isUpstream, tagIdsFilter }: { isUpstream: boo
               bodyStyle={{ height: '100%', display: 'flex', flexDirection: 'column' }}
             >
               <div style={{ flexGrow: 1 }}>
-                <Typography.Title level={3} style={{ marginBottom: 0, paddingRight: 80 }}>
+                <Typography.Title level={3} style={{ marginBottom: 0, paddingRight: 80, wordBreak: 'break-word' }}>
                   {template.name}
                 </Typography.Title>
                 {isUpstream && (
@@ -117,7 +117,7 @@ export function ProjectTemplates({ isUpstream, tagIdsFilter }: { isUpstream: boo
                     </Popconfirm>
                   </S.Actions>
                 )}
-                <Typography.Title level={5} style={{ marginTop: 0, whiteSpace: 'pre' }}>
+                <Typography.Title level={5} style={{ marginTop: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
                   {template.templateDescription}
                 </Typography.Title>
               </div>
