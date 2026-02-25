@@ -15,21 +15,21 @@ export const LinkBox = styled(Link)`
   }
 
   .footer-label {
-    font-size: 12px;
-    line-height: 18px;
+    font-size: 11px;
+    line-height: 15px;
     color: #8c8c8c;
   }
 
   .page-title {
-    font-size: 15px;
+    font-size: 13px;
     font-weight: 600;
-    line-height: 22px;
+    line-height: 18px;
     color: #595959;
     transition: color 300ms;
   }
 
   .anticon {
-    font-size: 16px;
+    font-size: 14px;
     color: #8c8c8c;
     transition: color 300ms;
   }
@@ -48,7 +48,7 @@ export const Container = styled.div`
   justify-content: space-between;
   align-items: center;
   width: 100%;
-  height: 72px;
+  height: 60px;
   background-color: #ffffff;
   box-shadow: 0px -2px 8px rgba(0, 0, 0, 0.05);
   padding: 0 24px;
@@ -59,7 +59,7 @@ export const Container = styled.div`
     left: 0;
     right: 0;
     z-index: 100;
-    height: 64px;
+    height: 56px;
     padding: 0 16px;
   }
 `;

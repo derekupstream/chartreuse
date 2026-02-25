@@ -47,7 +47,7 @@ export const LayoutHeader = styled(Layout.Header)`
 
 export const ContentContainer = styled(Layout.Content)`
   padding: 1rem;
-  padding-bottom: calc(1rem + 90px); /* room for sticky footer on mobile */
+  padding-bottom: calc(1rem + 56px); /* room for sticky footer on mobile */
   margin: 0 auto;
   display: flex;
   width: 100%;

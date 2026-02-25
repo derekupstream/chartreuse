@@ -20,22 +20,24 @@ export const Wrapper = styled.div`
 /* Use this instead of an inline flex div when a page title sits next to action buttons */
 export const PageTitleRow = styled.div`
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 12px;
+  flex-direction: column;
+  gap: 8px;
   margin-bottom: 0;
 
   h1 {
-    flex: 1;
-    min-width: 0;
     margin: 0 !important;
   }
 
   .actions {
     display: flex;
     gap: 8px;
-    flex-shrink: 0;
+    flex-wrap: wrap;
+  }
+
+  @media (min-width: 768px) {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
   }
 `;
 
