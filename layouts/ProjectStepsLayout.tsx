@@ -1,7 +1,7 @@
 import { ArrowLeftOutlined } from '@ant-design/icons';
 import { PlusOutlined } from '@ant-design/icons';
 import type { Project } from '@prisma/client';
-import { Alert, Button, Space, Typography } from 'antd';
+import { Alert, Button, Space } from 'antd';
 import Link from 'next/link';
 import styled from 'styled-components';
 import { StepsNavigation } from './DashboardLayout/components/StepsNavigation';
@@ -15,24 +15,9 @@ import * as S from 'layouts/styles';
 
 import { BaseLayout } from './BaseLayout';
 
-const Title = styled(Typography.Title)`
-  margin-bottom: 5px !important;
-  color: #2bbe50 !important;
-  font-size: clamp(14px, 3vw, 20px) !important;
-  text-align: right;
-  display: none !important;
-
-  @media (min-width: 768px) {
-    display: block !important;
-  }
-`;
-
 const ProjectHeader = styled.div`
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 8px;
 `;
 
 type Props = {
@@ -59,15 +44,16 @@ export function ProjectStepsLayout({
   currentStepIndex,
   ...pageProps
 }: React.PropsWithChildren<Props>) {
+  const isDashboard = currentStepIndex === 0;
+
   return (
     <BaseLayout {...pageProps} selectedMenuItem='projects'>
       <FooterProvider projectCategory={project?.category}>
-        <S.ContentContainer>
+        <S.ContentContainer style={isDashboard ? { paddingBottom: '1rem' } : undefined}>
           <S.Content>
-            <Space direction='vertical' size='large' style={{ width: '100%' }}>
+            <Space direction='vertical' size={8} style={{ width: '100%' }}>
               <ProjectHeader>
                 <BackToProjectsButton />
-                <Title level={3}>{project?.name}</Title>
               </ProjectHeader>
               <StepsNavigation current={currentStepIndex} projectId={project?.id} projectCategory={project?.category} />
               {currentStepIndex > 0 && project && (
@@ -92,7 +78,7 @@ export function ProjectStepsLayout({
             <ErrorBoundary>{children}</ErrorBoundary>
           </S.Content>
         </S.ContentContainer>
-        <CalculatorFooter projectCategory={project?.category} />
+        {!isDashboard && <CalculatorFooter projectCategory={project?.category} />}
       </FooterProvider>
     </BaseLayout>
   );

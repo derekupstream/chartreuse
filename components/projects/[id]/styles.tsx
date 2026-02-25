@@ -5,7 +5,7 @@ export const Wrapper = styled.div`
   max-width: 1100px;
   margin: 0 auto;
   width: 100%;
-  margin-top: 50px;
+  margin-top: 20px;
 
   h1 {
     font-size: clamp(20px, 4vw, 34px) !important;

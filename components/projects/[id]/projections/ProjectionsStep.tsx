@@ -173,8 +173,8 @@ export const ProjectionsStep = ({ project, readOnly }: { project: ProjectContext
         }}
       >
         <Typography.Title
-          level={2}
-          style={{ fontSize: 'clamp(20px, 4vw, 30px)', marginBottom: 0 }}
+          level={1}
+          style={{ fontSize: 'clamp(26px, 5vw, 44px)', marginBottom: 0, lineHeight: 1.15 }}
           editable={{
             triggerType: readOnly ? [] : ['icon'], // disables editing for readonly
             onChange: handleProjectionsTitleChange
@@ -188,7 +188,7 @@ export const ProjectionsStep = ({ project, readOnly }: { project: ProjectContext
         </div>
       </div>
       <Typography.Paragraph
-        style={{ marginTop: 0, fontSize: 13, color: 'rgba(0,0,0,0.55)' }}
+        style={{ marginTop: 0, marginBottom: 12, fontSize: 13, color: 'rgba(0,0,0,0.55)' }}
         editable={{
           triggerType: readOnly ? [] : ['icon'], // disables editing for readonly
           onChange: handleProjectionsDescriptionChange
