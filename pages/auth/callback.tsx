@@ -7,38 +7,37 @@ export const getServerSideProps: GetServerSideProps = async context => {
   const { code } = context.query;
 
   if (typeof code === 'string') {
+    const supabase = createSupabaseServerPropsClient(context);
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+
+    if (error || !data.user) {
+      console.error('exchangeCodeForSession error:', error);
+      return { redirect: { permanent: false, destination: '/login?error=auth' } };
+    }
+
+    // Auth succeeded — now try to find/link the DB user
+    const { id: supabaseId, email } = data.user;
+
     try {
-      const supabase = createSupabaseServerPropsClient(context);
-      const { data, error } = await supabase.auth.exchangeCodeForSession(code);
-
-      if (error || !data.user) {
-        console.error('exchangeCodeForSession error:', error);
-        return { redirect: { permanent: false, destination: '/login?error=auth' } };
-      }
-
-      const { id: supabaseId, email } = data.user;
-
-      // Check if a user record already exists with this Supabase ID
       const userById = await prisma.user.findUnique({ where: { id: supabaseId } });
       if (userById) {
         return { redirect: { permanent: false, destination: '/projects' } };
       }
 
-      // Check if a seeded user exists with the same email (Firebase-era ID)
       if (email) {
         const userByEmail = await prisma.user.findUnique({ where: { email } });
         if (userByEmail && userByEmail.id !== supabaseId) {
-          // Re-link the existing account to this Supabase ID via raw SQL
-          // (Prisma doesn't allow updating @id fields directly)
           await prisma.$executeRaw`UPDATE "User" SET id = ${supabaseId} WHERE id = ${userByEmail.id}`;
           return { redirect: { permanent: false, destination: '/projects' } };
         }
       }
 
-      // New user — send to account setup
       return { redirect: { permanent: false, destination: '/setup/trial' } };
     } catch (err) {
-      console.error('Auth callback error:', err);
+      // Auth worked but DB lookup failed — still send to projects,
+      // getUserFromContext will handle linking on next request
+      console.error('Auth callback DB error:', err);
+      return { redirect: { permanent: false, destination: '/projects' } };
     }
   }
 

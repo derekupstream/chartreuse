@@ -16,6 +16,16 @@ import { BaseLayout } from './BaseLayout';
 const Title = styled(Typography.Title)`
   margin-bottom: 5px !important;
   color: #2bbe50 !important;
+  font-size: clamp(14px, 3vw, 20px) !important;
+  text-align: right;
+`;
+
+const ProjectHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
 `;
 
 type Props = {
@@ -48,10 +58,10 @@ export function ProjectStepsLayout({
         <S.ContentContainer>
           <S.Content>
             <Space direction='vertical' size='large' style={{ width: '100%' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <ProjectHeader>
                 <BackToProjectsButton />
                 <Title level={3}>{project?.name}</Title>
-              </div>
+              </ProjectHeader>
               <StepsNavigation current={currentStepIndex} projectId={project?.id} projectCategory={project?.category} />
               {project?.isTemplate && (
                 <Alert

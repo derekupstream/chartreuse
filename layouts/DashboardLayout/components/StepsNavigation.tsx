@@ -43,13 +43,14 @@ const Step = styled.div<{ active: string; isfirst: string; ispast: string; islas
   .ant-typography {
     align-items: center;
     display: flex;
-    font-size: 15px;
+    font-size: clamp(11px, 2vw, 15px);
     font-weight: 500;
     height: 100%;
     justify-content: center;
     margin: 0;
-    padding: 0 20px;
+    padding: 0 12px;
     text-align: center;
+    white-space: nowrap;
     width: 100%;
     &:hover {
       color: rgba(0, 0, 0, 0.85);

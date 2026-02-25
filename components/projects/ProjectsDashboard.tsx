@@ -2,9 +2,22 @@ import { PlusOutlined } from '@ant-design/icons';
 import { Button, Tabs, Typography, Select } from 'antd';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
+import styled from 'styled-components';
 
 import { useSubscription } from 'hooks/useSubscription';
 import * as S from 'layouts/styles';
+
+const FiltersRow = styled.div`
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+
+  .ant-select {
+    flex: 1;
+    min-width: 140px;
+  }
+`;
 
 import { ActiveProjects, type SortOrder } from './components/ActiveProjects';
 import { ProjectTemplates } from './components/ProjectTemplates';
@@ -90,6 +103,21 @@ export const ProjectsDashboard = ({
           </Button>
         )}
       </S.HeaderRow>
+      <FiltersRow>
+        <Select
+          mode='multiple'
+          placeholder='Filter by tag'
+          options={tags.map(tag => ({ label: tag.label, value: tag.id }))}
+          onChange={setTagIdsFilter}
+        />
+        <Select
+          value={sortOrder}
+          placeholder='Sort by'
+          labelRender={value => <span>Sort by {value.label}</span>}
+          options={sortOptions}
+          onChange={handleSortChange}
+        />
+      </FiltersRow>
       <Tabs
         defaultActiveKey={showTemplateByDefault ? 'templates' : 'active'}
         size={'large'}
@@ -105,27 +133,6 @@ export const ProjectsDashboard = ({
             children: <ProjectTemplates isUpstream={isUpstream} tagIdsFilter={tagIdsFilter} />
           }
         ]}
-        tabBarExtraContent={{
-          right: (
-            <div style={{ display: 'flex', gap: 16 }}>
-              <Select
-                mode='multiple'
-                placeholder='Filter projects by tag'
-                style={{ marginBottom: 16, width: '200px' }}
-                options={tags.map(tag => ({ label: tag.label, value: tag.id }))}
-                onChange={setTagIdsFilter}
-              />
-              <Select
-                value={sortOrder}
-                placeholder='Sort by'
-                labelRender={value => <span>Sort by {value.label}</span>}
-                style={{ marginBottom: 16, width: '200px' }}
-                options={sortOptions}
-                onChange={handleSortChange}
-              />
-            </div>
-          )
-        }}
       />
     </>
   );

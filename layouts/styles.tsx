@@ -111,10 +111,15 @@ export const MobileMenuButton = styled.div`
 
 export const HeaderRow = styled.div`
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
   h1 {
     margin-top: 0;
+    margin-bottom: 0;
+    font-size: clamp(22px, 5vw, 38px) !important;
   }
 `;
 

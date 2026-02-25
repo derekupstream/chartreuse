@@ -127,10 +127,18 @@ export const ProjectionsStep = ({ project, readOnly }: { project: ProjectContext
     <Wrapper ref={printRef}>
       <PrintHeader accountName={project.account.name} orgName={project.org.name} projectName={project.name} />
       <div
-        style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5em' }}
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'flex-start',
+          marginBottom: '1.5em',
+          flexWrap: 'wrap',
+          gap: 12
+        }}
       >
         <Typography.Title
-          level={1}
+          level={2}
+          style={{ fontSize: 'clamp(20px, 4vw, 30px)', marginBottom: 0 }}
           editable={{
             triggerType: readOnly ? [] : ['icon'], // disables editing for readonly
             onChange: handleProjectionsTitleChange
@@ -138,7 +146,7 @@ export const ProjectionsStep = ({ project, readOnly }: { project: ProjectContext
         >
           {projectionsTitle || project.name}
         </Typography.Title>
-        <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: 16, alignItems: 'center', flexShrink: 0 }}>
           <PrintButton printRef={printRef} pdfTitle={`${project.name} - Chart-Reuse`} />
           {!project.isTemplate && <ShareButton projectId={project.id} publicSlug={project.publicSlug} />}
         </div>
