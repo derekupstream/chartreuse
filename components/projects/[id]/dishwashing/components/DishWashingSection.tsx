@@ -159,15 +159,14 @@ export function DishWashingSection({
 
   return (
     <Container>
-      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-        <Typography.Title level={1}>Dishwashing</Typography.Title>
+      <div
+        style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}
+      >
+        <Typography.Title level={1} style={{ margin: 0 }}>
+          Dishwashing
+        </Typography.Title>
         {!!data?.dishwashers?.length && !readOnly && (
-          <Button
-            onClick={onClickCreate}
-            icon={<PlusOutlined />}
-            type='primary'
-            style={{ paddingRight: '4em', paddingLeft: '4em' }}
-          >
+          <Button onClick={onClickCreate} icon={<PlusOutlined />} type='primary'>
             Add dishwasher
           </Button>
         )}
@@ -184,7 +183,7 @@ export function DishWashingSection({
       <br />
       {(data?.dishwashers ?? []).map(({ stats, dishwasher }) => (
         <InfoRow key={dishwasher.id}>
-          <Col span={8} flex-direction='column'>
+          <Col xs={24} md={8}>
             <Subtitle style={{ margin: 0 }}>{dishwasher.type}</Subtitle>
             <Options>
               {dishwasher.temperature ? dishwasher.temperature + ' Temperature, ' : ''}
@@ -216,8 +215,8 @@ export function DishWashingSection({
               </>
             )}
           </Col>
-          <Col span={8}></Col>
-          <Col span={8}>
+          <Col xs={0} md={8}></Col>
+          <Col xs={24} md={8}>
             <InfoCard theme='forecast'>
               {/* <Typography.Title level={5}>Forecast</Typography.Title> */}
               <table>
@@ -259,12 +258,7 @@ export function DishWashingSection({
       {(!data || data?.dishwashers?.length === 0) && !readOnly && (
         <>
           <AddBlock>
-            <Button
-              onClick={onClickCreate}
-              icon={<PlusOutlined />}
-              type='primary'
-              style={{ paddingRight: '4em', paddingLeft: '4em' }}
-            >
+            <Button onClick={onClickCreate} icon={<PlusOutlined />} type='primary'>
               Add dishwasher
             </Button>
             <Placeholder>

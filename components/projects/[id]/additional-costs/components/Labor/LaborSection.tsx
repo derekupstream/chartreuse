@@ -77,12 +77,7 @@ const LaborSection = ({ projectId, readOnly }: { projectId: string; readOnly: bo
       <SectionContainer>
         <SectionTitle>Labor</SectionTitle>
         {!!data?.laborCosts?.length && !readOnly && (
-          <Button
-            type='primary'
-            onClick={onClickAddExpense}
-            icon={<PlusOutlined />}
-            style={{ paddingRight: '4em', paddingLeft: '4em' }}
-          >
+          <Button type='primary' onClick={onClickAddExpense} icon={<PlusOutlined />}>
             Add labor
           </Button>
         )}
@@ -96,7 +91,7 @@ const LaborSection = ({ projectId, readOnly }: { projectId: string; readOnly: bo
       {data?.laborCosts?.length
         ? data.laborCosts.map(labor => (
             <InfoRow key={labor.id}>
-              <Col span={16}>
+              <Col xs={24} md={16}>
                 <Subtitle>{labor.description}</Subtitle>
                 {!readOnly && (
                   <>
@@ -119,7 +114,7 @@ const LaborSection = ({ projectId, readOnly }: { projectId: string; readOnly: bo
                   </>
                 )}
               </Col>
-              <Col span={8}>
+              <Col xs={24} md={8}>
                 <InfoCard theme='forecast'>
                   <Typography.Title level={5}>Forecast</Typography.Title>
                   <table>

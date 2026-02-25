@@ -93,12 +93,7 @@ const WasteHaulingSection = ({ projectId, readOnly }: { projectId: string; readO
       <SectionContainer>
         <SectionTitle>Waste Hauling</SectionTitle>
         {!!data?.wasteHaulingCosts?.length && !readOnly && (
-          <Button
-            onClick={onAddExpense}
-            icon={<PlusOutlined />}
-            type='primary'
-            style={{ paddingRight: '4em', paddingLeft: '4em' }}
-          >
+          <Button onClick={onAddExpense} icon={<PlusOutlined />} type='primary'>
             Add waste hauling cost
           </Button>
         )}
@@ -107,7 +102,7 @@ const WasteHaulingSection = ({ projectId, readOnly }: { projectId: string; readO
       {data?.wasteHaulingCosts?.length
         ? data.wasteHaulingCosts.map(wasteHauling => (
             <InfoRow key={wasteHauling.id}>
-              <Col span={8}>
+              <Col xs={24} md={8}>
                 <Subtitle>{wasteHauling.serviceType}</Subtitle>
                 {!readOnly && (
                   <>
@@ -132,7 +127,7 @@ const WasteHaulingSection = ({ projectId, readOnly }: { projectId: string; readO
                   </>
                 )}
               </Col>
-              <Col span={8}>
+              <Col xs={24} md={8}>
                 <InfoCard theme='baseline'>
                   <Typography.Title level={5}>Baseline</Typography.Title>
                   <table>
@@ -157,7 +152,7 @@ const WasteHaulingSection = ({ projectId, readOnly }: { projectId: string; readO
                   </table>
                 </InfoCard>
               </Col>
-              <Col span={8}>
+              <Col xs={24} md={8}>
                 <InfoCard theme='forecast'>
                   <Typography.Title level={5}>Forecast</Typography.Title>
                   <table>

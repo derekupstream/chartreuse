@@ -45,7 +45,7 @@ export const ItemRow: FC<Props> = ({ item, onEdit, onDelete, readOnly }) => {
 
   return (
     <StyledInfoRow>
-      <Col span={8}>
+      <Col xs={24} md={8}>
         <Typography.Title level={5} style={{ marginBottom: '0.5em' }}>
           {item.product && PRODUCT_TYPES_MAP[item.product.type]}
         </Typography.Title>
@@ -68,10 +68,10 @@ export const ItemRow: FC<Props> = ({ item, onEdit, onDelete, readOnly }) => {
           </>
         )}
       </Col>
-      <Col span={8}>
+      <Col xs={24} md={8}>
         <InitialCosts item={item.lineItem} />
       </Col>
-      <Col span={8}>
+      <Col xs={24} md={8}>
         <Forecast item={item.lineItem} />
       </Col>
     </StyledInfoRow>

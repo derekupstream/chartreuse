@@ -29,10 +29,10 @@ export const SummaryRow = ({ lineItems }: { lineItems: SingleUseLineItem[] }) =>
   return (
     <S.InfoCard style={{ boxShadow: 'none' }}>
       <Row>
-        <Col span={8}>
+        <Col xs={24} md={8}>
           <Typography.Title level={4}>Total annual single-use purchasing</Typography.Title>
         </Col>
-        <Col span={8}>
+        <Col xs={24} md={8}>
           <Row gutter={[0, 20]}>
             <Col span={24}>
               <SmallText>
@@ -57,7 +57,7 @@ export const SummaryRow = ({ lineItems }: { lineItems: SingleUseLineItem[] }) =>
             </Col>
           </Row>
         </Col>
-        <Col span={8}>
+        <Col xs={24} md={8}>
           <Row gutter={[0, 20]}>
             <Col span={12}>
               <SmallText>

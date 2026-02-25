@@ -123,7 +123,7 @@ export const ItemRow = ({
 
   return (
     <S.InfoRow>
-      <Col span={8}>
+      <Col xs={24} md={8}>
         <Typography.Title level={5} style={{ marginBottom: '0.5em' }}>
           {PRODUCT_TYPES_MAP[item.product.type]}
         </Typography.Title>
@@ -145,10 +145,10 @@ export const ItemRow = ({
           </>
         )}
       </Col>
-      <Col span={8}>
+      <Col xs={24} md={8}>
         <BaselineCard item={item} />
       </Col>
-      <Col span={8}>
+      <Col xs={24} md={8}>
         <InfoCard item={item} />
       </Col>
     </S.InfoRow>

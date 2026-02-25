@@ -264,10 +264,10 @@ const SummaryRow = ({ lineItems }: { lineItems: ReusableLineItem[] }) => {
   return (
     <S.InfoCard style={{ boxShadow: 'none' }}>
       <Row>
-        <Col span={8}>
+        <Col xs={24} md={8}>
           <Typography.Title level={4}>Repurchase totals</Typography.Title>
         </Col>
-        <Col span={8}>
+        <Col xs={24} md={8}>
           <Row gutter={[0, 20]}>
             <Col span={24}>
               <SmallText>
@@ -299,7 +299,7 @@ const SummaryRow = ({ lineItems }: { lineItems: ReusableLineItem[] }) => {
             </Col>
           </Row>
         </Col>
-        <Col span={8}>
+        <Col xs={24} md={8}>
           <Row gutter={[0, 20]}>
             <Col span={24}>
               <SmallText>
