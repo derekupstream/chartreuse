@@ -23,12 +23,16 @@ function toSessionUser(user: User): SessionUser {
 type AuthContextType = {
   firebaseUser: SessionUser | null;
   signInWithGoogle: () => Promise<void>;
+  signInWithPassword: (email: string, password: string) => Promise<string | null>;
+  resetPassword: (email: string) => Promise<string | null>;
   signout: () => Promise<void>;
 };
 
 export const AuthContext = createContext<AuthContextType>({
   firebaseUser: null,
   signInWithGoogle: () => Promise.resolve(),
+  signInWithPassword: () => Promise.resolve(null),
+  resetPassword: () => Promise.resolve(null),
   signout: () => Promise.resolve()
 });
 
@@ -69,12 +73,28 @@ export const AuthProvider: React.FC<{ children: any }> = ({ children }) => {
     });
   }, []);
 
+  const signInWithPassword = useCallback(async (email: string, password: string): Promise<string | null> => {
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    return error ? error.message : null;
+  }, []);
+
+  const resetPassword = useCallback(async (email: string): Promise<string | null> => {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/auth/callback`
+    });
+    return error ? error.message : null;
+  }, []);
+
   const signout = useCallback(async () => {
     await supabase.auth.signOut();
     setFirebaseUser(null);
   }, []);
 
-  return <AuthContext.Provider value={{ firebaseUser, signInWithGoogle, signout }}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={{ firebaseUser, signInWithGoogle, signInWithPassword, resetPassword, signout }}>
+      {children}
+    </AuthContext.Provider>
+  );
 };
 
 function isPublicUrl(url: string) {
