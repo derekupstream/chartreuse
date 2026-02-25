@@ -5,6 +5,8 @@ import { Alert, Button, Space, Typography } from 'antd';
 import Link from 'next/link';
 import styled from 'styled-components';
 import { StepsNavigation } from './DashboardLayout/components/StepsNavigation';
+import { EditStepsStepper } from './DashboardLayout/components/EditStepsStepper';
+import { categoryByType } from 'lib/projects/categories';
 import { ErrorBoundary } from 'components/common/errors/ErrorBoundary';
 import CalculatorFooter, { FooterProvider } from 'components/projects/[id]/components/Footer';
 
@@ -68,6 +70,13 @@ export function ProjectStepsLayout({
                 <Title level={3}>{project?.name}</Title>
               </ProjectHeader>
               <StepsNavigation current={currentStepIndex} projectId={project?.id} projectCategory={project?.category} />
+              {currentStepIndex > 0 && project && (
+                <EditStepsStepper
+                  steps={categoryByType(project.category).steps}
+                  currentIndex={currentStepIndex}
+                  projectId={project.id}
+                />
+              )}
               {project?.isTemplate && (
                 <Alert
                   message='This is a template to get you started. Make sure to customize your purchasing data to create an accurate dashboard'

@@ -1,12 +1,32 @@
-import { ArrowLeftOutlined, ArrowRightOutlined } from '@ant-design/icons';
+import { ArrowLeftOutlined, ArrowRightOutlined, CheckOutlined } from '@ant-design/icons';
 import { useRouter } from 'next/router';
 import { createContext, useContext, useState } from 'react';
+import styled from 'styled-components';
 
 import { categoryByType } from 'lib/projects/categories';
 import type { ProjectPath } from 'lib/projects/steps';
 
 import { Container, LinkBox, Row } from './styles';
 import { ProjectCategory } from '@prisma/client';
+
+const CompleteButton = styled.a`
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 20px;
+  background: #95ee49;
+  color: #262626;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 6px;
+  text-decoration: none;
+  transition: background 150ms;
+
+  &:hover {
+    background: #7dd63a;
+    color: #262626;
+  }
+`;
 
 type FooterState = { path: ProjectPath; stepCompleted: boolean };
 
@@ -42,6 +62,7 @@ export default function Footer({ projectCategory = 'default' }: { projectCategor
   }
   const previousStep = stepIndex > 0 ? steps[stepIndex - 1] : undefined;
   const nextStep = stepIndex < steps.length - 1 ? steps[stepIndex + 1] : undefined;
+  const isLastEditStep = !nextStep && state?.path !== '/projections';
 
   return (
     <Container>
@@ -57,7 +78,13 @@ export default function Footer({ projectCategory = 'default' }: { projectCategor
         <div />
       )}
 
-      {nextStep ? (
+      {isLastEditStep ? (
+        <Row>
+          <CompleteButton href={`/projects/${projectId}/projections`}>
+            Complete <CheckOutlined />
+          </CompleteButton>
+        </Row>
+      ) : nextStep ? (
         <Row>
           <LinkBox href={getLink(projectId, nextStep.path)}>
             <span>Next Step</span>

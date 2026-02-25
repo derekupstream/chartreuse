@@ -9,14 +9,8 @@ import * as S from 'layouts/styles';
 
 const FiltersRow = styled.div`
   display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-  margin-bottom: 12px;
-
-  .ant-select {
-    flex: 1;
-    min-width: 140px;
-  }
+  gap: 8px;
+  align-items: center;
 `;
 
 import { ActiveProjects, type SortOrder } from './components/ActiveProjects';
@@ -103,24 +97,27 @@ export const ProjectsDashboard = ({
           </Button>
         )}
       </S.HeaderRow>
-      <FiltersRow>
-        <Select
-          mode='multiple'
-          placeholder='Filter by tag'
-          options={tags.map(tag => ({ label: tag.label, value: tag.id }))}
-          onChange={setTagIdsFilter}
-        />
-        <Select
-          value={sortOrder}
-          placeholder='Sort by'
-          labelRender={value => <span>Sort by {value.label}</span>}
-          options={sortOptions}
-          onChange={handleSortChange}
-        />
-      </FiltersRow>
       <Tabs
         defaultActiveKey={showTemplateByDefault ? 'templates' : 'active'}
         size={'large'}
+        tabBarExtraContent={
+          <FiltersRow>
+            <Select
+              mode='multiple'
+              placeholder='Filter projects by tag'
+              style={{ minWidth: 160 }}
+              options={tags.map(tag => ({ label: tag.label, value: tag.id }))}
+              onChange={setTagIdsFilter}
+            />
+            <Select
+              value={sortOrder}
+              style={{ minWidth: 175 }}
+              labelRender={value => <span>Sort by {value.label}</span>}
+              options={sortOptions}
+              onChange={handleSortChange}
+            />
+          </FiltersRow>
+        }
         items={[
           {
             label: `Active Projects`,
