@@ -1,20 +1,48 @@
 import styled from 'styled-components';
-import { Typography, Select } from 'antd';
+import { Typography } from 'antd';
 import { categoryByType } from 'lib/projects/categories';
 import { ProjectCategory } from '@prisma/client';
 
-const DesktopSteps = styled.div`
-  display: none;
+/* ── Mobile: horizontal scrollable underline tab bar ── */
+const MobileTabBar = styled.div`
+  display: flex;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  border-bottom: 2px solid #e8e8e8;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
   @media (min-width: 768px) {
-    display: block;
+    display: none;
   }
 `;
 
-const MobileSelect = styled.div`
-  display: block;
-  padding: 8px 0;
+const MobileTab = styled.a<{ $active: boolean }>`
+  flex-shrink: 0;
+  padding: 10px 16px;
+  margin-bottom: -2px;
+  border-bottom: 3px solid ${({ $active }) => ($active ? '#95ee49' : 'transparent')};
+  font-size: 14px;
+  font-weight: ${({ $active }) => ($active ? 600 : 400)};
+  color: ${({ $active }) => ($active ? '#262626' : '#8c8c8c')};
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+
+  &:hover {
+    color: #262626;
+  }
+`;
+
+/* ── Desktop: original diagonal chevron bar ── */
+const DesktopSteps = styled.div`
+  display: none;
+
   @media (min-width: 768px) {
-    display: none;
+    display: block;
   }
 `;
 
@@ -24,21 +52,20 @@ const Steps = styled.div`
   display: flex;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
-
-  /* Hide scrollbar but keep scrollable */
   scrollbar-width: none;
+
   &::-webkit-scrollbar {
     display: none;
   }
 `;
 
-// use string instead of boolean attribute to avoid DOM warnings
 const Step = styled.div<{ active: string; isfirst: string; ispast: string; islast: string; width: string }>`
   height: 60px;
   position: relative;
   width: ${({ width }) => width};
   min-width: 100px;
   flex-shrink: 0;
+
   a {
     display: block;
     width: 100%;
@@ -47,15 +74,15 @@ const Step = styled.div<{ active: string; isfirst: string; ispast: string; islas
     text-decoration: none;
     z-index: 2;
   }
+
   ${({ active }) =>
     active
       ? `
       z-index: 10;
-      a {
-        background-color: #95ee49;
-      }
+      a { background-color: #95ee49; }
       `
       : ''}
+
   .ant-typography {
     align-items: center;
     display: flex;
@@ -72,48 +99,36 @@ const Step = styled.div<{ active: string; isfirst: string; ispast: string; islas
       color: rgba(0, 0, 0, 0.85);
     }
   }
+
   ${({ active, ispast }) =>
     active || ispast
-      ? `
-  .ant-typography {
-    color: rgba(0, 0, 0, 0.85);
-    height: 100%;
-  }`
+      ? `.ant-typography { color: rgba(0, 0, 0, 0.85); height: 100%; }`
       : ''}
 
   ${({ isfirst }) =>
     !isfirst
       ? `.left-diagonal {
-    width: 0;
-    height: 0;
-    border-top: 30px solid transparent;
-    border-bottom: 30px solid transparent;
-    border-left: 20px solid #f4f3f0;
-    top: 0;
-    left: 0;
-    position: absolute;
-    z-index: 3;
-  }`
+          width: 0; height: 0;
+          border-top: 30px solid transparent;
+          border-bottom: 30px solid transparent;
+          border-left: 20px solid #f4f3f0;
+          top: 0; left: 0; position: absolute; z-index: 3;
+        }`
       : ''}
 
   .diagonal {
-    width: 0;
-    height: 0;
+    width: 0; height: 0;
     border-top: 30px solid transparent;
     border-bottom: 30px solid transparent;
     border-left: 20px solid transparent;
-    top: 0;
-    right: 0;
-    position: absolute;
+    top: 0; right: 0; position: absolute;
     transform: translateX(100%);
     z-index: 1;
   }
+
   ${({ active, islast }) =>
     active && !islast
-      ? `
-  .diagonal {
-    border-left-color: #95ee49;
-  }`
+      ? `.diagonal { border-left-color: #95ee49; }`
       : ''}
 `;
 
@@ -130,18 +145,20 @@ export function StepsNavigation({
 
   return (
     <>
-      <MobileSelect>
-        <Select
-          value={current}
-          style={{ width: '100%' }}
-          onChange={(index: number) => {
-            if (projectId) {
-              window.location.href = `/projects/${projectId}${steps[index].path}`;
-            }
-          }}
-          options={steps.map((step, i) => ({ label: step.title, value: i }))}
-        />
-      </MobileSelect>
+      {/* Mobile: scrollable underline tabs */}
+      <MobileTabBar>
+        {steps.map((step, i) => (
+          <MobileTab
+            key={step.title}
+            href={projectId ? `/projects/${projectId}${step.path}` : undefined}
+            $active={i === current}
+          >
+            {step.title}
+          </MobileTab>
+        ))}
+      </MobileTabBar>
+
+      {/* Desktop: diagonal chevron bar */}
       <DesktopSteps>
         <Steps>
           {steps.map((step, i) => (

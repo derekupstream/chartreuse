@@ -18,6 +18,11 @@ const Title = styled(Typography.Title)`
   color: #2bbe50 !important;
   font-size: clamp(14px, 3vw, 20px) !important;
   text-align: right;
+  display: none !important;
+
+  @media (min-width: 768px) {
+    display: block !important;
+  }
 `;
 
 const ProjectHeader = styled.div`

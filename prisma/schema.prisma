@@ -1,14 +1,11 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-3.0.x"]
+}
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-}
-
-generator client {
-  provider      = "prisma-client-js"
-  binaryTargets = ["native", "rhel-openssl-3.0.x"]
 }
 
 model User {
@@ -18,129 +15,114 @@ model User {
   title       String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  org         Org      @relation(fields: [orgId], references: [id], onDelete: Cascade)
-  orgId       String   @db.Uuid
-  account     Account? @relation(fields: [accountId], references: [id])
-  accountId   String?  @db.Uuid
   phone       String?
   role        Role     @default(ORG_ADMIN)
+  orgId       String   @db.Uuid
+  accountId   String?  @db.Uuid
   invitesSent Invite[]
+  account     Account? @relation(fields: [accountId], references: [id])
+  org         Org      @relation(fields: [orgId], references: [id], onDelete: Cascade)
 }
 
 model UserEvent {
   id        String   @id @default(uuid()) @db.Uuid
   createdAt DateTime @default(now())
-  type      String
   userId    String
+  type      String
 }
 
 model Org {
-  id                   String    @id @default(uuid()) @db.Uuid
   name                 String
   metadata             Json?
-  createdAt            DateTime  @default(now())
-  updatedAt            DateTime  @updatedAt
-  isUpstream           Boolean   @default(false)
-  currency             String    @default("USD")
-  useMetricSystem      Boolean   @default(false)
-  useShrinkageRate     Boolean   @default(false) // If true, org uses shrinkage rate instead of return rate
-  orgInviteCode        String?   @unique
-  users                User[]
-  accounts             Account[]
-  projects             Project[]
-  invites              Invite[]
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
+  id                   String       @id @default(uuid()) @db.Uuid
+  isUpstream           Boolean      @default(false)
   stripeCustomerId     String?
   stripeSubscriptionId String?
-
-  projectTags ProjectTag[]
+  currency             String       @default("USD")
+  useMetricSystem      Boolean      @default(false)
+  useShrinkageRate     Boolean      @default(false)
+  orgInviteCode        String?      @unique
+  accounts             Account[]
+  invites              Invite[]
+  projects             Project[]
+  projectTags          ProjectTag[]
+  users                User[]
 }
 
 model Account {
-  id                  String    @id @default(uuid()) @db.Uuid
   name                String
   metadata            Json?
   createdAt           DateTime  @default(now())
   updatedAt           DateTime  @updatedAt
   accountContactEmail String
+  id                  String    @id @default(uuid()) @db.Uuid
+  orgId               String    @db.Uuid
   USState             String    @default("California")
   org                 Org       @relation(fields: [orgId], references: [id], onDelete: Cascade)
-  orgId               String    @db.Uuid
-  users               User[]
   invites             Invite[]
   projects            Project[]
+  users               User[]
 }
 
 model Invite {
-  id           String   @id @default(uuid()) @db.Uuid
   email        String
-  account      Account? @relation(fields: [accountId], references: [id], onDelete: Cascade)
-  accountId    String?  @db.Uuid
-  orgId        String   @db.Uuid
-  org          Org      @relation(fields: [orgId], references: [id], onDelete: Cascade)
   accepted     Boolean  @default(false)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
-  sentBy       User     @relation(fields: [sentByUserId], references: [id], onDelete: Cascade)
   sentByUserId String
-}
-
-enum ProjectCategory {
-  default
-  event
-  eugene
+  id           String   @id @default(uuid()) @db.Uuid
+  accountId    String?  @db.Uuid
+  orgId        String   @db.Uuid
+  account      Account? @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  org          Org      @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  sentBy       User     @relation(fields: [sentByUserId], references: [id], onDelete: Cascade)
 }
 
 model Project {
-  id                           String                    @id @default(uuid()) @db.Uuid
   name                         String
   metadata                     Json?
   createdAt                    DateTime                  @default(now())
   updatedAt                    DateTime                  @updatedAt
-  org                          Org                       @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  id                           String                    @id @default(uuid()) @db.Uuid
   orgId                        String                    @db.Uuid
-  account                      Account                   @relation(fields: [accountId], references: [id], onDelete: Cascade)
   accountId                    String                    @db.Uuid
-  eventFoodwareItems           EventFoodwareLineItem[]
-  eventGuestCount              Int                       @default(0)
-  singleUseItems               SingleUseLineItem[]
-  reusableItems                ReusableLineItem[]
-  otherExpenses                OtherExpense[]
-  laborCosts                   LaborCost[]
-  truckTransportationCosts     TruckTransportationCost[]
-  wasteHaulingCosts            WasteHaulingCost[]
-  dishwashers                  Dishwasher[]
-  dishwashersSimple            DishwasherSimple[]
   USState                      String?
   utilityRates                 Json?
   currency                     String?                   @default("USD")
-  singleUseReductionPercentage Int?
   budget                       Int?
+  singleUseReductionPercentage Int?
+  isTemplate                   Boolean                   @default(false)
+  templateDescription          String?
   templateId                   String?                   @db.Uuid
-  template                     Project?                  @relation("templates", fields: [templateId], references: [id], onDelete: SetNull)
-  projects                     Project[]                 @relation("templates")
+  category                     ProjectCategory           @default(default)
+  eventGuestCount              Int                       @default(0)
+  projectionsDescription       String?
+  projectionsTitle             String?
+  publicSlug                   String?                   @unique
+  recommendations              Json?
+  showRecommendations          Boolean                   @default(true)
   location                     Json?
-
-  // template properties
-  isTemplate          Boolean @default(false)
-  templateDescription String?
-
-  category               ProjectCategory @default(default)
-  projectionsDescription String?
-  projectionsTitle       String?
-  publicSlug             String?         @unique
-  recommendations        Json?
-  showRecommendations    Boolean         @default(true)
-
-  // date fields for event projects
-  dateType   String? // "date" | "dateRange"
-  startDate  DateTime? @db.Date
-  endDate    DateTime? @db.Date
-
-  tags ProjectTagRelation[]
+  dateType                     String?
+  endDate                      DateTime?                 @db.Date
+  startDate                    DateTime?                 @db.Date
+  dishwashers                  Dishwasher[]
+  dishwashersSimple            DishwasherSimple[]
+  eventFoodwareItems           EventFoodwareLineItem[]
+  laborCosts                   LaborCost[]
+  otherExpenses                OtherExpense[]
+  account                      Account                   @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  org                          Org                       @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  template                     Project?                  @relation("templates", fields: [templateId], references: [id])
+  projects                     Project[]                 @relation("templates")
+  tags                         ProjectTagRelation[]
+  reusableItems                ReusableLineItem[]
+  singleUseItems               SingleUseLineItem[]
+  truckTransportationCosts     TruckTransportationCost[]
+  wasteHaulingCosts            WasteHaulingCost[]
 }
 
-// a new model for "Foodware" tab, where we pair a single use and reusable product together
-// Initially this pairing will be defined by a hard-coded config
 model EventFoodwareLineItem {
   id                       String   @id @default(uuid()) @db.Uuid
   createdAt                DateTime @default(now())
@@ -148,17 +130,14 @@ model EventFoodwareLineItem {
   singleUseProductId       String
   reusableProductId        String
   reusableItemCount        Int      @default(0)
-  reusableReturnPercentage Float    @default(100) // out of 100
-  reusableReturnCount      Int      @default(0) // prefer this over reusableReturnPercentage
-  waterUsageGallons        Float? // Optional field for water station usage in gallons
+  reusableReturnPercentage Float    @default(100)
   projectId                String   @db.Uuid
+  waterUsageGallons        Float?
+  reusableReturnCount      Int      @default(0)
   project                  Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
 }
 
 model SingleUseLineItem {
-  createdAt         DateTime                  @default(now())
-  updatedAt         DateTime                  @default(now()) @updatedAt
-  id                String                    @id @default(uuid()) @db.Uuid
   caseCost          Float
   casesPurchased    Int
   frequency         String
@@ -166,79 +145,79 @@ model SingleUseLineItem {
   newCaseCost       Float
   newCasesPurchased Int
   unitsPerCase      Int
-  project           Project                   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  id                String                    @id @default(uuid()) @db.Uuid
   projectId         String                    @db.Uuid
+  createdAt         DateTime                  @default(now())
+  updatedAt         DateTime                  @default(now()) @updatedAt
+  project           Project                   @relation(fields: [projectId], references: [id], onDelete: Cascade)
   records           SingleUseLineItemRecord[]
 }
 
 model SingleUseLineItemRecord {
-  id        String   @id @default(uuid()) @db.Uuid
-  createdAt DateTime @default(now())
-  entryDate DateTime
-
-  caseCost       Float
-  casesPurchased Int
-  unitsPerCase   Int
-
-  singleUseLineItem   SingleUseLineItem @relation(fields: [singleUseLineItemId], references: [id], onDelete: Cascade)
+  id                  String            @id @default(uuid()) @db.Uuid
+  createdAt           DateTime          @default(now())
+  entryDate           DateTime
+  caseCost            Float
+  casesPurchased      Int
+  unitsPerCase        Int
   singleUseLineItemId String            @db.Uuid
+  singleUseLineItem   SingleUseLineItem @relation(fields: [singleUseLineItemId], references: [id], onDelete: Cascade)
 
   @@unique([singleUseLineItemId, entryDate])
 }
 
 model ReusableLineItem {
-  id                         String   @id @default(uuid()) @db.Uuid
-  createdAt                  DateTime @default(now())
-  updatedAt                  DateTime @default(now()) @updatedAt
   annualRepurchasePercentage Float
   caseCost                   Float
   casesPurchased             Int
-  unitsPerCase               Int      @default(0)
   categoryId                 String?
-  productId                  String?
   productName                String?
+  id                         String   @id @default(uuid()) @db.Uuid
   projectId                  String   @db.Uuid
+  unitsPerCase               Int      @default(0)
+  createdAt                  DateTime @default(now())
+  updatedAt                  DateTime @default(now()) @updatedAt
+  productId                  String?
   project                    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
 }
 
 model OtherExpense {
   id          String   @id @default(uuid()) @db.Uuid
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @default(now()) @updatedAt
   categoryId  String
   cost        Float
   description String
   frequency   String
   projectId   String   @db.Uuid
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now()) @updatedAt
   project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
 }
 
 model LaborCost {
   id          String   @id @default(uuid()) @db.Uuid
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @default(now()) @updatedAt
   categoryId  String
   cost        Float
   description String
   frequency   String
   projectId   String   @db.Uuid
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now()) @updatedAt
   project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
 }
 
 model WasteHaulingCost {
   id             String   @id @default(uuid()) @db.Uuid
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @default(now()) @updatedAt
   monthlyCost    Float
-  newMonthlyCost Float
   wasteStream    String
   serviceType    String
-  description    String
   projectId      String   @db.Uuid
+  newMonthlyCost Float
+  description    String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @default(now()) @updatedAt
   project        Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
 }
 
-// used for event category
 model TruckTransportationCost {
   id              String   @id @default(uuid()) @db.Uuid
   createdAt       DateTime @default(now())
@@ -249,55 +228,58 @@ model TruckTransportationCost {
 }
 
 model Dishwasher {
-  id        String   @id @default(uuid()) @db.Uuid
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
-
-  racksPerDay                 Int
-  newRacksPerDay              Int
+  id                          String   @id @default(uuid()) @db.Uuid
   boosterWaterHeaterFuelType  String?
   buildingWaterHeaterFuelType String
   energyStarCertified         Boolean
   operatingDays               Int
-  newOperatingDays            Int
   temperature                 String
   type                        String
-  projectId                   String  @db.Uuid
-  project                     Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId                   String   @db.Uuid
+  newOperatingDays            Int
+  newRacksPerDay              Int
+  racksPerDay                 Int
+  createdAt                   DateTime @default(now())
+  updatedAt                   DateTime @default(now()) @updatedAt
+  project                     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
 }
 
 model DishwasherSimple {
-  id        String   @id @default(uuid()) @db.Uuid
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
-
+  id            String   @id @default(uuid()) @db.Uuid
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @default(now()) @updatedAt
   electricUsage Float
   waterUsage    Float
   fuelType      String
-  projectId     String  @db.Uuid
-  project       Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId     String   @db.Uuid
+  project       Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+model ProjectTag {
+  id       String               @id @default(uuid()) @db.Uuid
+  label    String
+  index    Int
+  orgId    String               @db.Uuid
+  org      Org                  @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  projects ProjectTagRelation[]
+}
+
+model ProjectTagRelation {
+  projectId String     @db.Uuid
+  tagId     String     @db.Uuid
+  project   Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  tag       ProjectTag @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([projectId, tagId])
+}
+
+enum ProjectCategory {
+  default
+  event
+  eugene
 }
 
 enum Role {
   ORG_ADMIN
   ACCOUNT_ADMIN
-}
-
-model ProjectTag {
-  id        String   @id @default(uuid()) @db.Uuid
-  label String
-  index Int
-  orgId String @db.Uuid
-  org   Org    @relation(fields: [orgId], references: [id], onDelete: Cascade)
-
-  projects ProjectTagRelation[]
-}
-
-model ProjectTagRelation {
-  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  tag       ProjectTag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
-  projectId String @db.Uuid
-  tagId     String @db.Uuid
-
-  @@id([projectId, tagId])
 }

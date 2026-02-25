@@ -29,6 +29,42 @@ const StyledCol = styled(Col)`
   }
 `;
 
+/* Mobile: horizontal scrollable underline tab bar for view switching */
+const MobileViewTabBar = styled.div`
+  display: flex;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  border-bottom: 2px solid #e8e8e8;
+  margin-bottom: 16px;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  @media (min-width: 768px) {
+    display: none;
+  }
+`;
+
+const MobileViewTab = styled.button<{ $active: boolean }>`
+  flex-shrink: 0;
+  padding: 10px 16px;
+  margin-bottom: -2px;
+  border: none;
+  border-bottom: 3px solid ${({ $active }) => ($active ? '#95ee49' : 'transparent')};
+  background: transparent;
+  font-size: 14px;
+  font-weight: ${({ $active }) => ($active ? 600 : 400)};
+  color: ${({ $active }) => ($active ? '#262626' : '#8c8c8c')};
+  white-space: nowrap;
+  cursor: pointer;
+
+  &:hover {
+    color: #262626;
+  }
+`;
+
 export type ProjectionsView = 'summary' | 'single_use_details' | 'reusable_details' | 'recommendations';
 
 const defaultProjectionsDescription = `These graphs - showing the financial and environmental impacts of reducing single-use items - can help you make the case for reuse and make data driven decisions on how to move forward. You can also print a PDF for sharing and distribution.`;
@@ -151,20 +187,29 @@ export const ProjectionsStep = ({ project, readOnly }: { project: ProjectContext
           {!project.isTemplate && <ShareButton projectId={project.id} publicSlug={project.publicSlug} />}
         </div>
       </div>
-      <Typography.Title
-        level={5}
-        style={{ marginTop: 0 }}
+      <Typography.Paragraph
+        style={{ marginTop: 0, fontSize: 13, color: 'rgba(0,0,0,0.55)' }}
         editable={{
           triggerType: readOnly ? [] : ['icon'], // disables editing for readonly
           onChange: handleProjectionsDescriptionChange
         }}
       >
         {projectionsDescription || defaultProjectionsDescription}
-      </Typography.Title>
-      <br />
-      <br />
+      </Typography.Paragraph>
+      <MobileViewTabBar>
+        {[...sidebarMenuItems, { key: 'recommendations', label: 'Recommendations' }].map(item => (
+          <MobileViewTab
+            key={item.key}
+            $active={view === item.key}
+            onClick={() => setView(item.key as ProjectionsView)}
+          >
+            {item.label}
+          </MobileViewTab>
+        ))}
+      </MobileViewTabBar>
+
       <Row gutter={24}>
-        <Col span={5} className='dont-print-me'>
+        <Col xs={0} md={5} className='dont-print-me'>
           <Menu
             style={{ width: '100%', marginBottom: 24 }}
             selectedKeys={[view]}
@@ -180,7 +225,7 @@ export const ProjectionsStep = ({ project, readOnly }: { project: ProjectContext
             items={[{ key: 'recommendations', label: 'Recommendations' }]}
           />
         </Col>
-        <StyledCol span={19}>
+        <StyledCol xs={24} md={19}>
           <span className={view === 'summary' ? '' : 'print-only'}>
             {project.category === 'event' ? (
               <EventProjectSummary data={data} useShrinkageRate={project.org.useShrinkageRate} />
