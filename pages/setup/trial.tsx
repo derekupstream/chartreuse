@@ -18,10 +18,19 @@ export const getServerSideProps: GetServerSideProps = async context => {
     return { redirect: { permanent: false, destination: '/login' } };
   }
 
-  // If user already has an account, skip setup and go straight to the app
+  // If user already has an account by ID, skip setup
   const existingUser = await prisma.user.findUnique({ where: { id: authUser.id } });
   if (existingUser) {
     return { redirect: { permanent: false, destination: '/projects' } };
+  }
+
+  // Check for a seeded user with the same email (Firebase-era ID mismatch)
+  if (authUser.email) {
+    const userByEmail = await prisma.user.findUnique({ where: { email: authUser.email } });
+    if (userByEmail) {
+      await prisma.$executeRaw`UPDATE "User" SET id = ${authUser.id} WHERE id = ${userByEmail.id}`;
+      return { redirect: { permanent: false, destination: '/projects' } };
+    }
   }
 
   return { props: {} };
