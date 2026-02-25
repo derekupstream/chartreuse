@@ -7,8 +7,35 @@ export const Wrapper = styled.div`
   width: 100%;
   margin-top: 50px;
 
+  h1 {
+    font-size: clamp(20px, 4vw, 34px) !important;
+    margin-bottom: 0.3em !important;
+  }
+
   @print media {
     margin-top: 0;
+  }
+`;
+
+/* Use this instead of an inline flex div when a page title sits next to action buttons */
+export const PageTitleRow = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 0;
+
+  h1 {
+    flex: 1;
+    min-width: 0;
+    margin: 0 !important;
+  }
+
+  .actions {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
   }
 `;
 

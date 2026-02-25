@@ -1,37 +1,41 @@
 import Link from 'next/link';
 import styled from 'styled-components';
 
-export const Row = styled.div`
-  display: flex;
-  flex-direction: row;
-  align-items: end;
-`;
-
 export const LinkBox = styled(Link)`
   cursor: pointer;
   display: flex;
-  flex-direction: column;
-  margin: 0 18px;
-  justify-content: space-between;
-  align-items: baseline;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
 
-  span {
-    font-size: 16px;
-    line-height: 30px;
+  .footer-labels {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .footer-label {
+    font-size: 12px;
+    line-height: 18px;
     color: #8c8c8c;
   }
 
   .page-title {
-    display: flex;
-    align-items: center;
-    gap: 24px;
-    font-size: 20px;
+    font-size: 15px;
     font-weight: 600;
-    line-height: 28px;
+    line-height: 22px;
     color: #595959;
     transition: color 300ms;
   }
-  &:hover .page-title {
+
+  .anticon {
+    font-size: 16px;
+    color: #8c8c8c;
+    transition: color 300ms;
+  }
+
+  &:hover .page-title,
+  &:hover .anticon {
     color: #2bbe50;
   }
 `;
@@ -44,7 +48,7 @@ export const Container = styled.div`
   justify-content: space-between;
   align-items: center;
   width: 100%;
-  height: 90px;
+  height: 72px;
   background-color: #ffffff;
   box-shadow: 0px -2px 8px rgba(0, 0, 0, 0.05);
   padding: 0 24px;
@@ -55,5 +59,7 @@ export const Container = styled.div`
     left: 0;
     right: 0;
     z-index: 100;
+    height: 64px;
+    padding: 0 16px;
   }
 `;

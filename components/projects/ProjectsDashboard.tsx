@@ -105,13 +105,13 @@ export const ProjectsDashboard = ({
             <Select
               mode='multiple'
               placeholder='Filter projects by tag'
-              style={{ minWidth: 160 }}
+              style={{ width: 170 }}
               options={tags.map(tag => ({ label: tag.label, value: tag.id }))}
               onChange={setTagIdsFilter}
             />
             <Select
               value={sortOrder}
-              style={{ minWidth: 175 }}
+              style={{ width: 180 }}
               labelRender={value => <span>Sort by {value.label}</span>}
               options={sortOptions}
               onChange={handleSortChange}

@@ -101,24 +101,19 @@ export function SingleUseStep({ project, isUpstream, readOnly }: ServerSideProps
 
   return (
     <S.Wrapper>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <S.PageTitleRow>
         <Typography.Title level={1}>Single-use purchasing</Typography.Title>
         {!readOnly && (
-          <div style={{ display: 'flex', gap: '1em' }}>
+          <div className='actions'>
             {isUpstream && <ImportButton projectId={project.id} onImport={refreshLineItems} />}
             {hasItems && (
-              <Button
-                type='primary'
-                onClick={addItem}
-                icon={<PlusOutlined />}
-                style={{ paddingRight: '4em', paddingLeft: '4em' }}
-              >
+              <Button type='primary' onClick={addItem} icon={<PlusOutlined />}>
                 Add a single-use item
               </Button>
             )}
           </div>
         )}
-      </div>
+      </S.PageTitleRow>
       <Typography.Title level={5}>
         Create a baseline of single-use items you purchase regularly. Forecast what you could save by reducing or
         eliminating these items.

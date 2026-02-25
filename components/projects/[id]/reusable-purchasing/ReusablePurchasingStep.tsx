@@ -137,24 +137,19 @@ export function ReusablePurchasingStep({ isUpstream, readOnly }: { isUpstream: b
 
   return (
     <S.Wrapper>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <S.PageTitleRow>
         <Typography.Title level={1}>Reusables purchasing</Typography.Title>
         {!readOnly && (
-          <div style={{ display: 'flex', gap: '1em' }}>
+          <div className='actions'>
             {isUpstream && <ImportButton projectId={projectId} onImport={refreshLineItems} />}
             {hasItems && (
-              <Button
-                type='primary'
-                onClick={addItem}
-                icon={<PlusOutlined />}
-                style={{ paddingRight: '4em', paddingLeft: '4em' }}
-              >
+              <Button type='primary' onClick={addItem} icon={<PlusOutlined />}>
                 Add reusable item
               </Button>
             )}
           </div>
         )}
-      </div>
+      </S.PageTitleRow>
       <Typography.Title level={5}>
         Enter reusable items to replace single-use items as appropriate. It is possible to eliminate a single-use item
         without a purchase of a reusable ware. For example, if you have three sizes of single-use plastic forks, you may

@@ -6,17 +6,17 @@ import styled from 'styled-components';
 import { categoryByType } from 'lib/projects/categories';
 import type { ProjectPath } from 'lib/projects/steps';
 
-import { Container, LinkBox, Row } from './styles';
+import { Container, LinkBox } from './styles';
 import { ProjectCategory } from '@prisma/client';
 
 const CompleteButton = styled.a`
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 20px;
+  padding: 6px 18px;
   background: #95ee49;
   color: #262626;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 600;
   border-radius: 6px;
   text-decoration: none;
@@ -67,31 +67,29 @@ export default function Footer({ projectCategory = 'default' }: { projectCategor
   return (
     <Container>
       {previousStep ? (
-        <Row>
-          <ArrowLeftOutlined style={{ marginBottom: '9px' }} />
-          <LinkBox href={getLink(projectId, previousStep.path)}>
-            <span>Previous Step</span>
+        <LinkBox href={getLink(projectId, previousStep.path)}>
+          <ArrowLeftOutlined />
+          <div className='footer-labels'>
+            <span className='footer-label'>Previous Step</span>
             <span className='page-title'>{previousStep.title}</span>
-          </LinkBox>
-        </Row>
+          </div>
+        </LinkBox>
       ) : (
         <div />
       )}
 
       {isLastEditStep ? (
-        <Row>
-          <CompleteButton href={`/projects/${projectId}/projections`}>
-            Complete <CheckOutlined />
-          </CompleteButton>
-        </Row>
+        <CompleteButton href={`/projects/${projectId}/projections`}>
+          Complete <CheckOutlined />
+        </CompleteButton>
       ) : nextStep ? (
-        <Row>
-          <LinkBox href={getLink(projectId, nextStep.path)}>
-            <span>Next Step</span>
+        <LinkBox href={getLink(projectId, nextStep.path)}>
+          <div className='footer-labels'>
+            <span className='footer-label'>Next Step</span>
             <span className='page-title'>{nextStep.title}</span>
-          </LinkBox>
-          <ArrowRightOutlined style={{ marginBottom: '8px' }} />
-        </Row>
+          </div>
+          <ArrowRightOutlined />
+        </LinkBox>
       ) : (
         <div />
       )}
