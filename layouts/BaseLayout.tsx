@@ -104,7 +104,7 @@ export const BaseLayout: React.FC<DashboardProps> = ({ user, selectedMenuItem, t
   if (user.role === 'ORG_ADMIN') {
     accountLinks.unshift({
       key: 'edit_org',
-      label: <Link href={'/org/edit?redirect=' + encodeURIComponent(router.asPath)}>Edit organization</Link>
+      label: <Link href={'/org/edit?redirect=' + encodeURIComponent(router.asPath)}>Settings</Link>
     });
   }
 
@@ -124,7 +124,7 @@ export const BaseLayout: React.FC<DashboardProps> = ({ user, selectedMenuItem, t
 
   const allMobileMenuItems: MenuProps['items'] = [
     ...(menuLinks ?? []),
-    ...(user.org.isUpstream ? (upstreamLinks ?? []) : []),
+    ...(user.org.isUpstream ? [{ key: 'upstream', label: 'Upstream', children: upstreamLinks }] : []),
     { type: 'divider' },
     ...(accountLinks ?? [])
   ];
