@@ -6,6 +6,7 @@ export const LoginForm = styled(Form)`
 ` as typeof Form;
 
 export const Wrapper = styled.div`
-  width: 317px;
+  max-width: 317px;
+  width: 100%;
   margin: 0 auto;
 `;

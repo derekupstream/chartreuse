@@ -23,7 +23,7 @@ export const ProjectSetupWrapper = styled(Wrapper)`
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: 460px;
+  max-width: 460px;
 `;
 
 export const BoxEnd = styled.div`

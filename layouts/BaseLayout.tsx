@@ -1,5 +1,5 @@
-import { DownOutlined } from '@ant-design/icons';
-import { Layout, Menu } from 'antd';
+import { DownOutlined, MenuOutlined } from '@ant-design/icons';
+import { Layout, Menu, Drawer } from 'antd';
 import { Button, Dropdown, message, Typography, Divider } from 'antd';
 import type { MenuProps } from 'antd';
 import Image from 'next/legacy/image';
@@ -48,6 +48,7 @@ export const BaseLayout: React.FC<DashboardProps> = ({ user, selectedMenuItem, t
   const { signout } = useAuth();
   const router = useRouter();
   const [keys, setKeys] = useState<string[]>([]);
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const { trialEndDateRelative } = useSubscription();
 
   useEffect(() => {
@@ -78,6 +79,7 @@ export const BaseLayout: React.FC<DashboardProps> = ({ user, selectedMenuItem, t
   const handleMenuClick: MenuClickEventHandler = ({ key }: MenuInfo) => {
     router.push(`/${key}`);
     setKeys([key]);
+    setDrawerOpen(false);
   };
 
   useEffect(() => {
@@ -120,6 +122,13 @@ export const BaseLayout: React.FC<DashboardProps> = ({ user, selectedMenuItem, t
     }
   ];
 
+  const allMobileMenuItems: MenuProps['items'] = [
+    ...(menuLinks ?? []),
+    ...(user.org.isUpstream ? (upstreamLinks ?? []) : []),
+    { type: 'divider' },
+    ...(accountLinks ?? [])
+  ];
+
   return (
     <SubscriptionCheck>
       <Header title={title} />
@@ -127,39 +136,60 @@ export const BaseLayout: React.FC<DashboardProps> = ({ user, selectedMenuItem, t
       <Layout style={{ display: 'flex', minHeight: '100vh' }}>
         <S.LayoutHeader>
           <S.LogoAndMenuWrapper>
-            <Image src={Logo} alt='Chareuse logo' objectFit='contain' />
-            <Menu items={menuLinks} mode='horizontal' disabledOverflow selectedKeys={keys} onClick={handleMenuClick} />
-            {trialEndDateRelative && (
-              <S.FreeTrialBanner>
-                <S.FreeTrialBannerContent>
-                  <Typography.Text type='secondary'>Your trial expires in {trialEndDateRelative}</Typography.Text>
-                  <Link href={`/subscription`} passHref>
-                    <Button type='primary' ghost>
-                      Upgrade now
-                    </Button>
-                  </Link>
-                </S.FreeTrialBannerContent>
-              </S.FreeTrialBanner>
-            )}
-            {user.org.isUpstream && (
-              <Menu
-                items={extendedLinks}
-                mode='horizontal'
-                disabledOverflow
-                selectedKeys={keys}
-                onClick={handleMenuClick}
-              />
-            )}
+            <Image src={Logo} alt='Chartreuse logo' objectFit='contain' />
+            <S.DesktopMenu>
+              <Menu items={menuLinks} mode='horizontal' disabledOverflow selectedKeys={keys} onClick={handleMenuClick} />
+              {trialEndDateRelative && (
+                <S.FreeTrialBanner>
+                  <S.FreeTrialBannerContent>
+                    <Typography.Text type='secondary'>Your trial expires in {trialEndDateRelative}</Typography.Text>
+                    <Link href={`/subscription`} passHref>
+                      <Button type='primary' ghost>
+                        Upgrade now
+                      </Button>
+                    </Link>
+                  </S.FreeTrialBannerContent>
+                </S.FreeTrialBanner>
+              )}
+              {user.org.isUpstream && (
+                <Menu
+                  items={extendedLinks}
+                  mode='horizontal'
+                  disabledOverflow
+                  selectedKeys={keys}
+                  onClick={handleMenuClick}
+                />
+              )}
+            </S.DesktopMenu>
           </S.LogoAndMenuWrapper>
           <S.OrgAndUserWrapper>
-            <Typography.Text type='secondary'>{user.org.name}</Typography.Text>
-            <Dropdown menu={{ items: accountLinks }} placement='bottomRight'>
-              <Button ghost>
-                {user.name} <DownOutlined />
-              </Button>
-            </Dropdown>
+            <S.DesktopUserInfo>
+              <Typography.Text type='secondary'>{user.org.name}</Typography.Text>
+              <Dropdown menu={{ items: accountLinks }} placement='bottomRight'>
+                <Button ghost>
+                  {user.name} <DownOutlined />
+                </Button>
+              </Dropdown>
+            </S.DesktopUserInfo>
+            <S.MobileMenuButton>
+              <Button type='text' icon={<MenuOutlined />} onClick={() => setDrawerOpen(true)} />
+            </S.MobileMenuButton>
           </S.OrgAndUserWrapper>
         </S.LayoutHeader>
+        <Drawer
+          title={user.org.name}
+          placement='right'
+          onClose={() => setDrawerOpen(false)}
+          open={drawerOpen}
+          width={240}
+        >
+          <Menu
+            items={allMobileMenuItems}
+            mode='inline'
+            selectedKeys={keys}
+            onClick={handleMenuClick}
+          />
+        </Drawer>
         {children}
       </Layout>
     </SubscriptionCheck>

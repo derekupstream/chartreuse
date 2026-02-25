@@ -3,7 +3,9 @@ import styled from 'styled-components';
 
 export const LogoAndMenuWrapper = styled.div`
   display: flex;
+  align-items: center;
   flex-grow: 1;
+  min-width: 0;
 
   > ul {
     margin-left: 20px;
@@ -43,15 +45,18 @@ export const LayoutHeader = styled(Layout.Header)`
 `;
 
 export const ContentContainer = styled(Layout.Content)`
-  padding: 2rem;
+  padding: 1rem;
   margin: 0 auto;
-  background: red;
   display: flex;
   width: 100%;
   background-color: #f4f3f0;
   background-position: 100% 0;
   background-repeat: no-repeat;
   background-size: 400px;
+
+  @media (min-width: 768px) {
+    padding: 2rem;
+  }
 `;
 
 export const Content = styled.div`
@@ -69,6 +74,38 @@ export const OrgAndUserWrapper = styled.div`
 
   button {
     margin-left: 20px;
+  }
+`;
+
+export const DesktopMenu = styled.div`
+  display: none;
+  align-items: center;
+  flex-grow: 1;
+
+  @media (min-width: 768px) {
+    display: flex;
+  }
+`;
+
+export const DesktopUserInfo = styled.div`
+  display: none;
+  align-items: center;
+  gap: 8px;
+
+  button {
+    margin-left: 20px;
+  }
+
+  @media (min-width: 768px) {
+    display: flex;
+  }
+`;
+
+export const MobileMenuButton = styled.div`
+  display: flex;
+
+  @media (min-width: 768px) {
+    display: none;
   }
 `;
 

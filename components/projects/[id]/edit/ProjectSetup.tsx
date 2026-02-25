@@ -17,7 +17,8 @@ import { ProjectForm } from './components/ProjectForm';
 const steps = [{ title: 'Project Setup' }, { title: 'Budgets + Targets' }];
 
 const Wrapper = styled.div`
-  width: 460px;
+  max-width: 460px;
+  width: 100%;
   margin: 0 auto;
 `;
 

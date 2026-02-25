@@ -6,6 +6,14 @@ const Steps = styled.div`
   border-bottom: 1px solid #ccc;
   border-top: 1px solid #ccc;
   display: flex;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+
+  /* Hide scrollbar but keep scrollable */
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
 `;
 
 // use string instead of boolean attribute to avoid DOM warnings
@@ -13,6 +21,8 @@ const Step = styled.div<{ active: string; isfirst: string; ispast: string; islas
   height: 60px;
   position: relative;
   width: ${({ width }) => width};
+  min-width: 100px;
+  flex-shrink: 0;
   a {
     display: block;
     width: 100%;
