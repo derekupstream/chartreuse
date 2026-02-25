@@ -4,11 +4,16 @@ declare global {
   //var prisma: PrismaClient - dont add this or we may forget to import prisma in a file
 }
 
-// Supabase direct connections require SSL. Append sslmode=require if not already present.
+// Supabase pooler connections require pgbouncer=true (disables prepared statements)
+// and sslmode=require. Append both if not already present.
 function getDatabaseUrl() {
   const url = process.env.DATABASE_URL || '';
-  if (url.includes('supabase.co') && !url.includes('sslmode') && !url.includes('pgbouncer')) {
-    return url + (url.includes('?') ? '&' : '?') + 'sslmode=require';
+  if (url.includes('supabase.co')) {
+    const sep = url.includes('?') ? '&' : '?';
+    const parts: string[] = [];
+    if (!url.includes('pgbouncer')) parts.push('pgbouncer=true');
+    if (!url.includes('sslmode')) parts.push('sslmode=require');
+    return parts.length ? url + sep + parts.join('&') : url;
   }
   return url;
 }
