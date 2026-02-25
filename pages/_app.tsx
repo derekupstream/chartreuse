@@ -34,6 +34,27 @@ const GlobalStyles = createGlobalStyle`
   body {
     background-color: #f4f3f0;
   }
+
+  /* Global responsive rules */
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    word-break: break-word;
+    overflow-wrap: break-word;
+    max-width: 100%;
+  }
+
+  p, span, div {
+    overflow-wrap: break-word;
+  }
+
+  /* Prevent tables from overflowing on mobile */
+  .ant-table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
 `;
 
 const queryClient = new QueryClient();

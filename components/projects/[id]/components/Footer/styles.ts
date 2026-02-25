@@ -48,4 +48,12 @@ export const Container = styled.div`
   background-color: #ffffff;
   box-shadow: 0px -2px 8px rgba(0, 0, 0, 0.05);
   padding: 0 24px;
+
+  @media (max-width: 767px) {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+  }
 `;

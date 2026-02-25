@@ -8,10 +8,11 @@ import { CardTitle } from './styles';
 
 export const Value = styled(Typography.Text)`
   font-weight: bold;
-  font-size: 32px;
-  line-height: 40px;
+  font-size: clamp(20px, 5vw, 32px);
+  line-height: 1.25;
   margin-right: 10px;
   color: #141414;
+  white-space: nowrap;
 `;
 
 export const Header = styled.div`

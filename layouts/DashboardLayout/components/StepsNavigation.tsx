@@ -1,7 +1,23 @@
 import styled from 'styled-components';
-import { Typography } from 'antd';
+import { Typography, Select } from 'antd';
 import { categoryByType } from 'lib/projects/categories';
 import { ProjectCategory } from '@prisma/client';
+
+const DesktopSteps = styled.div`
+  display: none;
+  @media (min-width: 768px) {
+    display: block;
+  }
+`;
+
+const MobileSelect = styled.div`
+  display: block;
+  padding: 8px 0;
+  @media (min-width: 768px) {
+    display: none;
+  }
+`;
+
 const Steps = styled.div`
   border-bottom: 1px solid #ccc;
   border-top: 1px solid #ccc;
@@ -111,24 +127,41 @@ export function StepsNavigation({
   projectCategory?: ProjectCategory;
 }) {
   const steps = categoryByType(projectCategory).steps;
+
   return (
-    <Steps>
-      {steps.map((step, i) => (
-        <Step
-          active={i === current ? 'true' : ''}
-          width={steps[i].width}
-          ispast={i < current ? 'true' : ''}
-          isfirst={i === 0 ? 'true' : ''}
-          islast={i === steps.length - 1 ? 'true' : ''}
-          key={step.title}
-        >
-          <a href={`/projects/${projectId}${steps[i].path}`}>
-            <Typography.Title level={5}>{step.title}</Typography.Title>
-          </a>
-          <div className='left-diagonal' />
-          <div className='diagonal' />
-        </Step>
-      ))}
-    </Steps>
+    <>
+      <MobileSelect>
+        <Select
+          value={current}
+          style={{ width: '100%' }}
+          onChange={(index: number) => {
+            if (projectId) {
+              window.location.href = `/projects/${projectId}${steps[index].path}`;
+            }
+          }}
+          options={steps.map((step, i) => ({ label: step.title, value: i }))}
+        />
+      </MobileSelect>
+      <DesktopSteps>
+        <Steps>
+          {steps.map((step, i) => (
+            <Step
+              active={i === current ? 'true' : ''}
+              width={steps[i].width}
+              ispast={i < current ? 'true' : ''}
+              isfirst={i === 0 ? 'true' : ''}
+              islast={i === steps.length - 1 ? 'true' : ''}
+              key={step.title}
+            >
+              <a href={`/projects/${projectId}${steps[i].path}`}>
+                <Typography.Title level={5}>{step.title}</Typography.Title>
+              </a>
+              <div className='left-diagonal' />
+              <div className='diagonal' />
+            </Step>
+          ))}
+        </Steps>
+      </DesktopSteps>
+    </>
   );
 }

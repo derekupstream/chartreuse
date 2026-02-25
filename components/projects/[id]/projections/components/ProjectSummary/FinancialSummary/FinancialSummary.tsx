@@ -1,4 +1,5 @@
 import { Row, Col, Typography } from 'antd';
+import styled from 'styled-components';
 
 import { InfoIcon } from 'components/common/InfoIcon';
 import type { ProjectionsResponse } from 'lib/calculator/getProjections';
@@ -9,6 +10,17 @@ import { SectionContainer, SectionHeader, SectionTitle } from '../../common/styl
 import { useCurrency } from 'components/_app/CurrencyProvider';
 import { FooterData } from './components/Footer';
 import { Text, Title, Value } from './components/styles';
+
+const MobileCard = styled.div`
+  @media (max-width: 767px) {
+    background: #ffffff;
+    border: 1px solid #eeeeed;
+    border-radius: 8px;
+    padding: 16px;
+    box-shadow: 0px 0px 12px rgba(0, 0, 0, 0.08);
+    margin-bottom: 12px;
+  }
+`;
 
 type Props = {
   data: ProjectionsResponse['financialResults'];
@@ -68,153 +80,159 @@ const FinancialSummary: React.FC<Props> = ({ data: financialResults, businessSiz
       <Card>
         <SectionTitle>Annual program saving &amp; expenses</SectionTitle>
 
-        <Row gutter={40}>
-          <Col span={8}>
-            <Text strong>Savings</Text>
-            <Title>Annual total</Title>
-            <Value color={financialResults.summary.annualCost < 0 ? 'green' : 'black'}>
-              {formatToDollar(financialResults.summary.annualCost * -1, currencyAbbreviation)}
-            </Value>
+        <Row gutter={[40, 0]}>
+          <Col xs={24} md={8}>
+            <MobileCard>
+              <Text strong>Savings</Text>
+              <Title>Annual total</Title>
+              <Value color={financialResults.summary.annualCost < 0 ? 'green' : 'black'}>
+                {formatToDollar(financialResults.summary.annualCost * -1, currencyAbbreviation)}
+              </Value>
 
-            <Title>
-              Annual program ROI{' '}
-              {showTooltips && (
-                <InfoIcon>
-                  Annual Cost Savings ROI (% of Start-Up Cost):
-                  <br />
-                  Annual Net Savings/Startup costs
-                </InfoIcon>
-              )}
-            </Title>
-            <Value>{financialResults.summary.annualROIPercent}%</Value>
-
-            <hr />
-
-            <FooterData
-              title='Single-use purchasing'
-              icon={
-                showTooltips && (
+              <Title>
+                Annual program ROI{' '}
+                {showTooltips && (
                   <InfoIcon>
-                    Considers a full “place setting” worth of foodware items per customer, including foodware
-                    accessories
+                    Annual Cost Savings ROI (% of Start-Up Cost):
+                    <br />
+                    Annual Net Savings/Startup costs
                   </InfoIcon>
-                )
-              }
-              value={formatToDollar(financialResults.annualCostChanges.singleUseProductChange, currencyAbbreviation)}
-            />
-            <FooterData
-              title='Waste hauling'
-              icon={
-                showTooltips && (
-                  <InfoIcon maxWidth={450}>
-                    <ul style={{ paddingLeft: '1em', margin: 0 }}>
-                      <li>Assumes $22/cubic yard.</li>
-                    </ul>
-                  </InfoIcon>
-                )
-              }
-              value={formatToDollar(financialResults.annualCostChanges.wasteHauling, currencyAbbreviation)}
-            />
+                )}
+              </Title>
+              <Value>{financialResults.summary.annualROIPercent}%</Value>
+
+              <hr />
+
+              <FooterData
+                title='Single-use purchasing'
+                icon={
+                  showTooltips && (
+                    <InfoIcon>
+                      Considers a full “place setting” worth of foodware items per customer, including foodware
+                      accessories
+                    </InfoIcon>
+                  )
+                }
+                value={formatToDollar(financialResults.annualCostChanges.singleUseProductChange, currencyAbbreviation)}
+              />
+              <FooterData
+                title='Waste hauling'
+                icon={
+                  showTooltips && (
+                    <InfoIcon maxWidth={450}>
+                      <ul style={{ paddingLeft: '1em', margin: 0 }}>
+                        <li>Assumes $22/cubic yard.</li>
+                      </ul>
+                    </InfoIcon>
+                  )
+                }
+                value={formatToDollar(financialResults.annualCostChanges.wasteHauling, currencyAbbreviation)}
+              />
+            </MobileCard>
           </Col>
 
-          <Col span={8}>
-            <Text strong>One-time expenses</Text>
+          <Col xs={24} md={8}>
+            <MobileCard>
+              <Text strong>One-time expenses</Text>
 
-            <Title>Annual total</Title>
-            <Value color='black'>{formatToDollar(financialResults.oneTimeCosts.total, currencyAbbreviation)}</Value>
+              <Title>Annual total</Title>
+              <Value color='black'>{formatToDollar(financialResults.oneTimeCosts.total, currencyAbbreviation)}</Value>
 
-            <Title>Payback Period</Title>
-            <Value>
-              {financialResults.summary.paybackPeriodsMonths === 0
-                ? 'N/A'
-                : financialResults.summary.paybackPeriodsMonths + '  mos.'}
-            </Value>
+              <Title>Payback Period</Title>
+              <Value>
+                {financialResults.summary.paybackPeriodsMonths === 0
+                  ? 'N/A'
+                  : financialResults.summary.paybackPeriodsMonths + '  mos.'}
+              </Value>
 
-            <hr />
+              <hr />
 
-            <FooterData
-              title='Reusables purchasing'
-              icon={showTooltips && <InfoIcon maxWidth={400}>Accounts for a 98% return rate</InfoIcon>}
-              value={formatToDollar(financialResults.oneTimeCosts.reusableProductCosts, currencyAbbreviation)}
-            />
-            <FooterData
-              title='Additional expenses'
-              icon={
-                showTooltips && (
-                  <InfoIcon maxWidth={500}>
-                    <Typography.Text>Initial reuse expenses:</Typography.Text>
-                    <ul style={{ paddingLeft: '1em', margin: 0 }}>
-                      <li>Commercial under-counter Energy Star dishwasher: {tooltipVars.additionalExpenses0}</li>
-                      <li>Commercial drying racks {tooltipVars.additionalExpenses1}</li>
-                      <li>Bus tubs/return stations {tooltipVars.additionalExpenses2}</li>
-                      <li>Dishwasher installation: $1,500</li>
-                    </ul>
-                  </InfoIcon>
-                )
-              }
-              value={formatToDollar(financialResults.oneTimeCosts.additionalCosts, currencyAbbreviation)}
-            />
+              <FooterData
+                title='Reusables purchasing'
+                icon={showTooltips && <InfoIcon maxWidth={400}>Accounts for a 98% return rate</InfoIcon>}
+                value={formatToDollar(financialResults.oneTimeCosts.reusableProductCosts, currencyAbbreviation)}
+              />
+              <FooterData
+                title='Additional expenses'
+                icon={
+                  showTooltips && (
+                    <InfoIcon maxWidth={500}>
+                      <Typography.Text>Initial reuse expenses:</Typography.Text>
+                      <ul style={{ paddingLeft: '1em', margin: 0 }}>
+                        <li>Commercial under-counter Energy Star dishwasher: {tooltipVars.additionalExpenses0}</li>
+                        <li>Commercial drying racks {tooltipVars.additionalExpenses1}</li>
+                        <li>Bus tubs/return stations {tooltipVars.additionalExpenses2}</li>
+                        <li>Dishwasher installation: $1,500</li>
+                      </ul>
+                    </InfoIcon>
+                  )
+                }
+                value={formatToDollar(financialResults.oneTimeCosts.additionalCosts, currencyAbbreviation)}
+              />
+            </MobileCard>
           </Col>
 
-          <Col span={8}>
-            <Text strong>Recurring expenses</Text>
-            <Title>Annual total</Title>
-            <Value color='black'>
-              {formatToDollar(
-                financialResults.annualCostChanges.change - financialResults.annualCostChanges.singleUseProductChange,
-                currencyAbbreviation
-              )}
-            </Value>
+          <Col xs={24} md={8}>
+            <MobileCard>
+              <Text strong>Recurring expenses</Text>
+              <Title>Annual total</Title>
+              <Value color='black'>
+                {formatToDollar(
+                  financialResults.annualCostChanges.change - financialResults.annualCostChanges.singleUseProductChange,
+                  currencyAbbreviation
+                )}
+              </Value>
 
-            <Title>&nbsp;</Title>
-            <Value>&nbsp;</Value>
-            <hr />
+              <Title>&nbsp;</Title>
+              <Value>&nbsp;</Value>
+              <hr />
 
-            <FooterData
-              title='Reusables restocking'
-              icon={showTooltips && <InfoIcon>Accounts for a 98% return rate</InfoIcon>}
-              value={formatToDollar(financialResults.annualCostChanges.reusableProductCosts, currencyAbbreviation)}
-            />
-            <FooterData
-              title='Labor'
-              icon={
-                showTooltips && (
-                  <InfoIcon>
-                    <ul style={{ paddingLeft: '1em', margin: 0 }}>
-                      <li>Daily dishwashing labor: {tooltipVars.laborHours}</li>
-                      <li>Labor staff rate: {tooltipVars.laborRate}</li>
-                    </ul>
-                  </InfoIcon>
-                )
-              }
-              value={formatToDollar(financialResults.annualCostChanges.laborCosts, currencyAbbreviation)}
-            />
-            <FooterData
-              title='Dishwashing'
-              icon={
-                showTooltips && (
-                  <InfoIcon maxWidth={450}>
-                    <ul style={{ paddingLeft: '1em', margin: 0 }}>
-                      <li>Dishwasher specs: {tooltipVars.dishwashingSpecs}</li>
-                      <li>Utility rates: California</li>
-                      <li>Additional racks/day for reusables: {tooltipVars.dishwashingRacks}</li>
-                      <li>Annual dishwashing energy usage: {tooltipVars.dishwashingEnergyUsage}</li>
-                      <li>Annual dishwashing water usage: {tooltipVars.dishwashingWaterUsage}</li>
-                      <li>Annual dishwashing utility cost: {tooltipVars.dishwashingUtilityCost}</li>
-                    </ul>
-                  </InfoIcon>
-                )
-              }
-              value={formatToDollar(financialResults.annualCostChanges.utilities, currencyAbbreviation)}
-            />
-            <FooterData
-              title='Waste hauling'
-              value={formatToDollar(financialResults.annualCostChanges.wasteHauling, currencyAbbreviation)}
-            />
-            <FooterData
-              title='Additional expenses'
-              value={formatToDollar(financialResults.annualCostChanges.otherExpenses, currencyAbbreviation)}
-            />
+              <FooterData
+                title='Reusables restocking'
+                icon={showTooltips && <InfoIcon>Accounts for a 98% return rate</InfoIcon>}
+                value={formatToDollar(financialResults.annualCostChanges.reusableProductCosts, currencyAbbreviation)}
+              />
+              <FooterData
+                title='Labor'
+                icon={
+                  showTooltips && (
+                    <InfoIcon>
+                      <ul style={{ paddingLeft: '1em', margin: 0 }}>
+                        <li>Daily dishwashing labor: {tooltipVars.laborHours}</li>
+                        <li>Labor staff rate: {tooltipVars.laborRate}</li>
+                      </ul>
+                    </InfoIcon>
+                  )
+                }
+                value={formatToDollar(financialResults.annualCostChanges.laborCosts, currencyAbbreviation)}
+              />
+              <FooterData
+                title='Dishwashing'
+                icon={
+                  showTooltips && (
+                    <InfoIcon maxWidth={450}>
+                      <ul style={{ paddingLeft: '1em', margin: 0 }}>
+                        <li>Dishwasher specs: {tooltipVars.dishwashingSpecs}</li>
+                        <li>Utility rates: California</li>
+                        <li>Additional racks/day for reusables: {tooltipVars.dishwashingRacks}</li>
+                        <li>Annual dishwashing energy usage: {tooltipVars.dishwashingEnergyUsage}</li>
+                        <li>Annual dishwashing water usage: {tooltipVars.dishwashingWaterUsage}</li>
+                        <li>Annual dishwashing utility cost: {tooltipVars.dishwashingUtilityCost}</li>
+                      </ul>
+                    </InfoIcon>
+                  )
+                }
+                value={formatToDollar(financialResults.annualCostChanges.utilities, currencyAbbreviation)}
+              />
+              <FooterData
+                title='Waste hauling'
+                value={formatToDollar(financialResults.annualCostChanges.wasteHauling, currencyAbbreviation)}
+              />
+              <FooterData
+                title='Additional expenses'
+                value={formatToDollar(financialResults.annualCostChanges.otherExpenses, currencyAbbreviation)}
+              />
+            </MobileCard>
           </Col>
         </Row>
       </Card>

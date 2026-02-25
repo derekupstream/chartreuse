@@ -42,10 +42,12 @@ export const LayoutHeader = styled(Layout.Header)`
   justify-content: space-between;
   align-items: center;
   background-color: white;
+  width: 100%;
 `;
 
 export const ContentContainer = styled(Layout.Content)`
   padding: 1rem;
+  padding-bottom: calc(1rem + 90px); /* room for sticky footer on mobile */
   margin: 0 auto;
   display: flex;
   width: 100%;
