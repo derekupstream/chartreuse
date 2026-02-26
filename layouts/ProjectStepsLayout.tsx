@@ -38,12 +38,20 @@ type Props = {
   user: DashboardUser;
 };
 
+const BackLabel = styled.span`
+  display: none;
+
+  @media (min-width: 768px) {
+    display: inline;
+  }
+`;
+
 export function BackToProjectsButton() {
   return (
     <Link href='/projects' passHref legacyBehavior>
       <Button type='text' href='/projects'>
         <ArrowLeftOutlined />
-        Back to projects
+        <BackLabel>Back to projects</BackLabel>
       </Button>
     </Link>
   );
