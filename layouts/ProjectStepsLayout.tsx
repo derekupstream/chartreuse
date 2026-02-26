@@ -18,7 +18,7 @@ import { BaseLayout } from './BaseLayout';
 const ProjectHeader = styled.div`
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 8px;
 `;
 
 const GreenProjectName = styled.span`
