@@ -22,6 +22,9 @@ export const getServerSideProps: GetServerSideProps<PageProps> = async context =
   const accountIds = (context.query.accounts as string | undefined)?.split(',');
   const projectIds = (context.query.projects as string | undefined)?.split(',');
   const tagIds = (context.query.tags as string | undefined)?.split(',');
+  const stateIds = (context.query.states as string | undefined)?.split(',');
+  const startDate = context.query.startDate as string | undefined;
+  const endDate = context.query.endDate as string | undefined;
   const categoryRaw = (context.query.category as ProjectCategory | undefined) || 'default';
   let projectCategory = ProjectCategory[categoryRaw as keyof typeof ProjectCategory] || 'default';
 
@@ -78,15 +81,34 @@ export const getServerSideProps: GetServerSideProps<PageProps> = async context =
   }
 
   const filteredProjects = projects.filter(p => {
+    // Account / project filter (OR between account and project)
     if (accountIds || projectIds) {
-      return accountIds?.includes(p.accountId) || projectIds?.includes(p.id);
+      const matchesAccount = accountIds ? accountIds.includes(p.accountId) : false;
+      const matchesProject = projectIds ? projectIds.includes(p.id) : false;
+      if (!matchesAccount && !matchesProject) return false;
     }
+    // Tag filter
     if (tagIds) {
-      return tagIds.some(id => p.tags.some(t => t.tagId === id));
+      if (!tagIds.some(id => p.tags.some(t => t.tagId === id))) return false;
+    }
+    // State filter
+    if (stateIds) {
+      if (!stateIds.includes(p.USState || '')) return false;
+    }
+    // Date range filter (based on project startDate)
+    if (startDate) {
+      const filterStart = new Date(startDate);
+      if (p.startDate && new Date(p.startDate) < filterStart) return false;
+    }
+    if (endDate) {
+      const filterEnd = new Date(endDate);
+      if (p.startDate && new Date(p.startDate) > filterEnd) return false;
     }
     return true;
   });
+
   const data = await getAllProjections(filteredProjects);
+
   const allAccounts = sortBy(
     uniqBy(
       projects.map(p => ({ id: p.accountId, name: p.account.name })),
@@ -97,15 +119,19 @@ export const getServerSideProps: GetServerSideProps<PageProps> = async context =
   const allProjects = sortBy(
     projects
       .map(p => ({ id: p.id, accountId: p.accountId, name: `${p.account.name}: ${p.name}`, tags: p.tags }))
-      // remove projects included already in the account filter
       .filter(p => (accountIds ? !accountIds.includes(p.accountId) : true))
       .filter(p => (tagIds ? !tagIds.some(id => p.tags.some(t => t.tagId === id)) : true)),
     'name'
   );
+
+  // Available states across all (unfiltered) projects for the state filter dropdown
+  const availableStates = Array.from(new Set(projects.map(p => p.USState).filter((s): s is string => !!s))).sort();
+
   return {
     props: serializeJSON({
       allAccounts,
       allProjects,
+      availableStates,
       projectCategory,
       showCategoryTabs: projectsInOtherCategory > 0,
       data,
@@ -119,6 +145,7 @@ const AnalyticsPageComponent = ({
   allAccounts,
   projectCategory,
   allProjects,
+  availableStates,
   data,
   user,
   showCategoryTabs
@@ -129,6 +156,7 @@ const AnalyticsPageComponent = ({
       user={user}
       allAccounts={allAccounts}
       allProjects={allProjects}
+      availableStates={availableStates}
       projectCategory={projectCategory}
       showCategoryTabs={showCategoryTabs}
     />

@@ -1,7 +1,7 @@
 import { DownloadOutlined } from '@ant-design/icons';
 import type { Org, ProjectCategory, User } from '@prisma/client';
-import type { SelectProps } from 'antd';
-import { Button, Col, Form, Row, Select, Table, Typography, Divider, Tabs } from 'antd';
+import { Button, Col, DatePicker, Divider, Row, Select, Table, Tabs, Typography } from 'antd';
+import dayjs from 'dayjs';
 import { useRouter } from 'next/router';
 import { useMemo, useRef, useState } from 'react';
 import styled from 'styled-components';
@@ -16,7 +16,7 @@ import type { AllProjectsSummary, ProjectSummary } from 'lib/calculator/getProje
 import { formatToDollar } from 'lib/calculator/utils';
 import { requestDownload } from 'lib/files';
 import { useMetricSystem } from 'components/_app/MetricSystemProvider';
-import { valueInPounds, formattedValueInPounds, formattedValueInGallons, valueInGallons } from 'lib/number';
+import { valueInPounds, valueInGallons } from 'lib/number';
 import { SummaryCardWithGraph, SummaryCard, SummaryCardSingleUseBreakdown } from './components/SummaryCardWithGraph';
 import { useCurrency } from 'components/_app/CurrencyProvider';
 import { columns } from './components/AnalyticsTableColumns';
@@ -33,6 +33,14 @@ const StyledCol = styled(Col)`
   }
 `;
 
+const FilterRow = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  padding: 12px 0;
+`;
+
 export interface PageProps {
   isUpstreamView?: boolean;
   showCategoryTabs?: boolean;
@@ -41,6 +49,7 @@ export interface PageProps {
   data?: AllProjectsSummary;
   allAccounts?: { id: string; name: string }[];
   allProjects?: { id: string; accountId: string; name: string }[];
+  availableStates?: string[];
 }
 
 export function AnalyticsPage({
@@ -50,70 +59,96 @@ export function AnalyticsPage({
   allProjects,
   projectCategory,
   isUpstreamView,
-  showCategoryTabs
+  showCategoryTabs,
+  availableStates = []
 }: PageProps) {
   const router = useRouter();
   const { tags } = useTags(user.org.id);
   const displayAsMetric = useMetricSystem();
   const { abbreviation: currencyAbbreviation } = useCurrency();
-  // for printing
   const printRef = useRef(null);
+
+  // Filter state — initialized from URL params
+  const [selectedTagIds, setSelectedTagIds] = useState<string[]>(
+    typeof router.query.tags === 'string' ? router.query.tags.split(',') : []
+  );
+  const [selectedAccountIds, setSelectedAccountIds] = useState<string[]>(
+    typeof router.query.accounts === 'string' ? router.query.accounts.split(',') : []
+  );
+  const [selectedProjectIds, setSelectedProjectIds] = useState<string[]>(
+    typeof router.query.projects === 'string' ? router.query.projects.split(',') : []
+  );
+  const [selectedStates, setSelectedStates] = useState<string[]>(
+    typeof router.query.states === 'string' ? router.query.states.split(',') : []
+  );
+  const [dateRange, setDateRange] = useState<[any, any]>([
+    router.query.startDate ? dayjs(router.query.startDate as string) : null,
+    router.query.endDate ? dayjs(router.query.endDate as string) : null
+  ]);
+
+  const hasActiveFilters =
+    selectedTagIds.length > 0 ||
+    selectedAccountIds.length > 0 ||
+    selectedProjectIds.length > 0 ||
+    selectedStates.length > 0 ||
+    dateRange[0] != null ||
+    dateRange[1] != null;
+
+  // Must be before early return to satisfy hooks rules
+  const { displayValue: returnRateDisplayValue, returnRatelabel } = useMemo(() => {
+    if (!data) return getReturnOrShrinkageRate({ returnRate: 100, useShrinkageRate: false });
+    const avgReturnRate =
+      data.projects.reduce((acc, project) => {
+        const returnRate = project.projections.reusableResults.summary.returnRate?.returnRate ?? 100;
+        return returnRate + acc;
+      }, 0) / data.projects.length;
+    return getReturnOrShrinkageRate({
+      returnRate: avgReturnRate,
+      useShrinkageRate: user.org.useShrinkageRate
+    });
+  }, [data, user.org]);
 
   if (!data) {
     return <ContentLoader />;
   }
 
-  const selectedProjects = typeof router.query.projects === 'string' ? router.query.projects.split(',') : [];
+  function applyFilters(overrides: {
+    tagIds?: string[];
+    accountIds?: string[];
+    projectIds?: string[];
+    states?: string[];
+    startDate?: string | null;
+    endDate?: string | null;
+  }) {
+    const basePath = router.asPath.split('?')[0];
+    const parts: string[] = [];
+    if (projectCategory !== 'default') parts.push(`category=${projectCategory}`);
 
-  const options: SelectProps['options'] = useMemo(() => {
-    const _options: SelectProps['options'] = [
-      {
-        label: 'Filter by Project',
-        options: allProjects?.map(project => ({
-          label: project.name,
-          value: project.id
-        }))
-      }
-    ];
-    if (allAccounts && allAccounts.length > 1) {
-      _options.unshift({
-        label: 'Filter by Account',
-        options: allAccounts?.map(account => ({
-          label: account.name,
-          value: account.id
-        }))
-      });
-    }
-    if (tags.length > 0) {
-      _options.unshift({
-        label: 'Filter by Tag',
-        options: tags?.map(tag => ({
-          label: tag.label,
-          value: tag.id
-        }))
-      });
-    }
-    return _options;
-  }, [tags, allProjects, allAccounts]);
+    const tagIds = overrides.tagIds ?? selectedTagIds;
+    const accountIds = overrides.accountIds ?? selectedAccountIds;
+    const projectIds = overrides.projectIds ?? selectedProjectIds;
+    const states = overrides.states ?? selectedStates;
+    const sd = 'startDate' in overrides ? overrides.startDate : (dateRange[0]?.format('YYYY-MM-DD') ?? null);
+    const ed = 'endDate' in overrides ? overrides.endDate : (dateRange[1]?.format('YYYY-MM-DD') ?? null);
 
-  function handleFilterChange(value: string[]) {
-    const accountIds = value.filter(id => allAccounts?.some(project => project.id === id));
-    const projectIds = value.filter(id => allProjects?.some(project => project.id === id));
-    const tagIds = value.filter(id => tags?.some(tag => tag.id === id));
-    let updatedPath = router.asPath.split('?')[0];
-    if (projectCategory !== 'default') {
-      updatedPath += `?category=${projectCategory}`;
-    }
-    if (accountIds.length) {
-      updatedPath += `?accounts=${accountIds.join(',')}`;
-    }
-    if (projectIds.length) {
-      updatedPath += `${updatedPath.includes('?') ? '&' : '?'}projects=${projectIds.join(',')}`;
-    }
-    if (tagIds.length) {
-      updatedPath += `${updatedPath.includes('?') ? '&' : '?'}tags=${tagIds.join(',')}`;
-    }
-    router.replace(updatedPath);
+    if (accountIds.length) parts.push(`accounts=${accountIds.join(',')}`);
+    if (projectIds.length) parts.push(`projects=${projectIds.join(',')}`);
+    if (tagIds.length) parts.push(`tags=${tagIds.join(',')}`);
+    if (states.length) parts.push(`states=${states.join(',')}`);
+    if (sd) parts.push(`startDate=${sd}`);
+    if (ed) parts.push(`endDate=${ed}`);
+
+    router.replace(parts.length ? `${basePath}?${parts.join('&')}` : basePath);
+  }
+
+  function clearFilters() {
+    setSelectedTagIds([]);
+    setSelectedAccountIds([]);
+    setSelectedProjectIds([]);
+    setSelectedStates([]);
+    setDateRange([null, null]);
+    const basePath = router.asPath.split('?')[0];
+    router.replace(projectCategory !== 'default' ? `${basePath}?category=${projectCategory}` : basePath);
   }
 
   function setProjectCategory(category: string) {
@@ -167,18 +202,6 @@ export function AnalyticsPage({
 
   const foodwareItemsAvoided = singleUseItemsAvoided - bottlesSaved;
   const showBottlesAndFoodwareBreakdown = bottlesSaved > 0 && foodwareItemsAvoided > 0;
-  const { displayValue: returnRateDisplayValue, returnRatelabel } = useMemo(() => {
-    const avgReturnRate =
-      data.projects.reduce((acc, project) => {
-        const returnRate = project.projections.reusableResults.summary.returnRate?.returnRate ?? 100;
-        return returnRate + acc;
-      }, 0) / data.projects.length;
-
-    return getReturnOrShrinkageRate({
-      returnRate: avgReturnRate,
-      useShrinkageRate: user.org.useShrinkageRate
-    });
-  }, [data.projects, user.org]);
 
   return (
     <div ref={printRef}>
@@ -198,39 +221,94 @@ export function AnalyticsPage({
 
       <Spacer vertical={spacing} />
 
-      <S2.HeaderRow>
-        {showCategoryTabs ? (
-          <Tabs
-            activeKey={projectCategory}
-            style={{ marginBottom: 0 }}
-            onChange={setProjectCategory}
-            items={[
-              {
-                key: 'default',
-                label: 'Projections'
-              },
-              {
-                key: 'event',
-                label: 'Actuals'
-              }
-            ]}
+      {showCategoryTabs && (
+        <Tabs
+          activeKey={projectCategory}
+          style={{ marginBottom: 0 }}
+          onChange={setProjectCategory}
+          items={[
+            { key: 'default', label: 'Projections' },
+            { key: 'event', label: 'Actuals' }
+          ]}
+        />
+      )}
+
+      <FilterRow className='dont-print-me'>
+        {tags.length > 0 && (
+          <Select
+            mode='multiple'
+            placeholder='Filter by tag'
+            style={{ minWidth: 160 }}
+            options={tags.map(t => ({ label: t.label, value: t.id }))}
+            value={selectedTagIds}
+            onChange={vals => {
+              setSelectedTagIds(vals);
+              applyFilters({ tagIds: vals });
+            }}
+            allowClear
           />
-        ) : (
-          <div />
         )}
-        <Form layout='horizontal' style={{ minWidth: 350, maxWidth: '49%' }}>
-          <Form.Item label='Filter projects'>
-            <Select
-              allowClear
-              mode='multiple'
-              defaultValue={selectedProjects}
-              placeholder='Select Projects'
-              onChange={handleFilterChange}
-              options={options}
-            />
-          </Form.Item>
-        </Form>
-      </S2.HeaderRow>
+        {allAccounts && allAccounts.length > 1 && (
+          <Select
+            mode='multiple'
+            placeholder='Filter by account'
+            style={{ minWidth: 160 }}
+            options={allAccounts.map(a => ({ label: a.name, value: a.id }))}
+            value={selectedAccountIds}
+            onChange={vals => {
+              setSelectedAccountIds(vals);
+              applyFilters({ accountIds: vals });
+            }}
+            allowClear
+          />
+        )}
+        {availableStates.length > 0 && (
+          <Select
+            mode='multiple'
+            placeholder='Filter by state'
+            style={{ minWidth: 140 }}
+            options={availableStates.map(s => ({ label: s, value: s }))}
+            value={selectedStates}
+            onChange={vals => {
+              setSelectedStates(vals);
+              applyFilters({ states: vals });
+            }}
+            allowClear
+          />
+        )}
+        <DatePicker.RangePicker
+          value={dateRange as any}
+          placeholder={['Start date', 'End date']}
+          allowEmpty={[true, true]}
+          onChange={range => {
+            const newRange: [any, any] = [range?.[0] ?? null, range?.[1] ?? null];
+            setDateRange(newRange);
+            applyFilters({
+              startDate: newRange[0]?.format('YYYY-MM-DD') ?? null,
+              endDate: newRange[1]?.format('YYYY-MM-DD') ?? null
+            });
+          }}
+        />
+        {allProjects && allProjects.length > 0 && (
+          <Select
+            mode='multiple'
+            placeholder='Filter by project'
+            style={{ minWidth: 180 }}
+            options={allProjects.map(p => ({ label: p.name, value: p.id }))}
+            value={selectedProjectIds}
+            onChange={vals => {
+              setSelectedProjectIds(vals);
+              applyFilters({ projectIds: vals });
+            }}
+            allowClear
+          />
+        )}
+        {hasActiveFilters && (
+          <Button onClick={clearFilters} size='small'>
+            Clear filters
+          </Button>
+        )}
+      </FilterRow>
 
       <Divider style={{ margin: 0 }} />
 
