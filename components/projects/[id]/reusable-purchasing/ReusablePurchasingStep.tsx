@@ -150,7 +150,7 @@ export function ReusablePurchasingStep({ isUpstream, readOnly }: { isUpstream: b
           </div>
         )}
       </S.PageTitleRow>
-      <Typography.Title level={5}>
+      <S.StepDescription>
         Enter reusable items to replace single-use items as appropriate. It is possible to eliminate a single-use item
         without a purchase of a reusable ware. For example, if you have three sizes of single-use plastic forks, you may
         only move to one size/type of durable fork.
@@ -163,8 +163,7 @@ export function ReusablePurchasingStep({ isUpstream, readOnly }: { isUpstream: b
           <li>The replacement will likely be purchased in bulk, which will be a new recurring purchase.</li>
           <li>Any new dispensing equipment will be included in Step 3, “Other Costs.”</li>
         </ol>
-        <br />
-      </Typography.Title>
+      </S.StepDescription>
       {isLoadingLineItems || isLoadingReusableProducts ? (
         <ContentLoader />
       ) : (

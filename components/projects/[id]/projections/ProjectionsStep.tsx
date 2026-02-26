@@ -174,7 +174,7 @@ export const ProjectionsStep = ({ project, readOnly }: { project: ProjectContext
       >
         <Typography.Title
           level={1}
-          style={{ fontSize: 'clamp(26px, 5vw, 44px)', marginBottom: 0, lineHeight: 1.15 }}
+          style={{ fontSize: 'clamp(32px, 6vw, 56px)', marginBottom: 0, lineHeight: 1.1 }}
           editable={{
             triggerType: readOnly ? [] : ['icon'], // disables editing for readonly
             onChange: handleProjectionsTitleChange

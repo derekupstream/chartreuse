@@ -18,6 +18,17 @@ import { BaseLayout } from './BaseLayout';
 const ProjectHeader = styled.div`
   display: flex;
   align-items: center;
+  justify-content: space-between;
+`;
+
+const GreenProjectName = styled.span`
+  color: #2bbe50;
+  font-size: clamp(12px, 2vw, 14px);
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 55%;
 `;
 
 type Props = {
@@ -54,6 +65,7 @@ export function ProjectStepsLayout({
             <Space direction='vertical' size={8} style={{ width: '100%' }}>
               <ProjectHeader>
                 <BackToProjectsButton />
+                {!isDashboard && project && <GreenProjectName>{project.name}</GreenProjectName>}
               </ProjectHeader>
               <StepsNavigation current={currentStepIndex} projectId={project?.id} projectCategory={project?.category} />
               {currentStepIndex > 0 && project && (

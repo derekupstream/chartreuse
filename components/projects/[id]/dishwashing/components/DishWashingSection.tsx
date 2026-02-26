@@ -13,7 +13,7 @@ import { useSimpleQuery } from 'hooks/useSimpleQuery';
 import * as http from 'lib/http';
 import type { Response } from 'pages/api/dishwashers/index';
 
-import { InfoCard, InfoRow } from '../../styles';
+import { InfoCard, InfoRow, StepDescription } from '../../styles';
 import {
   AddBlock,
   Container,
@@ -171,7 +171,7 @@ export function DishWashingSection({
           </Button>
         )}
       </div>
-      <Typography.Title level={5}>
+      <StepDescription>
         Use this section to help calculate dishwashing energy and water costs. Energy and water rates are based on your{' '}
         <Popover content={utilities.content} title={utilities.title} trigger='hover'>
           <Typography.Link underline href={!readOnly ? `/projects/${projectId}/edit?redirect=${route.asPath}` : ''}>
@@ -179,7 +179,7 @@ export function DishWashingSection({
           </Typography.Link>
         </Popover>
         .
-      </Typography.Title>
+      </StepDescription>
       <br />
       {(data?.dishwashers ?? []).map(({ stats, dishwasher }) => (
         <InfoRow key={dishwasher.id}>

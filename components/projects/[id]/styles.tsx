@@ -18,6 +18,14 @@ export const Wrapper = styled.div`
 `;
 
 /* Use this instead of an inline flex div when a page title sits next to action buttons */
+/* Matches the dashboard's body-text style: small, muted */
+export const StepDescription = styled.div`
+  font-size: 13px;
+  color: rgba(0, 0, 0, 0.55);
+  line-height: 1.6;
+  margin-bottom: 16px;
+`;
+
 export const PageTitleRow = styled.div`
   display: flex;
   flex-direction: column;

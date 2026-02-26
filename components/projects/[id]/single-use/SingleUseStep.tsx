@@ -114,10 +114,10 @@ export function SingleUseStep({ project, isUpstream, readOnly }: ServerSideProps
           </div>
         )}
       </S.PageTitleRow>
-      <Typography.Title level={5}>
+      <S.StepDescription>
         Create a baseline of single-use items you purchase regularly. Forecast what you could save by reducing or
         eliminating these items.
-      </Typography.Title>
+      </S.StepDescription>
       {isLoadingLineItems || isLoadingSingleUseProducts ? (
         <ContentLoader />
       ) : (

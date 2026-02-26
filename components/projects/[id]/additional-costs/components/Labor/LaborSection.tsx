@@ -10,7 +10,7 @@ import { useSimpleMutation, useSimpleQuery } from 'hooks/useSimpleQuery';
 import { OTHER_EXPENSES_FREQUENCIES } from 'lib/calculator/constants/other-expenses';
 import { formatToDollar } from 'lib/calculator/utils';
 
-import { InfoCard, InfoRow } from '../../../styles';
+import { InfoCard, InfoRow, StepDescription } from '../../../styles';
 import { AddBlock, Container, contentWrapperStyle, Placeholder, Subtitle } from '../ExpenseBlock';
 import { SectionContainer, SectionTitle } from '../styles';
 
@@ -82,11 +82,11 @@ const LaborSection = ({ projectId, readOnly }: { projectId: string; readOnly: bo
           </Button>
         )}
       </SectionContainer>
-      <Typography.Title level={5}>
+      <StepDescription>
         Use this section to quantify labor impacts from changing operations. For example, estimate time / cost saved by
         procurement staff and janitorial staff from moving materials off the floor to necessary bins or enclosures.
         Also, estimate additional staff hours needed to support washing needs.
-      </Typography.Title>
+      </StepDescription>
       <Divider />
       {data?.laborCosts?.length
         ? data.laborCosts.map(labor => (
