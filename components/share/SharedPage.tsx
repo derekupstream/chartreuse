@@ -20,6 +20,7 @@ import { SignupCard } from './components/SignupCard';
 import { SlateEditor } from 'components/common/SlateEditor';
 import { SectionContainer } from 'components/projects/[id]/projections/components/common/styles';
 import { isEugeneOrg } from 'lib/featureFlags';
+import { parseInfoPagesForShared, hasInfoPageContent } from 'lib/infoPages';
 
 type SharedPageView = ProjectionsView;
 
@@ -111,14 +112,9 @@ export function SharedPage({
     }
   }, [router.query.project, projections]);
 
-  const hasRecommendations = Boolean(
-    data.showRecommendations &&
-      // check if recommendations content has more than one line, or the first line at least has text
-      (data.recommendations?.length > 1 ||
-        (data.recommendations &&
-          data.recommendations[0].children.length &&
-          data.recommendations[0].children[0].text.length))
-  );
+  const allInfoPages = parseInfoPagesForShared(data.recommendations, data.showRecommendations);
+  const visibleInfoPages = allInfoPages.filter(p => p.showOnShared && hasInfoPageContent(p.content));
+  const hasRecommendations = visibleInfoPages.length > 0;
 
   const hideSingleAndReusableDetailsForEugeneOrg = isEugeneOrg({ id: orgId ?? '' });
 
@@ -161,7 +157,7 @@ export function SharedPage({
                 selectedKeys={[view]}
                 onSelect={onSelect}
                 mode={'vertical'}
-                items={[{ key: 'recommendations', label: 'Recommendations' }]}
+                items={visibleInfoPages.map(p => ({ key: `info_${p.id}`, label: p.title || 'Untitled page' }))}
               />
             )}
             {isProjectTemplate && (
@@ -218,13 +214,18 @@ export function SharedPage({
                 </span>
               </>
             )}
-            {hasRecommendations && view === 'recommendations' && (
-              <SectionContainer>
-                <Card>
-                  <SlateEditor readOnly value={data.recommendations} />
-                </Card>
-              </SectionContainer>
-            )}
+            {view.startsWith('info_') &&
+              (() => {
+                const activePage = visibleInfoPages.find(p => `info_${p.id}` === view);
+                if (!activePage) return null;
+                return (
+                  <SectionContainer>
+                    <Card>
+                      <SlateEditor readOnly value={activePage.content} />
+                    </Card>
+                  </SectionContainer>
+                );
+              })()}
             {/* <span className={view === 'assumptions' ? '' : 'print-only'}>
               <ProjectionAssumptions />
             </span> */}

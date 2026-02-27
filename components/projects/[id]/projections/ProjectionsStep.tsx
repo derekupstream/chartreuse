@@ -1,4 +1,5 @@
-import { Col, Row, Menu, Typography, message } from 'antd';
+import { PlusOutlined } from '@ant-design/icons';
+import { Button, Col, Row, Menu, Popconfirm, Typography, message } from 'antd';
 import { useEffect, useRef, useState } from 'react';
 import styled from 'styled-components';
 
@@ -21,6 +22,8 @@ import { Switch } from 'antd';
 import Card from './components/common/Card';
 import { Divider, SectionHeader, SectionContainer } from './components/common/styles';
 import { isEugeneOrg } from 'lib/featureFlags';
+import type { InfoPage } from 'lib/infoPages';
+import { parseInfoPages, serializeInfoPages, EMPTY_SLATE } from 'lib/infoPages';
 
 const StyledCol = styled(Col)`
   @media print {
@@ -65,20 +68,17 @@ const MobileViewTab = styled.button<{ $active: boolean }>`
   }
 `;
 
-export type ProjectionsView = 'summary' | 'single_use_details' | 'reusable_details' | 'recommendations';
+export type ProjectionsView = string;
 
 const defaultProjectionsDescription = `These graphs - showing the financial and environmental impacts of reducing single-use items - can help you make the case for reuse and make data driven decisions on how to move forward. You can also print a PDF for sharing and distribution.`;
 
 export const ProjectionsStep = ({ project, readOnly }: { project: ProjectContext['project']; readOnly: boolean }) => {
-  const [view, setView] = useState<ProjectionsView>('summary');
+  const [view, setView] = useState<string>('summary');
   const { data, error, isLoading } = useGetProjections(project.id);
   const { trigger: updateProjections } = useUpdateProjections(project.id);
   const [projectionsDescription, setProjectionsDescription] = useState(project.projectionsDescription);
   const [projectionsTitle, setProjectionsTitle] = useState(project.projectionsTitle);
-  const [recommendations, setRecommendations] = useState<any>(
-    project.recommendations || [{ type: 'paragraph', children: [{ text: '' }] }]
-  );
-  const [showRecommendations, setShowRecommendations] = useState<boolean>(project.showRecommendations || false);
+  const [infoPages, setInfoPages] = useState<InfoPage[]>(() => parseInfoPages(project.recommendations));
 
   const { setFooterState } = useFooterState();
   useEffect(() => {
@@ -86,7 +86,7 @@ export const ProjectionsStep = ({ project, readOnly }: { project: ProjectContext
   }, [setFooterState]);
 
   function onSelect(e: { key: string }) {
-    setView(e.key as ProjectionsView);
+    setView(e.key);
   }
 
   // for printing
@@ -97,7 +97,6 @@ export const ProjectionsStep = ({ project, readOnly }: { project: ProjectContext
     try {
       await updateProjections({ projectionsDescription: value, projectionsTitle: projectionsTitle });
     } catch (error) {
-      // revert changes
       setProjectionsDescription(projectionsDescription);
       message.error('Failed to update projections description');
     }
@@ -108,29 +107,57 @@ export const ProjectionsStep = ({ project, readOnly }: { project: ProjectContext
     try {
       await updateProjections({ projectionsDescription: projectionsDescription, projectionsTitle: value });
     } catch (error) {
-      // revert changes
       setProjectionsTitle(projectionsTitle);
       message.error('Failed to update projections title');
     }
   }
 
-  async function handleRecommendationsChange(value: any) {
-    setRecommendations(value);
+  async function saveInfoPages(pages: InfoPage[]) {
     try {
-      await updateProjections({ recommendations: value, showRecommendations });
-    } catch (error) {
-      setRecommendations(recommendations);
-      message.error('Failed to update recommendations');
+      await updateProjections({ recommendations: serializeInfoPages(pages) as any });
+    } catch {
+      message.error('Failed to save changes');
     }
   }
-  async function handleShowRecommendationsChange(checked: boolean) {
-    setShowRecommendations(checked);
-    try {
-      await updateProjections({ recommendations, showRecommendations: checked });
-    } catch (error) {
-      setShowRecommendations(showRecommendations);
-      message.error('Failed to update recommendations visibility');
+
+  function updatePageTitle(id: string, title: string) {
+    const updated = infoPages.map(p => (p.id === id ? { ...p, title } : p));
+    setInfoPages(updated);
+    saveInfoPages(updated);
+  }
+
+  function updatePageContent(id: string, content: any) {
+    const updated = infoPages.map(p => (p.id === id ? { ...p, content } : p));
+    setInfoPages(updated);
+    saveInfoPages(updated);
+  }
+
+  function updatePageShowOnShared(id: string, showOnShared: boolean) {
+    const updated = infoPages.map(p => (p.id === id ? { ...p, showOnShared } : p));
+    setInfoPages(updated);
+    saveInfoPages(updated);
+  }
+
+  function addInfoPage() {
+    const newPage: InfoPage = {
+      id: Math.random().toString(36).substr(2, 9),
+      title: 'New page',
+      content: EMPTY_SLATE,
+      showOnShared: true
+    };
+    const updated = [...infoPages, newPage];
+    setInfoPages(updated);
+    setView(`info_${newPage.id}`);
+    saveInfoPages(updated);
+  }
+
+  function deleteInfoPage(id: string) {
+    const updated = infoPages.filter(p => p.id !== id);
+    setInfoPages(updated);
+    if (view === `info_${id}`) {
+      setView(updated.length > 0 ? `info_${updated[0].id}` : 'summary');
     }
+    saveInfoPages(updated);
   }
 
   const hideSingleAndReusableDetailsForEugeneOrg = isEugeneOrg({ id: project.orgId });
@@ -142,6 +169,10 @@ export const ProjectionsStep = ({ project, readOnly }: { project: ProjectContext
         { key: 'single_use_details', label: 'Single-use details' },
         { key: 'reusable_details', label: 'Reusable details' }
       ];
+
+  const infoPageMenuItems = infoPages.map(p => ({ key: `info_${p.id}`, label: p.title || 'Untitled page' }));
+
+  const activeInfoPage = view.startsWith('info_') ? infoPages.find(p => `info_${p.id}` === view) : null;
 
   if (isLoading) {
     return (
@@ -176,7 +207,7 @@ export const ProjectionsStep = ({ project, readOnly }: { project: ProjectContext
           level={1}
           style={{ fontSize: 'clamp(32px, 6vw, 56px)', marginBottom: 0, lineHeight: 1.1 }}
           editable={{
-            triggerType: readOnly ? [] : ['icon'], // disables editing for readonly
+            triggerType: readOnly ? [] : ['icon'],
             onChange: handleProjectionsTitleChange
           }}
         >
@@ -190,19 +221,15 @@ export const ProjectionsStep = ({ project, readOnly }: { project: ProjectContext
       <Typography.Paragraph
         style={{ marginTop: 0, marginBottom: 12, fontSize: 13, color: 'rgba(0,0,0,0.55)' }}
         editable={{
-          triggerType: readOnly ? [] : ['icon'], // disables editing for readonly
+          triggerType: readOnly ? [] : ['icon'],
           onChange: handleProjectionsDescriptionChange
         }}
       >
         {projectionsDescription || defaultProjectionsDescription}
       </Typography.Paragraph>
       <MobileViewTabBar>
-        {[...sidebarMenuItems, { key: 'recommendations', label: 'Recommendations' }].map(item => (
-          <MobileViewTab
-            key={item.key}
-            $active={view === item.key}
-            onClick={() => setView(item.key as ProjectionsView)}
-          >
+        {[...sidebarMenuItems, ...infoPageMenuItems].map(item => (
+          <MobileViewTab key={item.key} $active={view === item.key} onClick={() => setView(item.key)}>
             {item.label}
           </MobileViewTab>
         ))}
@@ -222,8 +249,13 @@ export const ProjectionsStep = ({ project, readOnly }: { project: ProjectContext
             selectedKeys={[view]}
             onSelect={onSelect}
             mode={'vertical'}
-            items={[{ key: 'recommendations', label: 'Recommendations' }]}
+            items={infoPageMenuItems}
           />
+          {!readOnly && (
+            <Button type='dashed' icon={<PlusOutlined />} style={{ width: '100%', marginTop: 8 }} onClick={addInfoPage}>
+              Add info page
+            </Button>
+          )}
         </Col>
         <StyledCol xs={24} md={19}>
           <span className={view === 'summary' ? '' : 'print-only'}>
@@ -254,24 +286,57 @@ export const ProjectionsStep = ({ project, readOnly }: { project: ProjectContext
               </span>
             </>
           )}
-          {view === 'recommendations' && (
-            <span className={view === 'recommendations' ? '' : 'print-only'}>
-              <SectionContainer>
-                <SectionHeader style={{ margin: 0 }}>Recommendations</SectionHeader>
-                <Divider />
-                <Card>
-                  {!readOnly && (
-                    <div style={{ marginBottom: -24, display: 'flex', justifyContent: 'flex-end' }}>
-                      <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <Switch checked={showRecommendations} onChange={handleShowRecommendationsChange} />
-                        <span>Show on shared page</span>
-                      </span>
-                    </div>
-                  )}
-                  <SlateEditor value={recommendations} onChange={handleRecommendationsChange} readOnly={readOnly} />
-                </Card>
-              </SectionContainer>
-            </span>
+          {activeInfoPage && (
+            <SectionContainer>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                <Typography.Title
+                  level={3}
+                  style={{ margin: 0 }}
+                  editable={
+                    readOnly
+                      ? false
+                      : {
+                          triggerType: ['text', 'icon'],
+                          onChange: newTitle => updatePageTitle(activeInfoPage.id, newTitle)
+                        }
+                  }
+                >
+                  {activeInfoPage.title || 'Untitled page'}
+                </Typography.Title>
+                {!readOnly && infoPages.length > 1 && (
+                  <Popconfirm
+                    title='Delete this page?'
+                    onConfirm={() => deleteInfoPage(activeInfoPage.id)}
+                    okText='Delete'
+                    okButtonProps={{ danger: true }}
+                    cancelText='Cancel'
+                  >
+                    <Button danger size='small'>
+                      Delete
+                    </Button>
+                  </Popconfirm>
+                )}
+              </div>
+              <Divider />
+              <Card>
+                {!readOnly && (
+                  <div style={{ marginBottom: -24, display: 'flex', justifyContent: 'flex-end' }}>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <Switch
+                        checked={activeInfoPage.showOnShared}
+                        onChange={checked => updatePageShowOnShared(activeInfoPage.id, checked)}
+                      />
+                      <span>Show on shared page</span>
+                    </span>
+                  </div>
+                )}
+                <SlateEditor
+                  value={activeInfoPage.content}
+                  onChange={content => updatePageContent(activeInfoPage.id, content)}
+                  readOnly={readOnly}
+                />
+              </Card>
+            </SectionContainer>
           )}
         </StyledCol>
       </Row>
