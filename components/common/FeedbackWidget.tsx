@@ -1,16 +1,56 @@
 import { FlagOutlined } from '@ant-design/icons';
-import { Button, Form, Input, Modal, Select, message } from 'antd';
+import { Form, Input, Modal, Select, message } from 'antd';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
 import styled from 'styled-components';
 
-const FloatingButton = styled(Button)`
+const FloatingButton = styled.button`
   position: fixed;
   bottom: 80px;
   right: 16px;
   z-index: 100;
-  border-radius: 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  gap: 0;
+  overflow: hidden;
+  width: 36px;
+  padding: 0 10px;
+  height: 36px;
+  border-radius: 18px;
+  border: 1px solid #d9d9d9;
+  background: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  color: rgba(0, 0, 0, 0.65);
+  font-size: 14px;
+  font-family: inherit;
+  transition:
+    width 200ms ease,
+    background 150ms;
+  white-space: nowrap;
+
+  &:hover {
+    width: 110px;
+    background: #fafafa;
+    color: rgba(0, 0, 0, 0.88);
+  }
+
+  .feedback-label {
+    opacity: 0;
+    max-width: 0;
+    overflow: hidden;
+    transition:
+      opacity 150ms ease 80ms,
+      max-width 200ms ease;
+    font-size: 13px;
+    font-weight: 500;
+    margin-left: 6px;
+  }
+
+  &:hover .feedback-label {
+    opacity: 1;
+    max-width: 80px;
+  }
 
   @media print {
     display: none;
@@ -54,8 +94,9 @@ export function FeedbackWidget() {
 
   return (
     <>
-      <FloatingButton icon={<FlagOutlined />} onClick={() => setOpen(true)}>
-        Feedback
+      <FloatingButton onClick={() => setOpen(true)} aria-label='Feedback'>
+        <FlagOutlined />
+        <span className='feedback-label'>Feedback</span>
       </FloatingButton>
       <Modal
         title='Share feedback'
