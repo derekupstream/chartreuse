@@ -17,13 +17,13 @@ function generateId(): string {
  */
 export function parseInfoPages(recommendations: any): InfoPage[] {
   if (!recommendations) {
-    return [{ id: generateId(), title: 'Recommendations', content: EMPTY_SLATE, showOnShared: true }];
+    return [{ id: generateId(), title: 'Additional Information Page', content: EMPTY_SLATE, showOnShared: true }];
   }
   if (recommendations?.__v === 2 && Array.isArray(recommendations.pages)) {
     return recommendations.pages;
   }
   // Legacy: plain Slate array → single page
-  return [{ id: generateId(), title: 'Recommendations', content: recommendations, showOnShared: true }];
+  return [{ id: generateId(), title: 'Additional Information Page', content: recommendations, showOnShared: true }];
 }
 
 /**
@@ -36,7 +36,7 @@ export function parseInfoPagesForShared(recommendations: any, showRecommendation
   }
   // Legacy format
   if (!showRecommendations) return [];
-  return [{ id: 'legacy', title: 'Recommendations', content: recommendations, showOnShared: true }];
+  return [{ id: 'legacy', title: 'Additional Information Page', content: recommendations, showOnShared: true }];
 }
 
 export function hasInfoPageContent(content: any): boolean {

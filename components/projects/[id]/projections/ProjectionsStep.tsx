@@ -303,7 +303,7 @@ export const ProjectionsStep = ({ project, readOnly }: { project: ProjectContext
                 >
                   {activeInfoPage.title || 'Untitled page'}
                 </Typography.Title>
-                {!readOnly && infoPages.length > 1 && (
+                {!readOnly && (
                   <Popconfirm
                     title='Delete this page?'
                     onConfirm={() => deleteInfoPage(activeInfoPage.id)}
