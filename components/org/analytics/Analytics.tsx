@@ -211,49 +211,43 @@ export function AnalyticsPage({
       )}
 
       <FilterRow className='dont-print-me'>
-        {tags.length > 0 && (
-          <Select
-            mode='multiple'
-            placeholder='Filter by tag'
-            style={{ minWidth: 160 }}
-            options={tags.map(t => ({ label: t.label, value: t.id }))}
-            value={selectedTagIds}
-            onChange={vals => {
-              setSelectedTagIds(vals);
-              applyFilters({ tagIds: vals });
-            }}
-            allowClear
-          />
-        )}
-        {availableProjectTypes.length > 0 && (
-          <Select
-            mode='multiple'
-            placeholder='Filter by project type'
-            style={{ minWidth: 180 }}
-            options={availableProjectTypes.map(t => ({ label: t, value: t }))}
-            value={selectedProjectTypes}
-            onChange={vals => {
-              setSelectedProjectTypes(vals);
-              applyFilters({ projectTypes: vals });
-            }}
-            allowClear
-          />
-        )}
-        {projectCategory === 'event' && (
-          <DatePicker.RangePicker
-            value={dateRange as any}
-            placeholder={['Start date', 'End date']}
-            allowEmpty={[true, true]}
-            onChange={range => {
-              const newRange: [any, any] = [range?.[0] ?? null, range?.[1] ?? null];
-              setDateRange(newRange);
-              applyFilters({
-                startDate: newRange[0]?.format('YYYY-MM-DD') ?? null,
-                endDate: newRange[1]?.format('YYYY-MM-DD') ?? null
-              });
-            }}
-          />
-        )}
+        <Select
+          mode='multiple'
+          placeholder='Filter by tag'
+          style={{ minWidth: 160 }}
+          options={tags.map(t => ({ label: t.label, value: t.id }))}
+          value={selectedTagIds}
+          onChange={vals => {
+            setSelectedTagIds(vals);
+            applyFilters({ tagIds: vals });
+          }}
+          allowClear
+        />
+        <Select
+          mode='multiple'
+          placeholder='Filter by project type'
+          style={{ minWidth: 215 }}
+          options={availableProjectTypes.map(t => ({ label: t, value: t }))}
+          value={selectedProjectTypes}
+          onChange={vals => {
+            setSelectedProjectTypes(vals);
+            applyFilters({ projectTypes: vals });
+          }}
+          allowClear
+        />
+        <DatePicker.RangePicker
+          value={dateRange as any}
+          placeholder={['Start date', 'End date']}
+          allowEmpty={[true, true]}
+          onChange={range => {
+            const newRange: [any, any] = [range?.[0] ?? null, range?.[1] ?? null];
+            setDateRange(newRange);
+            applyFilters({
+              startDate: newRange[0]?.format('YYYY-MM-DD') ?? null,
+              endDate: newRange[1]?.format('YYYY-MM-DD') ?? null
+            });
+          }}
+        />
         {hasActiveFilters && (
           <Button onClick={clearFilters} size='small'>
             Clear filters
