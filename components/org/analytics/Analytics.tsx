@@ -1,6 +1,6 @@
 import { DownloadOutlined } from '@ant-design/icons';
 import type { Org, ProjectCategory, User } from '@prisma/client';
-import { Button, Col, DatePicker, Divider, Row, Select, Table, Tabs, Typography } from 'antd';
+import { Button, Col, DatePicker, Divider, Row, Select, Table, Typography } from 'antd';
 import dayjs from 'dayjs';
 import { useRouter } from 'next/router';
 import { useMemo, useRef, useState } from 'react';
@@ -72,27 +72,12 @@ export function AnalyticsPage({
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>(
     typeof router.query.tags === 'string' ? router.query.tags.split(',') : []
   );
-  const [selectedAccountIds, setSelectedAccountIds] = useState<string[]>(
-    typeof router.query.accounts === 'string' ? router.query.accounts.split(',') : []
-  );
-  const [selectedProjectIds, setSelectedProjectIds] = useState<string[]>(
-    typeof router.query.projects === 'string' ? router.query.projects.split(',') : []
-  );
-  const [selectedStates, setSelectedStates] = useState<string[]>(
-    typeof router.query.states === 'string' ? router.query.states.split(',') : []
-  );
   const [dateRange, setDateRange] = useState<[any, any]>([
     router.query.startDate ? dayjs(router.query.startDate as string) : null,
     router.query.endDate ? dayjs(router.query.endDate as string) : null
   ]);
 
-  const hasActiveFilters =
-    selectedTagIds.length > 0 ||
-    selectedAccountIds.length > 0 ||
-    selectedProjectIds.length > 0 ||
-    selectedStates.length > 0 ||
-    dateRange[0] != null ||
-    dateRange[1] != null;
+  const hasActiveFilters = selectedTagIds.length > 0 || dateRange[0] != null || dateRange[1] != null;
 
   // Must be before early return to satisfy hooks rules
   const { displayValue: returnRateDisplayValue, returnRatelabel } = useMemo(() => {
@@ -112,29 +97,16 @@ export function AnalyticsPage({
     return <ContentLoader />;
   }
 
-  function applyFilters(overrides: {
-    tagIds?: string[];
-    accountIds?: string[];
-    projectIds?: string[];
-    states?: string[];
-    startDate?: string | null;
-    endDate?: string | null;
-  }) {
+  function applyFilters(overrides: { tagIds?: string[]; startDate?: string | null; endDate?: string | null }) {
     const basePath = router.asPath.split('?')[0];
     const parts: string[] = [];
     if (projectCategory !== 'default') parts.push(`category=${projectCategory}`);
 
     const tagIds = overrides.tagIds ?? selectedTagIds;
-    const accountIds = overrides.accountIds ?? selectedAccountIds;
-    const projectIds = overrides.projectIds ?? selectedProjectIds;
-    const states = overrides.states ?? selectedStates;
     const sd = 'startDate' in overrides ? overrides.startDate : (dateRange[0]?.format('YYYY-MM-DD') ?? null);
     const ed = 'endDate' in overrides ? overrides.endDate : (dateRange[1]?.format('YYYY-MM-DD') ?? null);
 
-    if (accountIds.length) parts.push(`accounts=${accountIds.join(',')}`);
-    if (projectIds.length) parts.push(`projects=${projectIds.join(',')}`);
     if (tagIds.length) parts.push(`tags=${tagIds.join(',')}`);
-    if (states.length) parts.push(`states=${states.join(',')}`);
     if (sd) parts.push(`startDate=${sd}`);
     if (ed) parts.push(`endDate=${ed}`);
 
@@ -143,9 +115,6 @@ export function AnalyticsPage({
 
   function clearFilters() {
     setSelectedTagIds([]);
-    setSelectedAccountIds([]);
-    setSelectedProjectIds([]);
-    setSelectedStates([]);
     setDateRange([null, null]);
     const basePath = router.asPath.split('?')[0];
     router.replace(projectCategory !== 'default' ? `${basePath}?category=${projectCategory}` : basePath);
@@ -221,19 +190,18 @@ export function AnalyticsPage({
 
       <Spacer vertical={spacing} />
 
-      {showCategoryTabs && (
-        <Tabs
-          activeKey={projectCategory}
-          style={{ marginBottom: 0 }}
-          onChange={setProjectCategory}
-          items={[
-            { key: 'default', label: 'Projections' },
-            { key: 'event', label: 'Actuals' }
-          ]}
-        />
-      )}
-
       <FilterRow className='dont-print-me'>
+        {showCategoryTabs && (
+          <Select
+            value={projectCategory}
+            onChange={setProjectCategory}
+            style={{ minWidth: 150 }}
+            options={[
+              { value: 'default', label: 'Projections' },
+              { value: 'event', label: 'Actuals' }
+            ]}
+          />
+        )}
         {tags.length > 0 && (
           <Select
             mode='multiple'
@@ -244,34 +212,6 @@ export function AnalyticsPage({
             onChange={vals => {
               setSelectedTagIds(vals);
               applyFilters({ tagIds: vals });
-            }}
-            allowClear
-          />
-        )}
-        {allAccounts && allAccounts.length > 1 && (
-          <Select
-            mode='multiple'
-            placeholder='Filter by account'
-            style={{ minWidth: 160 }}
-            options={allAccounts.map(a => ({ label: a.name, value: a.id }))}
-            value={selectedAccountIds}
-            onChange={vals => {
-              setSelectedAccountIds(vals);
-              applyFilters({ accountIds: vals });
-            }}
-            allowClear
-          />
-        )}
-        {availableStates.length > 0 && (
-          <Select
-            mode='multiple'
-            placeholder='Filter by state'
-            style={{ minWidth: 140 }}
-            options={availableStates.map(s => ({ label: s, value: s }))}
-            value={selectedStates}
-            onChange={vals => {
-              setSelectedStates(vals);
-              applyFilters({ states: vals });
             }}
             allowClear
           />
@@ -289,20 +229,6 @@ export function AnalyticsPage({
             });
           }}
         />
-        {allProjects && allProjects.length > 0 && (
-          <Select
-            mode='multiple'
-            placeholder='Filter by project'
-            style={{ minWidth: 180 }}
-            options={allProjects.map(p => ({ label: p.name, value: p.id }))}
-            value={selectedProjectIds}
-            onChange={vals => {
-              setSelectedProjectIds(vals);
-              applyFilters({ projectIds: vals });
-            }}
-            allowClear
-          />
-        )}
         {hasActiveFilters && (
           <Button onClick={clearFilters} size='small'>
             Clear filters
