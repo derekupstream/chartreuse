@@ -11,7 +11,6 @@ const FiltersRow = styled.div`
   display: flex;
   gap: 8px;
   align-items: center;
-  margin-bottom: 12px;
 `;
 
 import { ActiveProjects, type SortOrder } from './components/ActiveProjects';
@@ -98,25 +97,27 @@ export const ProjectsDashboard = ({
           </Button>
         )}
       </S.HeaderRow>
-      <FiltersRow>
-        <Select
-          mode='multiple'
-          placeholder='Filter projects by tag'
-          style={{ minWidth: 210 }}
-          options={tags.map(tag => ({ label: tag.label, value: tag.id }))}
-          onChange={setTagIdsFilter}
-        />
-        <Select
-          value={sortOrder}
-          style={{ minWidth: 210 }}
-          labelRender={value => <span>Sort by {value.label}</span>}
-          options={sortOptions}
-          onChange={handleSortChange}
-        />
-      </FiltersRow>
       <Tabs
         defaultActiveKey={showTemplateByDefault ? 'templates' : 'active'}
         size={'large'}
+        tabBarExtraContent={
+          <FiltersRow>
+            <Select
+              mode='multiple'
+              placeholder='Filter projects by tag'
+              style={{ minWidth: 210 }}
+              options={tags.map(tag => ({ label: tag.label, value: tag.id }))}
+              onChange={setTagIdsFilter}
+            />
+            <Select
+              value={sortOrder}
+              style={{ minWidth: 210 }}
+              labelRender={value => <span>Sort by {value.label}</span>}
+              options={sortOptions}
+              onChange={handleSortChange}
+            />
+          </FiltersRow>
+        }
         items={[
           {
             label: `Active Projects`,
