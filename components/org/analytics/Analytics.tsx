@@ -1,6 +1,7 @@
 import { DownloadOutlined } from '@ant-design/icons';
 import type { Org, ProjectCategory, User } from '@prisma/client';
-import { Button, Col, Divider, Row, Table, Tabs, Typography } from 'antd';
+import { Button, Col, DatePicker, Divider, Row, Select, Table, Tabs, Typography } from 'antd';
+import dayjs from 'dayjs';
 import { useRouter } from 'next/router';
 import { useMemo, useRef, useState } from 'react';
 import styled from 'styled-components';
@@ -11,7 +12,7 @@ import { PrintHeader } from 'components/common/print/PrintHeader';
 import { Spacer } from 'components/common/Spacer';
 import Card from 'components/projects/[id]/projections/components/common/Card';
 import * as S from 'components/projects/[id]/projections/components/common/styles';
-import type { AllProjectsSummary, ProjectSummary, SummaryValues } from 'lib/calculator/getProjections';
+import type { AllProjectsSummary, ProjectSummary } from 'lib/calculator/getProjections';
 import { formatToDollar } from 'lib/calculator/utils';
 import { requestDownload } from 'lib/files';
 import { useMetricSystem } from 'components/_app/MetricSystemProvider';
@@ -20,114 +21,10 @@ import { SummaryCardWithGraph, SummaryCard, SummaryCardSingleUseBreakdown } from
 import { useCurrency } from 'components/_app/CurrencyProvider';
 import { columns } from './components/AnalyticsTableColumns';
 import { columns as eventColumns } from './components/EventAnalyticsTableColumns';
-import type { FacetedFilterConfig } from './components/FacetedFilterBar';
-import { FacetedFilterBar } from './components/FacetedFilterBar';
 
 import * as S2 from '../../../layouts/styles';
 import { getReturnOrShrinkageRate } from 'components/projects/[id]/usage/UsageStep';
 import { useTags } from 'hooks/useTags';
-
-// ─── Types ───────────────────────────────────────────────────────────────────
-
-/** Per-project metadata needed for client-side filtering. */
-export type ProjectMeta = {
-  accountId: string;
-  tagIds: string[];
-  USState: string | null;
-  startDate: string | null; // YYYY-MM-DD
-};
-
-export interface PageProps {
-  isUpstreamView?: boolean;
-  showCategoryTabs?: boolean;
-  projectCategory: ProjectCategory;
-  user: User & { org: Org };
-  data?: AllProjectsSummary;
-  /** Legacy props used by the upstream view (server-side filter mode) */
-  allAccounts?: { id: string; name: string }[];
-  allProjects?: { id: string; accountId: string; name: string }[];
-  /**
-   * When provided, filtering is done client-side (instant, no reload).
-   * When absent ({} or undefined), the component falls back to URL-param navigation.
-   */
-  projectMetadata?: Record<string, ProjectMeta>;
-}
-
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-
-const defaultSummaryValues = (): SummaryValues => ({ baseline: 0, forecast: 0, forecasts: [] });
-
-/** Recompute the AllProjectsSummary.summary from a filtered project list (same logic as server). */
-function computeSummary(projects: ProjectSummary[]): AllProjectsSummary['summary'] {
-  return projects.reduce(
-    (acc, curr) => {
-      acc.savings.baseline += curr.projections.annualSummary.dollarCost.baseline;
-      acc.savings.forecast += curr.projections.annualSummary.dollarCost.forecast;
-      acc.savings.forecasts.push(curr.projections.annualSummary.dollarCost.forecast);
-
-      acc.waste.baseline += curr.projections.annualSummary.wasteWeight.baseline;
-      acc.waste.forecast += curr.projections.annualSummary.wasteWeight.forecast;
-      acc.waste.forecasts.push(curr.projections.annualSummary.wasteWeight.forecast);
-
-      acc.singleUse.baseline += curr.projections.singleUseResults.summary.annualCost.baseline;
-      acc.singleUse.forecast += curr.projections.singleUseResults.summary.annualCost.forecast;
-      acc.singleUse.forecasts.push(curr.projections.singleUseResults.summary.annualCost.forecast);
-
-      acc.gas.baseline += curr.projections.annualSummary.greenhouseGasEmissions.total.baseline;
-      acc.gas.forecast += curr.projections.annualSummary.greenhouseGasEmissions.total.forecast;
-      acc.gas.forecasts.push(curr.projections.annualSummary.greenhouseGasEmissions.total.forecast);
-
-      acc.water.baseline += curr.projections.environmentalResults.annualWaterUsageChanges.total.baseline;
-      acc.water.forecast += curr.projections.environmentalResults.annualWaterUsageChanges.total.forecast;
-      acc.water.forecasts.push(curr.projections.environmentalResults.annualWaterUsageChanges.total.forecast);
-
-      return acc;
-    },
-    {
-      savings: defaultSummaryValues(),
-      singleUse: defaultSummaryValues(),
-      waste: defaultSummaryValues(),
-      gas: defaultSummaryValues(),
-      water: defaultSummaryValues()
-    }
-  );
-}
-
-/** Client-side project filter. Projects missing from metadata pass through unfiltered. */
-function applyClientFilter(
-  projects: ProjectSummary[],
-  metadata: Record<string, ProjectMeta>,
-  selected: Record<string, string[]>,
-  dateRange: [string | null, string | null]
-): ProjectSummary[] {
-  const { tags = [], accounts = [], states = [], projects: projectIds = [] } = selected;
-  const [startDate, endDate] = dateRange;
-  const hasAny = tags.length || accounts.length || states.length || projectIds.length || startDate || endDate;
-  if (!hasAny) return projects;
-
-  return projects.filter(p => {
-    const meta = metadata[p.id];
-    if (!meta) return true; // unknown project → pass through
-
-    // Account OR project (cross-filter OR within this dimension)
-    if (accounts.length || projectIds.length) {
-      const matchesAccount = accounts.length ? accounts.includes(meta.accountId) : false;
-      const matchesProject = projectIds.length ? projectIds.includes(p.id) : false;
-      if (!matchesAccount && !matchesProject) return false;
-    }
-    // Tags (OR within, AND with other facets)
-    if (tags.length && !tags.some(id => meta.tagIds.includes(id))) return false;
-    // State (OR within)
-    if (states.length && !states.includes(meta.USState || '')) return false;
-    // Date range (inclusive)
-    if (startDate && meta.startDate && meta.startDate < startDate) return false;
-    if (endDate && meta.startDate && meta.startDate > endDate) return false;
-
-    return true;
-  });
-}
-
-// ─── Styled ──────────────────────────────────────────────────────────────────
 
 const StyledCol = styled(Col)`
   @media print {
@@ -136,7 +33,24 @@ const StyledCol = styled(Col)`
   }
 `;
 
-// ─── Component ───────────────────────────────────────────────────────────────
+const FilterRow = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  padding: 12px 0;
+`;
+
+export interface PageProps {
+  isUpstreamView?: boolean;
+  showCategoryTabs?: boolean;
+  projectCategory: ProjectCategory;
+  user: User & { org: Org };
+  data?: AllProjectsSummary;
+  allAccounts?: { id: string; name: string }[];
+  allProjects?: { id: string; accountId: string; name: string }[];
+  availableStates?: string[];
+}
 
 export function AnalyticsPage({
   user,
@@ -146,7 +60,7 @@ export function AnalyticsPage({
   projectCategory,
   isUpstreamView,
   showCategoryTabs,
-  projectMetadata = {}
+  availableStates = []
 }: PageProps) {
   const router = useRouter();
   const { tags } = useTags(user.org.id);
@@ -154,148 +68,87 @@ export function AnalyticsPage({
   const { abbreviation: currencyAbbreviation } = useCurrency();
   const printRef = useRef(null);
 
-  // ── Filter state ──────────────────────────────────────────────────────────
-  const hasMetadata = Object.keys(projectMetadata).length > 0;
-
-  const [selectedFilters, setSelectedFilters] = useState<Record<string, string[]>>({
-    tags: typeof router.query.tags === 'string' ? router.query.tags.split(',') : [],
-    accounts: typeof router.query.accounts === 'string' ? router.query.accounts.split(',') : [],
-    states: typeof router.query.states === 'string' ? router.query.states.split(',') : [],
-    projects: typeof router.query.projects === 'string' ? router.query.projects.split(',') : []
-  });
-  const [dateRange, setDateRange] = useState<[string | null, string | null]>([
-    (router.query.startDate as string) || null,
-    (router.query.endDate as string) || null
+  // Filter state — initialized from URL params
+  const [selectedTagIds, setSelectedTagIds] = useState<string[]>(
+    typeof router.query.tags === 'string' ? router.query.tags.split(',') : []
+  );
+  const [selectedAccountIds, setSelectedAccountIds] = useState<string[]>(
+    typeof router.query.accounts === 'string' ? router.query.accounts.split(',') : []
+  );
+  const [selectedProjectIds, setSelectedProjectIds] = useState<string[]>(
+    typeof router.query.projects === 'string' ? router.query.projects.split(',') : []
+  );
+  const [selectedStates, setSelectedStates] = useState<string[]>(
+    typeof router.query.states === 'string' ? router.query.states.split(',') : []
+  );
+  const [dateRange, setDateRange] = useState<[any, any]>([
+    router.query.startDate ? dayjs(router.query.startDate as string) : null,
+    router.query.endDate ? dayjs(router.query.endDate as string) : null
   ]);
 
-  // ── Compute filtered data ─────────────────────────────────────────────────
-  const filteredProjects = useMemo(() => {
-    if (!data) return [];
-    if (!hasMetadata) return data.projects; // upstream: already server-filtered
-    return applyClientFilter(data.projects, projectMetadata, selectedFilters, dateRange);
-  }, [data, hasMetadata, projectMetadata, selectedFilters, dateRange]);
+  const hasActiveFilters =
+    selectedTagIds.length > 0 ||
+    selectedAccountIds.length > 0 ||
+    selectedProjectIds.length > 0 ||
+    selectedStates.length > 0 ||
+    dateRange[0] != null ||
+    dateRange[1] != null;
 
-  const filteredSummary = useMemo(() => {
-    if (!data) return undefined;
-    if (!hasMetadata) return data.summary; // upstream: use pre-computed server summary
-    return computeSummary(filteredProjects);
-  }, [data, hasMetadata, filteredProjects]);
-
-  // ── returnRate (must be before early return) ──────────────────────────────
+  // Must be before early return to satisfy hooks rules
   const { displayValue: returnRateDisplayValue, returnRatelabel } = useMemo(() => {
-    if (!filteredProjects.length) return getReturnOrShrinkageRate({ returnRate: 100, useShrinkageRate: false });
+    if (!data) return getReturnOrShrinkageRate({ returnRate: 100, useShrinkageRate: false });
     const avgReturnRate =
-      filteredProjects.reduce((acc, project) => {
-        return acc + (project.projections.reusableResults.summary.returnRate?.returnRate ?? 100);
-      }, 0) / filteredProjects.length;
+      data.projects.reduce((acc, project) => {
+        const returnRate = project.projections.reusableResults.summary.returnRate?.returnRate ?? 100;
+        return returnRate + acc;
+      }, 0) / data.projects.length;
     return getReturnOrShrinkageRate({
       returnRate: avgReturnRate,
       useShrinkageRate: user.org.useShrinkageRate
     });
-  }, [filteredProjects, user.org]);
+  }, [data, user.org]);
 
-  // ── Build filter chip configs ─────────────────────────────────────────────
-  const filterConfigs = useMemo<FacetedFilterConfig[]>(() => {
-    if (!data) return [];
-    const configs: FacetedFilterConfig[] = [];
-
-    // Tags — from the useTags hook
-    if (tags.length > 0) {
-      configs.push({
-        key: 'tags',
-        label: 'Tag',
-        options: tags.map(t => ({ value: t.id, label: t.label }))
-      });
-    }
-
-    // Accounts — from allAccounts prop (upstream view) OR derived from metadata
-    const accountOptions =
-      allAccounts && allAccounts.length > 1
-        ? allAccounts.map(a => ({ value: a.id, label: a.name }))
-        : hasMetadata
-          ? Array.from(
-              new Map(
-                data.projects.map(p => [
-                  projectMetadata[p.id]?.accountId || p.id,
-                  { value: projectMetadata[p.id]?.accountId || '', label: p.account.name }
-                ])
-              ).values()
-            ).filter(a => a.value)
-          : [];
-    if (accountOptions.length > 1) {
-      configs.push({ key: 'accounts', label: 'Account', options: accountOptions });
-    }
-
-    // States — derived from projectMetadata
-    if (hasMetadata) {
-      const states = Array.from(
-        new Set(
-          Object.values(projectMetadata)
-            .map(m => m.USState)
-            .filter((s): s is string => !!s)
-        )
-      ).sort();
-      if (states.length > 0) {
-        configs.push({
-          key: 'states',
-          label: 'State',
-          options: states.map(s => ({ value: s, label: s }))
-        });
-      }
-    }
-
-    // Projects — from allProjects prop (upstream) OR from data.projects
-    const projectOptions = allProjects
-      ? allProjects.map(p => ({ value: p.id, label: p.name }))
-      : data.projects.map(p => ({ value: p.id, label: `${p.account.name}: ${p.name}` }));
-    if (projectOptions.length > 1) {
-      configs.push({ key: 'projects', label: 'Project', options: projectOptions });
-    }
-
-    return configs;
-  }, [data, tags, allAccounts, allProjects, projectMetadata, hasMetadata]);
-
-  // ── Filter change handlers ────────────────────────────────────────────────
-
-  function handleFilterChange(key: string, values: string[]) {
-    const next = { ...selectedFilters, [key]: values };
-    setSelectedFilters(next);
-
-    if (!hasMetadata) {
-      // URL-navigation mode (upstream view)
-      navigateWithFilters(next, dateRange);
-    }
-    // else: client-side — the useMemo above recomputes automatically
+  if (!data) {
+    return <ContentLoader />;
   }
 
-  function handleDateChange(range: [string | null, string | null]) {
-    setDateRange(range);
-    if (!hasMetadata) {
-      navigateWithFilters(selectedFilters, range);
-    }
-  }
-
-  function handleClearAll() {
-    const empty = Object.fromEntries(Object.keys(selectedFilters).map(k => [k, []]));
-    setSelectedFilters(empty);
-    setDateRange([null, null]);
-    if (!hasMetadata) {
-      const base = router.asPath.split('?')[0];
-      router.replace(projectCategory !== 'default' ? `${base}?category=${projectCategory}` : base);
-    }
-  }
-
-  function navigateWithFilters(filters: Record<string, string[]>, range: [string | null, string | null]) {
-    const base = router.asPath.split('?')[0];
+  function applyFilters(overrides: {
+    tagIds?: string[];
+    accountIds?: string[];
+    projectIds?: string[];
+    states?: string[];
+    startDate?: string | null;
+    endDate?: string | null;
+  }) {
+    const basePath = router.asPath.split('?')[0];
     const parts: string[] = [];
     if (projectCategory !== 'default') parts.push(`category=${projectCategory}`);
-    if (filters.accounts?.length) parts.push(`accounts=${filters.accounts.join(',')}`);
-    if (filters.projects?.length) parts.push(`projects=${filters.projects.join(',')}`);
-    if (filters.tags?.length) parts.push(`tags=${filters.tags.join(',')}`);
-    if (filters.states?.length) parts.push(`states=${filters.states.join(',')}`);
-    if (range[0]) parts.push(`startDate=${range[0]}`);
-    if (range[1]) parts.push(`endDate=${range[1]}`);
-    router.replace(parts.length ? `${base}?${parts.join('&')}` : base);
+
+    const tagIds = overrides.tagIds ?? selectedTagIds;
+    const accountIds = overrides.accountIds ?? selectedAccountIds;
+    const projectIds = overrides.projectIds ?? selectedProjectIds;
+    const states = overrides.states ?? selectedStates;
+    const sd = 'startDate' in overrides ? overrides.startDate : (dateRange[0]?.format('YYYY-MM-DD') ?? null);
+    const ed = 'endDate' in overrides ? overrides.endDate : (dateRange[1]?.format('YYYY-MM-DD') ?? null);
+
+    if (accountIds.length) parts.push(`accounts=${accountIds.join(',')}`);
+    if (projectIds.length) parts.push(`projects=${projectIds.join(',')}`);
+    if (tagIds.length) parts.push(`tags=${tagIds.join(',')}`);
+    if (states.length) parts.push(`states=${states.join(',')}`);
+    if (sd) parts.push(`startDate=${sd}`);
+    if (ed) parts.push(`endDate=${ed}`);
+
+    router.replace(parts.length ? `${basePath}?${parts.join('&')}` : basePath);
+  }
+
+  function clearFilters() {
+    setSelectedTagIds([]);
+    setSelectedAccountIds([]);
+    setSelectedProjectIds([]);
+    setSelectedStates([]);
+    setDateRange([null, null]);
+    const basePath = router.asPath.split('?')[0];
+    router.replace(projectCategory !== 'default' ? `${basePath}?category=${projectCategory}` : basePath);
   }
 
   function setProjectCategory(category: string) {
@@ -304,16 +157,13 @@ export function AnalyticsPage({
 
   function exportOrgData() {
     const orgId = data?.projects[0]?.orgId;
-    return requestDownload({ api: `/api/org/${orgId}/export`, title: `Chart-Reuse Export` });
+    return requestDownload({
+      api: `/api/org/${orgId}/export`,
+      title: `Chart-Reuse Export`
+    });
   }
 
-  // ── Early return ─────────────────────────────────────────────────────────
-  if (!data || !filteredSummary) {
-    return <ContentLoader />;
-  }
-
-  // ── Derived display values ────────────────────────────────────────────────
-  const rows = filteredProjects
+  const rows = data.projects
     .map(project => {
       const score =
         project.projections.annualSummary.dollarCost.changePercent +
@@ -333,21 +183,26 @@ export function AnalyticsPage({
     })
     .sort((a, b) => a.score - b.score);
 
-  const projectHasData = rows.some(p => !p.hasNoData);
+  const projectHasData = rows.some(project => !project.hasNoData);
   const spacing = 24;
 
-  const bottlesSaved = filteredProjects.reduce((acc, p) => {
-    return acc + (p.category === 'event' ? p.projections.bottleStationResults.bottlesSaved : 0);
+  const bottlesSaved = data.projects.reduce((acc, project) => {
+    if (project.category === 'event') {
+      acc += project.projections.bottleStationResults.bottlesSaved;
+    }
+    return acc;
   }, 0);
 
-  const singleUseItemsAvoided = filteredProjects.reduce((acc, p) => {
-    return acc + (p.category === 'event' ? p.projections.singleUseResults.summary.annualUnits.change * -1 : 0);
+  const singleUseItemsAvoided = data.projects.reduce((acc, project) => {
+    if (project.category === 'event') {
+      acc += project.projections.singleUseResults.summary.annualUnits.change * -1;
+    }
+    return acc;
   }, 0);
 
   const foodwareItemsAvoided = singleUseItemsAvoided - bottlesSaved;
   const showBottlesAndFoodwareBreakdown = bottlesSaved > 0 && foodwareItemsAvoided > 0;
 
-  // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div ref={printRef}>
       <PrintHeader orgName={user.org.name} />
@@ -355,6 +210,7 @@ export function AnalyticsPage({
         <Typography.Title className='dont-print-me'>
           {isUpstreamView ? 'Upstream Analytics' : `${user.org.name}'s Analytics`}
         </Typography.Title>
+
         <div style={{ display: 'flex', gap: '1em' }} className='dont-print-me'>
           <PrintButton printRef={printRef} pdfTitle={`${user.org.name} Projects Overview - Chart-Reuse`} />
           <Button onClick={() => exportOrgData()}>
@@ -377,23 +233,87 @@ export function AnalyticsPage({
         />
       )}
 
-      {/* Faceted filter bar */}
-      <div className='dont-print-me'>
-        <FacetedFilterBar
-          filters={filterConfigs}
-          selected={selectedFilters}
-          dateRange={dateRange}
-          onChange={handleFilterChange}
-          onDateChange={handleDateChange}
-          onClearAll={handleClearAll}
+      <FilterRow className='dont-print-me'>
+        {tags.length > 0 && (
+          <Select
+            mode='multiple'
+            placeholder='Filter by tag'
+            style={{ minWidth: 160 }}
+            options={tags.map(t => ({ label: t.label, value: t.id }))}
+            value={selectedTagIds}
+            onChange={vals => {
+              setSelectedTagIds(vals);
+              applyFilters({ tagIds: vals });
+            }}
+            allowClear
+          />
+        )}
+        {allAccounts && allAccounts.length > 1 && (
+          <Select
+            mode='multiple'
+            placeholder='Filter by account'
+            style={{ minWidth: 160 }}
+            options={allAccounts.map(a => ({ label: a.name, value: a.id }))}
+            value={selectedAccountIds}
+            onChange={vals => {
+              setSelectedAccountIds(vals);
+              applyFilters({ accountIds: vals });
+            }}
+            allowClear
+          />
+        )}
+        {availableStates.length > 0 && (
+          <Select
+            mode='multiple'
+            placeholder='Filter by state'
+            style={{ minWidth: 140 }}
+            options={availableStates.map(s => ({ label: s, value: s }))}
+            value={selectedStates}
+            onChange={vals => {
+              setSelectedStates(vals);
+              applyFilters({ states: vals });
+            }}
+            allowClear
+          />
+        )}
+        <DatePicker.RangePicker
+          value={dateRange as any}
+          placeholder={['Start date', 'End date']}
+          allowEmpty={[true, true]}
+          onChange={range => {
+            const newRange: [any, any] = [range?.[0] ?? null, range?.[1] ?? null];
+            setDateRange(newRange);
+            applyFilters({
+              startDate: newRange[0]?.format('YYYY-MM-DD') ?? null,
+              endDate: newRange[1]?.format('YYYY-MM-DD') ?? null
+            });
+          }}
         />
-      </div>
+        {allProjects && allProjects.length > 0 && (
+          <Select
+            mode='multiple'
+            placeholder='Filter by project'
+            style={{ minWidth: 180 }}
+            options={allProjects.map(p => ({ label: p.name, value: p.id }))}
+            value={selectedProjectIds}
+            onChange={vals => {
+              setSelectedProjectIds(vals);
+              applyFilters({ projectIds: vals });
+            }}
+            allowClear
+          />
+        )}
+        {hasActiveFilters && (
+          <Button onClick={clearFilters} size='small'>
+            Clear filters
+          </Button>
+        )}
+      </FilterRow>
 
       <Divider style={{ margin: 0 }} />
 
       <Spacer vertical={spacing} />
 
-      {/* Summary cards */}
       <Row gutter={[24, 24]}>
         {bottlesSaved > 0 && (
           <StyledCol xs={24} lg={12}>
@@ -430,7 +350,7 @@ export function AnalyticsPage({
               projectHasData={projectHasData}
               isEventProject={false}
               formatter={val => formatToDollar(val, currencyAbbreviation)}
-              value={filteredSummary.savings}
+              value={data.summary.savings}
             />
           </StyledCol>
         )}
@@ -441,7 +361,7 @@ export function AnalyticsPage({
               isEventProject={false}
               projectHasData={projectHasData}
               units='units'
-              value={filteredSummary.singleUse}
+              value={data.summary.singleUse}
             />
           </StyledCol>
         )}
@@ -452,7 +372,7 @@ export function AnalyticsPage({
             projectHasData={projectHasData}
             units={displayAsMetric ? 'kg' : 'lbs'}
             formatter={val => valueInPounds(val, { displayAsMetric, displayAsTons: false }).toLocaleString()}
-            value={filteredSummary.waste}
+            value={data.summary.waste}
           />
         </StyledCol>
         <StyledCol xs={24} md={12}>
@@ -461,7 +381,7 @@ export function AnalyticsPage({
             isEventProject={projectCategory === 'event'}
             projectHasData={projectHasData}
             units='MTC02e'
-            value={filteredSummary.gas}
+            value={data.summary.gas}
             reverseChangePercent={projectCategory === 'event'}
           />
         </StyledCol>
@@ -480,7 +400,7 @@ export function AnalyticsPage({
                 isEventProject={projectCategory === 'event'}
                 projectHasData={projectHasData}
                 units={displayAsMetric ? 'L' : 'gal'}
-                value={filteredSummary.water}
+                value={data.summary.water}
                 formatter={val => valueInGallons(val, { displayAsMetric })}
                 reverseChangePercent={projectCategory === 'event'}
               />
@@ -498,7 +418,7 @@ export function AnalyticsPage({
           Project Leaderboard
         </Typography.Title>
         <S.SectionHeader style={{ color: 'grey', marginBottom: 0, display: 'flex', justifyContent: 'space-between' }}>
-          <span>{`${filteredProjects.length} Projects`}</span>
+          <span>{`${data.projects.length} Projects`}</span>
         </S.SectionHeader>
       </div>
       <Spacer vertical={spacing} />
