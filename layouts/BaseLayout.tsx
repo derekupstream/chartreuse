@@ -39,8 +39,10 @@ const menuLinks: MenuProps['items'] = [
   // { key: 'subscription', label: <Link href='/subscription'>Subscription</Link> }
 ];
 
-const upstreamLinks: MenuProps['items'] = [
-  { key: 'upstream/orgs', label: <Link href='/upstream/orgs'>Organizations</Link> },
+const adminLinks: MenuProps['items'] = [
+  { key: 'admin', label: <Link href='/admin'>Overview</Link> },
+  { key: 'admin/orgs', label: <Link href='/admin/orgs'>Organizations</Link> },
+  { key: 'admin/users', label: <Link href='/admin/users'>Users</Link> },
   { key: 'upstream/total-annual-impact', label: <Link href='/upstream/total-annual-impact'>Analytics</Link> }
 ];
 
@@ -60,7 +62,7 @@ export const BaseLayout: React.FC<DashboardProps> = ({ user, selectedMenuItem, t
 
   if (
     !menuLinks.some(link => link?.key === selectedMenuItem) &&
-    !upstreamLinks.some(link => link?.key === selectedMenuItem)
+    !adminLinks.some(link => link?.key === selectedMenuItem)
   ) {
     throw new Error('Menu link key not found: ' + selectedMenuItem);
   }
@@ -116,15 +118,15 @@ export const BaseLayout: React.FC<DashboardProps> = ({ user, selectedMenuItem, t
       label: <Divider type='vertical' style={{ height: '3em' }} />
     },
     {
-      key: 'upstream',
-      label: 'Upstream',
-      children: upstreamLinks
+      key: 'admin',
+      label: 'Admin',
+      children: adminLinks
     }
   ];
 
   const allMobileMenuItems: MenuProps['items'] = [
     ...(menuLinks ?? []),
-    ...(user.org.isUpstream ? [{ key: 'upstream', label: 'Upstream', children: upstreamLinks }] : []),
+    ...(user.org.isUpstream ? [{ key: 'admin', label: 'Admin', children: adminLinks }] : []),
     { type: 'divider' },
     ...(accountLinks ?? [])
   ];
@@ -156,7 +158,7 @@ export const BaseLayout: React.FC<DashboardProps> = ({ user, selectedMenuItem, t
                   items={extendedLinks}
                   mode='horizontal'
                   disabledOverflow
-                  selectedKeys={keys}
+                  selectedKeys={[...keys, 'admin']}
                   onClick={handleMenuClick}
                 />
               )}
