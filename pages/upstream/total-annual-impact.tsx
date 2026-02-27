@@ -1,5 +1,3 @@
-import sortBy from 'lodash/sortBy';
-import uniqBy from 'lodash/uniqBy';
 import type { GetServerSideProps } from 'next';
 
 import type { PageProps } from 'components/org/analytics/Analytics';
@@ -14,8 +12,6 @@ import { ProjectCategory } from '@prisma/client';
 export const getServerSideProps: GetServerSideProps<PageProps> = async context => {
   const { user } = await getUserFromContext(context, { org: true });
 
-  const accountIds = (context.query.accounts as string | undefined)?.split(',');
-  const projectIds = (context.query.projects as string | undefined)?.split(',');
   const categoryRaw = (context.query.category as ProjectCategory | undefined) || 'default';
   const projectCategory = ProjectCategory[categoryRaw as keyof typeof ProjectCategory] || 'default';
 
@@ -43,34 +39,10 @@ export const getServerSideProps: GetServerSideProps<PageProps> = async context =
     })
   ]);
 
-  const filteredProjects = projects.filter(p => {
-    if (accountIds || projectIds) {
-      return accountIds?.includes(p.accountId) || projectIds?.includes(p.id);
-    }
-    return true;
-  });
-
-  const data = await getAllProjections(filteredProjects);
-
-  const allAccounts = sortBy(
-    uniqBy(
-      projects.map(p => ({ id: p.accountId, name: p.account.name })),
-      'id'
-    ),
-    'name'
-  );
-  const allProjects = sortBy(
-    projects
-      .map(p => ({ id: p.id, accountId: p.accountId, name: `${p.account.name}: ${p.name}` }))
-      // remove projects included already in the account filter
-      .filter(p => (accountIds ? !accountIds.includes(p.accountId) : true)),
-    'name'
-  );
+  const data = await getAllProjections(projects);
 
   return {
     props: serializeJSON({
-      allAccounts,
-      allProjects,
       data,
       user,
       projectCategory,
@@ -79,20 +51,11 @@ export const getServerSideProps: GetServerSideProps<PageProps> = async context =
   };
 };
 
-const AnalyticsPageComponent = ({
-  user,
-  data,
-  allAccounts,
-  allProjects,
-  projectCategory,
-  showCategoryTabs
-}: PageProps) => {
+const AnalyticsPageComponent = ({ user, data, projectCategory, showCategoryTabs }: PageProps) => {
   return (
     <AnalyticsPage
       data={data}
       user={user}
-      allAccounts={allAccounts}
-      allProjects={allProjects}
       isUpstreamView={true}
       projectCategory={projectCategory}
       showCategoryTabs={showCategoryTabs}
