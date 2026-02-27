@@ -1,5 +1,3 @@
-import sortBy from 'lodash/sortBy';
-import uniqBy from 'lodash/uniqBy';
 import type { GetServerSideProps } from 'next';
 
 import type { PageProps } from 'components/org/analytics/Analytics';
@@ -19,10 +17,8 @@ export const getServerSideProps: GetServerSideProps<PageProps> = async context =
     };
   }
 
-  const accountIds = (context.query.accounts as string | undefined)?.split(',');
-  const projectIds = (context.query.projects as string | undefined)?.split(',');
   const tagIds = (context.query.tags as string | undefined)?.split(',');
-  const stateIds = (context.query.states as string | undefined)?.split(',');
+  const projectTypeIds = (context.query.projectTypes as string | undefined)?.split(',');
   const startDate = context.query.startDate as string | undefined;
   const endDate = context.query.endDate as string | undefined;
   const categoryRaw = (context.query.category as ProjectCategory | undefined) || 'default';
@@ -81,57 +77,33 @@ export const getServerSideProps: GetServerSideProps<PageProps> = async context =
   }
 
   const filteredProjects = projects.filter(p => {
-    // Account / project filter (OR between account and project)
-    if (accountIds || projectIds) {
-      const matchesAccount = accountIds ? accountIds.includes(p.accountId) : false;
-      const matchesProject = projectIds ? projectIds.includes(p.id) : false;
-      if (!matchesAccount && !matchesProject) return false;
-    }
     // Tag filter
     if (tagIds) {
       if (!tagIds.some(id => p.tags.some(t => t.tagId === id))) return false;
     }
-    // State filter
-    if (stateIds) {
-      if (!stateIds.includes(p.USState || '')) return false;
+    // Project type filter (stored in metadata.type)
+    if (projectTypeIds) {
+      const pType = (p.metadata as { type?: string } | null)?.type;
+      if (!pType || !projectTypeIds.includes(pType)) return false;
     }
-    // Date range filter (based on project startDate)
-    if (startDate) {
-      const filterStart = new Date(startDate);
-      if (p.startDate && new Date(p.startDate) < filterStart) return false;
-    }
-    if (endDate) {
-      const filterEnd = new Date(endDate);
-      if (p.startDate && new Date(p.startDate) > filterEnd) return false;
+    // Date range filter — use startDate if set, otherwise fall back to createdAt
+    if (startDate || endDate) {
+      const projectDate = p.startDate ? new Date(p.startDate) : new Date(p.createdAt);
+      if (startDate && projectDate < new Date(startDate)) return false;
+      if (endDate && projectDate > new Date(endDate)) return false;
     }
     return true;
   });
 
   const data = await getAllProjections(filteredProjects);
 
-  const allAccounts = sortBy(
-    uniqBy(
-      projects.map(p => ({ id: p.accountId, name: p.account.name })),
-      'id'
-    ),
-    'name'
-  );
-  const allProjects = sortBy(
-    projects
-      .map(p => ({ id: p.id, accountId: p.accountId, name: `${p.account.name}: ${p.name}`, tags: p.tags }))
-      .filter(p => (accountIds ? !accountIds.includes(p.accountId) : true))
-      .filter(p => (tagIds ? !tagIds.some(id => p.tags.some(t => t.tagId === id)) : true)),
-    'name'
-  );
-
-  // Available states across all (unfiltered) projects for the state filter dropdown
-  const availableStates = Array.from(new Set(projects.map(p => p.USState).filter((s): s is string => !!s))).sort();
+  const availableProjectTypes = Array.from(
+    new Set(projects.map(p => (p.metadata as { type?: string } | null)?.type).filter((t): t is string => !!t))
+  ).sort();
 
   return {
     props: serializeJSON({
-      allAccounts,
-      allProjects,
-      availableStates,
+      availableProjectTypes,
       projectCategory,
       showCategoryTabs: projectsInOtherCategory > 0,
       data,
@@ -142,10 +114,8 @@ export const getServerSideProps: GetServerSideProps<PageProps> = async context =
 };
 
 const AnalyticsPageComponent = ({
-  allAccounts,
+  availableProjectTypes,
   projectCategory,
-  allProjects,
-  availableStates,
   data,
   user,
   showCategoryTabs
@@ -154,9 +124,7 @@ const AnalyticsPageComponent = ({
     <AnalyticsPage
       data={data}
       user={user}
-      allAccounts={allAccounts}
-      allProjects={allProjects}
-      availableStates={availableStates}
+      availableProjectTypes={availableProjectTypes}
       projectCategory={projectCategory}
       showCategoryTabs={showCategoryTabs}
     />
