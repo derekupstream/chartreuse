@@ -1,4 +1,4 @@
-import { BarChartOutlined, HomeOutlined, TeamOutlined, UserOutlined } from '@ant-design/icons';
+import { BarChartOutlined, FlagOutlined, HomeOutlined, TeamOutlined, UserOutlined } from '@ant-design/icons';
 import { Layout, Menu } from 'antd';
 import Link from 'next/link';
 import styled from 'styled-components';
@@ -31,6 +31,7 @@ const siderMenuItems = [
   { key: 'admin', icon: <HomeOutlined />, label: <Link href='/admin'>Overview</Link> },
   { key: 'admin/orgs', icon: <TeamOutlined />, label: <Link href='/admin/orgs'>Organizations</Link> },
   { key: 'admin/users', icon: <UserOutlined />, label: <Link href='/admin/users'>Users</Link> },
+  { key: 'admin/feedback', icon: <FlagOutlined />, label: <Link href='/admin/feedback'>Feedback</Link> },
   {
     key: 'upstream/total-annual-impact',
     icon: <BarChartOutlined />,

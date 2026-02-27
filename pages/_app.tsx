@@ -10,6 +10,7 @@ import { createGlobalStyle } from 'styled-components';
 import { CurrencyProvider } from 'components/_app/CurrencyProvider';
 import { MetricSystemProvider } from 'components/_app/MetricSystemProvider';
 import { ErrorBoundary } from 'components/common/errors/ErrorBoundary';
+import { FeedbackWidget } from 'components/common/FeedbackWidget';
 import { analytics } from 'lib/analytics/mixpanel.browser';
 import { AuthProvider } from 'lib/auth/auth.browser';
 import chartreuseClient from 'lib/chartreuseClient';
@@ -120,6 +121,7 @@ function MyApp({ Component, pageProps }: Props) {
               <ConfigProvider theme={themeConfig}>
                 <GlobalStyles />
                 <ErrorBoundary>{getLayout(<Component {...pageProps} />, pageProps)}</ErrorBoundary>
+                <FeedbackWidget />
               </ConfigProvider>
             </AuthProvider>
           </QueryClientProvider>

@@ -1,7 +1,8 @@
-import { DownloadOutlined } from '@ant-design/icons';
+import { DownloadOutlined, LoginOutlined } from '@ant-design/icons';
 import type { Account, Org, Project, User } from '@prisma/client';
-import { Button, Card, Col, Descriptions, Row, Statistic, Table, Tabs, Tag, Typography } from 'antd';
+import { Button, Card, Col, Descriptions, Row, Statistic, Table, Tabs, Tag, Tooltip, Typography, message } from 'antd';
 import type { GetServerSideProps } from 'next';
+import { useRouter } from 'next/router';
 
 import type { DashboardUser } from 'interfaces';
 import { AdminLayout } from 'layouts/AdminLayout';
@@ -45,27 +46,40 @@ export const getServerSideProps: GetServerSideProps = async context => {
   return { props: serializeJSON({ user, org }) };
 };
 
-const userColumns = [
-  {
-    title: 'Name',
-    dataIndex: 'name',
-    key: 'name',
-    render: (name: string | null, row: any) => name || <Typography.Text type='secondary'>{row.email}</Typography.Text>
-  },
-  { title: 'Email', dataIndex: 'email', key: 'email' },
-  {
-    title: 'Role',
-    dataIndex: 'role',
-    key: 'role',
-    render: (role: string) => <Tag>{role}</Tag>
-  },
-  {
-    title: 'Joined',
-    dataIndex: 'createdAt',
-    key: 'createdAt',
-    render: (v: string) => formatDateShort(v as any)
-  }
-];
+function useUserColumns(onImpersonate: (userId: string) => void) {
+  return [
+    {
+      title: 'Name',
+      dataIndex: 'name',
+      key: 'name',
+      render: (name: string | null, row: any) => name || <Typography.Text type='secondary'>{row.email}</Typography.Text>
+    },
+    { title: 'Email', dataIndex: 'email', key: 'email' },
+    {
+      title: 'Role',
+      dataIndex: 'role',
+      key: 'role',
+      render: (role: string) => <Tag>{role}</Tag>
+    },
+    {
+      title: 'Joined',
+      dataIndex: 'createdAt',
+      key: 'createdAt',
+      render: (v: string) => formatDateShort(v as any)
+    },
+    {
+      title: '',
+      key: 'actions',
+      render: (_: any, row: any) => (
+        <Tooltip title='Login as this user'>
+          <Button size='small' icon={<LoginOutlined />} onClick={() => onImpersonate(row.id)}>
+            Login as
+          </Button>
+        </Tooltip>
+      )
+    }
+  ];
+}
 
 const projectColumns = [
   {
@@ -104,6 +118,27 @@ const accountColumns = [
 ];
 
 function AdminOrgDetailPage({ user, org }: { user: DashboardUser; org: OrgDetail }) {
+  const router = useRouter();
+
+  async function handleImpersonate(targetUserId: string) {
+    try {
+      const res = await fetch('/api/admin/impersonate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ targetUserId })
+      });
+      if (!res.ok) {
+        const { error } = await res.json();
+        throw new Error(error);
+      }
+      router.push('/projects');
+    } catch (err: any) {
+      message.error(err.message ?? 'Failed to impersonate user');
+    }
+  }
+
+  const userColumns = useUserColumns(handleImpersonate);
+
   const tabs = [
     {
       key: 'overview',

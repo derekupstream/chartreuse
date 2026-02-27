@@ -1,8 +1,9 @@
-import { SearchOutlined } from '@ant-design/icons';
+import { LoginOutlined, SearchOutlined } from '@ant-design/icons';
 import type { Org, User } from '@prisma/client';
-import { Card, Input, Table, Tag, Typography } from 'antd';
+import { Button, Card, Input, Table, Tag, Tooltip, Typography, message } from 'antd';
 import type { ColumnType } from 'antd/lib/table/interface';
 import type { GetServerSideProps } from 'next';
+import { useRouter } from 'next/router';
 import { useState } from 'react';
 
 import type { DashboardUser } from 'interfaces';
@@ -14,7 +15,7 @@ import prisma from 'lib/prisma';
 import { formatDateShort } from 'lib/dates';
 import type { PageProps } from 'pages/_app';
 
-type UserWithOrg = User & { org: Pick<Org, 'id' | 'name'> };
+type UserWithOrg = User & { org: Pick<Org, 'id' | 'name' | 'isUpstream'> };
 
 export const getServerSideProps: GetServerSideProps = async context => {
   const { user } = await getUserFromContext(context, { org: true });
@@ -24,13 +25,14 @@ export const getServerSideProps: GetServerSideProps = async context => {
 
   const users = await prisma.user.findMany({
     orderBy: { createdAt: 'desc' },
-    include: { org: { select: { id: true, name: true } } }
+    include: { org: { select: { id: true, name: true, isUpstream: true } } }
   });
 
   return { props: serializeJSON({ user, users }) };
 };
 
 function AdminUsersPage({ users }: { user: DashboardUser; users: UserWithOrg[] }) {
+  const router = useRouter();
   const [search, setSearch] = useState('');
 
   const filtered = users.filter(u => {
@@ -41,6 +43,23 @@ function AdminUsersPage({ users }: { user: DashboardUser; users: UserWithOrg[] }
       u.org.name.toLowerCase().includes(q)
     );
   });
+
+  async function handleImpersonate(targetUserId: string) {
+    try {
+      const res = await fetch('/api/admin/impersonate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ targetUserId })
+      });
+      if (!res.ok) {
+        const { error } = await res.json();
+        throw new Error(error);
+      }
+      router.push('/projects');
+    } catch (err: any) {
+      message.error(err.message ?? 'Failed to impersonate user');
+    }
+  }
 
   const columns: ColumnType<UserWithOrg>[] = [
     {
@@ -65,8 +84,20 @@ function AdminUsersPage({ users }: { user: DashboardUser; users: UserWithOrg[] }
       dataIndex: 'createdAt',
       key: 'createdAt',
       defaultSortOrder: 'descend',
-      sorter: (a, b) => (a.createdAt < b.createdAt ? -1 : 1),
+      sorter: (a: UserWithOrg, b: UserWithOrg) => (a.createdAt < b.createdAt ? -1 : 1),
       render: (v: string) => formatDateShort(v as any)
+    },
+    {
+      title: '',
+      key: 'actions',
+      render: (_: any, u: UserWithOrg) =>
+        u.org.isUpstream ? null : (
+          <Tooltip title='Login as this user'>
+            <Button size='small' icon={<LoginOutlined />} onClick={() => handleImpersonate(u.id)}>
+              Login as
+            </Button>
+          </Tooltip>
+        )
     }
   ];
 

@@ -10,6 +10,7 @@ import { useState, useEffect } from 'react';
 import { createGlobalStyle } from 'styled-components';
 
 import { SubscriptionCheck } from 'components/_app/SubscriptionCheck';
+import { ImpersonationBanner } from 'components/admin/ImpersonationBanner';
 import { Header } from 'components/common/Header';
 import { useAuth } from 'hooks/useAuth';
 import { useSubscription } from 'hooks/useSubscription';
@@ -43,6 +44,7 @@ const adminLinks: MenuProps['items'] = [
   { key: 'admin', label: <Link href='/admin'>Overview</Link> },
   { key: 'admin/orgs', label: <Link href='/admin/orgs'>Organizations</Link> },
   { key: 'admin/users', label: <Link href='/admin/users'>Users</Link> },
+  { key: 'admin/feedback', label: <Link href='/admin/feedback'>Feedback</Link> },
   { key: 'upstream/total-annual-impact', label: <Link href='/upstream/total-annual-impact'>Analytics</Link> }
 ];
 
@@ -192,7 +194,10 @@ export const BaseLayout: React.FC<DashboardProps> = ({ user, selectedMenuItem, t
             onClick={handleMenuClick}
           />
         </Drawer>
-        {children}
+        <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
+          <ImpersonationBanner />
+          {children}
+        </div>
       </Layout>
     </SubscriptionCheck>
   );

@@ -283,3 +283,21 @@ enum Role {
   ORG_ADMIN
   ACCOUNT_ADMIN
 }
+
+model ImpersonationSession {
+  id           String   @id @default(uuid()) @db.Uuid
+  adminUserId  String
+  targetUserId String
+  createdAt    DateTime @default(now())
+  expiresAt    DateTime
+}
+
+model FeedbackSubmission {
+  id        String   @id @default(uuid()) @db.Uuid
+  createdAt DateTime @default(now())
+  userId    String
+  category  String
+  message   String
+  pageUrl   String?
+  status    String   @default("open")
+}
