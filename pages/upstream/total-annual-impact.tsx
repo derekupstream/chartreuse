@@ -2,7 +2,7 @@ import type { GetServerSideProps } from 'next';
 
 import type { PageProps } from 'components/org/analytics/Analytics';
 import { AnalyticsPage } from 'components/org/analytics/Analytics';
-import { DashboardLayout as Template } from 'layouts/DashboardLayout/DashboardLayout';
+import { AdminLayout } from 'layouts/AdminLayout';
 import { getAllProjections } from 'lib/calculator/getProjections';
 import { getUserFromContext } from 'lib/middleware';
 import { serializeJSON } from 'lib/objects';
@@ -65,9 +65,9 @@ const AnalyticsPageComponent = ({ user, data, projectCategory, showCategoryTabs 
 
 AnalyticsPageComponent.getLayout = (page: React.ReactNode, pageProps: any) => {
   return (
-    <Template {...pageProps} selectedMenuItem='upstream/total-annual-impact' title='Analytics'>
+    <AdminLayout {...pageProps} selectedMenuItem='upstream/total-annual-impact' title='Analytics'>
       {page}
-    </Template>
+    </AdminLayout>
   );
 };
 
