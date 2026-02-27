@@ -3,7 +3,7 @@ export const defaultFormatter = (val: number) => {
     val === 0 || val === -0 ? (
       0
     ) : (
-      val.toLocaleString()
+      Math.round(val).toLocaleString()
     )
   ) : (
     <span style={{ color: 'grey', fontSize: '12px' }}>N/A</span>
