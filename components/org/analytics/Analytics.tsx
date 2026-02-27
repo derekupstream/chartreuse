@@ -213,18 +213,6 @@ export function AnalyticsPage({
       <FilterRow className='dont-print-me'>
         <Select
           mode='multiple'
-          placeholder='Filter by tag'
-          style={{ minWidth: 160 }}
-          options={tags.map(t => ({ label: t.label, value: t.id }))}
-          value={selectedTagIds}
-          onChange={vals => {
-            setSelectedTagIds(vals);
-            applyFilters({ tagIds: vals });
-          }}
-          allowClear
-        />
-        <Select
-          mode='multiple'
           placeholder='Filter by project type'
           style={{ minWidth: 215 }}
           options={availableProjectTypes.map(t => ({ label: t, value: t }))}
@@ -247,6 +235,18 @@ export function AnalyticsPage({
               endDate: newRange[1]?.format('YYYY-MM-DD') ?? null
             });
           }}
+        />
+        <Select
+          mode='multiple'
+          placeholder='Filter by tag'
+          style={{ minWidth: 160 }}
+          options={tags.map(t => ({ label: t.label, value: t.id }))}
+          value={selectedTagIds}
+          onChange={vals => {
+            setSelectedTagIds(vals);
+            applyFilters({ tagIds: vals });
+          }}
+          allowClear
         />
         {hasActiveFilters && (
           <Button onClick={clearFilters} size='small'>
