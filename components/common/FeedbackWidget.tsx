@@ -4,24 +4,23 @@ import { useRouter } from 'next/router';
 import { useState } from 'react';
 import styled from 'styled-components';
 
-const FloatingButton = styled.button`
+const FloatingButton = styled.button<{ $expanded: boolean }>`
   position: fixed;
   bottom: 80px;
   right: 16px;
   z-index: 100;
   display: flex;
   align-items: center;
-  gap: 0;
   overflow: hidden;
-  width: 36px;
-  padding: 0 10px;
+  width: ${({ $expanded }) => ($expanded ? '110px' : '36px')};
   height: 36px;
+  padding: 0 10px;
   border-radius: 18px;
   border: 1px solid #d9d9d9;
-  background: white;
+  background: ${({ $expanded }) => ($expanded ? '#fafafa' : 'white')};
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   cursor: pointer;
-  color: rgba(0, 0, 0, 0.65);
+  color: rgba(0, 0, 0, 0.88);
   font-size: 14px;
   font-family: inherit;
   transition:
@@ -29,32 +28,22 @@ const FloatingButton = styled.button`
     background 150ms;
   white-space: nowrap;
 
-  &:hover {
-    width: 110px;
-    background: #fafafa;
-    color: rgba(0, 0, 0, 0.88);
-  }
-
-  .feedback-label {
-    opacity: 0;
-    max-width: 0;
-    overflow: hidden;
-    transition:
-      opacity 150ms ease 80ms,
-      max-width 200ms ease;
-    font-size: 13px;
-    font-weight: 500;
-    margin-left: 6px;
-  }
-
-  &:hover .feedback-label {
-    opacity: 1;
-    max-width: 80px;
-  }
-
   @media print {
     display: none;
   }
+`;
+
+const Label = styled.span<{ $visible: boolean }>`
+  overflow: hidden;
+  max-width: ${({ $visible }) => ($visible ? '80px' : '0')};
+  opacity: ${({ $visible }) => ($visible ? 1 : 0)};
+  margin-left: ${({ $visible }) => ($visible ? '6px' : '0')};
+  font-size: 13px;
+  font-weight: 500;
+  transition:
+    max-width 200ms ease,
+    opacity 150ms ease 60ms,
+    margin-left 200ms ease;
 `;
 
 const CATEGORIES = [
@@ -67,10 +56,11 @@ const CATEGORIES = [
 export function FeedbackWidget() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  const [hovered, setHovered] = useState(false);
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
 
-  // Hide on admin pages
+  // Hide on admin / upstream pages
   if (router.pathname.startsWith('/admin') || router.pathname.startsWith('/upstream')) return null;
 
   async function handleSubmit(values: { category: string; message: string }) {
@@ -94,10 +84,17 @@ export function FeedbackWidget() {
 
   return (
     <>
-      <FloatingButton onClick={() => setOpen(true)} aria-label='Feedback'>
+      <FloatingButton
+        $expanded={hovered}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+        onClick={() => setOpen(true)}
+        aria-label='Feedback'
+      >
         <FlagOutlined />
-        <span className='feedback-label'>Feedback</span>
+        <Label $visible={hovered}>Feedback</Label>
       </FloatingButton>
+
       <Modal
         title='Share feedback'
         open={open}

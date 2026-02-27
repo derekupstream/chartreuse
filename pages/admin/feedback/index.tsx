@@ -1,5 +1,5 @@
-import { CheckOutlined, SyncOutlined } from '@ant-design/icons';
-import { Button, Card, Select, Space, Table, Tag, Typography, message } from 'antd';
+import { CheckOutlined, SyncOutlined, WarningOutlined } from '@ant-design/icons';
+import { Alert, Button, Card, Select, Space, Table, Tag, Typography, message } from 'antd';
 import type { GetServerSideProps } from 'next';
 import { useState } from 'react';
 
@@ -28,20 +28,24 @@ export const getServerSideProps: GetServerSideProps = async context => {
   const isUpstream = await checkIsUpstream(user.org.id);
   if (!isUpstream) return { notFound: true };
 
-  const submissions = await prisma.feedbackSubmission.findMany({
-    orderBy: { createdAt: 'desc' }
-  });
+  try {
+    const submissions = await prisma.feedbackSubmission.findMany({
+      orderBy: { createdAt: 'desc' }
+    });
 
-  const userIds = Array.from(new Set(submissions.map(s => s.userId)));
-  const users = await prisma.user.findMany({
-    where: { id: { in: userIds } },
-    include: { org: { select: { name: true } } }
-  });
-  const userMap = Object.fromEntries(users.map(u => [u.id, u]));
+    const userIds = Array.from(new Set(submissions.map(s => s.userId)));
+    const users = await prisma.user.findMany({
+      where: { id: { in: userIds } },
+      include: { org: { select: { name: true } } }
+    });
+    const userMap = Object.fromEntries(users.map(u => [u.id, u]));
+    const enriched = submissions.map(s => ({ ...s, user: userMap[s.userId] ?? null }));
 
-  const enriched = submissions.map(s => ({ ...s, user: userMap[s.userId] ?? null }));
-
-  return { props: serializeJSON({ user, submissions: enriched }) };
+    return { props: serializeJSON({ user, submissions: enriched, migrationPending: false }) };
+  } catch (e) {
+    console.error('FeedbackSubmission table missing — run migration in Supabase SQL editor', e);
+    return { props: serializeJSON({ user, submissions: [], migrationPending: true }) };
+  }
 };
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -57,7 +61,14 @@ const STATUS_COLORS: Record<string, string> = {
   closed: 'green'
 };
 
-function AdminFeedbackPage({ submissions: initialSubmissions }: { user: DashboardUser; submissions: Submission[] }) {
+function AdminFeedbackPage({
+  submissions: initialSubmissions,
+  migrationPending
+}: {
+  user: DashboardUser;
+  submissions: Submission[];
+  migrationPending: boolean;
+}) {
   const [submissions, setSubmissions] = useState(initialSubmissions);
   const [statusFilter, setStatusFilter] = useState<string | undefined>(undefined);
 
@@ -160,6 +171,49 @@ function AdminFeedbackPage({ submissions: initialSubmissions }: { user: Dashboar
 
   return (
     <>
+      {migrationPending && (
+        <Alert
+          type='warning'
+          icon={<WarningOutlined />}
+          showIcon
+          style={{ marginBottom: 16 }}
+          message='Database migration required'
+          description={
+            <>
+              The <code>FeedbackSubmission</code> table doesn&apos;t exist in your production database yet. Go to your{' '}
+              <strong>Supabase dashboard → SQL Editor</strong> and run:
+              <pre
+                style={{
+                  marginTop: 8,
+                  background: '#f5f5f5',
+                  padding: 8,
+                  borderRadius: 4,
+                  fontSize: 12,
+                  overflowX: 'auto'
+                }}
+              >{`CREATE TABLE "FeedbackSubmission" (
+    "id" UUID NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "userId" TEXT NOT NULL,
+    "category" TEXT NOT NULL,
+    "message" TEXT NOT NULL,
+    "pageUrl" TEXT,
+    "status" TEXT NOT NULL DEFAULT 'open',
+    CONSTRAINT "FeedbackSubmission_pkey" PRIMARY KEY ("id")
+);
+
+CREATE TABLE "ImpersonationSession" (
+    "id" UUID NOT NULL,
+    "adminUserId" TEXT NOT NULL,
+    "targetUserId" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "expiresAt" TIMESTAMP(3) NOT NULL,
+    CONSTRAINT "ImpersonationSession_pkey" PRIMARY KEY ("id")
+);`}</pre>
+            </>
+          }
+        />
+      )}
       <div
         style={{
           display: 'flex',
