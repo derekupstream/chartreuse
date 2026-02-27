@@ -219,7 +219,7 @@ export function ActiveProjects({ tagIdsFilter, sortOrder, tags }: ActiveProjects
 
   return (
     <Row gutter={[20, 20]}>
-      {sortedProjects.map((project: PopulatedProject) => {
+      {filteredProjects.map((project: PopulatedProject) => {
         return (
           <Col xs={24} md={12} lg={8} key={project.id}>
             <ProjectCard project={project} refreshProjects={refreshProjects} />
