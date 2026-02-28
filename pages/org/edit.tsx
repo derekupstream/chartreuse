@@ -4,62 +4,28 @@ import { message, Typography } from 'antd';
 import type { GetServerSideProps } from 'next';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import nookies from 'nookies';
 
 import { Header } from 'components/common/Header';
 import { PageLoader } from 'components/common/PageLoader';
 import { OrgEditPage } from 'components/org/edit/OrgEditPage';
 import { FormPageTemplate } from 'layouts/FormPageLayout';
-import { verifyIdToken } from 'lib/auth/firebaseAdmin';
+import { getUserFromContext } from 'lib/middleware';
 import chartreuseClient from 'lib/chartreuseClient';
 import { serializeJSON } from 'lib/objects';
-import prisma from 'lib/prisma';
 
 export const getServerSideProps: GetServerSideProps = async context => {
-  try {
-    const cookies = nookies.get(context);
-    const token = await verifyIdToken(cookies.token);
+  const { user } = await getUserFromContext(context, { org: true });
 
-    const user = await prisma.user.findUnique({
-      where: {
-        id: token.uid
-      },
-      include: {
-        org: true
-      }
-    });
-
-    if (!user) {
-      return {
-        redirect: {
-          permanent: false,
-          destination: '/'
-        }
-      };
-    }
-    if (user.role !== 'ORG_ADMIN') {
-      console.warn('User is not an org admin', { user });
-      return {
-        redirect: {
-          permanent: false,
-          destination: '/'
-        }
-      };
-    }
-
-    return {
-      props: serializeJSON({
-        org: user.org
-      })
-    };
-  } catch (error: any) {
-    return {
-      redirect: {
-        permanent: false,
-        destination: '/'
-      }
-    };
+  if (!user) {
+    return { redirect: { permanent: false, destination: '/login' } };
   }
+  if (user.role !== 'ORG_ADMIN') {
+    return { redirect: { permanent: false, destination: '/projects' } };
+  }
+
+  return {
+    props: serializeJSON({ org: user.org })
+  };
 };
 
 type Props = {

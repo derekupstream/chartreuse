@@ -69,6 +69,7 @@ export function FeedbackWidget() {
       const res = await fetch('/api/feedback', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include', // Include cookies for auth
         body: JSON.stringify({ ...values, pageUrl: window.location.href })
       });
       if (!res.ok) throw new Error('Failed to submit');
