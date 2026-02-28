@@ -6,6 +6,9 @@
   "type": "module",
   "scripts": {
     "dev": "next dev --turbopack",
+    "dev:clean": "./scripts/clean-dev.sh",
+    "dev:status": "ps aux | grep 'next dev' | grep -v grep",
+    "dev:kill": "pkill -f 'next dev'",
     "build:production": "yarn prisma migrate deploy && yarn prisma generate && next build",
     "build": "yarn prisma generate --no-hints && next build",
     "start": "next start",
