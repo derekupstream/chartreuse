@@ -273,17 +273,6 @@ model ProjectTagRelation {
   @@id([projectId, tagId])
 }
 
-enum ProjectCategory {
-  default
-  event
-  eugene
-}
-
-enum Role {
-  ORG_ADMIN
-  ACCOUNT_ADMIN
-}
-
 model MethodologyDocument {
   id          String    @id @default(uuid()) @db.Uuid
   createdAt   DateTime  @default(now())
@@ -348,6 +337,116 @@ model TestRunResult {
   actualOutputs Json?
   diff          Json?
   errorMessage  String?
-  testRun       TestRun       @relation(fields: [testRunId], references: [id], onDelete: Cascade)
   dataset       GoldenDataset @relation(fields: [datasetId], references: [id])
+  testRun       TestRun       @relation(fields: [testRunId], references: [id], onDelete: Cascade)
+}
+
+model FactorCategory {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+  factors     Factor[]
+}
+
+model FactorSource {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String   @unique
+  description String?
+  version     String
+  url         String?
+  lastChecked DateTime @default(now())
+  isActive    Boolean  @default(true)
+  factors     Factor[]
+}
+
+model Factor {
+  id             String             @id @default(uuid()) @db.Uuid
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  name           String
+  description    String?
+  categoryId     String             @db.Uuid
+  sourceId       String             @db.Uuid
+  currentValue   Float
+  unit           String
+  region         String?
+  notes          String?
+  isActive       Boolean            @default(true)
+  effectiveFrom  DateTime           @default(now())
+  effectiveTo    DateTime?
+  createdBy      String             @db.Uuid
+  approvedBy     String?            @db.Uuid
+  approvalNotes  String?
+  changeRequests ChangeRequest[]
+  category       FactorCategory     @relation(fields: [categoryId], references: [id])
+  source         FactorSource       @relation(fields: [sourceId], references: [id])
+  dependents     FactorDependency[] @relation("FactorDependents")
+  dependencies   FactorDependency[] @relation("FactorDependsOn")
+  versions       FactorVersion[]
+}
+
+model FactorVersion {
+  id            String    @id @default(uuid()) @db.Uuid
+  createdAt     DateTime  @default(now())
+  factorId      String    @db.Uuid
+  value         Float
+  unit          String
+  notes         String?
+  changedBy     String    @db.Uuid
+  changeReason  String
+  sourceVersion String?
+  status        String    @default("pending")
+  approvedBy    String?   @db.Uuid
+  approvedAt    DateTime?
+  approvalNotes String?
+  factor        Factor    @relation(fields: [factorId], references: [id])
+}
+
+model FactorDependency {
+  id              String   @id @default(uuid()) @db.Uuid
+  createdAt       DateTime @default(now())
+  factorId        String   @db.Uuid
+  dependsOnId     String   @db.Uuid
+  calculationPath String?
+  strength        Float    @default(1.0)
+  dependsOn       Factor   @relation("FactorDependents", fields: [dependsOnId], references: [id])
+  factor          Factor   @relation("FactorDependsOn", fields: [factorId], references: [id])
+
+  @@unique([factorId, dependsOnId])
+}
+
+model ChangeRequest {
+  id               String    @id @default(uuid()) @db.Uuid
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  type             String
+  factorId         String?   @db.Uuid
+  factorName       String
+  proposedValue    Float?
+  proposedUnit     String?
+  proposedSource   String?
+  proposedNotes    String?
+  proposedCategory String?
+  requestedBy      String    @db.Uuid
+  reason           String
+  priority         String    @default("medium")
+  status           String    @default("pending")
+  reviewedBy       String?   @db.Uuid
+  reviewedAt       DateTime?
+  reviewNotes      String?
+  implementedBy    String?   @db.Uuid
+  implementedAt    DateTime?
+  factor           Factor?   @relation(fields: [factorId], references: [id])
+}
+
+enum ProjectCategory {
+  default
+  event
+  eugene
+}
+
+enum Role {
+  ORG_ADMIN
+  ACCOUNT_ADMIN
 }
