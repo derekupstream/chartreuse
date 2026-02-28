@@ -1,6 +1,7 @@
 import { ArrowLeftOutlined, SaveOutlined } from '@ant-design/icons';
 import { Button, Card, Form, Input, Space, Tag, Typography, message } from 'antd';
 import type { GetServerSideProps } from 'next';
+import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
 
@@ -10,15 +11,14 @@ import { checkIsUpstream } from 'lib/middleware/requireUpstream';
 import { getUserFromContext } from 'lib/middleware';
 import { serializeJSON } from 'lib/objects';
 import prisma from 'lib/prisma';
-import { SlateEditor } from 'components/common/SlateEditor';
 import type { PageProps } from 'pages/_app';
 
-const EMPTY_CONTENT = [{ type: 'paragraph', children: [{ text: '' }] }];
+// TipTap uses browser APIs — load client-side only
+const TipTapEditor = dynamic(() => import('components/common/TipTapEditor'), { ssr: false });
 
 type Doc = {
   id: string;
   title: string;
-  slug: string;
   content: any;
   status: string;
   publishedAt: string | null;
@@ -60,14 +60,15 @@ function slugify(text: string) {
 function AdminMethodologyEditorPage({ doc, isNew }: Props) {
   const router = useRouter();
   const [form] = Form.useForm();
-  const [content, setContent] = useState<any>(doc?.content || EMPTY_CONTENT);
+  const [content, setContent] = useState<any>(doc?.content ?? null);
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState(doc?.status ?? 'draft');
 
-  async function handleSave(values: { title: string; slug: string }) {
+  async function handleSave(values: { title: string }) {
     setSaving(true);
     try {
-      const body = { title: values.title, slug: values.slug, content };
+      const slug = slugify(values.title) || `subsection-${Date.now()}`;
+      const body = { title: values.title, slug, content };
 
       if (isNew) {
         const res = await fetch('/api/admin/methodology', {
@@ -80,7 +81,7 @@ function AdminMethodologyEditorPage({ doc, isNew }: Props) {
           throw new Error(err.error || 'Failed to save');
         }
         const created = await res.json();
-        message.success('Document created');
+        message.success('Subsection created');
         router.replace(`/admin/methodology/${created.id}`);
       } else {
         const res = await fetch(`/api/admin/methodology/${doc!.id}`, {
@@ -121,7 +122,7 @@ function AdminMethodologyEditorPage({ doc, isNew }: Props) {
         <Space>
           <Button icon={<ArrowLeftOutlined />} href='/admin/methodology' />
           <Typography.Title level={2} style={{ margin: 0 }}>
-            {isNew ? 'New document' : 'Edit document'}
+            {isNew ? 'New subsection' : 'Edit subsection'}
           </Typography.Title>
           {!isNew && <Tag color={status === 'published' ? 'green' : 'default'}>{status}</Tag>}
         </Space>
@@ -133,43 +134,19 @@ function AdminMethodologyEditorPage({ doc, isNew }: Props) {
         </Space>
       </div>
 
-      <Form
-        form={form}
-        layout='vertical'
-        initialValues={{ title: doc?.title ?? '', slug: doc?.slug ?? '' }}
-        onFinish={handleSave}
-      >
+      <Form form={form} layout='vertical' initialValues={{ title: doc?.title ?? '' }} onFinish={handleSave}>
         <Card style={{ marginBottom: 16 }}>
-          <Form.Item name='title' label='Title' rules={[{ required: true, message: 'Title is required' }]}>
-            <Input
-              size='large'
-              placeholder='e.g. Emissions calculations'
-              onChange={e => {
-                if (isNew) {
-                  form.setFieldValue('slug', slugify(e.target.value));
-                }
-              }}
-            />
-          </Form.Item>
-          <Form.Item
-            name='slug'
-            label='Slug'
-            rules={[
-              { required: true, message: 'Slug is required' },
-              { pattern: /^[a-z0-9-]+$/, message: 'Lowercase letters, numbers, and hyphens only' }
-            ]}
-            extra={
-              form.getFieldValue('slug')
-                ? `Public URL: /methodology/${form.getFieldValue('slug')}`
-                : 'URL-friendly identifier'
-            }
-          >
-            <Input placeholder='emissions-calculations' />
+          <Form.Item name='title' label='Subsection title' rules={[{ required: true, message: 'Title is required' }]}>
+            <Input size='large' placeholder='e.g. Emission Factors' />
           </Form.Item>
         </Card>
 
-        <Card title='Content'>
-          <SlateEditor value={content} onChange={setContent} />
+        <Card title='Content' bodyStyle={{ padding: 0 }}>
+          <TipTapEditor
+            content={content}
+            onChange={setContent}
+            placeholder='Write the methodology for this subsection...'
+          />
         </Card>
       </Form>
     </>

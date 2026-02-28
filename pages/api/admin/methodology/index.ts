@@ -10,8 +10,8 @@ export default handlerWithUser()
     if (!isUpstream) return res.status(403).json({ error: 'Forbidden' });
 
     const docs = await prisma.methodologyDocument.findMany({
-      orderBy: { updatedAt: 'desc' },
-      select: { id: true, title: true, slug: true, status: true, createdAt: true, publishedAt: true }
+      orderBy: { order: 'asc' },
+      select: { id: true, title: true, slug: true, status: true, order: true, createdAt: true, publishedAt: true }
     });
     res.json(docs);
   })
@@ -22,8 +22,17 @@ export default handlerWithUser()
     const { title, slug, content } = req.body;
     if (!title || !slug || !content) return res.status(400).json({ error: 'title, slug, and content required' });
 
+    // Place new subsection at the end
+    const last = await prisma.methodologyDocument.findFirst({ orderBy: { order: 'desc' } });
+    const order = (last?.order ?? -1) + 1;
+
+    // Handle slug uniqueness — append a suffix if needed
+    let finalSlug = slug;
+    const existing = await prisma.methodologyDocument.findUnique({ where: { slug } });
+    if (existing) finalSlug = `${slug}-${Date.now()}`;
+
     const doc = await prisma.methodologyDocument.create({
-      data: { title, slug, content, status: 'draft' }
+      data: { title, slug: finalSlug, content, status: 'draft', order }
     });
     res.status(201).json(doc);
   });

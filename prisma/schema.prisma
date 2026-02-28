@@ -282,6 +282,7 @@ model MethodologyDocument {
   content     Json
   status      String    @default("draft")
   publishedAt DateTime?
+  order       Int       @default(0)
 }
 
 model ImpersonationSession {
