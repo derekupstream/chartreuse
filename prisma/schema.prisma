@@ -371,19 +371,22 @@ model Factor {
   currentValue   Float
   unit           String
   region         String?
-  notes          String?
-  isActive       Boolean            @default(true)
-  effectiveFrom  DateTime           @default(now())
-  effectiveTo    DateTime?
-  createdBy      String             @db.Uuid
-  approvedBy     String?            @db.Uuid
-  approvalNotes  String?
+  notes                String?
+  isActive             Boolean            @default(true)
+  effectiveFrom        DateTime           @default(now())
+  effectiveTo          DateTime?
+  createdBy            String             @db.Uuid
+  approvedBy           String?            @db.Uuid
+  approvalNotes        String?
+  calculatorConstantKey String?
   changeRequests ChangeRequest[]
   category       FactorCategory     @relation(fields: [categoryId], references: [id])
   source         FactorSource       @relation(fields: [sourceId], references: [id])
   dependents     FactorDependency[] @relation("FactorDependents")
   dependencies   FactorDependency[] @relation("FactorDependsOn")
   versions       FactorVersion[]
+
+  @@unique([name, categoryId])
 }
 
 model FactorVersion {

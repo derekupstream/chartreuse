@@ -1,49 +1,56 @@
 import prisma from 'lib/prisma';
-import { v4 as uuidv4 } from 'uuid';
+import { MATERIALS, REUSABLE_MATERIALS } from 'lib/calculator/constants/materials';
+import { STATES } from 'lib/calculator/constants/utilities';
+import {
+  ELECTRIC_CO2_EMISSIONS_FACTOR,
+  NATURAL_GAS_CO2_EMISSIONS_FACTOR,
+  TRANSPORTATION_CO2_EMISSIONS_FACTOR
+} from 'lib/calculator/constants/carbon-dioxide-emissions';
+
+// A stable system-level user UUID used for seeded records
+const SYSTEM_USER_ID = '00000000-0000-0000-0000-000000000001';
 
 async function seedFactorLibrary() {
   console.log('🌱 Seeding Factor Library...');
 
-  const systemUserId = uuidv4(); // Generate a valid UUID for system user
-
-  // Create categories (using upsert to avoid duplicates)
-  const categories = await Promise.all([
+  // ── Categories ────────────────────────────────────────────────────────────
+  const [emissionCat, utilityCat, transportCat, materialCat, conversionCat] = await Promise.all([
     prisma.factorCategory.upsert({
       where: { name: 'Emission Factors' },
       update: {},
-      create: { name: 'Emission Factors', description: 'GHG emission factors from EPA WARM and other sources' }
+      create: { name: 'Emission Factors', description: 'GHG emission factors from EPA WARM and EPA eGRID' }
     }),
     prisma.factorCategory.upsert({
       where: { name: 'Utility Rates' },
       update: {},
-      create: { name: 'Utility Rates', description: 'Electricity and natural gas rates by state' }
+      create: { name: 'Utility Rates', description: 'Commercial electricity and natural gas rates by state (DOE EIA)' }
     }),
     prisma.factorCategory.upsert({
       where: { name: 'Transport Factors' },
       update: {},
-      create: { name: 'Transport Factors', description: 'Ocean and land transportation emissions' }
+      create: { name: 'Transport Factors', description: 'Ocean and land transportation emission factors' }
     }),
     prisma.factorCategory.upsert({
       where: { name: 'Material Properties' },
       update: {},
-      create: { name: 'Material Properties', description: 'Material weights, densities, and properties' }
+      create: { name: 'Material Properties', description: 'Water usage per lb for each material (EPA WARM)' }
     }),
     prisma.factorCategory.upsert({
       where: { name: 'Conversion Factors' },
       update: {},
-      create: { name: 'Conversion Factors', description: 'Unit conversions and calculation factors' }
+      create: { name: 'Conversion Factors', description: 'Unit conversion constants' }
     })
   ]);
 
-  // Create sources (using upsert to avoid duplicates)
-  const sources = await Promise.all([
+  // ── Sources ───────────────────────────────────────────────────────────────
+  const [epaWarm, doeEia, epaEgrid] = await Promise.all([
     prisma.factorSource.upsert({
       where: { name: 'EPA WARM' },
       update: {},
       create: {
         name: 'EPA WARM',
         version: '15',
-        description: 'EPA Waste Reduction Model',
+        description: 'EPA Waste Reduction Model — Hidden: EPA WARM Assumptions sheet',
         url: 'https://www.epa.gov/warm'
       }
     }),
@@ -53,8 +60,8 @@ async function seedFactorLibrary() {
       create: {
         name: 'DOE EIA',
         version: '2023',
-        description: 'Department of Energy Energy Information Administration',
-        url: 'https://www.eia.gov'
+        description: 'Department of Energy Energy Information Administration — commercial rates',
+        url: 'https://www.eia.gov/electricity/state/'
       }
     }),
     prisma.factorSource.upsert({
@@ -69,111 +76,165 @@ async function seedFactorLibrary() {
     })
   ]);
 
-  // Create sample factors
-  const factors = await Promise.all([
-    // Emission Factors
-    prisma.factor.create({
-      data: {
-        name: 'PET Bottle Disposal Emission Factor',
-        description: 'CO2 equivalent emissions per kg of PET bottle disposed in landfill',
-        currentValue: 2.43,
-        unit: 'kg CO2e/kg',
-        categoryId: categories[0].id,
-        sourceId: sources[0].id,
-        region: 'US',
-        createdBy: systemUserId
-      }
-    }),
-    prisma.factor.create({
-      data: {
-        name: 'Glass Bottle Disposal Emission Factor',
-        description: 'CO2 equivalent emissions per kg of glass bottle disposed in landfill',
-        currentValue: 0.31,
-        unit: 'kg CO2e/kg',
-        categoryId: categories[0].id,
-        sourceId: sources[0].id,
-        region: 'US',
-        createdBy: systemUserId
-      }
-    }),
-    prisma.factor.create({
-      data: {
-        name: 'California Electricity Grid Emission Factor',
-        description: 'CO2 emissions per kWh of electricity in California',
-        currentValue: 0.209,
-        unit: 'kg CO2e/kWh',
-        categoryId: categories[0].id,
-        sourceId: sources[2].id,
-        region: 'CA',
-        createdBy: systemUserId
-      }
-    }),
-    // Utility Rates
-    prisma.factor.create({
-      data: {
-        name: 'California Commercial Electricity Rate',
-        description: 'Average commercial electricity rate in California',
-        currentValue: 0.168,
-        unit: '$/kWh',
-        categoryId: categories[1].id,
-        sourceId: sources[1].id,
-        region: 'CA',
-        createdBy: systemUserId
-      }
-    }),
-    prisma.factor.create({
-      data: {
-        name: 'California Commercial Natural Gas Rate',
-        description: 'Average commercial natural gas rate in California',
-        currentValue: 1.24,
-        unit: '$/therm',
-        categoryId: categories[1].id,
-        sourceId: sources[1].id,
-        region: 'CA',
-        createdBy: systemUserId
-      }
-    }),
-    // Transport Factors
-    prisma.factor.create({
-      data: {
-        name: 'Ocean Transport Emission Factor',
-        description: 'CO2 emissions per ton-mile for ocean freight',
-        currentValue: 0.040,
-        unit: 'kg CO2e/ton-mile',
-        categoryId: categories[2].id,
-        sourceId: sources[0].id,
-        region: 'Global',
-        createdBy: systemUserId
-      }
-    }),
-    // Material Properties
-    prisma.factor.create({
-      data: {
-        name: 'PET Bottle Weight',
-        description: 'Average weight of a 16oz PET bottle',
-        currentValue: 0.05,
-        unit: 'kg/bottle',
-        categoryId: categories[3].id,
-        sourceId: sources[0].id,
-        region: 'US',
-        createdBy: systemUserId
-      }
-    }),
-    prisma.factor.create({
-      data: {
-        name: 'Glass Bottle Weight',
-        description: 'Average weight of a 16oz glass bottle',
-        currentValue: 0.35,
-        unit: 'kg/bottle',
-        categoryId: categories[3].id,
-        sourceId: sources[0].id,
-        region: 'US',
-        createdBy: systemUserId
-      }
-    })
-  ]);
+  let factorCount = 0;
 
-  console.log(`✅ Created ${categories.length} categories, ${sources.length} sources, ${factors.length} factors`);
+  // ── Emission factors for electricity and natural gas ──────────────────────
+  await upsertFactor({
+    name: 'Electric CO₂ Emissions Factor',
+    description: 'CO₂ emissions per kWh of electricity consumed',
+    currentValue: ELECTRIC_CO2_EMISSIONS_FACTOR,
+    unit: 'lbs CO₂/kWh',
+    categoryId: emissionCat.id,
+    sourceId: epaEgrid.id,
+    region: 'US',
+    calculatorConstantKey: 'ELECTRIC_CO2_EMISSIONS_FACTOR',
+    notes: 'Used in dishwasher utility calculations'
+  });
+  factorCount++;
+
+  await upsertFactor({
+    name: 'Natural Gas CO₂ Emissions Factor',
+    description: 'CO₂ emissions per therm of natural gas consumed',
+    currentValue: NATURAL_GAS_CO2_EMISSIONS_FACTOR,
+    unit: 'lbs CO₂/therm',
+    categoryId: emissionCat.id,
+    sourceId: epaWarm.id,
+    region: 'US',
+    calculatorConstantKey: 'NATURAL_GAS_CO2_EMISSIONS_FACTOR',
+    notes: 'Used in dishwasher gas calculations'
+  });
+  factorCount++;
+
+  await upsertFactor({
+    name: 'Ocean Transport Emission Factor',
+    description: 'GHG emissions for standard ocean shipment (19,270 nautical miles)',
+    currentValue: TRANSPORTATION_CO2_EMISSIONS_FACTOR,
+    unit: 'MTCO₂e/lb',
+    categoryId: transportCat.id,
+    sourceId: epaWarm.id,
+    region: 'Global',
+    calculatorConstantKey: 'TRANSPORTATION_CO2_EMISSIONS_FACTOR',
+    notes: 'Waterborne craft factor × 19,270 nautical miles standard shipment distance'
+  });
+  factorCount++;
+
+  // ── Single-use material emission + water factors ──────────────────────────
+  for (const mat of MATERIALS) {
+    await upsertFactor({
+      name: `${mat.name} — Emission Factor`,
+      description: `GHG emission factor for single-use ${mat.name} disposal`,
+      currentValue: mat.mtco2ePerLb,
+      unit: 'MTCO₂e/lb',
+      categoryId: emissionCat.id,
+      sourceId: epaWarm.id,
+      region: 'US',
+      calculatorConstantKey: `MATERIALS[${mat.id}].mtco2ePerLb`,
+      notes: 'Source: EPA WARM Model Assumptions, !$B$4:$D$15'
+    });
+    factorCount++;
+
+    if (mat.waterUsageGalPerLb != null) {
+      await upsertFactor({
+        name: `${mat.name} — Water Usage`,
+        description: `Annual water usage per lb for single-use ${mat.name}`,
+        currentValue: mat.waterUsageGalPerLb,
+        unit: 'gal/lb',
+        categoryId: materialCat.id,
+        sourceId: epaWarm.id,
+        region: 'US',
+        calculatorConstantKey: `MATERIALS[${mat.id}].waterUsageGalPerLb`,
+        notes: 'Source: EPA WARM Model'
+      });
+      factorCount++;
+    }
+  }
+
+  // ── Reusable material emission + water factors ────────────────────────────
+  for (const mat of REUSABLE_MATERIALS) {
+    await upsertFactor({
+      name: `${mat.name} (Reusable) — Emission Factor`,
+      description: `GHG emission factor for reusable ${mat.name} production`,
+      currentValue: mat.mtco2ePerLb,
+      unit: 'MTCO₂e/lb',
+      categoryId: emissionCat.id,
+      sourceId: epaWarm.id,
+      region: 'US',
+      calculatorConstantKey: `REUSABLE_MATERIALS[${mat.id}].mtco2ePerLb`,
+      notes: 'Source: EPA WARM Model'
+    });
+    factorCount++;
+
+    await upsertFactor({
+      name: `${mat.name} (Reusable) — Water Usage`,
+      description: `Annual water usage per lb for reusable ${mat.name}`,
+      currentValue: mat.waterUsageGalPerLb,
+      unit: 'gal/lb',
+      categoryId: materialCat.id,
+      sourceId: epaWarm.id,
+      region: 'US',
+      calculatorConstantKey: `REUSABLE_MATERIALS[${mat.id}].waterUsageGalPerLb`,
+      notes: 'Source: EPA WARM Model'
+    });
+    factorCount++;
+  }
+
+  // ── State utility rates ───────────────────────────────────────────────────
+  for (const state of STATES) {
+    await upsertFactor({
+      name: `${state.name} — Commercial Electric Rate`,
+      description: `Commercial electricity rate for ${state.name}`,
+      currentValue: state.electric,
+      unit: '$/kWh',
+      categoryId: utilityCat.id,
+      sourceId: doeEia.id,
+      region: state.name,
+      calculatorConstantKey: `STATES[${state.name}].electric`,
+      notes: 'DOE EIA commercial electric rates'
+    });
+    factorCount++;
+
+    await upsertFactor({
+      name: `${state.name} — Commercial Gas Rate`,
+      description: `Commercial natural gas rate for ${state.name}`,
+      currentValue: state.gas,
+      unit: '$/therm',
+      categoryId: utilityCat.id,
+      sourceId: doeEia.id,
+      region: state.name,
+      calculatorConstantKey: `STATES[${state.name}].gas`,
+      notes: 'DOE EIA commercial natural gas rates'
+    });
+    factorCount++;
+  }
+
+  console.log(`✅ Created/updated ${factorCount} factors across ${5} categories and ${3} sources`);
+}
+
+async function upsertFactor(data: {
+  name: string;
+  description?: string;
+  currentValue: number;
+  unit: string;
+  categoryId: string;
+  sourceId: string;
+  region?: string;
+  calculatorConstantKey?: string;
+  notes?: string;
+}) {
+  await prisma.factor.upsert({
+    where: { name_categoryId: { name: data.name, categoryId: data.categoryId } } as any,
+    update: {
+      currentValue: data.currentValue,
+      unit: data.unit,
+      calculatorConstantKey: data.calculatorConstantKey ?? null,
+      notes: data.notes ?? null
+    },
+    create: {
+      ...data,
+      createdBy: SYSTEM_USER_ID,
+      isActive: true
+    }
+  });
 }
 
 async function main() {
@@ -183,6 +244,8 @@ async function main() {
   } catch (error) {
     console.error('❌ Error seeding factor library:', error);
     process.exit(1);
+  } finally {
+    await prisma.$disconnect();
   }
 }
 

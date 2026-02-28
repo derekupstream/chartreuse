@@ -39,7 +39,8 @@ const DATA_SCIENCE_KEYS = [
   'admin/methodology',
   'data-science/golden-datasets',
   'data-science/test-runs',
-  'data-science/constants'
+  'data-science/constants',
+  'data-science/change-requests'
 ];
 
 const siderMenuItems = [
@@ -64,7 +65,11 @@ const siderMenuItems = [
         label: <Link href='/admin/data-science/golden-datasets'>Golden Datasets</Link>
       },
       { key: 'data-science/test-runs', label: <Link href='/admin/data-science/test-runs'>Test Runs</Link> },
-      { key: 'data-science/constants', label: <Link href='/admin/data-science/constants'>Constants</Link> }
+      { key: 'data-science/constants', label: <Link href='/admin/data-science/constants'>Constants</Link> },
+      {
+        key: 'data-science/change-requests',
+        label: <Link href='/admin/data-science/change-requests'>Change Requests</Link>
+      }
     ]
   }
 ];

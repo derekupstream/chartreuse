@@ -3,6 +3,7 @@ import {
   CalculatorOutlined,
   CheckCircleOutlined,
   CloseCircleOutlined,
+  ExclamationCircleOutlined,
   ExperimentOutlined,
   FileTextOutlined,
   QuestionCircleOutlined
@@ -359,12 +360,42 @@ export default function DataSciencePage({ user, stats, recentRuns }: Props) {
                                   improvement or an unintended regression.
                                 </Paragraph>
                                 <Paragraph type='secondary' style={{ margin: '8px 0 0', fontSize: 13 }}>
-                                  All factor changes require approval through the governance workflow. Test failures
-                                  trigger automatic change requests for audit trails.
+                                  When a test failure reveals a factor needs updating, use{' '}
+                                  <Link href='/admin/data-science/change-requests'>Change Requests</Link> to propose the
+                                  update through the governance workflow before editing the factor directly.
                                 </Paragraph>
                               </div>
                             ),
                             icon: <BarChartOutlined />
+                          },
+                          {
+                            title: (
+                              <Link href='/admin/data-science/change-requests'>
+                                <strong>Propose Factor Changes via Governance Workflow</strong>
+                              </Link>
+                            ),
+                            description: (
+                              <div style={{ paddingBottom: 8 }}>
+                                <Paragraph style={{ margin: 0 }}>
+                                  When a factor needs updating — because a new EPA WARM version was published, a utility
+                                  rate changed, or a test failure revealed an inaccuracy — go to{' '}
+                                  <Link href='/admin/data-science/change-requests'>Change Requests</Link> and submit a
+                                  request before editing the factor directly.
+                                </Paragraph>
+                                <Paragraph style={{ margin: '8px 0 0' }}>
+                                  A change request captures the proposed new value, the source reference, and the
+                                  reason. After review and approval, go to{' '}
+                                  <Link href='/admin/data-science/constants'>Constants</Link>, click{' '}
+                                  <strong>Edit</strong> on the factor, enter the new value and change reason, and save.
+                                  The system records the old value as a version history entry automatically.
+                                </Paragraph>
+                                <Paragraph type='secondary' style={{ margin: '8px 0 0', fontSize: 13 }}>
+                                  This two-step process (request → review → edit) creates a complete audit trail aligned
+                                  with GHG Protocol transparency guidance and DAMA data governance principles.
+                                </Paragraph>
+                              </div>
+                            ),
+                            icon: <ExclamationCircleOutlined />
                           },
                           {
                             title: <strong>Interpreting Test Results & Data Lineage</strong>,
@@ -403,9 +434,11 @@ export default function DataSciencePage({ user, stats, recentRuns }: Props) {
                                   </li>
                                 </ul>
                                 <Paragraph type='secondary' style={{ margin: '8px 0 0', fontSize: 13 }}>
-                                  Every factor change creates an audit trail. Use the version history to understand what
-                                  changed, when, and why. The governance workflow ensures all changes are reviewed and
-                                  documented according to industry standards.
+                                  Every factor edit creates a version history record. Use the Constants Library to
+                                  inspect each factor's version history — what value it had, when it changed, and the
+                                  stated reason. Each factor also shows its <code>calculatorConstantKey</code> — the
+                                  exact TypeScript constant it maps to in the calculator engine — providing full data
+                                  lineage from source to metric.
                                 </Paragraph>
                               </div>
                             ),

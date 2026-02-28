@@ -15,7 +15,14 @@
     "lint": "next lint",
     "docs": "kerbs dev",
     "sendInvite": "dotenv -e .env.production ts-node scripts/sendInvite.ts",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "prisma:validate": "prisma validate",
+    "prisma:sync": "./scripts/safe-prisma-operations.sh sync",
+    "prisma:status": "./scripts/safe-prisma-operations.sh status",
+    "prisma:reset-safe": "./scripts/safe-prisma-operations.sh reset-safe",
+    "seed": "ts-node scripts/seed.ts",
+    "seed:simple": "ts-node scripts/seed-simple.ts",
+    "seed:factor-library": "ts-node scripts/seed-factor-library.ts"
   },
   "dependencies": {
     "@analytics/mixpanel": "^0.4.0",

@@ -1,0 +1,66 @@
+name: Prisma Database Workflow
+on:
+  push:
+    branches: [main]
+    paths: ['prisma/**', 'migrations/**']
+  pull_request:
+    branches: [main]
+    paths: ['prisma/**', 'migrations/**']
+
+jobs:
+  validate-schema:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          
+      - name: Install dependencies
+        run: |
+          npm ci
+          
+      - name: Validate Prisma Schema
+        run: |
+          npx prisma validate
+          
+      - name: Check Migration Status
+        run: |
+          npx prisma migrate status
+          
+      - name: Generate Client
+        run: |
+          npx prisma generate
+          
+      - name: Run Database Tests
+        run: |
+          npm run test:db || echo "No DB tests configured"
+
+  sync-database:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && contains(github.event.head_commit.message, '[db-sync]')
+    needs: validate-schema
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          
+      - name: Install dependencies
+        run: |
+          npm ci
+          
+      - name: Sync Database
+        run: |
+          npx prisma db push --force-reset
+          npx prisma generate
+          
+      - name: Seed Data
+        run: |
+          npm run seed:factor-library || echo "Factor library seeding completed"

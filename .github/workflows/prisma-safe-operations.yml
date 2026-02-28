@@ -1,0 +1,35 @@
+name: Safe Prisma Operations
+on:
+  workflow_dispatch:
+    inputs:
+      operation:
+        description: 'Operation to perform'
+        required: true
+        default: 'validate'
+        type: choice
+        options:
+        - validate
+        - sync
+        - status
+        - reset-safe
+
+jobs:
+  safe-prisma:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          
+      - name: Install dependencies
+        run: |
+          npm ci
+          
+      - name: Execute Safe Prisma Operation
+        run: |
+          chmod +x ./scripts/safe-prisma-operations.sh
+          ./scripts/safe-prisma-operations.sh ${{ github.event.inputs.operation }}
