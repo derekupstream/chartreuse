@@ -284,6 +284,17 @@ enum Role {
   ACCOUNT_ADMIN
 }
 
+model MethodologyDocument {
+  id          String    @id @default(uuid()) @db.Uuid
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  title       String
+  slug        String    @unique
+  content     Json
+  status      String    @default("draft")
+  publishedAt DateTime?
+}
+
 model ImpersonationSession {
   id           String   @id @default(uuid()) @db.Uuid
   adminUserId  String

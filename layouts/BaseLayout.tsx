@@ -45,6 +45,7 @@ const adminLinks: MenuProps['items'] = [
   { key: 'admin/orgs', label: <Link href='/admin/orgs'>Organizations</Link> },
   { key: 'admin/users', label: <Link href='/admin/users'>Users</Link> },
   { key: 'admin/feedback', label: <Link href='/admin/feedback'>Feedback</Link> },
+  { key: 'admin/methodology', label: <Link href='/admin/methodology'>Methodology</Link> },
   { key: 'upstream/total-annual-impact', label: <Link href='/upstream/total-annual-impact'>Analytics</Link> }
 ];
 
