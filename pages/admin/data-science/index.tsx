@@ -254,21 +254,22 @@ export default function DataSciencePage({ user, stats, recentRuns }: Props) {
                           {
                             title: (
                               <Link href='/admin/data-science/constants'>
-                                <strong>Review the Constants</strong>
+                                <strong>Review the Factor Library</strong>
                               </Link>
                             ),
                             description: (
                               <div style={{ paddingBottom: 8 }}>
                                 <Paragraph style={{ margin: 0 }}>
                                   Start at <Link href='/admin/data-science/constants'>Constants</Link> to see every
-                                  hardcoded value the calculator uses: EPA WARM emission factors for each single-use and
-                                  reusable material, CO₂ factors for electricity and natural gas, ocean transport
-                                  emissions, and commercial utility rates for all 50 states.
+                                  factor the calculator uses: EPA WARM emission factors for each material, CO₂ factors
+                                  for electricity and natural gas, ocean transport emissions, and commercial utility
+                                  rates for all 50 states. Each factor includes full versioning, source verification,
+                                  and governance tracking.
                                 </Paragraph>
                                 <Paragraph type='secondary' style={{ margin: '4px 0 0', fontSize: 13 }}>
-                                  If a source value has been updated (e.g. a new EPA WARM release), note the change here
-                                  and update the corresponding constant in <code>lib/calculator/constants/</code> with a
-                                  code change.
+                                  The factor library follows industry standards including GHG Protocol transparency, W3C
+                                  PROV data provenance, and DAMA data governance principles. Each factor shows its
+                                  complete version history, approval workflow, and dependency relationships.
                                 </Paragraph>
                               </div>
                             ),
@@ -284,14 +285,14 @@ export default function DataSciencePage({ user, stats, recentRuns }: Props) {
                               <div style={{ paddingBottom: 8 }}>
                                 <Paragraph style={{ margin: 0 }}>
                                   Use <Link href='/admin/methodology'>Methodology</Link> to write and publish
-                                  plain-language documents explaining <em>why</em> each constant was chosen, which EPA
-                                  or industry source it comes from, and any assumptions or simplifications made. These
+                                  plain-language documents explaining <em>why</em> each factor was chosen, which EPA or
+                                  industry source it comes from, and any assumptions or simplifications made. These
                                   documents are readable by the whole team and can be published publicly.
                                 </Paragraph>
                                 <Paragraph type='secondary' style={{ margin: '4px 0 0', fontSize: 13 }}>
                                   Good methodology docs make it easy to audit the calculator and onboard new data
-                                  scientists. Write one doc per calculation domain (waste, water, energy, transport,
-                                  etc.).
+                                  scientists. Link methodology docs to specific factors for full traceability from
+                                  source to calculation.
                                 </Paragraph>
                               </div>
                             ),
@@ -308,7 +309,8 @@ export default function DataSciencePage({ user, stats, recentRuns }: Props) {
                                 <Paragraph style={{ margin: 0 }}>
                                   A <em>golden dataset</em> is a snapshot of a real project's inputs (what materials,
                                   quantities, dishwashers, labor costs, etc.) paired with the outputs the calculator
-                                  produces right now. It becomes the ground truth for future testing.
+                                  produces right now. It becomes the ground truth for future testing and validates the
+                                  entire calculation pipeline.
                                 </Paragraph>
                                 <Paragraph style={{ margin: '8px 0 0' }}>
                                   Go to <Link href='/admin/data-science/golden-datasets'>Golden Datasets</Link> and
@@ -328,11 +330,6 @@ export default function DataSciencePage({ user, stats, recentRuns }: Props) {
                                   <li>An event project</li>
                                   <li>A project with bottle stations</li>
                                 </ul>
-                                <Paragraph type='secondary' style={{ margin: '8px 0 0', fontSize: 13 }}>
-                                  The default tolerance is ±2%. This means a metric passes if the live calculator
-                                  produces a value within 2% of the captured expected value. Tighten this for critical
-                                  financial metrics; loosen it for minor environmental estimates.
-                                </Paragraph>
                               </div>
                             ),
                             icon: <ExperimentOutlined />
@@ -340,13 +337,13 @@ export default function DataSciencePage({ user, stats, recentRuns }: Props) {
                           {
                             title: (
                               <Link href='/admin/data-science/test-runs'>
-                                <strong>Run Tests After Every Code Change</strong>
+                                <strong>Run Tests After Every Change</strong>
                               </Link>
                             ),
                             description: (
                               <div style={{ paddingBottom: 8 }}>
                                 <Paragraph style={{ margin: 0 }}>
-                                  Whenever a calculation, constant, or formula changes in the codebase, go to{' '}
+                                  Whenever a factor, calculation, or formula changes in the codebase, go to{' '}
                                   <Link href='/admin/data-science/test-runs'>Test Runs</Link> and click{' '}
                                   <strong>Run All Tests</strong>. This replays every active golden dataset through the
                                   live calculator and reports which metrics changed and by how much.
@@ -364,16 +361,15 @@ export default function DataSciencePage({ user, stats, recentRuns }: Props) {
                                   improvement or an unintended regression.
                                 </Paragraph>
                                 <Paragraph type='secondary' style={{ margin: '8px 0 0', fontSize: 13 }}>
-                                  If a failure is <em>intentional</em> (e.g. you updated an emission factor to a newer
-                                  source), delete the old golden dataset and capture a fresh one from the same project.
-                                  The new snapshot becomes the new ground truth.
+                                  All factor changes require approval through the governance workflow. Test failures
+                                  trigger automatic change requests for audit trails.
                                 </Paragraph>
                               </div>
                             ),
                             icon: <BarChartOutlined />
                           },
                           {
-                            title: <strong>Interpreting a Failed Test</strong>,
+                            title: <strong>Interpreting Test Results & Data Lineage</strong>,
                             description: (
                               <div style={{ paddingBottom: 4 }}>
                                 <Paragraph style={{ margin: 0 }}>
@@ -383,7 +379,9 @@ export default function DataSciencePage({ user, stats, recentRuns }: Props) {
                                   <em>Δ%</em> (the percentage difference). Only metrics that exceed the tolerance are
                                   flagged as failed — all others are shown collapsed under "Passed metrics."
                                 </Paragraph>
-                                <Paragraph style={{ margin: '8px 0 0' }}>Common failure patterns:</Paragraph>
+                                <Paragraph style={{ margin: '8px 0 0' }}>
+                                  Use the factor library's dependency tracking to trace failures:
+                                </Paragraph>
                                 <ul
                                   style={{
                                     margin: '4px 0 0',
@@ -393,19 +391,27 @@ export default function DataSciencePage({ user, stats, recentRuns }: Props) {
                                   }}
                                 >
                                   <li>
-                                    <strong>One metric off, others fine</strong> — likely a targeted formula change;
-                                    trace the metric path (e.g. <code>financialResults.reusable.laborCost</code>) back
-                                    to the relevant function in <code>lib/calculator/calculations/</code>
+                                    <strong>One metric off, others fine</strong> → Check factor dependencies in the
+                                    library
                                   </li>
                                   <li>
-                                    <strong>Many metrics off by the same %</strong> — likely a constant was changed
-                                    (emission factor, conversion rate)
+                                    <strong>Many metrics off by the same %</strong> → Look for source factor updates
+                                    (EPA WARM version changes)
                                   </li>
                                   <li>
-                                    <strong>All metrics fail for one dataset only</strong> — the source project's data
-                                    may have been edited; consider re-capturing that dataset
+                                    <strong>All metrics fail for one dataset only</strong> → The source project's data
+                                    may have been edited
+                                  </li>
+                                  <li>
+                                    <strong>Systematic pattern</strong> → Check calculation path tracing in factor
+                                    dependencies
                                   </li>
                                 </ul>
+                                <Paragraph type='secondary' style={{ margin: '8px 0 0', fontSize: 13 }}>
+                                  Every factor change creates an audit trail. Use the version history to understand what
+                                  changed, when, and why. The governance workflow ensures all changes are reviewed and
+                                  documented according to industry standards.
+                                </Paragraph>
                               </div>
                             ),
                             icon: <CheckCircleOutlined />
