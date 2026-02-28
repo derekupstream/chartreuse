@@ -262,14 +262,12 @@ export default function DataSciencePage({ user, stats, recentRuns }: Props) {
                                 <Paragraph style={{ margin: 0 }}>
                                   Start at <Link href='/admin/data-science/constants'>Constants</Link> to see every
                                   factor the calculator uses: EPA WARM emission factors for each material, CO₂ factors
-                                  for electricity and natural gas, ocean transport emissions, and commercial utility
-                                  rates for all 50 states. Each factor includes full versioning, source verification,
                                   and governance tracking.
                                 </Paragraph>
                                 <Paragraph type='secondary' style={{ margin: '4px 0 0', fontSize: 13 }}>
-                                  The factor library follows industry standards including GHG Protocol transparency, W3C
-                                  PROV data provenance, and DAMA data governance principles. Each factor shows its
-                                  complete version history, approval workflow, and dependency relationships.
+                                  The factor library provides centralized management of EPA WARM emission factors, DOE
+                                  utility rates, and transport emissions. Each factor shows its current value, source
+                                  information, and version history for audit purposes.
                                 </Paragraph>
                               </div>
                             ),
@@ -380,7 +378,8 @@ export default function DataSciencePage({ user, stats, recentRuns }: Props) {
                                   flagged as failed — all others are shown collapsed under "Passed metrics."
                                 </Paragraph>
                                 <Paragraph style={{ margin: '8px 0 0' }}>
-                                  Use the factor library's dependency tracking to trace failures:
+                                  Use the factor library's version history to understand what changed and when. Each
+                                  factor shows its complete change history with source versions and reasons.
                                 </Paragraph>
                                 <ul
                                   style={{
@@ -391,20 +390,16 @@ export default function DataSciencePage({ user, stats, recentRuns }: Props) {
                                   }}
                                 >
                                   <li>
-                                    <strong>One metric off, others fine</strong> → Check factor dependencies in the
-                                    library
+                                    <strong>One metric off, others fine</strong> → Check factor version history for
+                                    recent changes
                                   </li>
                                   <li>
-                                    <strong>Many metrics off by the same %</strong> → Look for source factor updates
-                                    (EPA WARM version changes)
+                                    <strong>Many metrics off by same %</strong> → Look for source factor updates (EPA
+                                    WARM version changes)
                                   </li>
                                   <li>
                                     <strong>All metrics fail for one dataset only</strong> → The source project's data
                                     may have been edited
-                                  </li>
-                                  <li>
-                                    <strong>Systematic pattern</strong> → Check calculation path tracing in factor
-                                    dependencies
                                   </li>
                                 </ul>
                                 <Paragraph type='secondary' style={{ margin: '8px 0 0', fontSize: 13 }}>
