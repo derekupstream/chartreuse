@@ -5,17 +5,15 @@ declare global {
 }
 
 // Supabase pooler connections require pgbouncer=true (disables prepared statements)
-// and sslmode=require. Append both if not already present.
+// and sslmode=require. Local dev also uses pgbouncer=true to prevent stale prepared
+// statements across Next.js hot-reloads.
 function getDatabaseUrl() {
   const url = process.env.DATABASE_URL || '';
-  if (url.includes('supabase.co')) {
-    const sep = url.includes('?') ? '&' : '?';
-    const parts: string[] = [];
-    if (!url.includes('pgbouncer')) parts.push('pgbouncer=true');
-    if (!url.includes('sslmode')) parts.push('sslmode=require');
-    return parts.length ? url + sep + parts.join('&') : url;
-  }
-  return url;
+  const sep = url.includes('?') ? '&' : '?';
+  const parts: string[] = [];
+  if (!url.includes('pgbouncer')) parts.push('pgbouncer=true');
+  if (url.includes('supabase.co') && !url.includes('sslmode')) parts.push('sslmode=require');
+  return parts.length ? url + sep + parts.join('&') : url;
 }
 
 // @ts-expect-error - global.prisma is not defined
@@ -27,7 +25,7 @@ if (process.env.NODE_ENV === 'production') {
 } else {
   if (!prisma) {
     // @ts-expect-error - global.prisma is not defined
-    prisma = global.prisma = new PrismaClient();
+    prisma = global.prisma = new PrismaClient({ datasources: { db: { url: getDatabaseUrl() } } });
   }
 }
 

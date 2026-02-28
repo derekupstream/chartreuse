@@ -5,13 +5,14 @@ import type { MenuProps } from 'antd';
 import Image from 'next/legacy/image';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import type { MenuClickEventHandler, MenuInfo, MenuItemType, SubMenuType } from 'rc-menu/lib/interface';
+import type { MenuClickEventHandler, MenuInfo } from 'rc-menu/lib/interface';
 import { useState, useEffect } from 'react';
 import { createGlobalStyle } from 'styled-components';
 
 import { SubscriptionCheck } from 'components/_app/SubscriptionCheck';
 import { ImpersonationBanner } from 'components/admin/ImpersonationBanner';
 import { Header } from 'components/common/Header';
+import { SettingsModal } from 'components/common/SettingsModal';
 import { useAuth } from 'hooks/useAuth';
 import { useSubscription } from 'hooks/useSubscription';
 import type { DashboardUser } from 'interfaces';
@@ -40,12 +41,27 @@ const menuLinks: MenuProps['items'] = [
   // { key: 'subscription', label: <Link href='/subscription'>Subscription</Link> }
 ];
 
+// All valid admin keys — used for validation in the guard below
 const adminLinks: MenuProps['items'] = [
   { key: 'admin', label: <Link href='/admin'>Overview</Link> },
   { key: 'admin/orgs', label: <Link href='/admin/orgs'>Organizations</Link> },
   { key: 'admin/users', label: <Link href='/admin/users'>Users</Link> },
   { key: 'admin/feedback', label: <Link href='/admin/feedback'>Feedback</Link> },
+  { key: 'data-science', label: <Link href='/admin/data-science'>Data Science</Link> },
   { key: 'admin/methodology', label: <Link href='/admin/methodology'>Methodology</Link> },
+  { key: 'data-science/golden-datasets', label: <Link href='/admin/data-science/golden-datasets'>Golden Datasets</Link> },
+  { key: 'data-science/test-runs', label: <Link href='/admin/data-science/test-runs'>Test Runs</Link> },
+  { key: 'data-science/constants', label: <Link href='/admin/data-science/constants'>Constants</Link> },
+  { key: 'upstream/total-annual-impact', label: <Link href='/upstream/total-annual-impact'>Analytics</Link> }
+];
+
+// Top-level items shown in the Admin dropdown — sub-pages live inside the Admin sidebar
+const adminDropdownItems: MenuProps['items'] = [
+  { key: 'admin', label: <Link href='/admin'>Overview</Link> },
+  { key: 'admin/orgs', label: <Link href='/admin/orgs'>Organizations</Link> },
+  { key: 'admin/users', label: <Link href='/admin/users'>Users</Link> },
+  { key: 'admin/feedback', label: <Link href='/admin/feedback'>Feedback</Link> },
+  { key: 'data-science', label: <Link href='/admin/data-science'>Data Science</Link> },
   { key: 'upstream/total-annual-impact', label: <Link href='/upstream/total-annual-impact'>Analytics</Link> }
 ];
 
@@ -54,6 +70,7 @@ export const BaseLayout: React.FC<DashboardProps> = ({ user, selectedMenuItem, t
   const router = useRouter();
   const [keys, setKeys] = useState<string[]>([]);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const { trialEndDateRelative } = useSubscription();
 
   useEffect(() => {
@@ -82,6 +99,11 @@ export const BaseLayout: React.FC<DashboardProps> = ({ user, selectedMenuItem, t
   };
 
   const handleMenuClick: MenuClickEventHandler = ({ key }: MenuInfo) => {
+    if (key === 'settings') {
+      setSettingsOpen(true);
+      setDrawerOpen(false);
+      return;
+    }
     router.push(`/${key}`);
     setKeys([key]);
     setDrawerOpen(false);
@@ -108,28 +130,16 @@ export const BaseLayout: React.FC<DashboardProps> = ({ user, selectedMenuItem, t
 
   if (user.role === 'ORG_ADMIN') {
     accountLinks.unshift({
-      key: 'edit_org',
-      label: <Link href={'/org/edit?redirect=' + encodeURIComponent(router.asPath)}>Settings</Link>
+      key: 'settings',
+      label: 'Settings'
     });
   }
 
-  const extendedLinks: (SubMenuType | MenuItemType)[] = [
-    {
-      key: 'divider',
-      disabled: true,
-      style: { cursor: 'default' },
-      label: <Divider type='vertical' style={{ height: '3em' }} />
-    },
-    {
-      key: 'admin',
-      label: 'Admin',
-      children: adminLinks
-    }
-  ];
+  const isOnAdminPage = adminLinks.some(link => link?.key === selectedMenuItem);
 
   const allMobileMenuItems: MenuProps['items'] = [
     ...(menuLinks ?? []),
-    ...(user.org.isUpstream ? [{ key: 'admin', label: 'Admin', children: adminLinks }] : []),
+    ...(user.org.isUpstream ? [{ key: 'admin', label: 'Admin', children: adminDropdownItems }] : []),
     { type: 'divider' },
     ...(accountLinks ?? [])
   ];
@@ -157,20 +167,37 @@ export const BaseLayout: React.FC<DashboardProps> = ({ user, selectedMenuItem, t
                 </S.FreeTrialBanner>
               )}
               {user.org.isUpstream && (
-                <Menu
-                  items={extendedLinks}
-                  mode='horizontal'
-                  disabledOverflow
-                  selectedKeys={[...keys, 'admin']}
-                  onClick={handleMenuClick}
-                />
+                <>
+                  <Divider type='vertical' style={{ height: '3em' }} />
+                  <Dropdown trigger={['hover']} placement='bottomLeft' menu={{ items: adminDropdownItems }}>
+                    <Link
+                      href='/admin'
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 4,
+                        padding: '0 12px',
+                        height: 46,
+                        color: isOnAdminPage ? '#52c41a' : 'rgba(0,0,0,0.88)',
+                        borderBottom: isOnAdminPage ? '2px solid #52c41a' : '2px solid transparent',
+                        fontWeight: isOnAdminPage ? 600 : 400,
+                        fontSize: 14
+                      }}
+                    >
+                      Admin <DownOutlined style={{ fontSize: 10 }} />
+                    </Link>
+                  </Dropdown>
+                </>
               )}
             </S.DesktopMenu>
           </S.LogoAndMenuWrapper>
           <S.OrgAndUserWrapper>
             <S.DesktopUserInfo>
               <Typography.Text type='secondary'>{user.org.name}</Typography.Text>
-              <Dropdown menu={{ items: accountLinks }} placement='bottomRight'>
+              <Dropdown
+                menu={{ items: accountLinks, onClick: ({ key }) => key === 'settings' && setSettingsOpen(true) }}
+                placement='bottomRight'
+              >
                 <Button ghost>
                   {user.name} <DownOutlined />
                 </Button>
@@ -200,6 +227,7 @@ export const BaseLayout: React.FC<DashboardProps> = ({ user, selectedMenuItem, t
           {children}
         </div>
       </Layout>
+      <SettingsModal org={user.org} open={settingsOpen} onClose={() => setSettingsOpen(false)} />
     </SubscriptionCheck>
   );
 };

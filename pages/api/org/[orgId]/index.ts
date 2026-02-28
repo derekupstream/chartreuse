@@ -6,7 +6,20 @@ import prisma from 'lib/prisma';
 
 const handler = handlerWithUser();
 
-handler.post(updateOrg).use(requireUpstream).delete(deleteOrg);
+handler.get(getOrg).post(updateOrg).use(requireUpstream).delete(deleteOrg);
+
+async function getOrg(req: NextApiRequestWithUser, res: NextApiResponse) {
+  const { orgId } = req.query;
+  if (req.user.orgId !== orgId) return res.status(403).json({ message: 'Forbidden' });
+
+  const org = await prisma.org.findUnique({
+    where: { id: orgId as string },
+    select: { id: true, name: true, currency: true, useMetricSystem: true, useShrinkageRate: true }
+  });
+
+  if (!org) return res.status(404).json({ message: 'Not found' });
+  return res.json(org);
+}
 
 export type RequestBody = {
   name: string;

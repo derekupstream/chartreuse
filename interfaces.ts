@@ -36,6 +36,9 @@ export interface DashboardUser extends User {
   org: {
     id: string;
     name: string;
+    currency: string;
+    useMetricSystem: boolean;
+    useShrinkageRate: boolean;
     accounts: AccountDataType[];
     isUpstream: boolean;
   };

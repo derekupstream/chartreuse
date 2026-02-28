@@ -312,3 +312,42 @@ model FeedbackSubmission {
   pageUrl   String?
   status    String   @default("open")
 }
+
+model GoldenDataset {
+  id              String          @id @default(uuid()) @db.Uuid
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  name            String
+  description     String?
+  category        String          @default("default")
+  inputs          Json
+  expectedOutputs Json
+  tolerance       Float           @default(0.02)
+  isActive        Boolean         @default(true)
+  sourceProjectId String?         @db.Uuid
+  tags            String[]        @default([])
+  testResults     TestRunResult[]
+}
+
+model TestRun {
+  id          String          @id @default(uuid()) @db.Uuid
+  createdAt   DateTime        @default(now())
+  ranByUserId String
+  status      String          @default("running")
+  totalTests  Int             @default(0)
+  passed      Int             @default(0)
+  failed      Int             @default(0)
+  results     TestRunResult[]
+}
+
+model TestRunResult {
+  id            String        @id @default(uuid()) @db.Uuid
+  testRunId     String        @db.Uuid
+  datasetId     String        @db.Uuid
+  passed        Boolean
+  actualOutputs Json?
+  diff          Json?
+  errorMessage  String?
+  testRun       TestRun       @relation(fields: [testRunId], references: [id], onDelete: Cascade)
+  dataset       GoldenDataset @relation(fields: [datasetId], references: [id])
+}
