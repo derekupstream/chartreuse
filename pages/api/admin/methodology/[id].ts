@@ -31,11 +31,16 @@ export default handlerWithUser()
       data.publishedAt = status === 'published' ? new Date() : null;
     }
 
-    const updated = await prisma.methodologyDocument.update({
-      where: { id: id as string },
-      data
-    });
-    res.json(updated);
+    try {
+      const updated = await prisma.methodologyDocument.update({
+        where: { id: id as string },
+        data
+      });
+      res.json(updated);
+    } catch (e: any) {
+      console.error('methodology update error:', e);
+      res.status(500).json({ error: e.message || 'Failed to update subsection' });
+    }
   })
   .delete(async (req: NextApiRequestWithUser, res: NextApiResponse) => {
     const isUpstream = await checkIsUpstream(req.user.orgId);

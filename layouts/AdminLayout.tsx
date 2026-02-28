@@ -40,8 +40,7 @@ const DATA_SCIENCE_KEYS = [
   'data-science/golden-datasets',
   'data-science/test-runs',
   'data-science/constants',
-  'data-science/change-requests',
-  'data-science/lineage'
+  'data-science/change-requests'
 ];
 
 const siderMenuItems = [
@@ -70,8 +69,7 @@ const siderMenuItems = [
       {
         key: 'data-science/change-requests',
         label: <Link href='/admin/data-science/change-requests'>Change Requests</Link>
-      },
-      { key: 'data-science/lineage', label: <Link href='/admin/data-science/lineage'>Data Lineage</Link> }
+      }
     ]
   }
 ];

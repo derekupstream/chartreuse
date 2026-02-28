@@ -77,8 +77,12 @@ function AdminMethodologyEditorPage({ doc, isNew }: Props) {
           body: JSON.stringify(body)
         });
         if (!res.ok) {
-          const err = await res.json();
-          throw new Error(err.error || 'Failed to save');
+          const text = await res.text();
+          let msg = 'Failed to save';
+          try {
+            msg = JSON.parse(text).error || msg;
+          } catch {}
+          throw new Error(msg);
         }
         const created = await res.json();
         message.success('Subsection created');
