@@ -301,6 +301,11 @@ function ProjectCard({ project, refreshProjects }: { project: PopulatedProject; 
           <S.ProjectType>Project Type</S.ProjectType>
           <Typography.Text>{(project?.metadata as ProjectMetadata)?.type}</Typography.Text>
         </S.ProjectInfo>
+        {project.updatedAt && (
+          <Typography.Text type='secondary' style={{ fontSize: 11, display: 'block', marginTop: 8 }}>
+            Updated {new Date(project.updatedAt).toLocaleDateString()}
+          </Typography.Text>
+        )}
       </div>
       <Button ghost block href={`/projects/${project.id}`}>
         View project

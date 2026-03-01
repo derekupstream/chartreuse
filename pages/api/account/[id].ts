@@ -11,13 +11,20 @@ const handler = nc<NextApiRequest, NextApiResponse>({ onError, onNoMatch });
 handler.use(getUser).put(updateAccount).delete(deleteAccount);
 
 async function updateAccount(req: NextApiRequestWithUser, res: NextApiResponse) {
+  const { name, USState, rspClientId, rspOrgId } = req.body as {
+    name?: string;
+    USState?: string;
+    rspClientId?: string | null;
+    rspOrgId?: string | null;
+  };
+
   const account = await prisma.account.update<Prisma.AccountUpdateArgs>({
-    where: {
-      id: req.query.id as string
-    },
+    where: { id: req.query.id as string },
     data: {
-      name: req.body.name,
-      USState: req.body.USState
+      ...(name !== undefined ? { name } : {}),
+      ...(USState !== undefined ? { USState } : {}),
+      ...(rspClientId !== undefined ? { rspClientId: rspClientId || null } : {}),
+      ...(rspOrgId !== undefined ? { rspOrgId: rspOrgId || null } : {})
     }
   });
 

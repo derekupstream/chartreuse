@@ -41,5 +41,12 @@ export interface DashboardUser extends User {
     useShrinkageRate: boolean;
     accounts: AccountDataType[];
     isUpstream: boolean;
+    orgType?: string | null;
+    country?: string | null;
+    city?: string | null;
+    employeeCount?: string | null;
+    locationCount?: string | null;
+    reuseJourneyStage?: string | null;
+    primaryChallenge?: string | null;
   };
 }

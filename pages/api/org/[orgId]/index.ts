@@ -14,7 +14,20 @@ async function getOrg(req: NextApiRequestWithUser, res: NextApiResponse) {
 
   const org = await prisma.org.findUnique({
     where: { id: orgId as string },
-    select: { id: true, name: true, currency: true, useMetricSystem: true, useShrinkageRate: true }
+    select: {
+      id: true,
+      name: true,
+      currency: true,
+      useMetricSystem: true,
+      useShrinkageRate: true,
+      orgType: true,
+      country: true,
+      city: true,
+      employeeCount: true,
+      locationCount: true,
+      reuseJourneyStage: true,
+      primaryChallenge: true
+    }
   });
 
   if (!org) return res.status(404).json({ message: 'Not found' });
@@ -22,28 +35,52 @@ async function getOrg(req: NextApiRequestWithUser, res: NextApiResponse) {
 }
 
 export type RequestBody = {
-  name: string;
-  currency: string;
-  useMetricSystem: boolean;
-  useShrinkageRate: boolean;
+  name?: string;
+  currency?: string;
+  useMetricSystem?: boolean;
+  useShrinkageRate?: boolean;
+  orgType?: string;
+  country?: string;
+  city?: string;
+  employeeCount?: string;
+  locationCount?: string;
+  reuseJourneyStage?: string;
+  primaryChallenge?: string;
 };
 
 async function updateOrg(req: NextApiRequestWithUser, res: NextApiResponse) {
-  const { name, currency, useMetricSystem, useShrinkageRate } = req.body as RequestBody;
+  const {
+    name,
+    currency,
+    useMetricSystem,
+    useShrinkageRate,
+    orgType,
+    country,
+    city,
+    employeeCount,
+    locationCount,
+    reuseJourneyStage,
+    primaryChallenge
+  } = req.body as RequestBody;
 
   if (req.user.role !== 'ORG_ADMIN') {
     return res.status(401).json({ message: 'Unauthorized' });
   }
 
   await prisma.org.update({
-    where: {
-      id: req.user.orgId
-    },
+    where: { id: req.user.orgId },
     data: {
-      name: name.trim(),
-      currency: currency,
-      useMetricSystem: useMetricSystem,
-      useShrinkageRate: useShrinkageRate
+      ...(name !== undefined ? { name: name.trim() } : {}),
+      ...(currency !== undefined ? { currency } : {}),
+      ...(useMetricSystem !== undefined ? { useMetricSystem } : {}),
+      ...(useShrinkageRate !== undefined ? { useShrinkageRate } : {}),
+      ...(orgType !== undefined ? { orgType } : {}),
+      ...(country !== undefined ? { country } : {}),
+      ...(city !== undefined ? { city } : {}),
+      ...(employeeCount !== undefined ? { employeeCount } : {}),
+      ...(locationCount !== undefined ? { locationCount } : {}),
+      ...(reuseJourneyStage !== undefined ? { reuseJourneyStage } : {}),
+      ...(primaryChallenge !== undefined ? { primaryChallenge } : {})
     }
   });
 

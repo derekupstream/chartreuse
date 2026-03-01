@@ -44,25 +44,39 @@ model Org {
   useMetricSystem      Boolean      @default(false)
   useShrinkageRate     Boolean      @default(false)
   orgInviteCode        String?      @unique
+  orgType              String?
+  country              String?
+  city                 String?
+  employeeCount        String?
+  locationCount        String?
+  reuseJourneyStage    String?
+  primaryChallenge     String?
   accounts             Account[]
+  rspClientAccounts    Account[]         @relation("AccountRspOrg")
   invites              Invite[]
   projects             Project[]
   projectTags          ProjectTag[]
+  rspApiKeys           RspApiKey[]
+  usagePeriods         UsageTimePeriod[]
   users                User[]
 }
 
 model Account {
   name                String
   metadata            Json?
-  createdAt           DateTime  @default(now())
-  updatedAt           DateTime  @updatedAt
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
   accountContactEmail String
-  id                  String    @id @default(uuid()) @db.Uuid
-  orgId               String    @db.Uuid
-  USState             String    @default("California")
-  org                 Org       @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  id                  String          @id @default(uuid()) @db.Uuid
+  orgId               String          @db.Uuid
+  USState             String          @default("California")
+  rspClientId         String?
+  rspOrgId            String?         @db.Uuid
+  org                 Org             @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  rspOrg              Org?            @relation("AccountRspOrg", fields: [rspOrgId], references: [id])
   invites             Invite[]
   projects            Project[]
+  usagePeriods        UsageTimePeriod[]
   users               User[]
 }
 
@@ -459,6 +473,57 @@ model ImportSession {
   status       String    @default("classifying")
   mappings     Json?
   errors       Json?
+}
+
+model RspApiKey {
+  id          String            @id @default(uuid()) @db.Uuid
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  orgId       String            @db.Uuid
+  label       String
+  keyHash     String            @unique
+  keyPrefix   String
+  isActive    Boolean           @default(true)
+  lastUsedAt  DateTime?
+  expiresAt   DateTime?
+  org         Org               @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  periods     UsageTimePeriod[]
+}
+
+model UsageTimePeriod {
+  id               String               @id @default(uuid()) @db.Uuid
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
+  orgId            String               @db.Uuid
+  accountId        String?              @db.Uuid
+  clientExternalId String
+  dateMin          DateTime             @db.Date
+  dateMax          DateTime             @db.Date
+  submittedByKeyId String?              @db.Uuid
+  status           String               @default("active")
+  supersededById   String?              @db.Uuid
+  rawPayload       Json?
+  co2AvoidedKg     Float                @default(0)
+  waterSavedGallons Float               @default(0)
+  wasteDivertedLbs Float                @default(0)
+  org              Org                  @relation(fields: [orgId], references: [id])
+  account          Account?             @relation(fields: [accountId], references: [id])
+  submittedByKey   RspApiKey?           @relation(fields: [submittedByKeyId], references: [id])
+  products         UsagePeriodProduct[]
+  supersededBy     UsageTimePeriod?     @relation("PeriodSupersedes", fields: [supersededById], references: [id])
+  supersedes       UsageTimePeriod[]    @relation("PeriodSupersedes")
+}
+
+model UsagePeriodProduct {
+  id                 String          @id @default(uuid()) @db.Uuid
+  periodId           String          @db.Uuid
+  reusableType       String
+  inWarehouseEvents  Int
+  outWarehouseEvents Int
+  co2AvoidedKg       Float           @default(0)
+  waterSavedGallons  Float           @default(0)
+  wasteDivertedLbs   Float           @default(0)
+  period             UsageTimePeriod @relation(fields: [periodId], references: [id], onDelete: Cascade)
 }
 
 enum ProjectCategory {

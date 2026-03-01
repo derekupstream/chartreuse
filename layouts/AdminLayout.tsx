@@ -1,4 +1,5 @@
 import {
+  ApiOutlined,
   BarChartOutlined,
   ExperimentOutlined,
   FlagOutlined,
@@ -46,6 +47,8 @@ const DATA_SCIENCE_KEYS = [
   'data-science/pipeline'
 ];
 
+const RSP_KEYS = ['rsp', 'rsp/api-keys'];
+
 const siderMenuItems = [
   { key: 'admin', icon: <HomeOutlined />, label: <Link href='/admin'>Overview</Link> },
   { key: 'admin/orgs', icon: <TeamOutlined />, label: <Link href='/admin/orgs'>Organizations</Link> },
@@ -76,6 +79,15 @@ const siderMenuItems = [
       { key: 'data-science/import', label: <Link href='/admin/data-science/import'>Import Data</Link> },
       { key: 'data-science/pipeline', label: <Link href='/admin/data-science/pipeline'>Pipeline</Link> }
     ]
+  },
+  {
+    key: 'rsp-group',
+    icon: <ApiOutlined />,
+    label: <Link href='/admin/rsp'>RSP Hub</Link>,
+    children: [
+      { key: 'rsp', label: <Link href='/admin/rsp'>Dashboard</Link> },
+      { key: 'rsp/api-keys', label: <Link href='/admin/rsp/api-keys'>API Keys</Link> }
+    ]
   }
 ];
 
@@ -87,7 +99,10 @@ type Props = {
 };
 
 export const AdminLayout: React.FC<Props> = ({ children, selectedMenuItem, ...props }) => {
-  const openKeys = DATA_SCIENCE_KEYS.includes(selectedMenuItem) ? ['data-science-group'] : [];
+  const openKeys = [
+    ...(DATA_SCIENCE_KEYS.includes(selectedMenuItem) ? ['data-science-group'] : []),
+    ...(RSP_KEYS.includes(selectedMenuItem) ? ['rsp-group'] : [])
+  ];
 
   return (
     <BaseLayout selectedMenuItem={selectedMenuItem} {...props}>

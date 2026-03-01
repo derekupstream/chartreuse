@@ -12,7 +12,6 @@ import { createGlobalStyle } from 'styled-components';
 import { SubscriptionCheck } from 'components/_app/SubscriptionCheck';
 import { ImpersonationBanner } from 'components/admin/ImpersonationBanner';
 import { Header } from 'components/common/Header';
-import { SettingsModal } from 'components/common/SettingsModal';
 import { useAuth } from 'hooks/useAuth';
 import { useSubscription } from 'hooks/useSubscription';
 import type { DashboardUser } from 'interfaces';
@@ -60,7 +59,10 @@ const adminLinks: MenuProps['items'] = [
   { key: 'data-science/calculations', label: <Link href='/admin/data-science/calculations'>Calculations</Link> },
   { key: 'data-science/import', label: <Link href='/admin/data-science/import'>Import Data</Link> },
   { key: 'data-science/pipeline', label: <Link href='/admin/data-science/pipeline'>Pipeline</Link> },
-  { key: 'upstream/total-annual-impact', label: <Link href='/upstream/total-annual-impact'>Analytics</Link> }
+  { key: 'upstream/total-annual-impact', label: <Link href='/upstream/total-annual-impact'>Analytics</Link> },
+  { key: 'settings', label: <Link href='/settings'>Settings</Link> },
+  { key: 'rsp', label: <Link href='/admin/rsp'>RSP Dashboard</Link> },
+  { key: 'rsp/api-keys', label: <Link href='/admin/rsp/api-keys'>RSP API Keys</Link> }
 ];
 
 // Top-level items shown in the Admin dropdown — sub-pages live inside the Admin sidebar
@@ -78,7 +80,6 @@ export const BaseLayout: React.FC<DashboardProps> = ({ user, selectedMenuItem, t
   const router = useRouter();
   const [keys, setKeys] = useState<string[]>([]);
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [settingsOpen, setSettingsOpen] = useState(false);
   const { trialEndDateRelative } = useSubscription();
 
   useEffect(() => {
@@ -107,11 +108,6 @@ export const BaseLayout: React.FC<DashboardProps> = ({ user, selectedMenuItem, t
   };
 
   const handleMenuClick: MenuClickEventHandler = ({ key }: MenuInfo) => {
-    if (key === 'settings') {
-      setSettingsOpen(true);
-      setDrawerOpen(false);
-      return;
-    }
     router.push(`/${key}`);
     setKeys([key]);
     setDrawerOpen(false);
@@ -139,7 +135,7 @@ export const BaseLayout: React.FC<DashboardProps> = ({ user, selectedMenuItem, t
   if (user.role === 'ORG_ADMIN') {
     accountLinks.unshift({
       key: 'settings',
-      label: 'Settings'
+      label: <Link href='/settings'>Settings</Link>
     });
   }
 
@@ -203,7 +199,7 @@ export const BaseLayout: React.FC<DashboardProps> = ({ user, selectedMenuItem, t
             <S.DesktopUserInfo>
               <Typography.Text type='secondary'>{user.org.name}</Typography.Text>
               <Dropdown
-                menu={{ items: accountLinks, onClick: ({ key }) => key === 'settings' && setSettingsOpen(true) }}
+                menu={{ items: accountLinks }}
                 placement='bottomRight'
               >
                 <Button ghost>
@@ -235,7 +231,6 @@ export const BaseLayout: React.FC<DashboardProps> = ({ user, selectedMenuItem, t
           {children}
         </div>
       </Layout>
-      <SettingsModal org={user.org} open={settingsOpen} onClose={() => setSettingsOpen(false)} />
     </SubscriptionCheck>
   );
 };
