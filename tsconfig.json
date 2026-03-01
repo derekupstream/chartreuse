@@ -17,7 +17,7 @@
     "incremental": true
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
-  "exclude": ["node_modules", "chartreuse-fork"],
+  "exclude": ["node_modules", "chartreuse-fork", "scripts"],
   "ts-node": {
     "compilerOptions": {
       "module": "commonjs"
