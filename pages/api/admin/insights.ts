@@ -121,12 +121,19 @@ Return ONLY a valid JSON array with this exact structure (no markdown, no explan
         .replace(/\s*```\s*$/, '')
         .trim();
 
+      // Claude sometimes puts literal newlines inside JSON string values (invalid JSON).
+      // Replace newlines inside strings with \n escape sequences, leave structural
+      // newlines (between tokens) as spaces — both are safe for JSON.parse.
+      const cleaned = stripped.replace(/"((?:[^"\\]|\\.)*)"/g, (_m, inner) => {
+        return '"' + inner.replace(/\n/g, '\\n').replace(/\r/g, '') + '"';
+      });
+
       let insights: InsightCard[] = [];
       try {
-        insights = JSON.parse(stripped);
+        insights = JSON.parse(cleaned);
       } catch {
         // Try extracting the first JSON array from anywhere in the response
-        const match = stripped.match(/\[[\s\S]*\]/);
+        const match = cleaned.match(/\[[\s\S]*\]/);
         if (match) {
           try {
             insights = JSON.parse(match[0]);
