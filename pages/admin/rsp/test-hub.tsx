@@ -39,8 +39,8 @@ type EventRow = { reusable_type: string; out_warehouse_events: number; in_wareho
 const fetcher = (url: string) => fetch(url).then(r => r.json());
 
 function RspTestHub({ user }: { user: DashboardUser }) {
-  const { data: rspsData, isLoading: rspsLoading } = useSWR<{ rsps: RspOrg[] }>('/api/admin/rsp/orgs', fetcher);
-  const rsps: RspOrg[] = rspsData?.rsps ?? [];
+  const { data: rspsData, isLoading: rspsLoading } = useSWR<RspOrg[]>('/api/admin/rsp/orgs', fetcher);
+  const rsps: RspOrg[] = Array.isArray(rspsData) ? rspsData : [];
 
   const [selectedOrgId, setSelectedOrgId] = useState<string>('');
   const [sessionKey, setSessionKey] = useState<string>('');

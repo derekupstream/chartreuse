@@ -1,5 +1,5 @@
 import { BulbOutlined, SyncOutlined } from '@ant-design/icons';
-import { Button, Card, Col, Row, Tag, Tooltip, Typography } from 'antd';
+import { Button, Card, Col, Row, Tag, Tooltip, Typography, message } from 'antd';
 import { useState } from 'react';
 import useSWR from 'swr';
 
@@ -35,13 +35,20 @@ export function AiInsightsSection() {
   const tooRecent = hoursSinceLast < 8;
 
   async function generate() {
+    if (generating) return;
     setGenerating(true);
     try {
       const res = await fetch('/api/admin/insights', { method: 'POST' });
-      if (!res.ok) throw new Error('Generation failed');
-      await mutate();
-    } catch {
-      // silent — mutate handles refresh
+      const body = await res.json();
+      if (!res.ok) {
+        message.error(`Failed to generate insights: ${body?.error ?? res.status}`);
+        return;
+      }
+      // Update SWR cache directly with the response — no extra round-trip
+      await mutate(body, false);
+      message.success('AI insights generated');
+    } catch (err: any) {
+      message.error(`Error: ${err.message}`);
     } finally {
       setGenerating(false);
     }
@@ -72,7 +79,7 @@ export function AiInsightsSection() {
             icon={<SyncOutlined spin={generating} />}
             onClick={generate}
             loading={generating}
-            disabled={tooRecent}
+            disabled={tooRecent || generating}
             type={cards.length === 0 ? 'primary' : 'default'}
           >
             {cards.length === 0 ? 'Generate Insights' : 'Regenerate'}
