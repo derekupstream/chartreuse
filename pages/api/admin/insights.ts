@@ -115,17 +115,28 @@ Return ONLY a valid JSON array with this exact structure (no markdown, no explan
 
       const rawText = message.content[0].type === 'text' ? message.content[0].text : '';
 
+      // Strip markdown code fences if present (```json ... ``` or ``` ... ```)
+      const stripped = rawText
+        .replace(/^```(?:json)?\s*/i, '')
+        .replace(/\s*```\s*$/, '')
+        .trim();
+
       let insights: InsightCard[] = [];
       try {
-        insights = JSON.parse(rawText);
+        insights = JSON.parse(stripped);
       } catch {
-        const match = rawText.match(/\[[\s\S]*\]/);
+        // Try extracting the first JSON array from anywhere in the response
+        const match = stripped.match(/\[[\s\S]*\]/);
         if (match) {
           try {
             insights = JSON.parse(match[0]);
           } catch {
+            console.error('[insights] raw response:', rawText);
             return res.status(500).json({ error: 'Failed to parse AI response', raw: rawText });
           }
+        } else {
+          console.error('[insights] no JSON array found in response:', rawText);
+          return res.status(500).json({ error: 'Failed to parse AI response', raw: rawText });
         }
       }
 
