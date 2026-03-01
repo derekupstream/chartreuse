@@ -8,12 +8,15 @@ import type { AnnualWaterResults } from './water/getAnnualWaterUsageChanges';
 import { getAnnualWaterUsageChanges } from './water/getAnnualWaterUsageChanges';
 import type { EventProjectWaste } from './waste/getEventProjectWaste';
 import { getEventProjectWaste } from './waste/getEventProjectWaste';
+import type { EnvBreakEven } from './getEnvBreakEven';
+import { getEnvBreakEven } from './getEnvBreakEven';
 
-interface EnvironmentalResults {
+export interface EnvironmentalResults {
   annualGasEmissionChanges: AnnualGasEmissionChanges;
   annualWasteChanges: AnnualWasteResults;
   annualWaterUsageChanges: AnnualWaterResults;
   eventProjectWaste: EventProjectWaste;
+  envBreakEven: EnvBreakEven;
 }
 
 export function getEnvironmentalResults(project: ProjectInventory): EnvironmentalResults {
@@ -21,11 +24,13 @@ export function getEnvironmentalResults(project: ProjectInventory): Environmenta
   const annualWasteChanges = getAnnualWasteChanges(project);
   const annualWaterUsageChanges = getAnnualWaterUsageChanges(project);
   const eventProjectWaste = getEventProjectWaste(project);
+  const envBreakEven = getEnvBreakEven(project);
 
   return {
     annualGasEmissionChanges,
     annualWasteChanges,
     annualWaterUsageChanges,
-    eventProjectWaste
+    eventProjectWaste,
+    envBreakEven
   };
 }

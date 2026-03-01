@@ -135,6 +135,26 @@ model Project {
   singleUseItems               SingleUseLineItem[]
   truckTransportationCosts     TruckTransportationCost[]
   wasteHaulingCosts            WasteHaulingCost[]
+  milestones                   ProjectMilestone[]
+}
+
+model ProjectMilestone {
+  id                 String   @id @default(uuid()) @db.Uuid
+  createdAt          DateTime @default(now())
+  projectId          String   @db.Uuid
+  snapshotDate       DateTime @db.Date
+  label              String?
+  source             String   @default("manual")
+  co2AvoidedMtco2e   Float?
+  waterSavedGallons  Float?
+  wasteDivertedLbs   Float?
+  annualCostSavings  Float?
+  paybackMonths      Int?
+  annualROIPct       Float?
+  envBreakEvenMonths Float?
+  returnRatePct      Float?
+  rawMetrics         Json?
+  project            Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
 }
 
 model EventFoodwareLineItem {

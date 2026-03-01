@@ -18,6 +18,7 @@ import { requestDownload } from 'lib/files';
 import { useMetricSystem } from 'components/_app/MetricSystemProvider';
 import { valueInPounds, valueInGallons } from 'lib/number';
 import { SummaryCardWithGraph, SummaryCard, SummaryCardSingleUseBreakdown } from './components/SummaryCardWithGraph';
+import { ImpactTimeline } from './components/ImpactTimeline';
 import { useCurrency } from 'components/_app/CurrencyProvider';
 import { columns } from './components/AnalyticsTableColumns';
 import { columns as eventColumns } from './components/EventAnalyticsTableColumns';
@@ -388,6 +389,7 @@ export function AnalyticsPage({
           pagination={{ hideOnSinglePage: true, pageSize: rows.length }}
         />
       </Card>
+      <ImpactTimeline />
     </div>
   );
 }

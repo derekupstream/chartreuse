@@ -8,13 +8,12 @@ import { poundsToTons } from 'lib/calculator/constants/conversions';
 import type { ProjectionsResponse } from 'lib/calculator/getProjections';
 import { changeValue, valueInGallons, valueInPounds, changeValueInGallons, changeValueInPounds } from 'lib/number';
 
-import BigNumber from '../../common/BigNumber';
 import KPICard from '../../common/KPICard';
 import Card from '../../common/Card';
 import Chart from '../../common/ChartColumn';
 import { SectionContainer, SectionHeader, SectionTitle } from '../../common/styles';
 import { useMetricSystem } from 'components/_app/MetricSystemProvider';
-import { ViewResultsWrapper, BigNumberWrapper, ChartTitle } from './components/styles';
+import { ViewResultsWrapper, ChartTitle } from './components/styles';
 
 const StyledCol = styled(Col)`
   @media print {
@@ -210,6 +209,35 @@ export const EnvironmentalSummary: React.FC<Props> = ({ data, hideWaterUsage, is
             <Chart data={ghgData} seriesField='wasteType' />
           </KPICard>
         </StyledCol>
+
+        {data.envBreakEven &&
+          (data.envBreakEven.co2BreakEvenMonths != null || data.envBreakEven.embodiedCO2Mtco2e > 0) && (
+            <StyledCol xs={24} lg={12}>
+              <KPICard
+                style={{ height: '100%' }}
+                changeStr={
+                  data.envBreakEven.co2BreakEvenMonths != null ? `${data.envBreakEven.co2BreakEvenMonths} mos.` : 'N/A'
+                }
+                title={
+                  <span>
+                    Environmental Break-Even{' '}
+                    <Tooltip title='How many months until the manufacturing carbon footprint of all reusables purchased is offset by avoided single-use emissions. Based on material embodied carbon, transportation, and annual avoided GHG emissions.'>
+                      <InfoCircleOutlined style={{ fontSize: '14px', color: '#8c8c8c', cursor: 'help' }} />
+                    </Tooltip>
+                  </span>
+                }
+              >
+                <Typography.Text type='secondary' style={{ fontSize: 12, display: 'block', marginTop: 8 }}>
+                  Reusable manufacturing footprint:{' '}
+                  <strong>{data.envBreakEven.embodiedCO2Mtco2e.toFixed(4)} MTCO2e</strong>
+                </Typography.Text>
+                <Typography.Text type='secondary' style={{ fontSize: 12, display: 'block' }}>
+                  Annual avoided emissions:{' '}
+                  <strong>{data.envBreakEven.annualCO2SavingsMtco2e.toFixed(4)} MTCO2e/yr</strong>
+                </Typography.Text>
+              </KPICard>
+            </StyledCol>
+          )}
       </Row>
     </SectionContainer>
   );

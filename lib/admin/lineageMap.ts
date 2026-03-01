@@ -95,6 +95,28 @@ export const LINEAGE_MAP: LineageEntry[] = [
       'financialResults.summary.annualCost'
     ],
     metricCategory: 'financial'
+  },
+  {
+    pattern: /^REUSABLE_MATERIALS\[.*\]\.mtco2ePerLb$|^CORRUGATED_CARDBOARD_GAS$|^TRANSPORTATION_CO2_EMISSIONS_FACTOR$/,
+    calculatorFile: 'lib/calculator/calculations/getEnvBreakEven.ts',
+    calculatorFunction: 'getEnvBreakEven()',
+    outputMetrics: [
+      'environmentalResults.envBreakEven.co2BreakEvenMonths',
+      'environmentalResults.envBreakEven.embodiedCO2Mtco2e',
+      'environmentalResults.envBreakEven.annualCO2SavingsMtco2e'
+    ],
+    metricCategory: 'environmental'
+  },
+  {
+    pattern: /^REUSABLE_MATERIALS\[.*\]\.waterUsageGalPerLb$/,
+    calculatorFile: 'lib/calculator/calculations/getEnvBreakEven.ts',
+    calculatorFunction: 'getEnvBreakEven()',
+    outputMetrics: [
+      'environmentalResults.envBreakEven.waterBreakEvenMonths',
+      'environmentalResults.envBreakEven.embodiedWaterGallons',
+      'environmentalResults.envBreakEven.annualWaterSavingsGallons'
+    ],
+    metricCategory: 'environmental'
   }
 ];
 

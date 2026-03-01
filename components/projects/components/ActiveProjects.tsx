@@ -22,9 +22,10 @@ interface ActiveProjectsProps {
   tagIdsFilter: string[];
   sortOrder: SortOrder;
   tags: ProjectTag[];
+  categoryFilter?: 'event' | 'default' | null;
 }
 
-export function ActiveProjects({ tagIdsFilter, sortOrder, tags }: ActiveProjectsProps) {
+export function ActiveProjects({ tagIdsFilter, sortOrder, tags, categoryFilter }: ActiveProjectsProps) {
   const { data: { projects } = {}, isLoading, mutate: refreshProjects, error } = useGetProjects();
 
   const sortedProjects = useMemo<PopulatedProject[]>(() => {
@@ -83,14 +84,15 @@ export function ActiveProjects({ tagIdsFilter, sortOrder, tags }: ActiveProjects
   }, [tags, sortedProjects]);
 
   const filteredProjects = useMemo(() => {
-    return (
-      (tagIdsFilter.length > 0
-        ? sortedProjects?.filter((project: PopulatedProject) => {
-            return project.tags.some(tag => tagIdsFilter.includes(tag.tagId));
-          })
-        : sortedProjects) || []
-    );
-  }, [sortedProjects, tagIdsFilter]);
+    let result = sortedProjects || [];
+    if (categoryFilter) {
+      result = result.filter(project => project.category === categoryFilter);
+    }
+    if (tagIdsFilter.length > 0) {
+      result = result.filter(project => project.tags.some(tag => tagIdsFilter.includes(tag.tagId)));
+    }
+    return result;
+  }, [sortedProjects, tagIdsFilter, categoryFilter]);
 
   // Group projects by month for projectDate sorting
   const projectsByMonth = useMemo(() => {

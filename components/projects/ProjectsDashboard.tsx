@@ -1,5 +1,5 @@
 import { PlusOutlined } from '@ant-design/icons';
-import { Button, Tabs, Typography, Select } from 'antd';
+import { Button, Tabs, Typography, Select, Radio } from 'antd';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import styled from 'styled-components';
@@ -44,6 +44,7 @@ export const ProjectsDashboard = ({
   const projectLimitReached = false; // data?.projects && subscriptionStatus !== 'Active' && data.projects.length >= projectLimit;
 
   const [tagIdsFilter, setTagIdsFilter] = useState<string[]>([]);
+  const [categoryFilter, setCategoryFilter] = useState<'event' | 'default' | null>(null);
 
   const [sortOrder, setSortOrder] = useState('created');
 
@@ -102,16 +103,27 @@ export const ProjectsDashboard = ({
         size={'large'}
         tabBarExtraContent={
           <FiltersRow>
+            <Radio.Group
+              value={categoryFilter ?? 'all'}
+              onChange={e => setCategoryFilter(e.target.value === 'all' ? null : e.target.value)}
+              optionType='button'
+              buttonStyle='solid'
+              size='small'
+            >
+              <Radio.Button value='all'>All</Radio.Button>
+              <Radio.Button value='default'>Projections</Radio.Button>
+              <Radio.Button value='event'>Actuals</Radio.Button>
+            </Radio.Group>
             <Select
               mode='multiple'
-              placeholder='Filter projects by tag'
-              style={{ minWidth: 210 }}
+              placeholder='Filter by tag'
+              style={{ minWidth: 180 }}
               options={tags.map(tag => ({ label: tag.label, value: tag.id }))}
               onChange={setTagIdsFilter}
             />
             <Select
               value={sortOrder}
-              style={{ minWidth: 210 }}
+              style={{ minWidth: 180 }}
               labelRender={value => <span>Sort by {value.label}</span>}
               options={sortOptions}
               onChange={handleSortChange}
@@ -122,7 +134,14 @@ export const ProjectsDashboard = ({
           {
             label: `Active Projects`,
             key: 'active',
-            children: <ActiveProjects tagIdsFilter={tagIdsFilter} sortOrder={sortOrder as SortOrder} tags={tags} />
+            children: (
+              <ActiveProjects
+                tagIdsFilter={tagIdsFilter}
+                sortOrder={sortOrder as SortOrder}
+                tags={tags}
+                categoryFilter={categoryFilter}
+              />
+            )
           },
           {
             label: `Templates`,

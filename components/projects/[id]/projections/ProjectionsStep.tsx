@@ -7,6 +7,7 @@ import ContentLoader from 'components/common/ContentLoader';
 import { ErrorPage } from 'components/common/errors/ErrorPage';
 import { PrintButton } from 'components/common/print/PrintButton';
 import { ShareButton } from './components/ShareButton';
+import { SaveSnapshotButton } from './components/SaveSnapshotButton';
 import { PrintHeader } from 'components/common/print/PrintHeader';
 import { useGetProjections, useUpdateProjections } from 'client/projects';
 import type { ProjectContext } from 'lib/middleware/getProjectContext';
@@ -216,6 +217,7 @@ export const ProjectionsStep = ({ project, readOnly }: { project: ProjectContext
         <div style={{ display: 'flex', gap: 16, alignItems: 'center', flexShrink: 0 }}>
           <PrintButton printRef={printRef} pdfTitle={`${project.name} - Chart-Reuse`} />
           {!project.isTemplate && <ShareButton projectId={project.id} publicSlug={project.publicSlug} />}
+          {!project.isTemplate && !readOnly && <SaveSnapshotButton projectId={project.id} />}
         </div>
       </div>
       <Typography.Paragraph
