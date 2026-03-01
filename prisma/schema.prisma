@@ -546,6 +546,13 @@ model UsagePeriodProduct {
   period             UsageTimePeriod @relation(fields: [periodId], references: [id], onDelete: Cascade)
 }
 
+model AdminInsight {
+  id          String   @id @default(uuid()) @db.Uuid
+  generatedAt DateTime @default(now())
+  content     Json
+  modelUsed   String   @default("claude-haiku-4-5-20251001")
+}
+
 enum ProjectCategory {
   default
   event

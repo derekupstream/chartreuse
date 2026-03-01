@@ -4,6 +4,7 @@ import {
   ExperimentOutlined,
   FlagOutlined,
   HomeOutlined,
+  ProjectOutlined,
   TeamOutlined,
   UserOutlined
 } from '@ant-design/icons';
@@ -47,11 +48,12 @@ const DATA_SCIENCE_KEYS = [
   'data-science/pipeline'
 ];
 
-const RSP_KEYS = ['rsp', 'rsp/api-keys'];
+const RSP_KEYS = ['rsp', 'rsp/api-keys', 'rsp/test-hub'];
 
 const siderMenuItems = [
   { key: 'admin', icon: <HomeOutlined />, label: <Link href='/admin'>Overview</Link> },
   { key: 'admin/orgs', icon: <TeamOutlined />, label: <Link href='/admin/orgs'>Organizations</Link> },
+  { key: 'admin/projects', icon: <ProjectOutlined />, label: <Link href='/admin/projects'>Projects</Link> },
   { key: 'admin/users', icon: <UserOutlined />, label: <Link href='/admin/users'>Users</Link> },
   { key: 'admin/feedback', icon: <FlagOutlined />, label: <Link href='/admin/feedback'>Feedback</Link> },
   {
@@ -86,7 +88,8 @@ const siderMenuItems = [
     label: <Link href='/admin/rsp'>RSP Hub</Link>,
     children: [
       { key: 'rsp', label: <Link href='/admin/rsp'>Dashboard</Link> },
-      { key: 'rsp/api-keys', label: <Link href='/admin/rsp/api-keys'>API Keys</Link> }
+      { key: 'rsp/api-keys', label: <Link href='/admin/rsp/api-keys'>API Keys</Link> },
+      { key: 'rsp/test-hub', label: <Link href='/admin/rsp/test-hub'>Test Hub</Link> }
     ]
   }
 ];

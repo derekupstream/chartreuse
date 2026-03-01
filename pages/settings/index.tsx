@@ -479,7 +479,9 @@ export default function SettingsPage({ user, apiKeys: initialApiKeys }: Props) {
 }
 
 SettingsPage.getLayout = (page: React.ReactNode, pageProps: PageProps) => (
-  <BaseLayout {...(pageProps as any)}>{page}</BaseLayout>
+  <BaseLayout {...(pageProps as any)} selectedMenuItem='settings' title='Settings'>
+    {page}
+  </BaseLayout>
 );
 
 export const getServerSideProps: GetServerSideProps = async context => {

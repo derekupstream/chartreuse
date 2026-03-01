@@ -1,5 +1,6 @@
 import { TeamOutlined, UserOutlined, ProjectOutlined, RiseOutlined } from '@ant-design/icons';
 import { Card, Col, Row, Statistic, Table, Typography } from 'antd';
+import { AiInsightsSection } from 'components/admin/AiInsightsSection';
 import type { GetServerSideProps } from 'next';
 
 import type { DashboardUser } from 'interfaces';
@@ -105,6 +106,8 @@ function AdminOverviewPage({ user, data }: { user: DashboardUser; data: AdminOve
       <Card>
         <Table columns={columns} dataSource={data.recentOrgs} rowKey='id' pagination={false} size='small' />
       </Card>
+
+      <AiInsightsSection />
     </>
   );
 }

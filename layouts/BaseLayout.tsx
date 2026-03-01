@@ -62,7 +62,9 @@ const adminLinks: MenuProps['items'] = [
   { key: 'upstream/total-annual-impact', label: <Link href='/upstream/total-annual-impact'>Analytics</Link> },
   { key: 'settings', label: <Link href='/settings'>Settings</Link> },
   { key: 'rsp', label: <Link href='/admin/rsp'>RSP Dashboard</Link> },
-  { key: 'rsp/api-keys', label: <Link href='/admin/rsp/api-keys'>RSP API Keys</Link> }
+  { key: 'rsp/api-keys', label: <Link href='/admin/rsp/api-keys'>RSP API Keys</Link> },
+  { key: 'rsp/test-hub', label: <Link href='/admin/rsp/test-hub'>RSP Test Hub</Link> },
+  { key: 'admin/projects', label: <Link href='/admin/projects'>All Projects</Link> }
 ];
 
 // Top-level items shown in the Admin dropdown — sub-pages live inside the Admin sidebar
