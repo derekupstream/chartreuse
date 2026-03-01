@@ -280,9 +280,10 @@ model MethodologyDocument {
   title       String
   slug        String    @unique
   content     Json
-  status      String    @default("draft")
-  publishedAt DateTime?
-  order       Int       @default(0)
+  status        String    @default("draft")
+  publishedAt   DateTime?
+  order         Int       @default(0)
+  sectionNumber String    @default("")
 }
 
 model ImpersonationSession {
@@ -442,6 +443,22 @@ model ChangeRequest {
   implementedBy    String?   @db.Uuid
   implementedAt    DateTime?
   factor           Factor?   @relation(fields: [factorId], references: [id])
+}
+
+model ImportSession {
+  id           String    @id @default(uuid()) @db.Uuid
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  userId       String
+  fileName     String
+  dataType     String    @default("unknown")
+  confidence   Float     @default(0)
+  totalRows    Int       @default(0)
+  importedRows Int       @default(0)
+  skippedRows  Int       @default(0)
+  status       String    @default("classifying")
+  mappings     Json?
+  errors       Json?
 }
 
 enum ProjectCategory {

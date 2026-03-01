@@ -19,7 +19,7 @@ export default handlerWithUser()
     const isUpstream = await checkIsUpstream(req.user.orgId);
     if (!isUpstream) return res.status(403).json({ error: 'Forbidden' });
 
-    const { title, slug, content } = req.body;
+    const { title, slug, content, sectionNumber } = req.body;
     if (!title || !slug) return res.status(400).json({ error: 'title and slug are required' });
 
     try {
@@ -33,7 +33,14 @@ export default handlerWithUser()
       if (existing) finalSlug = `${slug}-${Date.now()}`;
 
       const doc = await prisma.methodologyDocument.create({
-        data: { title, slug: finalSlug, content: content ?? {}, status: 'draft', order }
+        data: {
+          title,
+          slug: finalSlug,
+          content: content ?? {},
+          status: 'draft',
+          order,
+          sectionNumber: sectionNumber ?? ''
+        }
       });
       res.status(201).json(doc);
     } catch (e: any) {

@@ -40,7 +40,10 @@ const DATA_SCIENCE_KEYS = [
   'data-science/golden-datasets',
   'data-science/test-runs',
   'data-science/constants',
-  'data-science/change-requests'
+  'data-science/change-requests',
+  'data-science/calculations',
+  'data-science/import',
+  'data-science/pipeline'
 ];
 
 const siderMenuItems = [
@@ -61,15 +64,17 @@ const siderMenuItems = [
       { key: 'data-science', label: <Link href='/admin/data-science'>Overview</Link> },
       { key: 'admin/methodology', label: <Link href='/admin/methodology'>Methodology</Link> },
       {
-        key: 'data-science/golden-datasets',
-        label: <Link href='/admin/data-science/golden-datasets'>Golden Datasets</Link>
+        key: 'data-science/calculations',
+        label: <Link href='/admin/data-science/calculations'>Calculations</Link>
       },
       { key: 'data-science/test-runs', label: <Link href='/admin/data-science/test-runs'>Test Runs</Link> },
       { key: 'data-science/constants', label: <Link href='/admin/data-science/constants'>Constants</Link> },
       {
         key: 'data-science/change-requests',
         label: <Link href='/admin/data-science/change-requests'>Change Requests</Link>
-      }
+      },
+      { key: 'data-science/import', label: <Link href='/admin/data-science/import'>Import Data</Link> },
+      { key: 'data-science/pipeline', label: <Link href='/admin/data-science/pipeline'>Pipeline</Link> }
     ]
   }
 ];

@@ -14,6 +14,7 @@ const { Title, Text } = Typography;
 type Section = {
   id: string;
   title: string;
+  sectionNumber: string;
   content: any;
   publishedAt: string | null;
 };
@@ -56,7 +57,7 @@ export default function MethodologyPage({ sections }: Props) {
         ) : (
           sections.map(s => (
             <SectionBlock key={s.id}>
-              <h2>{s.title}</h2>
+              <h2>{s.sectionNumber ? `${s.sectionNumber} ${s.title}` : s.title}</h2>
               <TipTapEditor content={s.content} editable={false} />
               {s.publishedAt && (
                 <Text type='secondary' style={{ fontSize: 12, display: 'block', marginTop: 16 }}>
@@ -75,7 +76,7 @@ export const getStaticProps: GetStaticProps = async () => {
   const sections = await prisma.methodologyDocument.findMany({
     where: { status: 'published' },
     orderBy: { order: 'asc' },
-    select: { id: true, title: true, content: true, publishedAt: true }
+    select: { id: true, title: true, sectionNumber: true, content: true, publishedAt: true }
   });
 
   return {

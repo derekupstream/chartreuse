@@ -24,6 +24,7 @@ import type { PageProps } from 'pages/_app';
 type Section = {
   id: string;
   title: string;
+  sectionNumber: string;
   status: string;
   order: number;
   updatedAt: string;
@@ -37,7 +38,7 @@ export const getServerSideProps: GetServerSideProps = async context => {
 
   const sections = await prisma.methodologyDocument.findMany({
     orderBy: { order: 'asc' },
-    select: { id: true, title: true, status: true, order: true, updatedAt: true }
+    select: { id: true, title: true, sectionNumber: true, status: true, order: true, updatedAt: true }
   });
 
   return { props: serializeJSON({ user, sections }) };
@@ -105,10 +106,10 @@ function AdminMethodologyPage({ sections: initial }: { user: DashboardUser; sect
     {
       title: '#',
       key: 'order',
-      width: 48,
-      render: (_, __, i) => (
+      width: 64,
+      render: (_, row: Section) => (
         <Typography.Text type='secondary' style={{ fontSize: 13 }}>
-          {i + 1}
+          {row.sectionNumber || '—'}
         </Typography.Text>
       )
     },

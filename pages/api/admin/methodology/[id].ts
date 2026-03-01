@@ -19,13 +19,14 @@ export default handlerWithUser()
     if (!isUpstream) return res.status(403).json({ error: 'Forbidden' });
 
     const { id } = req.query;
-    const { title, slug, content, status, order } = req.body;
+    const { title, slug, content, status, order, sectionNumber } = req.body;
 
     const data: Record<string, any> = {};
     if (title !== undefined) data.title = title;
     if (slug !== undefined) data.slug = slug;
     if (content !== undefined) data.content = content;
     if (order !== undefined) data.order = order;
+    if (sectionNumber !== undefined) data.sectionNumber = sectionNumber;
     if (status !== undefined) {
       data.status = status;
       data.publishedAt = status === 'published' ? new Date() : null;

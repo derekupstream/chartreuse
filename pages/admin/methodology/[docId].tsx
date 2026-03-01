@@ -19,6 +19,7 @@ const TipTapEditor = dynamic(() => import('components/common/TipTapEditor'), { s
 type Doc = {
   id: string;
   title: string;
+  sectionNumber: string;
   content: any;
   status: string;
   publishedAt: string | null;
@@ -64,11 +65,11 @@ function AdminMethodologyEditorPage({ doc, isNew }: Props) {
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState(doc?.status ?? 'draft');
 
-  async function handleSave(values: { title: string }) {
+  async function handleSave(values: { title: string; sectionNumber: string }) {
     setSaving(true);
     try {
       const slug = slugify(values.title) || `subsection-${Date.now()}`;
-      const body = { title: values.title, slug, content };
+      const body = { title: values.title, sectionNumber: values.sectionNumber ?? '', slug, content };
 
       if (isNew) {
         const res = await fetch('/api/admin/methodology', {
@@ -78,9 +79,11 @@ function AdminMethodologyEditorPage({ doc, isNew }: Props) {
         });
         if (!res.ok) {
           const text = await res.text();
+          console.error('Save failed response:', text);
           let msg = 'Failed to save';
           try {
-            msg = JSON.parse(text).error || msg;
+            const json = JSON.parse(text);
+            msg = json.error || json.message || msg;
           } catch {}
           throw new Error(msg);
         }
@@ -138,11 +141,26 @@ function AdminMethodologyEditorPage({ doc, isNew }: Props) {
         </Space>
       </div>
 
-      <Form form={form} layout='vertical' initialValues={{ title: doc?.title ?? '' }} onFinish={handleSave}>
+      <Form
+        form={form}
+        layout='vertical'
+        initialValues={{ title: doc?.title ?? '', sectionNumber: doc?.sectionNumber ?? '' }}
+        onFinish={handleSave}
+      >
         <Card style={{ marginBottom: 16 }}>
-          <Form.Item name='title' label='Subsection title' rules={[{ required: true, message: 'Title is required' }]}>
-            <Input size='large' placeholder='e.g. Emission Factors' />
-          </Form.Item>
+          <div style={{ display: 'flex', gap: 16 }}>
+            <Form.Item name='sectionNumber' label='Section number' style={{ width: 160, flexShrink: 0 }}>
+              <Input size='large' placeholder='e.g. 1.1' />
+            </Form.Item>
+            <Form.Item
+              name='title'
+              label='Subsection title'
+              style={{ flex: 1 }}
+              rules={[{ required: true, message: 'Title is required' }]}
+            >
+              <Input size='large' placeholder='e.g. Emission Factors' />
+            </Form.Item>
+          </div>
         </Card>
 
         <Card title='Content' bodyStyle={{ padding: 0 }}>

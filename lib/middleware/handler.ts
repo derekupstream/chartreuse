@@ -1,7 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import nc from 'next-connect';
 
-import { onError, onNoMatch, getUser } from 'lib/middleware';
+import { onError } from 'lib/middleware/onError';
+import { onNoMatch } from 'lib/middleware/onNoMatch';
+import { getUser } from 'lib/middleware/getUser';
 import { validateProject } from 'lib/middleware/validateProject';
 
 export function defaultHandler() {
