@@ -61,6 +61,7 @@ const adminLinks: MenuProps['items'] = [
   { key: 'data-science/pipeline', label: <Link href='/admin/data-science/pipeline'>Pipeline</Link> },
   { key: 'data-science/snapshots', label: <Link href='/admin/data-science/snapshots'>Snapshots</Link> },
   { key: 'data-science/runs', label: <Link href='/admin/data-science/runs'>Run History</Link> },
+  { key: 'data-science/impact', label: <Link href='/admin/data-science/impact'>Impact Simulator</Link> },
   { key: 'upstream/total-annual-impact', label: <Link href='/upstream/total-annual-impact'>Analytics</Link> },
   { key: 'settings', label: <Link href='/settings'>Settings</Link> },
   { key: 'rsp', label: <Link href='/admin/rsp'>RSP Dashboard</Link> },
