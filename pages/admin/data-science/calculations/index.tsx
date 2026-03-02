@@ -51,8 +51,10 @@ export default function CalculationsPage({ functions: initial, scannedAt: initia
     try {
       const res = await fetch('/api/admin/calculations');
       const data = await res.json();
-      setFunctions(data.functions);
-      setScannedAt(data.scannedAt);
+      if (res.ok) {
+        setFunctions(data.functions);
+        setScannedAt(data.scannedAt);
+      }
     } finally {
       setRescanning(false);
     }

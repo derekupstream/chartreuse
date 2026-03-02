@@ -3,9 +3,11 @@ import {
   ClockCircleOutlined,
   MinusCircleOutlined,
   PlusOutlined,
-  SafetyCertificateOutlined
+  SafetyCertificateOutlined,
+  ThunderboltOutlined
 } from '@ant-design/icons';
 import {
+  Alert,
   Badge,
   Button,
   Card,
@@ -78,9 +80,11 @@ const STATUS_ICON: Record<string, React.ReactNode> = {
 
 export default function SnapshotsPage({ user, snapshots: initialSnapshots, approvedFactorVersions }: Props) {
   const [snapshots, setSnapshots] = useState(initialSnapshots);
+  const [factorVersions, setFactorVersions] = useState(approvedFactorVersions);
   const [createOpen, setCreateOpen] = useState(false);
   const [creating, setCreating] = useState(false);
   const [publishing, setPublishing] = useState<string | null>(null);
+  const [bootstrapping, setBootstrapping] = useState(false);
   const [form] = Form.useForm();
 
   const draftCount = snapshots.filter(s => s.status === 'draft').length;
@@ -128,6 +132,22 @@ export default function SnapshotsPage({ user, snapshots: initialSnapshots, appro
       message.error(err.message);
     } finally {
       setPublishing(null);
+    }
+  }
+
+  async function handleBootstrap() {
+    setBootstrapping(true);
+    try {
+      const res = await fetch('/api/admin/factor-versions/bootstrap', { method: 'POST' });
+      const body = await res.json();
+      if (!res.ok) throw new Error(body.error || 'Bootstrap failed');
+      message.success(body.message);
+      // Reload page to pick up the new factor versions
+      window.location.reload();
+    } catch (err: any) {
+      message.error(err.message);
+    } finally {
+      setBootstrapping(false);
     }
   }
 
@@ -231,16 +251,36 @@ export default function SnapshotsPage({ user, snapshots: initialSnapshots, appro
         </Col>
         <Col xs={12} sm={6}>
           <Card>
-            <Statistic title='Factor Versions' value={approvedFactorVersions.length} />
+            <Statistic title='Factor Versions' value={factorVersions.length} />
           </Card>
         </Col>
       </Row>
+
+      {factorVersions.length === 0 && (
+        <Alert
+          style={{ marginBottom: 16 }}
+          type='warning'
+          showIcon
+          message='No factor versions found'
+          description={
+            <span>
+              Snapshots require at least one factor version. Click <strong>Bootstrap</strong> to create initial versions
+              from your current factor values — this is a one-time setup step.
+            </span>
+          }
+          action={
+            <Button size='small' icon={<ThunderboltOutlined />} loading={bootstrapping} onClick={handleBootstrap}>
+              Bootstrap
+            </Button>
+          }
+        />
+      )}
 
       <Card
         extra={
           <Tooltip title='All factor versions are eligible to be included in a snapshot'>
             <Text type='secondary' style={{ fontSize: 12 }}>
-              {approvedFactorVersions.length} factor versions available
+              {factorVersions.length} factor versions available
             </Text>
           </Tooltip>
         }
@@ -295,7 +335,7 @@ export default function SnapshotsPage({ user, snapshots: initialSnapshots, appro
                   .toLowerCase()
                   .includes(input.toLowerCase())
               }
-              options={approvedFactorVersions.map(fv => ({
+              options={factorVersions.map(fv => ({
                 value: fv.id,
                 label: `${fv.factor.name} → ${fv.value} ${fv.unit}${fv.factor.calculatorConstantKey ? ` (${fv.factor.calculatorConstantKey})` : ''} [${fv.status}]`
               }))}

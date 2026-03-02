@@ -9,10 +9,15 @@ export default handlerWithUser().get(async (req: NextApiRequestWithUser, res: Ne
   const isUpstream = await checkIsUpstream(req.user.orgId);
   if (!isUpstream) return res.status(403).json({ error: 'Forbidden' });
 
-  const functions = scanCalculatorFunctions();
+  let rawFunctions: ReturnType<typeof scanCalculatorFunctions> = [];
+  try {
+    rawFunctions = scanCalculatorFunctions();
+  } catch {
+    // source files may not be accessible in all deployment environments
+  }
 
   // Enrich with lineage data where available
-  const enriched = functions.map(fn => {
+  const enriched = rawFunctions.map(fn => {
     const lineageEntry = LINEAGE_MAP.find(entry => entry.calculatorFunction.startsWith(fn.name));
     return {
       ...fn,
