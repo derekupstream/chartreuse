@@ -45,7 +45,9 @@ const DATA_SCIENCE_KEYS = [
   'data-science/change-requests',
   'data-science/calculations',
   'data-science/import',
-  'data-science/pipeline'
+  'data-science/pipeline',
+  'data-science/snapshots',
+  'data-science/runs'
 ];
 
 const RSP_KEYS = ['rsp', 'rsp/api-keys', 'rsp/test-hub'];
@@ -79,7 +81,9 @@ const siderMenuItems = [
         label: <Link href='/admin/data-science/change-requests'>Change Requests</Link>
       },
       { key: 'data-science/import', label: <Link href='/admin/data-science/import'>Import Data</Link> },
-      { key: 'data-science/pipeline', label: <Link href='/admin/data-science/pipeline'>Pipeline</Link> }
+      { key: 'data-science/pipeline', label: <Link href='/admin/data-science/pipeline'>Pipeline</Link> },
+      { key: 'data-science/snapshots', label: <Link href='/admin/data-science/snapshots'>Snapshots</Link> },
+      { key: 'data-science/runs', label: <Link href='/admin/data-science/runs'>Run History</Link> }
     ]
   },
   {
