@@ -53,6 +53,7 @@ type ApprovedFV = {
   id: string;
   value: number;
   unit: string;
+  status: string;
   notes: string | null;
   factor: { name: string; calculatorConstantKey: string | null };
 };
@@ -230,16 +231,16 @@ export default function SnapshotsPage({ user, snapshots: initialSnapshots, appro
         </Col>
         <Col xs={12} sm={6}>
           <Card>
-            <Statistic title='Approved Factor Versions' value={approvedFactorVersions.length} />
+            <Statistic title='Factor Versions' value={approvedFactorVersions.length} />
           </Card>
         </Col>
       </Row>
 
       <Card
         extra={
-          <Tooltip title='Approved factor versions are eligible to be included in a snapshot'>
+          <Tooltip title='All factor versions are eligible to be included in a snapshot'>
             <Text type='secondary' style={{ fontSize: 12 }}>
-              {approvedFactorVersions.length} approved factor versions available
+              {approvedFactorVersions.length} factor versions available
             </Text>
           </Tooltip>
         }
@@ -282,7 +283,7 @@ export default function SnapshotsPage({ user, snapshots: initialSnapshots, appro
           </Form.Item>
           <Form.Item
             name='factorVersionIds'
-            label='Approved Factor Versions'
+            label='Factor Versions'
             rules={[{ required: true, message: 'Select at least one factor version' }]}
           >
             <Select
@@ -296,7 +297,7 @@ export default function SnapshotsPage({ user, snapshots: initialSnapshots, appro
               }
               options={approvedFactorVersions.map(fv => ({
                 value: fv.id,
-                label: `${fv.factor.name} → ${fv.value} ${fv.unit}${fv.factor.calculatorConstantKey ? ` (${fv.factor.calculatorConstantKey})` : ''}`
+                label: `${fv.factor.name} → ${fv.value} ${fv.unit}${fv.factor.calculatorConstantKey ? ` (${fv.factor.calculatorConstantKey})` : ''} [${fv.status}]`
               }))}
             />
           </Form.Item>
@@ -332,7 +333,6 @@ export const getServerSideProps: GetServerSideProps = async context => {
       include: { _count: { select: { factorVersions: true } } }
     }),
     prisma.factorVersion.findMany({
-      where: { status: 'approved' },
       orderBy: { createdAt: 'desc' },
       include: { factor: { select: { name: true, calculatorConstantKey: true } } }
     })

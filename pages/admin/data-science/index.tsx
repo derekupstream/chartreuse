@@ -350,8 +350,13 @@ export const getServerSideProps: GetServerSideProps = async context => {
     })
   ]);
 
-  const scannedFunctions = scanCalculatorFunctions();
-  const functionsWithoutCoverage = scannedFunctions.length; // will refine when test coverage tracking is added
+  let scannedFunctions: ReturnType<typeof scanCalculatorFunctions> = [];
+  try {
+    scannedFunctions = scanCalculatorFunctions();
+  } catch {
+    // source files may not be accessible in all deployment environments
+  }
+  const functionsWithoutCoverage = scannedFunctions.length;
 
   return {
     props: serializeJSON({

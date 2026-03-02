@@ -100,14 +100,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     await prisma.$transaction([
-      // Mark overlapping periods as superseded
-      ...overlapping.map(p =>
-        prisma.usageTimePeriod.update({
-          where: { id: p.id },
-          data: { status: 'superseded', supersededById: newPeriodId }
-        })
-      ),
-      // Create the new period
+      // Create the new period FIRST so the FK from supersededById is satisfied
       prisma.usageTimePeriod.create({
         data: {
           id: newPeriodId,
@@ -126,7 +119,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             create: productData
           }
         }
-      })
+      }),
+      // THEN mark overlapping periods as superseded (FK now satisfied)
+      ...overlapping.map(p =>
+        prisma.usageTimePeriod.update({
+          where: { id: p.id },
+          data: { status: 'superseded', supersededById: newPeriodId }
+        })
+      )
     ]);
 
     await Promise.all([
@@ -160,7 +160,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     ]);
   } catch (err: any) {
     await finishComputeRun(computeRunId, 'failed', err?.message);
-    throw err;
+    return res.status(500).json({ error: err?.message ?? 'Internal server error' });
   }
 
   return res.status(200).json({

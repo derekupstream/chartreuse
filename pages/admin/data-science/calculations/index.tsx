@@ -387,7 +387,12 @@ export const getServerSideProps: GetServerSideProps = async context => {
   const isUpstream = await checkIsUpstream(user.org.id);
   if (!isUpstream) return { notFound: true };
 
-  const rawFunctions = scanCalculatorFunctions();
+  let rawFunctions: ReturnType<typeof scanCalculatorFunctions> = [];
+  try {
+    rawFunctions = scanCalculatorFunctions();
+  } catch {
+    // source files may not be accessible in all deployment environments
+  }
   const functions = rawFunctions.map(fn => {
     const lineageEntry = LINEAGE_MAP.find(entry => entry.calculatorFunction.startsWith(fn.name));
     return {

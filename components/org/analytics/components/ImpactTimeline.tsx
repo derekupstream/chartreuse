@@ -43,7 +43,7 @@ export function ImpactTimeline() {
       label: m.label ?? ''
     }));
 
-  const hasSufficientData = milestones.length >= 2;
+  const hasSufficientData = milestones.length >= 1;
 
   return (
     <Card style={{ marginTop: 24 }}>
