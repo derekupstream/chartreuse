@@ -116,7 +116,7 @@ export default function ImpactSimulatorPage({ factors }: Props) {
         body: JSON.stringify({ factorId: selectedFactorId, hypotheticalValue })
       });
       const body = await res.json();
-      if (!res.ok) throw new Error(body.error || 'Analysis failed');
+      if (!res.ok) throw new Error(body.error || body.message || 'Analysis failed');
       setResult(body);
     } catch (err: any) {
       setError(err.message);
@@ -142,10 +142,11 @@ export default function ImpactSimulatorPage({ factors }: Props) {
       render: (_, r) => {
         const color = r.direction === 'increase' ? '#cf1322' : r.direction === 'decrease' ? '#3f8600' : undefined;
         const prefix = r.direction === 'increase' ? '+' : '';
+        const pct = r.percentChange ?? 0;
         return (
           <Text strong style={{ color, fontSize: 15 }}>
             {prefix}
-            {r.percentChange.toFixed(2)}%
+            {pct.toFixed(2)}%
           </Text>
         );
       }
@@ -325,8 +326,8 @@ export default function ImpactSimulatorPage({ factors }: Props) {
                   <Card size='small' style={{ textAlign: 'center' }}>
                     <Statistic
                       title='Factor Change'
-                      value={`${result.percentChange >= 0 ? '+' : ''}${result.percentChange.toFixed(1)}%`}
-                      valueStyle={{ color: result.percentChange > 0 ? '#cf1322' : '#3f8600', fontSize: 20 }}
+                      value={`${(result.percentChange ?? 0) >= 0 ? '+' : ''}${(result.percentChange ?? 0).toFixed(1)}%`}
+                      valueStyle={{ color: (result.percentChange ?? 0) > 0 ? '#cf1322' : '#3f8600', fontSize: 20 }}
                     />
                   </Card>
                 </Col>
