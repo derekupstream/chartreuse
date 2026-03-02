@@ -47,7 +47,8 @@ const DATA_SCIENCE_KEYS = [
   'data-science/import',
   'data-science/pipeline',
   'data-science/snapshots',
-  'data-science/runs'
+  'data-science/runs',
+  'data-science/impact'
 ];
 
 const RSP_KEYS = ['rsp', 'rsp/api-keys', 'rsp/test-hub'];
@@ -83,7 +84,8 @@ const siderMenuItems = [
       { key: 'data-science/import', label: <Link href='/admin/data-science/import'>Import Data</Link> },
       { key: 'data-science/pipeline', label: <Link href='/admin/data-science/pipeline'>Pipeline</Link> },
       { key: 'data-science/snapshots', label: <Link href='/admin/data-science/snapshots'>Snapshots</Link> },
-      { key: 'data-science/runs', label: <Link href='/admin/data-science/runs'>Run History</Link> }
+      { key: 'data-science/runs', label: <Link href='/admin/data-science/runs'>Run History</Link> },
+      { key: 'data-science/impact', label: <Link href='/admin/data-science/impact'>Impact Simulator</Link> }
     ]
   },
   {

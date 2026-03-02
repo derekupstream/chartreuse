@@ -1,6 +1,13 @@
-import { ArrowRightOutlined, DatabaseOutlined, FunctionOutlined, BarChartOutlined } from '@ant-design/icons';
-import { Card, Col, Empty, Input, Row, Select, Space, Table, Tag, Typography } from 'antd';
+import {
+  ArrowRightOutlined,
+  DatabaseOutlined,
+  FunctionOutlined,
+  BarChartOutlined,
+  ApartmentOutlined
+} from '@ant-design/icons';
+import { Card, Col, Empty, Input, Row, Select, Space, Table, Tabs, Tag, Typography } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
+import dynamic from 'next/dynamic';
 import type { GetServerSideProps } from 'next';
 import { useState } from 'react';
 
@@ -12,6 +19,8 @@ import { checkIsUpstream } from 'lib/middleware/requireUpstream';
 import { serializeJSON } from 'lib/objects';
 import prisma from 'lib/prisma';
 import type { PageProps } from 'pages/_app';
+
+const Sankey = dynamic(() => import('@ant-design/plots').then(m => m.Sankey), { ssr: false });
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -41,10 +50,44 @@ const categoryColors: Record<string, string> = {
 
 const metricColors = ['#531dab', '#0050b3', '#003a8c', '#006d75', '#135200', '#7c0000'];
 
+function buildSankeyData(rows: PipelineRow[]) {
+  type Link = { source: string; target: string; value: number };
+  const linkMap = new Map<string, number>();
+
+  for (const row of rows) {
+    if (!row.calculatorFunction || row.outputMetrics.length === 0) continue;
+    const src = row.categoryName ?? 'Other';
+    const fn = row.calculatorFunction;
+
+    // Layer 1 → 2: category → function
+    const k1 = `${src}\0${fn}`;
+    linkMap.set(k1, (linkMap.get(k1) ?? 0) + 1);
+
+    // Layer 2 → 3: function → short metric name
+    for (const metric of row.outputMetrics) {
+      const shortMetric = metric
+        .replace('environmentalResults.', '')
+        .replace('financialResults.', '')
+        .replace('annualGasEmissionChanges.', 'ghg.')
+        .replace('annualWaterUsageChanges.', 'water.')
+        .replace('annualCostChanges.', 'cost.')
+        .replace('envBreakEven.', 'breakEven.');
+      const k2 = `${fn}\0${shortMetric}`;
+      linkMap.set(k2, (linkMap.get(k2) ?? 0) + 1);
+    }
+  }
+
+  return Array.from(linkMap.entries()).map<Link>(([key, value]) => {
+    const [source, target] = key.split('\0');
+    return { source, target, value };
+  });
+}
+
 export default function PipelinePage({ rows, unmappedCount }: Props) {
   const [search, setSearch] = useState('');
   const [filterCategory, setFilterCategory] = useState<string | null>(null);
   const [filterOutput, setFilterOutput] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState('table');
 
   // Unique output metrics for filter dropdown
   const allOutputs = Array.from(new Set(rows.flatMap(r => r.outputMetrics))).sort();
@@ -167,6 +210,8 @@ export default function PipelinePage({ rows, unmappedCount }: Props) {
     }
   ];
 
+  const sankeyData = buildSankeyData(rows);
+
   return (
     <>
       <div style={{ marginBottom: 16 }}>
@@ -219,46 +264,102 @@ export default function PipelinePage({ rows, unmappedCount }: Props) {
         </Col>
       </Row>
 
-      {/* Filters */}
-      <Card size='small' style={{ marginBottom: 12 }}>
-        <Space wrap>
-          <Input.Search
-            placeholder='Search factor name or key…'
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            style={{ width: 260 }}
-            allowClear
-          />
-          <Select
-            placeholder='Filter by category'
-            allowClear
-            style={{ width: 180 }}
-            options={allCategories.map(c => ({ value: c, label: c }))}
-            value={filterCategory}
-            onChange={setFilterCategory}
-          />
-          <Select
-            placeholder='Filter by output metric'
-            allowClear
-            showSearch
-            style={{ width: 300 }}
-            options={allOutputs.map(o => ({ value: o, label: o }))}
-            value={filterOutput}
-            onChange={setFilterOutput}
-          />
-          <Text type='secondary' style={{ fontSize: 12 }}>
-            {filtered.length} rows
-          </Text>
-        </Space>
-      </Card>
+      <Tabs
+        activeKey={activeTab}
+        onChange={setActiveTab}
+        items={[
+          {
+            key: 'table',
+            label: (
+              <Space size={4}>
+                <DatabaseOutlined />
+                Table
+              </Space>
+            ),
+            children: (
+              <>
+                {/* Filters */}
+                <Card size='small' style={{ marginBottom: 12 }}>
+                  <Space wrap>
+                    <Input.Search
+                      placeholder='Search factor name or key…'
+                      value={search}
+                      onChange={e => setSearch(e.target.value)}
+                      style={{ width: 260 }}
+                      allowClear
+                    />
+                    <Select
+                      placeholder='Filter by category'
+                      allowClear
+                      style={{ width: 180 }}
+                      options={allCategories.map(c => ({ value: c, label: c }))}
+                      value={filterCategory}
+                      onChange={setFilterCategory}
+                    />
+                    <Select
+                      placeholder='Filter by output metric'
+                      allowClear
+                      showSearch
+                      style={{ width: 300 }}
+                      options={allOutputs.map(o => ({ value: o, label: o }))}
+                      value={filterOutput}
+                      onChange={setFilterOutput}
+                    />
+                    <Text type='secondary' style={{ fontSize: 12 }}>
+                      {filtered.length} rows
+                    </Text>
+                  </Space>
+                </Card>
 
-      <Table
-        dataSource={filtered}
-        columns={columns}
-        rowKey='id'
-        size='small'
-        pagination={{ defaultPageSize: 50, showTotal: (t, range) => `${range[0]}-${range[1]} of ${t}` }}
-        locale={{ emptyText: <Empty description='No factors match the filters' /> }}
+                <Table
+                  dataSource={filtered}
+                  columns={columns}
+                  rowKey='id'
+                  size='small'
+                  pagination={{ defaultPageSize: 50, showTotal: (t, range) => `${range[0]}-${range[1]} of ${t}` }}
+                  locale={{ emptyText: <Empty description='No factors match the filters' /> }}
+                />
+              </>
+            )
+          },
+          {
+            key: 'graph',
+            label: (
+              <Space size={4}>
+                <ApartmentOutlined />
+                Flow Graph
+              </Space>
+            ),
+            children: (
+              <Card>
+                <div style={{ marginBottom: 12 }}>
+                  <Text type='secondary' style={{ fontSize: 12 }}>
+                    Flow: <strong>Factor Category</strong> → <strong>Calculator Function</strong> →{' '}
+                    <strong>Output Metric</strong>. Width of each band represents the number of factors flowing through
+                    that path.
+                  </Text>
+                </div>
+                {sankeyData.length === 0 ? (
+                  <Empty description='No fully-traced factors yet. Map calculatorConstantKey to factors to see the graph.' />
+                ) : (
+                  <Sankey
+                    data={sankeyData}
+                    height={420}
+                    tooltip={{
+                      items: [
+                        {
+                          field: 'value',
+                          name: 'Factors',
+                          valueFormatter: (v: number) => `${v} factor${v !== 1 ? 's' : ''}`
+                        }
+                      ]
+                    }}
+                  />
+                )}
+              </Card>
+            )
+          }
+        ]}
       />
     </>
   );

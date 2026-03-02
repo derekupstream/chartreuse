@@ -92,7 +92,9 @@ export default function RunHistoryPage({ user }: Props) {
       title: 'Date',
       dataIndex: 'createdAt',
       width: 160,
-      render: (v: string) => new Date(v).toLocaleString(),
+      render: (v: string, row: RunRow) => (
+        <Link href={`/admin/data-science/runs/${row.id}`}>{new Date(v).toLocaleString()}</Link>
+      ),
       sorter: (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
       defaultSortOrder: 'descend'
     },
