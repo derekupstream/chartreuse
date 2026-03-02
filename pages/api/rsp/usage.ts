@@ -3,6 +3,12 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { validateApiKey } from 'lib/rsp/apiKeyAuth';
 import { calcImpact } from 'lib/rsp/impactFactors';
 import prisma from 'lib/prisma';
+import {
+  finishComputeRun,
+  getLatestPublishedSnapshotId,
+  saveMetricResults,
+  startComputeRun
+} from 'lib/governance/computeRun';
 
 type EventRow = {
   reusable_type: string;
@@ -81,38 +87,81 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     select: { id: true }
   });
 
-  // 6. Create new period + products in a transaction
+  // 6. Start a ComputeRun for provenance tracking
+  const snapshotId = await getLatestPublishedSnapshotId();
+  const computeRunId = await startComputeRun({
+    runType: 'actuals_ingest',
+    orgId: apiKey.orgId,
+    methodologySnapshotId: snapshotId
+  });
+
+  // 7. Create new period + products in a transaction
   const newPeriodId = crypto.randomUUID();
 
-  await prisma.$transaction([
-    // Mark overlapping periods as superseded
-    ...overlapping.map(p =>
-      prisma.usageTimePeriod.update({
-        where: { id: p.id },
-        data: { status: 'superseded', supersededById: newPeriodId }
-      })
-    ),
-    // Create the new period
-    prisma.usageTimePeriod.create({
-      data: {
-        id: newPeriodId,
-        orgId: apiKey.orgId,
-        accountId: account?.id ?? null,
-        clientExternalId: client_id,
-        dateMin: dateMinParsed,
-        dateMax: dateMaxParsed,
-        submittedByKeyId: apiKey.id,
-        status: 'active',
-        rawPayload: req.body,
-        co2AvoidedKg: totalCo2,
-        waterSavedGallons: totalWater,
-        wasteDivertedLbs: totalWaste,
-        products: {
-          create: productData
+  try {
+    await prisma.$transaction([
+      // Mark overlapping periods as superseded
+      ...overlapping.map(p =>
+        prisma.usageTimePeriod.update({
+          where: { id: p.id },
+          data: { status: 'superseded', supersededById: newPeriodId }
+        })
+      ),
+      // Create the new period
+      prisma.usageTimePeriod.create({
+        data: {
+          id: newPeriodId,
+          orgId: apiKey.orgId,
+          accountId: account?.id ?? null,
+          clientExternalId: client_id,
+          dateMin: dateMinParsed,
+          dateMax: dateMaxParsed,
+          submittedByKeyId: apiKey.id,
+          status: 'active',
+          rawPayload: req.body,
+          co2AvoidedKg: totalCo2,
+          waterSavedGallons: totalWater,
+          wasteDivertedLbs: totalWaste,
+          products: {
+            create: productData
+          }
         }
-      }
-    })
-  ]);
+      })
+    ]);
+
+    await Promise.all([
+      saveMetricResults([
+        {
+          runId: computeRunId,
+          orgId: apiKey.orgId,
+          metricKey: 'co2_avoided_kg',
+          valueNumeric: totalCo2,
+          units: 'kg',
+          methodologySnapshotId: snapshotId
+        },
+        {
+          runId: computeRunId,
+          orgId: apiKey.orgId,
+          metricKey: 'water_saved_gallons',
+          valueNumeric: totalWater,
+          units: 'gallons',
+          methodologySnapshotId: snapshotId
+        },
+        {
+          runId: computeRunId,
+          orgId: apiKey.orgId,
+          metricKey: 'waste_diverted_lbs',
+          valueNumeric: totalWaste,
+          units: 'lbs',
+          methodologySnapshotId: snapshotId
+        }
+      ]),
+      finishComputeRun(computeRunId, 'success')
+    ]);
+  } catch (err: any) {
+    await finishComputeRun(computeRunId, 'failed', err?.message);
+    throw err;
+  }
 
   return res.status(200).json({
     api_signature: `cr-period-${newPeriodId}`,

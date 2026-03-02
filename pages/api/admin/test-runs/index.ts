@@ -4,6 +4,7 @@ import { checkIsUpstream } from 'lib/middleware/requireUpstream';
 import type { NextApiRequestWithUser } from 'lib/middleware/getUser';
 import prisma from 'lib/prisma';
 import { runDatasetTest } from 'lib/admin/testRunner';
+import { finishComputeRun, getLatestPublishedSnapshotId, startComputeRun } from 'lib/governance/computeRun';
 
 export default handlerWithUser()
   .get(async (req: NextApiRequestWithUser, res: NextApiResponse) => {
@@ -41,11 +42,15 @@ export default handlerWithUser()
     const datasets = await prisma.goldenDataset.findMany({ where: { isActive: true } });
     if (datasets.length === 0) return res.status(400).json({ error: 'No active datasets to test' });
 
+    const snapshotId = await getLatestPublishedSnapshotId();
+    const computeRunId = await startComputeRun({ runType: 'test', methodologySnapshotId: snapshotId });
+
     const testRun = await prisma.testRun.create({
       data: {
         ranByUserId: req.user.id,
         status: 'running',
-        totalTests: datasets.length
+        totalTests: datasets.length,
+        methodologySnapshotId: snapshotId
       }
     });
 
@@ -65,10 +70,17 @@ export default handlerWithUser()
     const passed = results.filter(r => r.passed).length;
     const failed = results.filter(r => !r.passed).length;
 
-    const updated = await prisma.testRun.update({
-      where: { id: testRun.id },
-      data: { status: 'completed', passed, failed }
-    });
+    const [updated] = await Promise.all([
+      prisma.testRun.update({
+        where: { id: testRun.id },
+        data: { status: 'completed', passed, failed }
+      }),
+      finishComputeRun(
+        computeRunId,
+        failed === 0 ? 'success' : 'failed',
+        failed > 0 ? `${failed}/${datasets.length} test(s) failed` : undefined
+      )
+    ]);
 
     res.status(201).json(updated);
   });
