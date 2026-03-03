@@ -72,6 +72,21 @@
 - [ ] **AI-04**: Recommendations are stored per-project in the existing `recommendations (Json)` field on the Project model
 - [ ] **AI-05**: LLM is never given arithmetic to perform — all numerical context is pre-calculated by the engine and passed as grounding
 
+### Project Dashboard Charts
+
+- [ ] **DASH-01**: Each project's projections page includes a **snapshot timeline chart** — a line chart showing saved `ProjectMilestone` KPI values (CO2, cost savings, waste, water) plotted over time, with a metric toggle matching the org-level Impact Timeline on the analytics page
+- [ ] **DASH-02**: Each project's projections page includes a **break-even chart** — a line chart with two series (cumulative single-use cost vs. cumulative reusable cost) where the crossover point is annotated with a dot + label ("Break-Even Point"); pre-break-even region shaded to indicate loss, post-break-even region shaded to indicate savings
+
+**Implementation notes (DASH-02):**
+- Library: `@ant-design/plots` → `Line` component (already installed)
+- x-axis: months (or years) from project start
+- y-axis: cumulative cost in project currency
+- Series 1 "Single-Use Cost": linear, slope = annual single-use cost / 12
+- Series 2 "Reusable Cost": starts at upfront capital cost, then rises at a lower slope (annual reusable operating cost / 12); flattens relative to single-use
+- Break-even x = `paybackMonths` from `getProjections()` → already computed
+- Annotations: `type: 'point'` at crossover + `type: 'text'` label + two `type: 'region'` shaded zones (loss left of BEP, savings right)
+- Both charts live in a new "Timeline" tab or collapsible section on the projections page, separate from the existing KPI cards
+
 ## v2 Requirements
 
 ### Public REST API

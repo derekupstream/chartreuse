@@ -14,11 +14,7 @@ const handler = handlerWithUser();
 handler.put(toggleProjectPublic);
 
 async function toggleProjectPublic(req: NextApiRequestWithUser, res: NextApiResponse) {
-  const { publicSlug } = req.body;
-
-  if (!publicSlug) {
-    throw new Error('publicSlug is required');
-  }
+  const { publicSlug } = req.body as ProjectShareRequest;
 
   await prisma.project.update<Prisma.ProjectUpdateArgs>({
     where: {
@@ -26,7 +22,7 @@ async function toggleProjectPublic(req: NextApiRequestWithUser, res: NextApiResp
       isTemplate: false // dont allow sharing templates
     },
     data: {
-      publicSlug
+      publicSlug: publicSlug ?? null
     }
   });
 

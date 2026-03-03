@@ -18,6 +18,7 @@ import { Wrapper } from '../styles';
 import { LineItemSummary } from './components/LineItemSummary/LineItemSummary';
 import { EventProjectSummary } from './components/EventProjectSummary';
 import { ProjectSummary } from './components/ProjectSummary/ProjectSummary';
+import { ProjectTimeline } from './components/ProjectTimeline';
 import { SlateEditor } from 'components/common/SlateEditor';
 import { Switch } from 'antd';
 import Card from './components/common/Card';
@@ -164,9 +165,13 @@ export const ProjectionsStep = ({ project, readOnly }: { project: ProjectContext
   const hideSingleAndReusableDetailsForEugeneOrg = isEugeneOrg({ id: project.orgId });
 
   const sidebarMenuItems = hideSingleAndReusableDetailsForEugeneOrg
-    ? [{ key: 'summary', label: 'Summary' }]
+    ? [
+        { key: 'summary', label: 'Summary' },
+        { key: 'timeline', label: 'Timeline' }
+      ]
     : [
         { key: 'summary', label: 'Summary' },
+        { key: 'timeline', label: 'Timeline' },
         { key: 'single_use_details', label: 'Single-use details' },
         { key: 'reusable_details', label: 'Reusable details' }
       ];
@@ -267,6 +272,8 @@ export const ProjectionsStep = ({ project, readOnly }: { project: ProjectContext
               <ProjectSummary data={data} />
             )}
           </span>
+          {view === 'timeline' && <ProjectTimeline projectId={project.id} data={data} />}
+
           {!hideSingleAndReusableDetailsForEugeneOrg && (
             <>
               <div className='page-break' />

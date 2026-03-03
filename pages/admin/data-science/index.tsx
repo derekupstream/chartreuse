@@ -140,7 +140,7 @@ export default function DataSciencePage({ user, stats, publishedSections }: Prop
               title='Inputs'
               value={inputIssues}
               subtext='last checked: just now'
-              href='/admin/data-science/constants'
+              href='/admin/projects'
               icon={<UploadOutlined />}
             />
           </Col>

@@ -56,6 +56,7 @@ export async function duplicateProject({
       projectionsDescription: project.projectionsDescription,
       templateId: project.isTemplate ? id : null,
       publicSlug: null, // private by default, also publicSlug is unique
+      shareSettings: undefined, // don't copy share settings
       eventFoodwareItems: {
         createMany: {
           data: project.eventFoodwareItems.map(({ id, projectId, ...item }) => item)

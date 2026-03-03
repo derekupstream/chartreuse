@@ -1,3 +1,4 @@
+import { useRouter } from 'next/router';
 import styled from 'styled-components';
 import { categoryByType } from 'lib/projects/categories';
 import { ProjectCategory } from '@prisma/client';
@@ -33,20 +34,27 @@ export function StepsNavigation({
   projectId?: string;
   projectCategory?: ProjectCategory;
 }) {
+  const router = useRouter();
+  const isSettings = !!router.pathname.includes('/settings');
+
   const steps = categoryByType(projectCategory).steps;
-  // steps[0] is always the Dashboard (/projections)
-  // steps[1] is always the first edit step
   const editHref = projectId && steps.length > 1 ? `/projects/${projectId}${steps[1].path}` : undefined;
   const dashHref = projectId ? `/projects/${projectId}/projections` : undefined;
+  const settingsHref = projectId ? `/projects/${projectId}/settings` : undefined;
 
   return (
     <TabBar>
-      <Tab href={dashHref} $active={current === 0}>
+      <Tab href={dashHref} $active={current === 0 && !isSettings}>
         Dashboard
       </Tab>
       {steps.length > 1 && (
-        <Tab href={editHref} $active={current > 0}>
+        <Tab href={editHref} $active={current > 0 && !isSettings}>
           Edit
+        </Tab>
+      )}
+      {projectId && (
+        <Tab href={settingsHref} $active={isSettings}>
+          Settings
         </Tab>
       )}
     </TabBar>

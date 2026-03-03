@@ -1,6 +1,6 @@
-import { DownloadOutlined } from '@ant-design/icons';
+import { DeleteOutlined, DownloadOutlined, SaveOutlined } from '@ant-design/icons';
 import type { Org, ProjectCategory, User } from '@prisma/client';
-import { Button, Col, DatePicker, Divider, Row, Select, Table, Tabs, Typography } from 'antd';
+import { Button, Col, DatePicker, Divider, Input, Modal, Row, Select, Table, Tabs, Tooltip, Typography } from 'antd';
 import dayjs from 'dayjs';
 import { useRouter } from 'next/router';
 import { useMemo, useRef, useState } from 'react';
@@ -18,10 +18,11 @@ import { requestDownload } from 'lib/files';
 import { useMetricSystem } from 'components/_app/MetricSystemProvider';
 import { valueInPounds, valueInGallons } from 'lib/number';
 import { SummaryCardWithGraph, SummaryCard, SummaryCardSingleUseBreakdown } from './components/SummaryCardWithGraph';
-import { ImpactTimeline } from './components/ImpactTimeline';
 import { useCurrency } from 'components/_app/CurrencyProvider';
 import { columns } from './components/AnalyticsTableColumns';
 import { columns as eventColumns } from './components/EventAnalyticsTableColumns';
+import { ScenarioPlanner, getMultipliedSummary, type ScenarioMultipliers } from './components/ScenarioPlanner';
+import { ShareAnalyticsButton } from './components/ShareAnalyticsButton';
 
 import * as S2 from '../../../layouts/styles';
 import { getReturnOrShrinkageRate } from 'components/projects/[id]/usage/UsageStep';
@@ -42,11 +43,52 @@ const FilterRow = styled.div`
   padding: 12px 0;
 `;
 
+type SavedView = {
+  id: string;
+  name: string;
+  tagIds: string[];
+  projectTypes: string[];
+  startDate: string | null;
+  endDate: string | null;
+};
+
+function useSavedViews(orgId: string) {
+  const key = `cr_analytics_views_${orgId}`;
+
+  function getStored(): SavedView[] {
+    try {
+      return JSON.parse(localStorage.getItem(key) ?? '[]');
+    } catch {
+      return [];
+    }
+  }
+
+  const [views, setViews] = useState<SavedView[]>(() => {
+    if (typeof window === 'undefined') return [];
+    return getStored();
+  });
+
+  function saveView(name: string, filters: Omit<SavedView, 'id' | 'name'>) {
+    const next: SavedView = { id: Date.now().toString(), name, ...filters };
+    const updated = [...views, next];
+    localStorage.setItem(key, JSON.stringify(updated));
+    setViews(updated);
+  }
+
+  function deleteView(id: string) {
+    const updated = views.filter(v => v.id !== id);
+    localStorage.setItem(key, JSON.stringify(updated));
+    setViews(updated);
+  }
+
+  return { views, saveView, deleteView };
+}
+
 export interface PageProps {
   isUpstreamView?: boolean;
   showCategoryTabs?: boolean;
   projectCategory: ProjectCategory;
-  user: User & { org: Org };
+  user: User & { org: Org & { analyticsSlug?: string | null } }; // analyticsSlug in DashboardUser.org
   data?: AllProjectsSummary;
   availableProjectTypes?: string[];
 }
@@ -64,6 +106,8 @@ export function AnalyticsPage({
   const displayAsMetric = useMetricSystem();
   const { abbreviation: currencyAbbreviation } = useCurrency();
   const printRef = useRef(null);
+  const { views: savedViews, saveView, deleteView } = useSavedViews(user.org.id);
+  const [scenarioMultipliers, setScenarioMultipliers] = useState<ScenarioMultipliers>({});
 
   // Filter state — initialized from URL params
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>(
@@ -79,6 +123,46 @@ export function AnalyticsPage({
 
   const hasActiveFilters =
     selectedTagIds.length > 0 || selectedProjectTypes.length > 0 || dateRange[0] != null || dateRange[1] != null;
+
+  function promptSaveView() {
+    let viewName = '';
+    Modal.confirm({
+      title: 'Save current view',
+      content: (
+        <Input
+          placeholder='View name (e.g. "Q1 Projections")'
+          autoFocus
+          onChange={e => {
+            viewName = e.target.value;
+          }}
+        />
+      ),
+      onOk() {
+        if (viewName.trim()) {
+          saveView(viewName.trim(), {
+            tagIds: selectedTagIds,
+            projectTypes: selectedProjectTypes,
+            startDate: dateRange[0]?.format('YYYY-MM-DD') ?? null,
+            endDate: dateRange[1]?.format('YYYY-MM-DD') ?? null
+          });
+        }
+      },
+      okText: 'Save',
+      cancelText: 'Cancel'
+    });
+  }
+
+  function loadView(view: SavedView) {
+    setSelectedTagIds(view.tagIds);
+    setSelectedProjectTypes(view.projectTypes);
+    setDateRange([view.startDate ? dayjs(view.startDate) : null, view.endDate ? dayjs(view.endDate) : null]);
+    applyFilters({
+      tagIds: view.tagIds,
+      projectTypes: view.projectTypes,
+      startDate: view.startDate,
+      endDate: view.endDate
+    });
+  }
 
   // Must be before early return to satisfy hooks rules
   const { displayValue: returnRateDisplayValue, returnRatelabel } = useMemo(() => {
@@ -97,6 +181,12 @@ export function AnalyticsPage({
   if (!data) {
     return <ContentLoader />;
   }
+
+  const hasMultipliers = Object.values(scenarioMultipliers).some(v => v > 1);
+  const activeSummary =
+    projectCategory !== 'event' && hasMultipliers
+      ? getMultipliedSummary(data.projects, scenarioMultipliers)
+      : data.summary;
 
   function applyFilters(overrides: {
     tagIds?: string[];
@@ -194,6 +284,7 @@ export function AnalyticsPage({
           <Button onClick={() => exportOrgData()}>
             <DownloadOutlined /> Export Data
           </Button>
+          <ShareAnalyticsButton orgId={user.org.id} initialSlug={user.org.analyticsSlug ?? null} />
         </div>
       </S2.HeaderRow>
 
@@ -212,6 +303,33 @@ export function AnalyticsPage({
       )}
 
       <FilterRow className='dont-print-me'>
+        {savedViews.length > 0 && (
+          <Select
+            placeholder='Load saved view'
+            style={{ minWidth: 160 }}
+            value={undefined}
+            onSelect={(id: string | undefined) => {
+              if (!id) return;
+              const view = savedViews.find(v => v.id === id);
+              if (view) loadView(view);
+            }}
+            options={savedViews.map(v => ({
+              label: (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                  <span>{v.name}</span>
+                  <DeleteOutlined
+                    style={{ color: '#ff4d4f', fontSize: 12 }}
+                    onClick={e => {
+                      e.stopPropagation();
+                      deleteView(v.id);
+                    }}
+                  />
+                </div>
+              ),
+              value: v.id
+            }))}
+          />
+        )}
         <Select
           mode='multiple'
           placeholder='Filter by project type'
@@ -254,6 +372,11 @@ export function AnalyticsPage({
             Clear filters
           </Button>
         )}
+        <Tooltip title='Save current filters as a named view'>
+          <Button size='small' icon={<SaveOutlined />} onClick={promptSaveView}>
+            Save view
+          </Button>
+        </Tooltip>
       </FilterRow>
 
       <Divider style={{ margin: 0 }} />
@@ -296,7 +419,7 @@ export function AnalyticsPage({
               projectHasData={projectHasData}
               isEventProject={false}
               formatter={val => formatToDollar(val, currencyAbbreviation)}
-              value={data.summary.savings}
+              value={activeSummary.savings}
             />
           </StyledCol>
         )}
@@ -307,7 +430,7 @@ export function AnalyticsPage({
               isEventProject={false}
               projectHasData={projectHasData}
               units='units'
-              value={data.summary.singleUse}
+              value={activeSummary.singleUse}
             />
           </StyledCol>
         )}
@@ -320,7 +443,7 @@ export function AnalyticsPage({
             formatter={val =>
               Math.round(valueInPounds(val, { displayAsMetric, displayAsTons: false })).toLocaleString()
             }
-            value={data.summary.waste}
+            value={activeSummary.waste}
           />
         </StyledCol>
         <StyledCol xs={24} md={12}>
@@ -329,7 +452,7 @@ export function AnalyticsPage({
             isEventProject={projectCategory === 'event'}
             projectHasData={projectHasData}
             units='MTC02e'
-            value={data.summary.gas}
+            value={activeSummary.gas}
             reverseChangePercent={projectCategory === 'event'}
           />
         </StyledCol>
@@ -348,7 +471,7 @@ export function AnalyticsPage({
                 isEventProject={projectCategory === 'event'}
                 projectHasData={projectHasData}
                 units={displayAsMetric ? 'L' : 'gal'}
-                value={data.summary.water}
+                value={activeSummary.water}
                 formatter={val => Math.round(valueInGallons(val, { displayAsMetric })).toLocaleString()}
                 reverseChangePercent={projectCategory === 'event'}
               />
@@ -389,7 +512,10 @@ export function AnalyticsPage({
           pagination={{ hideOnSinglePage: true, pageSize: rows.length }}
         />
       </Card>
-      <ImpactTimeline />
+
+      {projectCategory !== 'event' && (
+        <ScenarioPlanner data={data} orgId={user.org.id} onMultipliersChange={setScenarioMultipliers} />
+      )}
     </div>
   );
 }

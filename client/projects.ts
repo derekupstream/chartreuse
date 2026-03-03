@@ -8,6 +8,7 @@ import { ModifyFoodwareLineItemRequest } from 'pages/api/projects/[id]/foodware-
 import { UpdateProjectUsageRequest } from 'pages/api/projects/[id]/usage';
 import { ProjectShareRequest } from 'pages/api/projects/[id]/share';
 import type { ProjectionsResponse } from 'lib/calculator/getProjections';
+import type { ShareSettings } from 'pages/api/projects/[id]/share-settings';
 
 type MaybeString = string | undefined;
 
@@ -69,6 +70,23 @@ export function useToggleShareProject(projectId: MaybeString) {
   return usePUT<ProjectShareRequest>(`/api/projects/${projectId}/share`);
 }
 
+export type ProjectMilestoneSummary = {
+  id: string;
+  snapshotDate: string;
+  label: string | null;
+  co2AvoidedMtco2e: number | null;
+  waterSavedGallons: number | null;
+  wasteDivertedLbs: number | null;
+  annualCostSavings: number | null;
+  paybackMonths: number | null;
+};
+
+export function useGetProjectMilestones(projectId?: string) {
+  return useGET<{ milestones: ProjectMilestoneSummary[] }>(
+    projectId ? `/api/projects/${projectId}/milestones` : null
+  );
+}
+
 export function useUpdateProjections(projectId: MaybeString) {
   return usePUT<{
     projectionsTitle?: string | null;
@@ -76,4 +94,22 @@ export function useUpdateProjections(projectId: MaybeString) {
     recommendations?: any;
     showRecommendations?: boolean;
   }>(`/api/projects/${projectId}/projections`);
+}
+
+export function useGetShareSettings(projectId?: string) {
+  return useGET<{ shareSettings: ShareSettings }>(
+    projectId ? `/api/projects/${projectId}/share-settings` : null
+  );
+}
+
+export function useUpdateShareSettings(projectId: MaybeString) {
+  return usePUT<ShareSettings>(`/api/projects/${projectId}/share-settings`);
+}
+
+export function useEnableAnalyticsShare() {
+  return usePUT<Record<string, never>>(`/api/org/analytics-share`);
+}
+
+export function useDisableAnalyticsShare() {
+  return useDELETE<Record<string, never>>(`/api/org/analytics-share`);
 }

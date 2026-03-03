@@ -48,5 +48,6 @@ export interface DashboardUser extends User {
     locationCount?: string | null;
     reuseJourneyStage?: string | null;
     primaryChallenge?: string | null;
+    analyticsSlug?: string | null;
   };
 }
