@@ -77,7 +77,9 @@ export async function getProjectInventory(projectId: string): Promise<ProjectInv
   const reusableItems = project.reusableItems.map(item => mapReusableItem(item, reusableProducts));
   const singleUseItems = project.singleUseItems.map(item => mapSingleUseItem(item, products));
   const wasteHauling = project.wasteHaulingCosts.map(mapWasteHauling);
-  const foodwareItems = project.eventFoodwareItems.map(item => mapFoodwareItem(item, products, reusableProducts));
+  const foodwareItems = project.eventFoodwareItems
+    .map(item => mapFoodwareItem(item, products, reusableProducts))
+    .filter(item => item.reusableProduct && item.singleUseProduct);
   const foodwareSingleUseItems = foodwareItems.map(item => mapFoodwareSingleUseItem(item));
   const foodwareReusableItems = foodwareItems.map(item => mapFoodwareReusableItem(item));
   const allSingleUseItems = [...singleUseItems, ...foodwareSingleUseItems];

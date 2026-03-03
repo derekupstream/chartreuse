@@ -1,6 +1,6 @@
-import { LoginOutlined, SearchOutlined } from '@ant-design/icons';
+import { LoginOutlined, MailOutlined, SearchOutlined, SwapOutlined } from '@ant-design/icons';
 import type { Org, User } from '@prisma/client';
-import { Button, Card, Input, Table, Tag, Tooltip, Typography, message } from 'antd';
+import { Button, Card, Input, Popconfirm, Space, Table, Tag, Tooltip, Typography, message } from 'antd';
 import type { ColumnType } from 'antd/lib/table/interface';
 import type { GetServerSideProps } from 'next';
 import { useRouter } from 'next/router';
@@ -31,9 +31,10 @@ export const getServerSideProps: GetServerSideProps = async context => {
   return { props: serializeJSON({ user, users }) };
 };
 
-function AdminUsersPage({ users }: { user: DashboardUser; users: UserWithOrg[] }) {
+function AdminUsersPage({ users: initialUsers }: { user: DashboardUser; users: UserWithOrg[] }) {
   const router = useRouter();
   const [search, setSearch] = useState('');
+  const [users, setUsers] = useState<UserWithOrg[]>(initialUsers);
 
   const filtered = users.filter(u => {
     const q = search.toLowerCase();
@@ -61,6 +62,37 @@ function AdminUsersPage({ users }: { user: DashboardUser; users: UserWithOrg[] }
     }
   }
 
+  async function handleRoleChange(userId: string, newRole: 'ORG_ADMIN' | 'ACCOUNT_ADMIN') {
+    try {
+      const res = await fetch(`/api/admin/users/${userId}/role`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ role: newRole })
+      });
+      if (!res.ok) {
+        const { error } = await res.json();
+        throw new Error(error);
+      }
+      setUsers(prev => prev.map(u => (u.id === userId ? { ...u, role: newRole as any } : u)));
+      message.success('Role updated');
+    } catch (err: any) {
+      message.error(err.message ?? 'Failed to update role');
+    }
+  }
+
+  async function handleResetPassword(userId: string) {
+    try {
+      const res = await fetch(`/api/admin/users/${userId}/reset-password`, { method: 'POST' });
+      if (!res.ok) {
+        const { error } = await res.json();
+        throw new Error(error);
+      }
+      message.success('Password reset email sent');
+    } catch (err: any) {
+      message.error(err.message ?? 'Failed to send reset email');
+    }
+  }
+
   const columns: ColumnType<UserWithOrg>[] = [
     {
       title: 'Name',
@@ -77,7 +109,7 @@ function AdminUsersPage({ users }: { user: DashboardUser; users: UserWithOrg[] }
       title: 'Role',
       dataIndex: 'role',
       key: 'role',
-      render: (role: string) => <Tag>{role}</Tag>
+      render: (role: string) => <Tag>{role === 'ORG_ADMIN' ? 'Org Admin' : 'Account Admin'}</Tag>
     },
     {
       title: 'Joined',
@@ -92,11 +124,37 @@ function AdminUsersPage({ users }: { user: DashboardUser; users: UserWithOrg[] }
       key: 'actions',
       render: (_: any, u: UserWithOrg) =>
         u.org.isUpstream ? null : (
-          <Tooltip title='Login as this user'>
-            <Button size='small' icon={<LoginOutlined />} onClick={() => handleImpersonate(u.id)}>
-              Login as
-            </Button>
-          </Tooltip>
+          <Space size={4} wrap>
+            <Tooltip title='Login as this user'>
+              <Button size='small' icon={<LoginOutlined />} onClick={() => handleImpersonate(u.id)}>
+                Login as
+              </Button>
+            </Tooltip>
+            <Popconfirm
+              title={`Change role to ${u.role === 'ORG_ADMIN' ? 'Account Admin' : 'Org Admin'}?`}
+              onConfirm={() => handleRoleChange(u.id, u.role === 'ORG_ADMIN' ? 'ACCOUNT_ADMIN' : 'ORG_ADMIN')}
+              okText='Change'
+              cancelText='Cancel'
+            >
+              <Tooltip title='Toggle between Org Admin and Account Admin'>
+                <Button size='small' icon={<SwapOutlined />}>
+                  Change Role
+                </Button>
+              </Tooltip>
+            </Popconfirm>
+            <Popconfirm
+              title={`Send password reset email to ${u.email}?`}
+              onConfirm={() => handleResetPassword(u.id)}
+              okText='Send'
+              cancelText='Cancel'
+            >
+              <Tooltip title='Send Supabase password reset email'>
+                <Button size='small' icon={<MailOutlined />}>
+                  Reset Password
+                </Button>
+              </Tooltip>
+            </Popconfirm>
+          </Space>
         )
     }
   ];
