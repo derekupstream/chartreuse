@@ -70,14 +70,16 @@ const adminLinks: MenuProps['items'] = [
   { key: 'admin/projects', label: <Link href='/admin/projects'>All Projects</Link> }
 ];
 
-// Top-level items shown in the Admin dropdown — sub-pages live inside the Admin sidebar
+// Top-level items shown in the Admin dropdown — matches sidebar order
 const adminDropdownItems: MenuProps['items'] = [
   { key: 'admin', label: <Link href='/admin'>Overview</Link> },
   { key: 'admin/orgs', label: <Link href='/admin/orgs'>Organizations</Link> },
+  { key: 'admin/projects', label: <Link href='/admin/projects'>Projects</Link> },
   { key: 'admin/users', label: <Link href='/admin/users'>Users</Link> },
   { key: 'admin/feedback', label: <Link href='/admin/feedback'>Feedback</Link> },
+  { key: 'upstream/total-annual-impact', label: <Link href='/upstream/total-annual-impact'>Analytics</Link> },
   { key: 'data-science', label: <Link href='/admin/data-science'>Data Science</Link> },
-  { key: 'upstream/total-annual-impact', label: <Link href='/upstream/total-annual-impact'>Analytics</Link> }
+  { key: 'rsp', label: <Link href='/admin/rsp'>RSP Hub</Link> }
 ];
 
 export const BaseLayout: React.FC<DashboardProps> = ({ user, selectedMenuItem, title, children }) => {

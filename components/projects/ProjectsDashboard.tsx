@@ -108,7 +108,6 @@ export const ProjectsDashboard = ({
               onChange={e => setCategoryFilter(e.target.value === 'all' ? null : e.target.value)}
               optionType='button'
               buttonStyle='solid'
-              size='small'
             >
               <Radio.Button value='all'>All</Radio.Button>
               <Radio.Button value='default'>Projections</Radio.Button>
