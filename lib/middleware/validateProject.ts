@@ -11,16 +11,20 @@ export async function validateProject(req: NextApiRequestWithUser, res: NextApiR
     res.status(400).send('Missing projectId');
     return;
   }
-  const project = await prisma.project.findFirst({
-    where: {
-      id: projectId
-    }
-  });
 
+  const [project, upstreamCount] = await Promise.all([
+    prisma.project.findFirst({ where: { id: projectId } }),
+    prisma.org.count({ where: { id: req.user.orgId, isUpstream: true } })
+  ]);
+
+  const isUpstreamUser = upstreamCount > 0;
   const isAccessibleTemplate = project?.isTemplate;
 
   if (!project) {
     res.status(404).send('Project not found');
+  } else if (isUpstreamUser && req.method === 'GET') {
+    // upstream admins can read any project
+    next();
   } else if (isAccessibleTemplate && req.method === 'GET') {
     // allow access to read template data
     next();
