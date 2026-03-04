@@ -347,12 +347,12 @@ export function AnalyticsPage({
   });
 
   function excludeProject(id: string) {
-    setExcludedProjectIds(prev => new Set([...prev, id]));
+    setExcludedProjectIds(prev => new Set(Array.from(prev).concat(id)));
   }
 
   function includeProject(id: string) {
     setExcludedProjectIds(prev => {
-      const next = new Set(prev);
+      const next = new Set(Array.from(prev));
       next.delete(id);
       return next;
     });
