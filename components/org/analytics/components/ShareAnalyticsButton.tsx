@@ -4,12 +4,21 @@ import { useState } from 'react';
 
 import { useDisableAnalyticsShare, useEnableAnalyticsShare } from 'client/projects';
 
+type FilterParams = {
+  tags?: string[];
+  projectTypes?: string[];
+  startDate?: string | null;
+  endDate?: string | null;
+};
+
 type Props = {
   orgId: string;
   initialSlug: string | null;
+  filterParams?: FilterParams;
+  currentScope?: 'projections' | 'actuals' | 'scenarios';
 };
 
-export function ShareAnalyticsButton({ orgId, initialSlug }: Props) {
+export function ShareAnalyticsButton({ orgId, initialSlug, filterParams, currentScope }: Props) {
   const [analyticsSlug, setAnalyticsSlug] = useState(initialSlug);
   const [open, setOpen] = useState(false);
 
@@ -18,17 +27,26 @@ export function ShareAnalyticsButton({ orgId, initialSlug }: Props) {
 
   const isMutating = isEnabling || isDisabling;
 
-  const shareUrl =
-    analyticsSlug && typeof window !== 'undefined' ? `${window.location.origin}/share/analytics/${analyticsSlug}` : '';
+  function buildShareUrl(slug: string): string {
+    const base = `${window.location.origin}/share/analytics/${slug}`;
+    if (!filterParams) return base;
+    const parts: string[] = [];
+    if (filterParams.tags?.length) parts.push(`tags=${filterParams.tags.join(',')}`);
+    if (filterParams.projectTypes?.length) parts.push(`projectTypes=${filterParams.projectTypes.join(',')}`);
+    if (filterParams.startDate) parts.push(`startDate=${filterParams.startDate}`);
+    if (filterParams.endDate) parts.push(`endDate=${filterParams.endDate}`);
+    return parts.length ? `${base}?${parts.join('&')}` : base;
+  }
+
+  const shareUrl = analyticsSlug && typeof window !== 'undefined' ? buildShareUrl(analyticsSlug) : '';
 
   async function enable() {
-    const result = await enableShare({} as any);
-    const slug = (result as any)?.analyticsSlug ?? null;
-    setAnalyticsSlug(slug);
+    const result = await enableShare();
+    setAnalyticsSlug(result?.analyticsSlug ?? null);
   }
 
   async function disable() {
-    await disableShare({} as any);
+    await disableShare();
     setAnalyticsSlug(null);
   }
 
@@ -37,9 +55,12 @@ export function ShareAnalyticsButton({ orgId, initialSlug }: Props) {
     message.success('Link copied to clipboard');
   }
 
+  const scopeLabel =
+    currentScope === 'actuals' ? 'Actuals' : currentScope === 'scenarios' ? 'Scenarios' : 'Projections';
+
   const content = (
     <div style={{ width: 320 }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
         <Typography.Text strong>Share analytics</Typography.Text>
         <Switch
           checked={!!analyticsSlug}
@@ -48,6 +69,9 @@ export function ShareAnalyticsButton({ orgId, initialSlug }: Props) {
           size='small'
         />
       </div>
+      <Typography.Text type='secondary' style={{ fontSize: 11, display: 'block', marginBottom: 12 }}>
+        Sharing: <strong>{scopeLabel}</strong> view
+      </Typography.Text>
 
       {analyticsSlug ? (
         <>

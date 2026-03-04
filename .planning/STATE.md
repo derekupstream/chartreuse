@@ -9,9 +9,9 @@ See: .planning/PROJECT.md (updated 2026-03-02)
 
 ## Current Position
 
-Milestone: 7 of ~10 (Project Dashboard Charts complete)
+Milestone: 7 of ~10 (Analytics overhaul complete)
 Status: Stable — no active plans in flight
-Last activity: 2026-03-03 — Analytics Saved Views, Share Links & Project Multipliers
+Last activity: 2026-03-04 — Analytics UX overhaul (share toggle fix, print/export/share scope, Scenarios redesign)
 
 Progress: [████████░░] ~75%
 
@@ -36,6 +36,8 @@ All of Milestones 1–6 plus post-M6 + DASH work:
 - ✅ Analytics Saved Views (localStorage filter presets per org)
 - ✅ ShareButton redesign (Popover panel with URL input, Copy + Preview buttons)
 - ✅ ImpactMultiplier (scale org avg impact across N locations on analytics page)
+- ✅ Analytics Share Settings + ScenarioPlanner (Milestone 6 work)
+- ✅ Analytics UX overhaul: share toggle bug fix, Print/Export/Share scope dropdowns, Scenarios tab redesign (filters+summary cards on all tabs, ProjectionTimeline 1→2→5→10yr per-project chart, timeline dropdown on chart, Load Scenario inline with buttons)
 
 ## Performance Metrics
 
@@ -77,6 +79,6 @@ All of Milestones 1–6 plus post-M6 + DASH work:
 
 ## Session Continuity
 
-Last session: 2026-03-03
-Stopped at: Analytics Saved Views, Share Links & Project Multipliers — all complete, TypeScript clean
+Last session: 2026-03-04
+Stopped at: Analytics UX overhaul — all complete, TypeScript clean, pushed to main
 Resume file: None

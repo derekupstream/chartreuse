@@ -1,6 +1,6 @@
 import { EditOutlined, GlobalOutlined, ReloadOutlined, SaveOutlined } from '@ant-design/icons';
-import { Button, Card, Col, Divider, Input, InputNumber, Modal, Row, Space, Tooltip, Typography } from 'antd';
-import { useMemo, useState } from 'react';
+import { Button, Card, Col, Divider, Input, InputNumber, Modal, Row, Select, Space, Typography } from 'antd';
+import { useEffect, useMemo, useState } from 'react';
 import styled from 'styled-components';
 
 import { useCurrency } from 'components/_app/CurrencyProvider';
@@ -58,7 +58,8 @@ function useScenarios(orgId: string) {
 
 export function getMultipliedSummary(
   projects: ProjectSummary[],
-  multipliers: ScenarioMultipliers
+  multipliers: ScenarioMultipliers,
+  timelineYear: number = 1
 ): AllProjectsSummary['summary'] {
   const result = {
     savings: { baseline: 0, forecast: 0, forecasts: [] as number[] },
@@ -69,7 +70,7 @@ export function getMultipliedSummary(
   };
 
   for (const p of projects) {
-    const m = multipliers[p.id] ?? 1;
+    const m = (multipliers[p.id] ?? 1) * timelineYear;
     const s = p.projections.annualSummary;
     const envWater = p.projections.environmentalResults.annualWaterUsageChanges.total;
     const suCost = p.projections.singleUseResults.summary.annualCost;
@@ -137,15 +138,6 @@ const Delta = styled.span<{ $positive: boolean }>`
   font-weight: 500;
 `;
 
-const LocationBadge = styled.div`
-  background: #f0fff0;
-  border: 1.5px solid #95ee49;
-  border-radius: 8px;
-  padding: 8px 12px;
-  min-width: 90px;
-  text-align: center;
-`;
-
 // ─── Formatters ───────────────────────────────────────────────────────────────
 
 function pct(delta: number, baseline: number): string {
@@ -191,13 +183,15 @@ function ProjectScenarioCard({
   locations,
   onLocationsChange,
   currencyAbbreviation,
-  displayAsMetric
+  displayAsMetric,
+  isReadOnly
 }: {
   project: ProjectSummary;
   locations: number;
   onLocationsChange: (n: number) => void;
   currencyAbbreviation: string;
   displayAsMetric: boolean;
+  isReadOnly?: boolean;
 }) {
   const m = extractMetrics(project);
   const showMultiplied = locations > 1;
@@ -261,34 +255,17 @@ function ProjectScenarioCard({
           {project.name}
         </Typography.Title>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          {showMultiplied ? (
-            <LocationBadge>
-              <InputNumber
-                min={1}
-                max={100000}
-                value={locations}
-                onChange={v => onLocationsChange(v ?? 1)}
-                size='small'
-                style={{ width: 60, marginBottom: 2 }}
-                controls={false}
-              />
-              <div style={{ fontSize: 11, color: 'rgba(0,0,0,0.65)' }}>Locations</div>
-            </LocationBadge>
-          ) : (
-            <Tooltip title='Set number of locations to apply a multiplier'>
-              <InputNumber
-                min={1}
-                max={100000}
-                value={locations}
-                onChange={v => onLocationsChange(v ?? 1)}
-                size='small'
-                style={{ width: 90 }}
-                addonAfter='loc'
-              />
-            </Tooltip>
-          )}
-        </div>
+        <InputNumber
+          min={1}
+          max={100000}
+          value={locations}
+          onChange={v => onLocationsChange(v ?? 1)}
+          size='small'
+          style={{ width: 100 }}
+          addonBefore='×'
+          controls
+          disabled={isReadOnly}
+        />
       </div>
 
       <MetricHeader>
@@ -349,17 +326,27 @@ type Props = {
   data: AllProjectsSummary;
   orgId: string;
   onMultipliersChange: (multipliers: ScenarioMultipliers) => void;
+  initialMultipliers?: ScenarioMultipliers;
+  isReadOnly?: boolean;
 };
 
-export function ScenarioPlanner({ data, orgId, onMultipliersChange }: Props) {
+export function ScenarioPlanner({ data, orgId, onMultipliersChange, initialMultipliers, isReadOnly }: Props) {
   const displayAsMetric = useMetricSystem();
   const { abbreviation: currencyAbbreviation } = useCurrency();
   const { scenarios, upsert, add } = useScenarios(orgId);
 
-  const [multipliers, setMultipliers] = useState<ScenarioMultipliers>({});
+  const [multipliers, setMultipliers] = useState<ScenarioMultipliers>(initialMultipliers ?? {});
   const [scenarioName, setScenarioName] = useState('Scenario 1');
   const [editingName, setEditingName] = useState(false);
   const [activeScenarioId, setActiveScenarioId] = useState<string | null>(null);
+
+  // Notify parent of initial multipliers on mount
+  useEffect(() => {
+    if (initialMultipliers && Object.keys(initialMultipliers).length > 0) {
+      onMultipliersChange(initialMultipliers);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const projectCount = data.projects.length;
   if (projectCount === 0) return null;
@@ -414,8 +401,17 @@ export function ScenarioPlanner({ data, orgId, onMultipliersChange }: Props) {
     });
   }
 
+  function loadScenario(id: string) {
+    const s = scenarios.find(x => x.id === id);
+    if (!s) return;
+    setActiveScenarioId(id);
+    setScenarioName(s.name);
+    setMultipliers(s.multipliers);
+    onMultipliersChange(s.multipliers);
+  }
+
   return (
-    <div style={{ marginTop: 32 }}>
+    <div style={{ marginTop: 8 }}>
       {/* Scenario header row */}
       <div
         style={{
@@ -428,7 +424,7 @@ export function ScenarioPlanner({ data, orgId, onMultipliersChange }: Props) {
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 200 }}>
           <GlobalOutlined style={{ color: '#52c41a', fontSize: 18 }} />
-          {editingName ? (
+          {!isReadOnly && editingName ? (
             <Input
               value={scenarioName}
               autoFocus
@@ -439,8 +435,13 @@ export function ScenarioPlanner({ data, orgId, onMultipliersChange }: Props) {
               size='small'
             />
           ) : (
-            <Typography.Text strong style={{ fontSize: 16, cursor: 'pointer' }} onClick={() => setEditingName(true)}>
-              {scenarioName} <EditOutlined style={{ fontSize: 12, color: 'rgba(0,0,0,0.35)' }} />
+            <Typography.Text
+              strong
+              style={{ fontSize: 16, cursor: isReadOnly ? 'default' : 'pointer' }}
+              onClick={() => !isReadOnly && setEditingName(true)}
+            >
+              {scenarioName}
+              {!isReadOnly && <EditOutlined style={{ fontSize: 12, color: 'rgba(0,0,0,0.35)', marginLeft: 4 }} />}
             </Typography.Text>
           )}
           <Typography.Text type='secondary' style={{ fontSize: 12 }}>
@@ -448,22 +449,35 @@ export function ScenarioPlanner({ data, orgId, onMultipliersChange }: Props) {
           </Typography.Text>
         </div>
 
-        <Space wrap>
-          <Button
-            type='primary'
-            icon={<SaveOutlined />}
-            onClick={saveScenario}
-            style={{ background: '#52c41a', borderColor: '#52c41a' }}
-          >
-            Save Scenario
-          </Button>
-          <Button icon={<SaveOutlined />} onClick={saveAsNewScenario}>
-            Save as New Scenario
-          </Button>
-          <Button icon={<ReloadOutlined />} onClick={resetMultipliers} disabled={!hasAnyMultiplier}>
-            Reset
-          </Button>
-        </Space>
+        {!isReadOnly && (
+          <Space wrap>
+            {scenarios.length > 0 && (
+              <Select
+                placeholder='Load scenario'
+                style={{ width: 180 }}
+                value={activeScenarioId ?? undefined}
+                onSelect={(id: string) => loadScenario(id)}
+                options={scenarios.map(s => ({ label: s.name, value: s.id }))}
+                allowClear
+                onClear={() => setActiveScenarioId(null)}
+              />
+            )}
+            <Button
+              type='primary'
+              icon={<SaveOutlined />}
+              onClick={saveScenario}
+              style={{ background: '#52c41a', borderColor: '#52c41a' }}
+            >
+              Save Scenario
+            </Button>
+            <Button icon={<SaveOutlined />} onClick={saveAsNewScenario}>
+              Save as New
+            </Button>
+            <Button icon={<ReloadOutlined />} onClick={resetMultipliers} disabled={!hasAnyMultiplier}>
+              Reset
+            </Button>
+          </Space>
+        )}
       </div>
 
       {/* Per-project cards */}
@@ -475,6 +489,7 @@ export function ScenarioPlanner({ data, orgId, onMultipliersChange }: Props) {
           onLocationsChange={v => updateMultiplier(project.id, v)}
           currencyAbbreviation={currencyAbbreviation}
           displayAsMetric={displayAsMetric}
+          isReadOnly={isReadOnly}
         />
       ))}
     </div>

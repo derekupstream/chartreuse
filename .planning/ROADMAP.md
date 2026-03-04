@@ -85,6 +85,16 @@ SaaS calculator for cost/environmental savings when switching from single-use to
 - Fixed share API to correctly accept `publicSlug: null` for disabling sharing
 - ImpactMultiplier: scale avg per-project impact across N locations (analytics page, projections category only)
 
+### Analytics UX Overhaul ✅
+**Completed**: 2026-03-04
+- **Share toggle bug fix**: `useEnableAnalyticsShare` now uses `useSWRMutation` directly with `Data` properly typed as `{ analyticsSlug: string }` — trigger() return value is clean without `as any` casts
+- **Print/Export scope dropdowns**: Print and Export buttons replaced with `Dropdown.Button`; Print options (Projections/Actuals); Export options (All/Projections/Actuals) pass `?category=` param to export API
+- **Share scope indicator**: ShareAnalyticsButton popover shows "Sharing: [Projections/Actuals/Scenarios] view"
+- **FilterRow button heights**: "Save view" and "Clear filters" buttons changed from `size='small'` to default (`size='middle'`) to match adjacent Select dropdowns
+- **Scenarios tab redesign**: FilterRow + summary cards now shown on ALL tabs (not just Projections/Actuals); Leaderboard remains Projections/Actuals only
+- **ProjectionTimeline**: New chart (`components/org/analytics/components/ProjectionTimeline.tsx`) replaces ImpactTimeline in Scenarios tab — per-project lines at 1yr→2yr→5yr→10yr x-axis; metric toggle (Savings/Waste/GHG/Single-Use); "Up to Xyr" dropdown on chart controls both visible years AND summary card multiplier; `animate={false}` + `key={visibleYears.length}` fix for G2 `equalizeSegments` stack overflow
+- **ScenarioPlanner**: Slider removed (timeline now on chart); "Load scenario" Select moved inline with Save/Save as New/Reset buttons
+
 ### Calculator Accuracy + Multi-Year Projections
 **Requirements**: CALC-01, CALC-02, CALC-03, CALC-04
 - EPA WARM 2025 emission factors (replace stale constants)

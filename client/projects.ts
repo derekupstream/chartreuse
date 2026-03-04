@@ -3,6 +3,8 @@ import type { ReusableLineItem } from 'lib/inventory/types/projects';
 import type { SingleUseLineItem } from 'lib/inventory/types/projects';
 import type { PopulatedProject } from 'pages/api/projects/index';
 import type { FoodwareLineItem } from 'lib/projects/getProjectFoodwareLineItems';
+import useSWRMutation from 'swr/mutation';
+import * as http from 'lib/http';
 import { useDELETE, useGET, usePOST, usePUT } from './helpers';
 import { ModifyFoodwareLineItemRequest } from 'pages/api/projects/[id]/foodware-items';
 import { UpdateProjectUsageRequest } from 'pages/api/projects/[id]/usage';
@@ -107,9 +109,15 @@ export function useUpdateShareSettings(projectId: MaybeString) {
 }
 
 export function useEnableAnalyticsShare() {
-  return usePUT<Record<string, never>>(`/api/org/analytics-share`);
+  return useSWRMutation<{ analyticsSlug: string }>(
+    `/api/org/analytics-share`,
+    (url: string) => http.PUT<{ analyticsSlug: string }>(url)
+  );
 }
 
 export function useDisableAnalyticsShare() {
-  return useDELETE<Record<string, never>>(`/api/org/analytics-share`);
+  return useSWRMutation<{ analyticsSlug: null }>(
+    `/api/org/analytics-share`,
+    (url: string) => http.DELETE<{ analyticsSlug: null }>(url)
+  );
 }

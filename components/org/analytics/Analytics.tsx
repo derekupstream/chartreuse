@@ -1,13 +1,36 @@
-import { DeleteOutlined, DownloadOutlined, SaveOutlined } from '@ant-design/icons';
+import {
+  DeleteOutlined,
+  DownOutlined,
+  DownloadOutlined,
+  ExportOutlined,
+  EyeInvisibleOutlined,
+  EyeOutlined,
+  PrinterOutlined,
+  SaveOutlined
+} from '@ant-design/icons';
 import type { Org, ProjectCategory, User } from '@prisma/client';
-import { Button, Col, DatePicker, Divider, Input, Modal, Row, Select, Table, Tabs, Tooltip, Typography } from 'antd';
+import {
+  Badge,
+  Button,
+  Col,
+  DatePicker,
+  Divider,
+  Dropdown,
+  Input,
+  Modal,
+  Row,
+  Select,
+  Tabs,
+  Tooltip,
+  Typography
+} from 'antd';
 import dayjs from 'dayjs';
 import { useRouter } from 'next/router';
 import { useMemo, useRef, useState } from 'react';
+import { useReactToPrint } from 'react-to-print';
 import styled from 'styled-components';
 
 import ContentLoader from 'components/common/ContentLoader';
-import { PrintButton } from 'components/common/print/PrintButton';
 import { PrintHeader } from 'components/common/print/PrintHeader';
 import { Spacer } from 'components/common/Spacer';
 import Card from 'components/projects/[id]/projections/components/common/Card';
@@ -19,10 +42,9 @@ import { useMetricSystem } from 'components/_app/MetricSystemProvider';
 import { valueInPounds, valueInGallons } from 'lib/number';
 import { SummaryCardWithGraph, SummaryCard, SummaryCardSingleUseBreakdown } from './components/SummaryCardWithGraph';
 import { useCurrency } from 'components/_app/CurrencyProvider';
-import { columns } from './components/AnalyticsTableColumns';
-import { columns as eventColumns } from './components/EventAnalyticsTableColumns';
 import { ScenarioPlanner, getMultipliedSummary, type ScenarioMultipliers } from './components/ScenarioPlanner';
 import { ShareAnalyticsButton } from './components/ShareAnalyticsButton';
+import { ProjectionTimeline } from './components/ProjectionTimeline';
 
 import * as S2 from '../../../layouts/styles';
 import { getReturnOrShrinkageRate } from 'components/projects/[id]/usage/UsageStep';
@@ -42,6 +64,198 @@ const FilterRow = styled.div`
   align-items: center;
   padding: 12px 0;
 `;
+
+const LBCard = styled.div`
+  border: 1px solid #f0f0f0;
+  border-radius: 8px;
+  padding: 16px 20px;
+  margin-bottom: 16px;
+  background: #fff;
+`;
+
+const LBRow = styled.div`
+  display: grid;
+  grid-template-columns: 1.8fr 90px 90px 80px 55px;
+  gap: 8px;
+  align-items: center;
+  padding: 5px 0;
+  font-size: 13px;
+  border-bottom: 1px solid #f5f5f5;
+  &:last-child {
+    border-bottom: none;
+  }
+`;
+
+const LBHeader = styled(LBRow)`
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.45);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  border-bottom: 1px solid #e8e8e8 !important;
+  padding-bottom: 8px;
+  margin-bottom: 4px;
+`;
+
+function fmtSigned(n: number, fmt: (abs: number) => string): string {
+  const abs = Math.abs(n);
+  if (n > 0) return `+${fmt(abs)}`;
+  if (n < 0) return `-${fmt(abs)}`;
+  return fmt(0);
+}
+
+function LeaderboardCard({
+  project,
+  isEvent,
+  onExclude,
+  onReinclude,
+  isExcluded
+}: {
+  project: ProjectSummary;
+  isEvent: boolean;
+  onExclude?: () => void;
+  onReinclude?: () => void;
+  isExcluded?: boolean;
+}) {
+  const displayAsMetric = useMetricSystem();
+  const { abbreviation: currency } = useCurrency();
+  const s = project.projections.annualSummary;
+  const env = project.projections.environmentalResults;
+  const wt = (abs: number) =>
+    Math.round(valueInPounds(abs, { displayAsMetric, displayAsTons: false })).toLocaleString();
+
+  type RowData = {
+    label: string;
+    c1: string;
+    c2: string;
+    changeNum: number;
+    pct: number;
+    fmtAbs: (n: number) => string;
+  };
+
+  const metricRows: RowData[] = isEvent
+    ? [
+        {
+          label: 'Single-use reduction (units)',
+          c1: Math.round(s.singleUseProductCount.baseline).toLocaleString(),
+          c2: '0',
+          changeNum: s.singleUseProductCount.change * -1,
+          pct: (s.singleUseProductCount.changePercent ?? 0) * -1,
+          fmtAbs: n => Math.round(n).toLocaleString()
+        },
+        {
+          label: `Waste prevention (${displayAsMetric ? 'kg' : 'lb'})`,
+          c1: wt(s.wasteWeight.baseline),
+          c2: wt(s.wasteWeight.forecast),
+          changeNum: s.wasteWeight.change * -1,
+          pct: (s.wasteWeight.changePercent ?? 0) * -1,
+          fmtAbs: wt
+        },
+        {
+          label: 'GHG emissions (MTC02e)',
+          c1: s.greenhouseGasEmissions.total.baseline.toFixed(2),
+          c2: s.greenhouseGasEmissions.total.forecast.toFixed(2),
+          changeNum: s.greenhouseGasEmissions.total.change * -1,
+          pct: (s.greenhouseGasEmissions.total.changePercent ?? 0) * -1,
+          fmtAbs: n => n.toFixed(2)
+        },
+        {
+          label: `Water usage (${displayAsMetric ? 'L' : 'gal'})`,
+          c1: Math.round(env.annualWaterUsageChanges.total.baseline).toLocaleString(),
+          c2: Math.round(env.annualWaterUsageChanges.total.forecast).toLocaleString(),
+          changeNum: env.annualWaterUsageChanges.total.change * -1,
+          pct: (env.annualWaterUsageChanges.total.changePercent ?? 0) * -1,
+          fmtAbs: n => Math.round(n).toLocaleString()
+        }
+      ]
+    : [
+        {
+          label: 'Estimated savings',
+          c1: formatToDollar(s.dollarCost.baseline, currency),
+          c2: formatToDollar(s.dollarCost.forecast, currency),
+          changeNum: s.dollarCost.change * -1,
+          pct: (s.dollarCost.changePercent ?? 0) * -1,
+          fmtAbs: n => formatToDollar(n, currency)
+        },
+        {
+          label: `Waste reduction (${displayAsMetric ? 'kg' : 'lb'})`,
+          c1: wt(s.wasteWeight.baseline),
+          c2: wt(s.wasteWeight.forecast),
+          changeNum: s.wasteWeight.change * -1,
+          pct: (s.wasteWeight.changePercent ?? 0) * -1,
+          fmtAbs: wt
+        },
+        {
+          label: 'Single-use reduction (units)',
+          c1: Math.round(s.singleUseProductCount.baseline).toLocaleString(),
+          c2: Math.round(s.singleUseProductCount.forecast).toLocaleString(),
+          changeNum: s.singleUseProductCount.change * -1,
+          pct: (s.singleUseProductCount.changePercent ?? 0) * -1,
+          fmtAbs: n => Math.round(n).toLocaleString()
+        },
+        {
+          label: 'GHG reduction (MTC02e)',
+          c1: s.greenhouseGasEmissions.total.baseline.toFixed(2),
+          c2: s.greenhouseGasEmissions.total.forecast.toFixed(2),
+          changeNum: s.greenhouseGasEmissions.total.change * -1,
+          pct: (s.greenhouseGasEmissions.total.changePercent ?? 0) * -1,
+          fmtAbs: n => n.toFixed(2)
+        }
+      ];
+
+  return (
+    <LBCard>
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 12 }}>
+        <div>
+          <Typography.Title level={5} style={{ margin: 0 }}>
+            {project.name}
+          </Typography.Title>
+          <Typography.Text type='secondary' style={{ fontSize: 12 }}>
+            {(project as any).account?.name}
+          </Typography.Text>
+        </div>
+        <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
+          <Tooltip title='Open project'>
+            <a href={`/projects/${project.id}`} target='_blank' rel='noreferrer'>
+              <Button size='small' type='text' icon={<ExportOutlined />} />
+            </a>
+          </Tooltip>
+          {isExcluded ? (
+            <Tooltip title='Re-include in analytics'>
+              <Button size='small' type='text' icon={<EyeOutlined />} onClick={onReinclude} />
+            </Tooltip>
+          ) : (
+            <Tooltip title='Exclude from analytics'>
+              <Button size='small' type='text' icon={<EyeInvisibleOutlined />} onClick={onExclude} />
+            </Tooltip>
+          )}
+        </div>
+      </div>
+      <LBHeader>
+        <span>Metric</span>
+        <span>{isEvent ? 'Single-use' : 'Baseline'}</span>
+        <span>{isEvent ? 'Reusable' : 'Forecast'}</span>
+        <span>Change</span>
+        <span>%</span>
+      </LBHeader>
+      {metricRows.map(row => {
+        const pos = row.changeNum > 0;
+        const neg = row.changeNum < 0;
+        const color = pos ? '#52c41a' : neg ? '#ff4d4f' : 'inherit';
+        const pctStr = row.pct !== 0 ? `${row.pct > 0 ? '+' : ''}${Math.round(row.pct)}%` : '—';
+        return (
+          <LBRow key={row.label}>
+            <span>{row.label}</span>
+            <span style={{ color: 'rgba(0,0,0,0.65)' }}>{row.c1}</span>
+            <span style={{ color: 'rgba(0,0,0,0.65)' }}>{row.c2}</span>
+            <span style={{ color, fontWeight: 500 }}>{fmtSigned(row.changeNum, row.fmtAbs)}</span>
+            <span style={{ color }}>{pctStr}</span>
+          </LBRow>
+        );
+      })}
+    </LBCard>
+  );
+}
 
 type SavedView = {
   id: string;
@@ -84,13 +298,19 @@ function useSavedViews(orgId: string) {
   return { views, saveView, deleteView };
 }
 
+type ActiveTab = 'projections' | 'actuals' | 'scenarios';
+
 export interface PageProps {
   isUpstreamView?: boolean;
   showCategoryTabs?: boolean;
+  isReadOnly?: boolean;
   projectCategory: ProjectCategory;
-  user: User & { org: Org & { analyticsSlug?: string | null } }; // analyticsSlug in DashboardUser.org
+  user: User & { org: Org & { analyticsSlug?: string | null } };
   data?: AllProjectsSummary;
   availableProjectTypes?: string[];
+  initialTab?: ActiveTab;
+  initialScenarioMultipliers?: ScenarioMultipliers;
+  initialTimelineYear?: number;
 }
 
 export function AnalyticsPage({
@@ -99,7 +319,11 @@ export function AnalyticsPage({
   availableProjectTypes = [],
   projectCategory,
   isUpstreamView,
-  showCategoryTabs
+  showCategoryTabs,
+  isReadOnly,
+  initialTab,
+  initialScenarioMultipliers,
+  initialTimelineYear
 }: PageProps) {
   const router = useRouter();
   const { tags } = useTags(user.org.id);
@@ -108,6 +332,31 @@ export function AnalyticsPage({
   const printRef = useRef(null);
   const { views: savedViews, saveView, deleteView } = useSavedViews(user.org.id);
   const [scenarioMultipliers, setScenarioMultipliers] = useState<ScenarioMultipliers>({});
+  const [timelineYear, setTimelineYear] = useState<number>(initialTimelineYear ?? 10);
+  const [activeTab, setActiveTab] = useState<ActiveTab>(
+    initialTab ?? (projectCategory === 'event' ? 'actuals' : 'projections')
+  );
+
+  const [activeViewId, setActiveViewId] = useState<string | undefined>(undefined);
+  const [excludedProjectIds, setExcludedProjectIds] = useState<Set<string>>(new Set());
+  const [showExcluded, setShowExcluded] = useState(false);
+
+  const handlePrint = useReactToPrint({
+    content: () => printRef.current,
+    documentTitle: `${user.org.name} Projects Overview - Chart-Reuse`
+  });
+
+  function excludeProject(id: string) {
+    setExcludedProjectIds(prev => new Set([...prev, id]));
+  }
+
+  function includeProject(id: string) {
+    setExcludedProjectIds(prev => {
+      const next = new Set(prev);
+      next.delete(id);
+      return next;
+    });
+  }
 
   // Filter state — initialized from URL params
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>(
@@ -123,6 +372,63 @@ export function AnalyticsPage({
 
   const hasActiveFilters =
     selectedTagIds.length > 0 || selectedProjectTypes.length > 0 || dateRange[0] != null || dateRange[1] != null;
+
+  // Must be before early return to satisfy hooks rules
+  const { displayValue: returnRateDisplayValue, returnRatelabel } = useMemo(() => {
+    if (!data) return getReturnOrShrinkageRate({ returnRate: 100, useShrinkageRate: false });
+    const avgReturnRate =
+      data.projects.reduce((acc, project) => {
+        const returnRate = project.projections.reusableResults.summary.returnRate?.returnRate ?? 100;
+        return returnRate + acc;
+      }, 0) / data.projects.length;
+    return getReturnOrShrinkageRate({
+      returnRate: avgReturnRate,
+      useShrinkageRate: user.org.useShrinkageRate
+    });
+  }, [data, user.org]);
+
+  // Client-side filter applied on top of SSR-filtered data — makes stat cards & table reactive
+  const filteredProjects = useMemo(() => {
+    if (!data) return [];
+    const hasFilters =
+      selectedTagIds.length > 0 || selectedProjectTypes.length > 0 || dateRange[0] != null || dateRange[1] != null;
+    if (!hasFilters && excludedProjectIds.size === 0) return data.projects;
+    return data.projects.filter(p => {
+      if (excludedProjectIds.has(p.id)) return false;
+      const pAny = p as any;
+      if (selectedTagIds.length > 0) {
+        if (!selectedTagIds.some(id => (pAny.tags ?? []).some((t: any) => t.tagId === id))) return false;
+      }
+      if (selectedProjectTypes.length > 0) {
+        const pType = pAny.metadata?.type;
+        if (!pType || !selectedProjectTypes.includes(pType)) return false;
+      }
+      if (dateRange[0] || dateRange[1]) {
+        const d = pAny.startDate ? new Date(pAny.startDate) : new Date(pAny.createdAt);
+        if (dateRange[0] && d < (dateRange[0] as dayjs.Dayjs).toDate()) return false;
+        if (dateRange[1] && d > (dateRange[1] as dayjs.Dayjs).toDate()) return false;
+      }
+      return true;
+    });
+  }, [data, selectedTagIds, selectedProjectTypes, dateRange, excludedProjectIds]);
+
+  const excludedProjectsForDisplay = useMemo(() => {
+    if (!data || excludedProjectIds.size === 0) return [];
+    return data.projects.filter(p => excludedProjectIds.has(p.id));
+  }, [data, excludedProjectIds]);
+
+  // Summary derived from filtered projects + scenario multipliers + timeline
+  const activeSummary = useMemo(() => {
+    return getMultipliedSummary(
+      filteredProjects,
+      projectCategory === 'event' ? {} : scenarioMultipliers,
+      projectCategory === 'event' ? 1 : timelineYear
+    );
+  }, [filteredProjects, projectCategory, scenarioMultipliers, timelineYear]);
+
+  if (!data) {
+    return <ContentLoader />;
+  }
 
   function promptSaveView() {
     let viewName = '';
@@ -153,10 +459,11 @@ export function AnalyticsPage({
   }
 
   function loadView(view: SavedView) {
+    setActiveViewId(view.id);
     setSelectedTagIds(view.tagIds);
     setSelectedProjectTypes(view.projectTypes);
     setDateRange([view.startDate ? dayjs(view.startDate) : null, view.endDate ? dayjs(view.endDate) : null]);
-    applyFilters({
+    syncFiltersToUrl({
       tagIds: view.tagIds,
       projectTypes: view.projectTypes,
       startDate: view.startDate,
@@ -164,31 +471,7 @@ export function AnalyticsPage({
     });
   }
 
-  // Must be before early return to satisfy hooks rules
-  const { displayValue: returnRateDisplayValue, returnRatelabel } = useMemo(() => {
-    if (!data) return getReturnOrShrinkageRate({ returnRate: 100, useShrinkageRate: false });
-    const avgReturnRate =
-      data.projects.reduce((acc, project) => {
-        const returnRate = project.projections.reusableResults.summary.returnRate?.returnRate ?? 100;
-        return returnRate + acc;
-      }, 0) / data.projects.length;
-    return getReturnOrShrinkageRate({
-      returnRate: avgReturnRate,
-      useShrinkageRate: user.org.useShrinkageRate
-    });
-  }, [data, user.org]);
-
-  if (!data) {
-    return <ContentLoader />;
-  }
-
-  const hasMultipliers = Object.values(scenarioMultipliers).some(v => v > 1);
-  const activeSummary =
-    projectCategory !== 'event' && hasMultipliers
-      ? getMultipliedSummary(data.projects, scenarioMultipliers)
-      : data.summary;
-
-  function applyFilters(overrides: {
+  function syncFiltersToUrl(overrides: {
     tagIds?: string[];
     projectTypes?: string[];
     startDate?: string | null;
@@ -212,6 +495,7 @@ export function AnalyticsPage({
   }
 
   function clearFilters() {
+    setActiveViewId(undefined);
     setSelectedTagIds([]);
     setSelectedProjectTypes([]);
     setDateRange([null, null]);
@@ -219,49 +503,59 @@ export function AnalyticsPage({
     router.replace(projectCategory !== 'default' ? `${basePath}?category=${projectCategory}` : basePath);
   }
 
-  function setProjectCategory(category: string) {
-    router.replace(`${router.asPath.split('?')[0]}?category=${category}`);
+  function handleTabChange(key: string) {
+    const tab = key as ActiveTab;
+    setActiveTab(tab);
+    if (tab === 'scenarios') return; // client-side only, no URL change
+    const basePath = router.asPath.split('?')[0];
+    if (tab === 'actuals') {
+      router.replace(`${basePath}?category=event`);
+    } else {
+      router.replace(basePath);
+    }
   }
 
-  function exportOrgData() {
+  function exportOrgData(category?: string) {
     const orgId = data?.projects[0]?.orgId;
+    const catParam = category ? `?category=${category}` : '';
     return requestDownload({
-      api: `/api/org/${orgId}/export`,
+      api: `/api/org/${orgId}/export${catParam}`,
       title: `Chart-Reuse Export`
     });
   }
 
-  const rows = data.projects
-    .map(project => {
-      const score =
-        project.projections.annualSummary.dollarCost.changePercent +
-        project.projections.annualSummary.wasteWeight.changePercent +
-        project.projections.annualSummary.singleUseProductCount.changePercent;
-      return {
-        ...project,
-        hasNoData:
-          project.projections.singleUseResults.summary.annualUnits.baseline === 0 &&
-          project.projections.singleUseResults.summary.annualUnits.forecast === 0 &&
-          project.projections.reusableResults.summary.annualUnits.baseline === 0 &&
-          project.projections.reusableResults.summary.annualUnits.forecast === 0,
-        isEventProject: project.category === 'event',
-        useShrinkageRate: user.org.useShrinkageRate,
-        score
-      };
-    })
-    .sort((a, b) => a.score - b.score);
+  function computeRow(project: ProjectSummary) {
+    const score =
+      project.projections.annualSummary.dollarCost.changePercent +
+      project.projections.annualSummary.wasteWeight.changePercent +
+      project.projections.annualSummary.singleUseProductCount.changePercent;
+    return {
+      ...project,
+      hasNoData:
+        project.projections.singleUseResults.summary.annualUnits.baseline === 0 &&
+        project.projections.singleUseResults.summary.annualUnits.forecast === 0 &&
+        project.projections.reusableResults.summary.annualUnits.baseline === 0 &&
+        project.projections.reusableResults.summary.annualUnits.forecast === 0,
+      isEventProject: project.category === 'event',
+      useShrinkageRate: user.org.useShrinkageRate,
+      score
+    };
+  }
+
+  const rows = filteredProjects.map(computeRow).sort((a, b) => a.score - b.score);
+  const excludedRows = excludedProjectsForDisplay.map(computeRow);
 
   const projectHasData = rows.some(project => !project.hasNoData);
   const spacing = 24;
 
-  const bottlesSaved = data.projects.reduce((acc, project) => {
+  const bottlesSaved = filteredProjects.reduce((acc, project) => {
     if (project.category === 'event') {
       acc += project.projections.bottleStationResults.bottlesSaved;
     }
     return acc;
   }, 0);
 
-  const singleUseItemsAvoided = data.projects.reduce((acc, project) => {
+  const singleUseItemsAvoided = filteredProjects.reduce((acc, project) => {
     if (project.category === 'event') {
       acc += project.projections.singleUseResults.summary.annualUnits.change * -1;
     }
@@ -270,6 +564,19 @@ export function AnalyticsPage({
 
   const foodwareItemsAvoided = singleUseItemsAvoided - bottlesSaved;
   const showBottlesAndFoodwareBreakdown = bottlesSaved > 0 && foodwareItemsAvoided > 0;
+
+  const tabItems = [
+    { key: 'projections', label: 'Projections' },
+    ...(showCategoryTabs ? [{ key: 'actuals', label: 'Actuals' }] : []),
+    {
+      key: 'scenarios',
+      label: (
+        <span>
+          Scenarios <Badge count='New' color='#52c41a' size='small' style={{ marginLeft: 4 }} />
+        </span>
+      )
+    }
+  ];
 
   return (
     <div ref={printRef}>
@@ -280,34 +587,60 @@ export function AnalyticsPage({
         </Typography.Title>
 
         <div style={{ display: 'flex', gap: '1em' }} className='dont-print-me'>
-          <PrintButton printRef={printRef} pdfTitle={`${user.org.name} Projects Overview - Chart-Reuse`} />
-          <Button onClick={() => exportOrgData()}>
+          <Dropdown.Button
+            onClick={handlePrint}
+            icon={<DownOutlined />}
+            menu={{
+              items: [
+                { key: 'projections', label: 'Print Projections' },
+                { key: 'actuals', label: 'Print Actuals' }
+              ],
+              onClick: () => handlePrint()
+            }}
+          >
+            <PrinterOutlined /> Print
+          </Dropdown.Button>
+          <Dropdown.Button
+            onClick={() => exportOrgData()}
+            icon={<DownOutlined />}
+            menu={{
+              items: [
+                { key: 'all', label: 'Export All' },
+                { key: 'default', label: 'Export Projections' },
+                { key: 'event', label: 'Export Actuals' }
+              ],
+              onClick: ({ key }) => exportOrgData(key === 'all' ? undefined : key)
+            }}
+          >
             <DownloadOutlined /> Export Data
-          </Button>
-          <ShareAnalyticsButton orgId={user.org.id} initialSlug={user.org.analyticsSlug ?? null} />
+          </Dropdown.Button>
+          {!isReadOnly && (
+            <ShareAnalyticsButton
+              orgId={user.org.id}
+              initialSlug={user.org.analyticsSlug ?? null}
+              currentScope={activeTab}
+              filterParams={{
+                tags: selectedTagIds,
+                projectTypes: selectedProjectTypes,
+                startDate: dateRange[0]?.format('YYYY-MM-DD') ?? null,
+                endDate: dateRange[1]?.format('YYYY-MM-DD') ?? null
+              }}
+            />
+          )}
         </div>
       </S2.HeaderRow>
 
       <Spacer vertical={spacing} />
 
-      {showCategoryTabs && (
-        <Tabs
-          activeKey={projectCategory}
-          style={{ marginBottom: 0 }}
-          onChange={setProjectCategory}
-          items={[
-            { key: 'default', label: 'Projections' },
-            { key: 'event', label: 'Actuals' }
-          ]}
-        />
-      )}
+      <Tabs activeKey={activeTab} style={{ marginBottom: 0 }} onChange={handleTabChange} items={tabItems} />
 
+      {/* ── FilterRow — all tabs ─────────────────────────────────────────── */}
       <FilterRow className='dont-print-me'>
         {savedViews.length > 0 && (
           <Select
             placeholder='Load saved view'
             style={{ minWidth: 160 }}
-            value={undefined}
+            value={activeViewId}
             onSelect={(id: string | undefined) => {
               if (!id) return;
               const view = savedViews.find(v => v.id === id);
@@ -338,23 +671,25 @@ export function AnalyticsPage({
           value={selectedProjectTypes}
           onChange={vals => {
             setSelectedProjectTypes(vals);
-            applyFilters({ projectTypes: vals });
+            syncFiltersToUrl({ projectTypes: vals });
           }}
           allowClear
         />
-        <DatePicker.RangePicker
-          value={dateRange as any}
-          placeholder={['Start date', 'End date']}
-          allowEmpty={[true, true]}
-          onChange={range => {
-            const newRange: [any, any] = [range?.[0] ?? null, range?.[1] ?? null];
-            setDateRange(newRange);
-            applyFilters({
-              startDate: newRange[0]?.format('YYYY-MM-DD') ?? null,
-              endDate: newRange[1]?.format('YYYY-MM-DD') ?? null
-            });
-          }}
-        />
+        {activeTab === 'actuals' && (
+          <DatePicker.RangePicker
+            value={dateRange as any}
+            placeholder={['Start date', 'End date']}
+            allowEmpty={[true, true]}
+            onChange={range => {
+              const newRange: [any, any] = [range?.[0] ?? null, range?.[1] ?? null];
+              setDateRange(newRange);
+              syncFiltersToUrl({
+                startDate: newRange[0]?.format('YYYY-MM-DD') ?? null,
+                endDate: newRange[1]?.format('YYYY-MM-DD') ?? null
+              });
+            }}
+          />
+        )}
         <Select
           mode='multiple'
           placeholder='Filter by tag'
@@ -363,17 +698,13 @@ export function AnalyticsPage({
           value={selectedTagIds}
           onChange={vals => {
             setSelectedTagIds(vals);
-            applyFilters({ tagIds: vals });
+            syncFiltersToUrl({ tagIds: vals });
           }}
           allowClear
         />
-        {hasActiveFilters && (
-          <Button onClick={clearFilters} size='small'>
-            Clear filters
-          </Button>
-        )}
+        {hasActiveFilters && <Button onClick={clearFilters}>Clear filters</Button>}
         <Tooltip title='Save current filters as a named view'>
-          <Button size='small' icon={<SaveOutlined />} onClick={promptSaveView}>
+          <Button icon={<SaveOutlined />} onClick={promptSaveView}>
             Save view
           </Button>
         </Tooltip>
@@ -383,6 +714,7 @@ export function AnalyticsPage({
 
       <Spacer vertical={spacing} />
 
+      {/* ── Summary cards — all tabs ──────────────────────────────────────── */}
       <Row gutter={[24, 24]}>
         {bottlesSaved > 0 && (
           <StyledCol xs={24} lg={12}>
@@ -480,41 +812,88 @@ export function AnalyticsPage({
         )}
       </Row>
 
-      <div className='page-break' />
+      {/* ── Projections / Actuals leaderboard ────────────────────────────── */}
+      {activeTab !== 'scenarios' && (
+        <>
+          <div className='page-break' />
 
-      <Spacer vertical={spacing} />
+          <Spacer vertical={spacing} />
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
-        <Typography.Title level={3} style={{ marginBottom: 0 }}>
-          Project Leaderboard
-        </Typography.Title>
-        <S.SectionHeader style={{ color: 'grey', marginBottom: 0, display: 'flex', justifyContent: 'space-between' }}>
-          <span>{`${data.projects.length} Projects`}</span>
-        </S.SectionHeader>
-      </div>
-      <Spacer vertical={spacing} />
-      <Divider style={{ margin: 0 }} />
-      <Spacer vertical={spacing} />
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+            <Typography.Title level={3} style={{ marginBottom: 0 }}>
+              Project Leaderboard
+            </Typography.Title>
+            <S.SectionHeader
+              style={{ color: 'grey', marginBottom: 0, display: 'flex', justifyContent: 'space-between' }}
+            >
+              <span>{`${filteredProjects.length} Projects`}</span>
+            </S.SectionHeader>
+          </div>
+          <Spacer vertical={spacing} />
+          <Divider style={{ margin: 0 }} />
+          <Spacer vertical={spacing} />
 
-      <Card>
-        <Table<ProjectSummary>
-          className='dont-print-me'
-          dataSource={rows}
-          columns={projectCategory === 'event' ? eventColumns : columns}
-          rowKey='id'
-          pagination={{ hideOnSinglePage: true }}
-        />
-        <Table<ProjectSummary>
-          className='print-only'
-          dataSource={rows}
-          columns={projectCategory === 'event' ? eventColumns : columns}
-          rowKey='id'
-          pagination={{ hideOnSinglePage: true, pageSize: rows.length }}
-        />
-      </Card>
+          <div>
+            {rows.map(project => (
+              <LeaderboardCard
+                key={project.id}
+                project={project}
+                isEvent={projectCategory === 'event'}
+                onExclude={() => excludeProject(project.id)}
+              />
+            ))}
+            {excludedRows.length > 0 && (
+              <div style={{ marginTop: 16 }}>
+                <Divider />
+                <div
+                  style={{
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    marginBottom: showExcluded ? 16 : 0
+                  }}
+                  onClick={() => setShowExcluded(v => !v)}
+                >
+                  <EyeInvisibleOutlined style={{ color: 'rgba(0,0,0,0.45)' }} />
+                  <Typography.Text type='secondary'>
+                    Projects excluded from analytics ({excludedRows.length})
+                  </Typography.Text>
+                  <span style={{ color: 'rgba(0,0,0,0.45)', fontSize: 12 }}>{showExcluded ? '▲' : '▼'}</span>
+                </div>
+                {showExcluded &&
+                  excludedRows.map(project => (
+                    <LeaderboardCard
+                      key={project.id}
+                      project={project}
+                      isEvent={projectCategory === 'event'}
+                      isExcluded
+                      onReinclude={() => includeProject(project.id)}
+                    />
+                  ))}
+              </div>
+            )}
+          </div>
+        </>
+      )}
 
-      {projectCategory !== 'event' && (
-        <ScenarioPlanner data={data} orgId={user.org.id} onMultipliersChange={setScenarioMultipliers} />
+      {/* ── Scenarios tab ──────────────────────────────────────────────── */}
+      {activeTab === 'scenarios' && (
+        <div style={{ paddingTop: 24 }}>
+          <ProjectionTimeline
+            projects={filteredProjects}
+            multipliers={scenarioMultipliers}
+            timelineYear={timelineYear}
+            onTimelineYearChange={setTimelineYear}
+          />
+          <ScenarioPlanner
+            data={data}
+            orgId={user.org.id}
+            onMultipliersChange={setScenarioMultipliers}
+            initialMultipliers={initialScenarioMultipliers}
+            isReadOnly={isReadOnly}
+          />
+        </div>
       )}
     </div>
   );
