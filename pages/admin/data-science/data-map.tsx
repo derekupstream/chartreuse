@@ -4,6 +4,7 @@ import { Typography } from 'antd';
 import type { GetServerSideProps } from 'next';
 
 import { FeedPanel } from 'components/admin/data-map/FeedPanel';
+import { TraceGraph } from 'components/admin/data-map/TraceGraph';
 import type { DashboardUser } from 'interfaces';
 import { AdminLayout } from 'layouts/AdminLayout';
 import { getUserFromContext } from 'lib/middleware';
@@ -38,9 +39,7 @@ export default function DataMapPage({ user }: Props) {
         {/* Right graph panel — 60% */}
         <div style={{ flex: 1, overflow: 'hidden', position: 'relative' }}>
           {selectedPeriodId ? (
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-              <Typography.Text type='secondary'>Graph coming in next plan — period: {selectedPeriodId}</Typography.Text>
-            </div>
+            <TraceGraph selectedId={selectedPeriodId} />
           ) : (
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
               <Typography.Text type='secondary'>Select an ingestion from the feed to view its trace</Typography.Text>
