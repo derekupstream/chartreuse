@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.8
 milestone_name: Data Governance Admin Overhaul
 status: planning
-stopped_at: Completed 02-overview-redesign/02-02-PLAN.md
-last_updated: "2026-03-05T02:24:51.827Z"
+stopped_at: Completed 03-data-health-page-01-PLAN.md
+last_updated: "2026-03-05T03:14:55.393Z"
 last_activity: 2026-03-04 — Roadmap created for v1.8 Data Governance Admin Overhaul
 progress:
   total_phases: 3
   completed_phases: 2
-  total_plans: 4
-  completed_plans: 4
+  total_plans: 7
+  completed_plans: 5
   percent: 50
 ---
 
@@ -51,6 +51,7 @@ Progress: [█████░░░░░] 50%
 | Phase 01-navigation-and-labels P02 | 12 | 2 tasks | 6 files |
 | Phase 02-overview-redesign P01 | 3 | 2 tasks | 1 files |
 | Phase 02-overview-redesign P02 | 3 | 2 tasks | 1 files |
+| Phase 03-data-health-page P01 | 2 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -71,6 +72,9 @@ Progress: [█████░░░░░] 50%
 - [Phase 02-overview-redesign]: Tasks 1+2 combined into single commit for file consistency — removing old sections and adding new ones must be atomic to avoid linter failures
 - [Phase 02-overview-redesign]: SECTION_CARDS placed inside component body — JSX icon values require component scope
 - [Phase 02-overview-redesign]: How It Works Collapse has no defaultActiveKey — starts closed per OVW-04 locked decision
+- [Phase 03-data-health-page]: entityId uses @db.Uuid even with no FK — entity IDs across Project/LineItem tables are all PostgreSQL UUIDs
+- [Phase 03-data-health-page]: acknowledgedByUserId is plain String? (no @db.Uuid) — references User.id which is Supabase auth UID (plain string)
+- [Phase 03-data-health-page]: @@unique([issueType, entityId]) is the DataHealthIssue upsert key — prevents duplicate rows on re-scan
 
 ### Pending Todos
 
@@ -83,6 +87,6 @@ None captured yet.
 
 ## Session Continuity
 
-Last session: 2026-03-05T02:21:25.039Z
-Stopped at: Completed 02-overview-redesign/02-02-PLAN.md
+Last session: 2026-03-05T03:14:55.382Z
+Stopped at: Completed 03-data-health-page-01-PLAN.md
 Resume file: None

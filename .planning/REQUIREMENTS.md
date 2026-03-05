@@ -34,7 +34,7 @@
 - [ ] **INP-02**: Page runs on-demand issue detection and surfaces results grouped by severity (error, warning)
 - [ ] **INP-03**: Each issue displays: issue type, affected table/entity name, record ID, short description, severity badge
 - [ ] **INP-04**: Issue checks cover: return rate >100%, zero-unit line items, projects missing USState, projects missing single-use or reusable line items
-- [ ] **INP-05**: `DataHealthIssue` Prisma model: `id`, `issueType`, `severity`, `entity`, `entityId`, `details`, `status` (open/acknowledged/resolved), `acknowledgedAt`, `acknowledgedByUserId`, `note`, `createdAt`, `updatedAt`
+- [x] **INP-05**: `DataHealthIssue` Prisma model: `id`, `issueType`, `severity`, `entity`, `entityId`, `details`, `status` (open/acknowledged/resolved), `acknowledgedAt`, `acknowledgedByUserId`, `note`, `createdAt`, `updatedAt`
 - [ ] **INP-06**: "Validate" action acknowledges an issue — sets `acknowledgedAt` + `acknowledgedByUserId`, prompts for optional note, transitions status to `acknowledged`
 - [ ] **INP-07**: API: `POST /api/admin/data-health/scan` (run checks, upsert issues), `GET /api/admin/data-health/issues` (list with status), `PATCH /api/admin/data-health/issues/[id]` (acknowledge or resolve)
 
@@ -77,7 +77,7 @@
 | INP-02 | Phase 3 | Pending |
 | INP-03 | Phase 3 | Pending |
 | INP-04 | Phase 3 | Pending |
-| INP-05 | Phase 3 | Pending |
+| INP-05 | Phase 3 | Complete |
 | INP-06 | Phase 3 | Pending |
 | INP-07 | Phase 3 | Pending |
 
