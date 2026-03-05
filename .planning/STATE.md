@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.8
 milestone_name: Data Governance Admin Overhaul
 status: Defining requirements
-stopped_at: Completed 05-02-PLAN.md
-last_updated: "2026-03-05T18:21:00.118Z"
+stopped_at: Completed 06-01-PLAN.md
+last_updated: "2026-03-05T19:06:45.174Z"
 last_activity: 2026-03-05 — Milestone v1.9 started
 progress:
   total_phases: 7
   completed_phases: 5
-  total_plans: 13
-  completed_plans: 13
+  total_plans: 15
+  completed_plans: 14
   percent: 0
 ---
 
@@ -61,6 +61,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 04-data-map-rsp-feed-trace-graph P04 | 3 | 2 tasks | 4 files |
 | Phase 05-api-playground P01 | 2 | 2 tasks | 2 files |
 | Phase 05-api-playground P02 | 15 | 2 tasks | 3 files |
+| Phase 06-data-health-rsp-integration P01 | 2 | 1 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -98,6 +99,9 @@ Progress: [░░░░░░░░░░] 0%
 - [Phase 05-api-playground]: Extract-to-lib pattern: compute logic in lib/, API routes are thin HTTP wrappers — ingestUsagePeriod() callable from any server-side context
 - [Phase 05-api-playground]: Playground endpoint reuses same overlap query as ingestUsagePeriod for validate mode — consistent reporting
 - [Phase 05-api-playground]: onIngest callback sets both selectedPeriodId and activeTab atomically — switches tab and selects period in single action
+- [Phase 06-data-health-rsp-integration]: RSP health checks placed after finishComputeRun inside try/catch — best-effort, errors do not propagate to caller
+- [Phase 06-data-health-rsp-integration]: Array.from(new Set(...)) used for dedup instead of spread on Set — TypeScript target does not enable downlevelIteration
+- [Phase 06-data-health-rsp-integration]: status absent from RSP DataHealthIssue upsert update block — preserves acknowledged/resolved state on re-ingest (consistent with scan.ts)
 
 ### Pending Todos
 
@@ -110,6 +114,6 @@ None captured yet.
 
 ## Session Continuity
 
-Last session: 2026-03-05T18:17:37.248Z
-Stopped at: Completed 05-02-PLAN.md
+Last session: 2026-03-05T19:06:45.164Z
+Stopped at: Completed 06-01-PLAN.md
 Resume file: None
