@@ -18,7 +18,6 @@ import styled from 'styled-components';
 import type { DashboardUser } from 'interfaces';
 import { AdminLayout } from 'layouts/AdminLayout';
 import { scanCalculatorFunctions } from 'lib/admin/calculatorScan';
-import { getInputIssueCount } from 'lib/admin/inputValidation';
 import { getUserFromContext } from 'lib/middleware';
 import { checkIsUpstream } from 'lib/middleware/requireUpstream';
 import { serializeJSON } from 'lib/objects';
@@ -477,7 +476,7 @@ export const getServerSideProps: GetServerSideProps = async context => {
     recentComputeRunCount,
     metricResultCount
   ] = await Promise.all([
-    getInputIssueCount(),
+    prisma.dataHealthIssue.count({ where: { status: 'open' } }),
     prisma.factor.findFirst({ orderBy: { updatedAt: 'desc' }, select: { updatedAt: true } }),
     prisma.testRun.findFirst({ orderBy: { createdAt: 'desc' }, select: { createdAt: true, failed: true } }),
     prisma.changeRequest.count({ where: { status: 'pending' } }),
