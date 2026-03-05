@@ -1,7 +1,8 @@
 import { useState } from 'react';
 
-import { Tabs, Typography } from 'antd';
+import { Segmented, Tabs, Typography } from 'antd';
 import type { GetServerSideProps } from 'next';
+import { useRouter } from 'next/router';
 
 import { FeedPanel } from 'components/admin/data-map/FeedPanel';
 import { PlaygroundPanel } from 'components/admin/data-map/PlaygroundPanel';
@@ -13,21 +14,33 @@ import { checkIsUpstream } from 'lib/middleware/requireUpstream';
 import { serializeJSON } from 'lib/objects';
 import type { PageProps } from 'pages/_app';
 
+type DataMapMode = 'rsp' | 'actuals' | 'projections';
+
 type Props = {
   user: DashboardUser;
 };
 
 export default function DataMapPage({ user }: Props) {
+  const router = useRouter();
+  const mode = ((router.query.mode as DataMapMode | undefined) ?? 'rsp') as DataMapMode;
+
   const [selectedPeriodId, setSelectedPeriodId] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState('feed');
+  const [rspActiveTab, setRspActiveTab] = useState('feed');
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
 
   function handleIngest(newPeriodId: string) {
     setSelectedPeriodId(newPeriodId);
-    setActiveTab('feed');
+    setRspActiveTab('feed');
+  }
+
+  function setMode(m: DataMapMode) {
+    void router.push({ query: { ...router.query, mode: m } }, undefined, { shallow: true });
+    setSelectedPeriodId(null);
+    setSelectedProjectId(null);
   }
 
   const feedContent = (
-    <div style={{ display: 'flex', height: 'calc(100vh - 64px - 46px)', overflow: 'hidden' }}>
+    <div style={{ display: 'flex', height: 'calc(100vh - 64px - 46px - 46px)', overflow: 'hidden' }}>
       {/* Left feed panel — 40% */}
       <div
         style={{
@@ -55,26 +68,55 @@ export default function DataMapPage({ user }: Props) {
     </div>
   );
 
+  const actualsContent = (
+    <div style={{ padding: 24 }}>
+      <Typography.Text type='secondary'>Actuals graph coming in Plan 02 — ActualsGraph component</Typography.Text>
+    </div>
+  );
+
+  const projectionsContent = (
+    <div style={{ padding: 24 }}>
+      <Typography.Text type='secondary'>
+        Projections graph coming in Plan 02 — ProjectionsGraph component
+      </Typography.Text>
+    </div>
+  );
+
   return (
     <AdminLayout title='Data Map' selectedMenuItem='data-science/data-map' user={user}>
-      <Tabs
-        activeKey={activeTab}
-        onChange={setActiveTab}
-        style={{ height: '100%' }}
-        tabBarStyle={{ marginBottom: 0, paddingLeft: 16 }}
-        items={[
-          {
-            key: 'feed',
-            label: 'RSP Ingestion Feed',
-            children: feedContent
-          },
-          {
-            key: 'playground',
-            label: 'API Playground',
-            children: <PlaygroundPanel onIngest={handleIngest} />
-          }
-        ]}
-      />
+      <div style={{ padding: '8px 16px', borderBottom: '1px solid #f0f0f0' }}>
+        <Segmented
+          value={mode}
+          onChange={v => setMode(v as DataMapMode)}
+          options={[
+            { label: 'RSP API', value: 'rsp' },
+            { label: 'Actuals', value: 'actuals' },
+            { label: 'Projections', value: 'projections' }
+          ]}
+        />
+      </div>
+      {mode === 'rsp' && (
+        <Tabs
+          activeKey={rspActiveTab}
+          onChange={setRspActiveTab}
+          style={{ height: '100%' }}
+          tabBarStyle={{ marginBottom: 0, paddingLeft: 16 }}
+          items={[
+            {
+              key: 'feed',
+              label: 'RSP Ingestion Feed',
+              children: feedContent
+            },
+            {
+              key: 'playground',
+              label: 'API Playground',
+              children: <PlaygroundPanel onIngest={handleIngest} />
+            }
+          ]}
+        />
+      )}
+      {mode === 'actuals' && actualsContent}
+      {mode === 'projections' && projectionsContent}
     </AdminLayout>
   );
 }
