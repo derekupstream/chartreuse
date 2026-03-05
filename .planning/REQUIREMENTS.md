@@ -17,9 +17,9 @@
 ### Overview Page (OVW)
 
 - [x] **OVW-01**: Overview page title and subtitle updated to reflect "Data Governance" framing
-- [ ] **OVW-02**: System Architecture card added showing the full pipeline: Projects/RSP Data → Factor Library → Calculator Engine → ComputeRun → MetricResult → Dashboards/Insights
-- [ ] **OVW-03**: Section cards added for each primary nav item (Inputs, Factors, Calculations, Test Runs, Lineage, Methodology, AI Data Uploader) — each with a short description, tooltip, and "View →" link
-- [ ] **OVW-04**: Collapsible "How Impact Governance Works" section with 6-step walkthrough: Validate Inputs → Maintain Factors → Verify Calculations → Run Regression Tests → Trace Results → Maintain Methodology
+- [x] **OVW-02**: System Architecture card added showing the full pipeline: Projects/RSP Data → Factor Library → Calculator Engine → ComputeRun → MetricResult → Dashboards/Insights
+- [x] **OVW-03**: Section cards added for each primary nav item (Inputs, Factors, Calculations, Test Runs, Lineage, Methodology, AI Data Uploader) — each with a short description, tooltip, and "View →" link
+- [x] **OVW-04**: Collapsible "How Impact Governance Works" section with 6-step walkthrough: Validate Inputs → Maintain Factors → Verify Calculations → Run Regression Tests → Trace Results → Maintain Methodology
 - [x] **OVW-05**: System Health Dashboard — a row of KPI alert cards showing: open data health issues (unacknowledged), pending change requests, recent ComputeRun errors, last test run status + stale alert when factors have been updated since the last test run
 
 ### Page Labels (LBL)
@@ -69,9 +69,9 @@
 | LBL-02 | Phase 1 | Complete |
 | LBL-03 | Phase 1 | Complete |
 | OVW-01 | Phase 2 | Complete |
-| OVW-02 | Phase 2 | Pending |
-| OVW-03 | Phase 2 | Pending |
-| OVW-04 | Phase 2 | Pending |
+| OVW-02 | Phase 2 | Complete |
+| OVW-03 | Phase 2 | Complete |
+| OVW-04 | Phase 2 | Complete |
 | OVW-05 | Phase 2 | Complete |
 | INP-01 | Phase 3 | Pending |
 | INP-02 | Phase 3 | Pending |

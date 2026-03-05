@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.8
 milestone_name: Data Governance Admin Overhaul
 status: planning
-stopped_at: Completed 02-overview-redesign/02-01-PLAN.md
-last_updated: "2026-03-05T02:16:29.890Z"
+stopped_at: Completed 02-overview-redesign/02-02-PLAN.md
+last_updated: "2026-03-05T02:21:25.052Z"
 last_activity: 2026-03-04 — Roadmap created for v1.8 Data Governance Admin Overhaul
 progress:
   total_phases: 3
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 4
-  completed_plans: 3
+  completed_plans: 4
   percent: 50
 ---
 
@@ -50,6 +50,7 @@ Progress: [█████░░░░░] 50%
 | Phase 01-navigation-and-labels P01 | 1 | 1 tasks | 1 files |
 | Phase 01-navigation-and-labels P02 | 12 | 2 tasks | 6 files |
 | Phase 02-overview-redesign P01 | 3 | 2 tasks | 1 files |
+| Phase 02-overview-redesign P02 | 3 | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -67,6 +68,9 @@ Progress: [█████░░░░░] 50%
 - [Phase 01-navigation-and-labels]: Admin page copy uses governance/audit trail framing consistently: 'Factors', 'AI Data Uploader', 'Trace how a metric was produced'
 - [Phase 02-overview-redesign]: Tasks 1+2 merged into single commit for TypeScript consistency — removing publishedSections from props required simultaneous render layer updates
 - [Phase 02-overview-redesign]: alertOverride pattern on KpiCardBlock: boolean prop allows server-side isStale to override zero-value all-clear display for Test Runs card
+- [Phase 02-overview-redesign]: Tasks 1+2 combined into single commit for file consistency — removing old sections and adding new ones must be atomic to avoid linter failures
+- [Phase 02-overview-redesign]: SECTION_CARDS placed inside component body — JSX icon values require component scope
+- [Phase 02-overview-redesign]: How It Works Collapse has no defaultActiveKey — starts closed per OVW-04 locked decision
 
 ### Pending Todos
 
@@ -79,6 +83,6 @@ None captured yet.
 
 ## Session Continuity
 
-Last session: 2026-03-05T02:16:29.878Z
-Stopped at: Completed 02-overview-redesign/02-01-PLAN.md
+Last session: 2026-03-05T02:21:25.039Z
+Stopped at: Completed 02-overview-redesign/02-02-PLAN.md
 Resume file: None
