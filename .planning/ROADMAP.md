@@ -155,7 +155,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Navigation & Labels | 0/2 | Not started | - |
+| 1. Navigation & Labels | 1/2 | In Progress|  |
 | 2. Overview Redesign | 0/TBD | Not started | - |
 | 3. Data Health Page | 0/TBD | Not started | - |
 

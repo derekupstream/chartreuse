@@ -7,12 +7,12 @@
 
 ### Navigation (NAV)
 
-- [ ] **NAV-01**: Admin sidebar group "Data Science" is renamed "Data Governance"
-- [ ] **NAV-02**: Primary nav items ordered as: Overview, Inputs, Factors, Calculations, Test Runs, Lineage, Methodology, Change Requests, AI Data Uploader
-- [ ] **NAV-03**: "Constants" nav item renamed to "Factors"
-- [ ] **NAV-04**: "Pipeline" nav item renamed to "Lineage" and points to `/admin/data-science/lineage`
-- [ ] **NAV-05**: "Import Data" nav item renamed to "AI Data Uploader"
-- [ ] **NAV-06**: Snapshots, Run History, and Impact Simulator moved into an "Advanced" submenu within the Data Governance group
+- [x] **NAV-01**: Admin sidebar group "Data Science" is renamed "Data Governance"
+- [x] **NAV-02**: Primary nav items ordered as: Overview, Inputs, Factors, Calculations, Test Runs, Lineage, Methodology, Change Requests, AI Data Uploader
+- [x] **NAV-03**: "Constants" nav item renamed to "Factors"
+- [x] **NAV-04**: "Pipeline" nav item renamed to "Lineage" and points to `/admin/data-science/lineage`
+- [x] **NAV-05**: "Import Data" nav item renamed to "AI Data Uploader"
+- [x] **NAV-06**: Snapshots, Run History, and Impact Simulator moved into an "Advanced" submenu within the Data Governance group
 
 ### Overview Page (OVW)
 
@@ -59,12 +59,12 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| NAV-01 | Phase 1 | Pending |
-| NAV-02 | Phase 1 | Pending |
-| NAV-03 | Phase 1 | Pending |
-| NAV-04 | Phase 1 | Pending |
-| NAV-05 | Phase 1 | Pending |
-| NAV-06 | Phase 1 | Pending |
+| NAV-01 | Phase 1 | Complete |
+| NAV-02 | Phase 1 | Complete |
+| NAV-03 | Phase 1 | Complete |
+| NAV-04 | Phase 1 | Complete |
+| NAV-05 | Phase 1 | Complete |
+| NAV-06 | Phase 1 | Complete |
 | LBL-01 | Phase 1 | Pending |
 | LBL-02 | Phase 1 | Pending |
 | LBL-03 | Phase 1 | Pending |
