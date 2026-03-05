@@ -424,10 +424,11 @@ export default function ImportPage({ sessions: initialSessions, projects, stats 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
         <div>
           <Title level={2} style={{ margin: 0 }}>
-            Import Data
+            AI Data Uploader
           </Title>
           <Paragraph type='secondary' style={{ marginBottom: 0, marginTop: 4 }}>
-            AI-powered spreadsheet importer. Track upload history, classification accuracy, and column mapping patterns.
+            AI-powered spreadsheet importer for bulk data onboarding. Track upload history, classification accuracy, and
+            column mapping patterns.
           </Paragraph>
         </div>
         <Button type='primary' icon={<PlusOutlined />} size='large' onClick={openWizard}>
@@ -717,7 +718,7 @@ export default function ImportPage({ sessions: initialSessions, projects, stats 
 }
 
 ImportPage.getLayout = (page: React.ReactNode, pageProps: PageProps) => (
-  <AdminLayout {...(pageProps as any)} selectedMenuItem='data-science/import' title='Import Data'>
+  <AdminLayout {...(pageProps as any)} selectedMenuItem='data-science/import' title='AI Data Uploader'>
     {page}
   </AdminLayout>
 );

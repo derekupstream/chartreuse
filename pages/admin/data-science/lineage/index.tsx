@@ -324,8 +324,8 @@ export default function LineagePage({ user, factors }: Props) {
           Data Lineage
         </Title>
         <Paragraph type='secondary' style={{ marginBottom: 24 }}>
-          End-to-end traceability from source factors (EPA WARM, DOE EIA) through the calculator engine to output
-          metrics. Each row shows exactly which TypeScript function and output property a factor influences.
+          Trace how a metric was produced from raw inputs through factors and calculations to output results. Each row
+          shows exactly which TypeScript function and output property a factor influences.
         </Paragraph>
 
         {/* Flow diagram legend */}
