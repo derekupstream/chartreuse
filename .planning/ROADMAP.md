@@ -103,7 +103,7 @@ SaaS calculator for cost/environmental savings when switching from single-use to
 
 ## Phases
 
-- [ ] **Phase 1: Navigation & Labels** - Rename admin nav group and relabel existing pages (no new pages, no DB changes)
+- [x] **Phase 1: Navigation & Labels** - Rename admin nav group and relabel existing pages (no new pages, no DB changes) (completed 2026-03-05)
 - [ ] **Phase 2: Overview Redesign** - Redesign existing overview page with architecture diagram, section cards, How It Works walkthrough, and System Health dashboard
 - [ ] **Phase 3: Data Health Page** - New Inputs page with on-demand issue detection, DataHealthIssue model, Prisma migration, and acknowledge/resolve workflow
 
@@ -155,7 +155,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Navigation & Labels | 1/2 | In Progress|  |
+| 1. Navigation & Labels | 2/2 | Complete   | 2026-03-05 |
 | 2. Overview Redesign | 0/TBD | Not started | - |
 | 3. Data Health Page | 0/TBD | Not started | - |
 

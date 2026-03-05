@@ -24,9 +24,9 @@
 
 ### Page Labels (LBL)
 
-- [ ] **LBL-01**: Constants Library page title and description updated to "Factors" (reflecting environmental constants governance)
-- [ ] **LBL-02**: Import page title updated to "AI Data Uploader" with updated description
-- [ ] **LBL-03**: Lineage page description updated to governance framing ("trace how a metric was produced")
+- [x] **LBL-01**: Constants Library page title and description updated to "Factors" (reflecting environmental constants governance)
+- [x] **LBL-02**: Import page title updated to "AI Data Uploader" with updated description
+- [x] **LBL-03**: Lineage page description updated to governance framing ("trace how a metric was produced")
 
 ### Inputs / Data Health (INP)
 
@@ -65,9 +65,9 @@
 | NAV-04 | Phase 1 | Complete |
 | NAV-05 | Phase 1 | Complete |
 | NAV-06 | Phase 1 | Complete |
-| LBL-01 | Phase 1 | Pending |
-| LBL-02 | Phase 1 | Pending |
-| LBL-03 | Phase 1 | Pending |
+| LBL-01 | Phase 1 | Complete |
+| LBL-02 | Phase 1 | Complete |
+| LBL-03 | Phase 1 | Complete |
 | OVW-01 | Phase 2 | Pending |
 | OVW-02 | Phase 2 | Pending |
 | OVW-03 | Phase 2 | Pending |

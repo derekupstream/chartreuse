@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.8
 milestone_name: Data Governance Admin Overhaul
 status: planning
-stopped_at: Completed 01-navigation-and-labels/01-01-PLAN.md
-last_updated: "2026-03-05T01:17:38.101Z"
+stopped_at: Completed 01-navigation-and-labels/01-02-PLAN.md
+last_updated: "2026-03-05T01:19:35.166Z"
 last_activity: 2026-03-04 — Roadmap created for v1.8 Data Governance Admin Overhaul
 progress:
   total_phases: 3
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 2
-  completed_plans: 1
+  completed_plans: 2
   percent: 50
 ---
 
@@ -48,6 +48,7 @@ Progress: [█████░░░░░] 50%
 - Last 5 plans: n/a (new milestone)
 - Trend: —
 | Phase 01-navigation-and-labels P01 | 1 | 1 tasks | 1 files |
+| Phase 01-navigation-and-labels P02 | 12 | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -61,6 +62,8 @@ Progress: [█████░░░░░] 50%
 - **DataHealthIssue**: Lightweight model only — open → acknowledged → resolved (no full workflow system)
 - [Phase 01-navigation-and-labels]: Kept data-science/pipeline in DATA_SCIENCE_KEYS without nav link; Lineage is new primary entry at /admin/data-science/lineage
 - [Phase 01-navigation-and-labels]: data-science/inputs added to DATA_SCIENCE_KEYS proactively for Phase 3 Inputs page
+- [Phase 01-navigation-and-labels]: Pipeline selectedMenuItem set to 'data-science/pipeline-legacy' to decouple legacy page from primary nav highlight
+- [Phase 01-navigation-and-labels]: Admin page copy uses governance/audit trail framing consistently: 'Factors', 'AI Data Uploader', 'Trace how a metric was produced'
 
 ### Pending Todos
 
@@ -73,6 +76,6 @@ None captured yet.
 
 ## Session Continuity
 
-Last session: 2026-03-05T01:17:38.090Z
-Stopped at: Completed 01-navigation-and-labels/01-01-PLAN.md
+Last session: 2026-03-05T01:19:35.155Z
+Stopped at: Completed 01-navigation-and-labels/01-02-PLAN.md
 Resume file: None
