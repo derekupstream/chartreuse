@@ -220,7 +220,11 @@ Plans:
   4. After ingest, "View in Graph" button auto-navigates feed tab to the new period's trace
   5. Warning banner: "Ingest mode writes to the production database"
   6. `ingestUsagePeriod()` extracted to `lib/rsp/ingestUsagePeriod.ts`; `usage.ts` is a thin wrapper
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 05-01-PLAN.md — Extract ingestUsagePeriod() to lib/rsp/ingestUsagePeriod.ts; refactor usage.ts to thin wrapper
+- [ ] 05-02-PLAN.md — Playground API endpoint + PlaygroundPanel component + tab wiring in data-map.tsx
 
 ### Phase 6: Data Health + RSP Integration
 **Goal**: RSP-specific data quality issues automatically appear in DataHealthIssue during ingestion, with issue badges on affected graph nodes
@@ -253,7 +257,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 4. Data Map + RSP Feed + Trace Graph | 4/4 | Complete   | 2026-03-05 |
-| 5. API Playground | 0/TBD | Not started | - |
+| 5. API Playground | 0/2 | Not started | - |
 | 6. Data Health + RSP Integration | 0/TBD | Not started | - |
 | 7. Actuals + Projections Modes | 0/TBD | Not started | - |
 
