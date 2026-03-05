@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 
-import { Spin } from 'antd';
-import type { Node } from 'reactflow';
+import { Badge, Spin } from 'antd';
+import { useRouter } from 'next/router';
+import type { Node, NodeProps } from 'reactflow';
 import ReactFlow, { Background, Controls, MiniMap, useEdgesState, useNodesState } from 'reactflow';
 import 'reactflow/dist/style.css';
 import useSWR from 'swr';
@@ -13,6 +14,34 @@ import { NodeDrawer } from './NodeDrawer';
 interface TraceGraphProps {
   selectedId: string;
 }
+
+function IssueNode({ data }: NodeProps) {
+  const router = useRouter();
+  const issueCount: number = (data.issueCount as number) ?? 0;
+  const hasIssues = issueCount > 0;
+
+  function handleBadgeClick(e: React.MouseEvent) {
+    e.stopPropagation(); // Don't open NodeDrawer
+    const entityId = data.entityId as string | undefined;
+    if (entityId) {
+      router.push(`/admin/data-science/inputs?entityId=${entityId}`);
+    }
+  }
+
+  return (
+    <div style={{ padding: '8px 12px', fontSize: 12, textAlign: 'center' }}>
+      {hasIssues ? (
+        <Badge count={issueCount} style={{ cursor: 'pointer' }} onClick={handleBadgeClick}>
+          <span>{data.label as string}</span>
+        </Badge>
+      ) : (
+        <span>{data.label as string}</span>
+      )}
+    </div>
+  );
+}
+
+const nodeTypes = { default: IssueNode };
 
 export function TraceGraph({ selectedId }: TraceGraphProps) {
   const { data, isLoading } = useSWR<TraceResponse>('/api/admin/data-map/periods/' + selectedId + '/trace');
@@ -41,6 +70,7 @@ export function TraceGraph({ selectedId }: TraceGraphProps) {
       <ReactFlow
         nodes={nodes}
         edges={edges}
+        nodeTypes={nodeTypes}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onNodeClick={(_, node) => setDrawerNode(node)}

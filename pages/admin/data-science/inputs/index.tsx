@@ -3,6 +3,7 @@ import { Button, Input, Modal, Space, Spin, Table, Tag, Typography } from 'antd'
 import type { ColumnsType } from 'antd/es/table';
 import type { GetServerSideProps } from 'next';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 import { useCallback, useEffect, useState } from 'react';
 
 import type { DashboardUser } from 'interfaces';
@@ -36,6 +37,9 @@ type Props = {
 };
 
 export default function DataInputsPage({ user }: Props) {
+  const router = useRouter();
+  const entityIdFilter = router.query.entityId as string | undefined;
+
   const [issues, setIssues] = useState<DataHealthIssue[]>([]);
   const [scanning, setScanning] = useState(false);
   const [lastScanAt, setLastScanAt] = useState<Date | null>(null);
@@ -148,8 +152,9 @@ export default function DataInputsPage({ user }: Props) {
     }
   ];
 
-  const errors = issues.filter(i => i.severity === 'error');
-  const warnings = issues.filter(i => i.severity === 'warning');
+  const displayedIssues = entityIdFilter ? issues.filter(i => i.entityId === entityIdFilter) : issues;
+  const errors = displayedIssues.filter(i => i.severity === 'error');
+  const warnings = displayedIssues.filter(i => i.severity === 'warning');
 
   return (
     <AdminLayout title='Data Inputs' selectedMenuItem='data-science/inputs' user={user}>
@@ -176,9 +181,35 @@ export default function DataInputsPage({ user }: Props) {
           </Button>
         </div>
 
+        {/* Entity filter notice */}
+        {entityIdFilter && (
+          <div
+            style={{
+              marginBottom: 16,
+              padding: '8px 16px',
+              background: '#fff7e6',
+              border: '1px solid #ffd591',
+              borderRadius: 6,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between'
+            }}
+          >
+            <Typography.Text>
+              Filtered to entity:{' '}
+              <Typography.Text code style={{ fontSize: 12 }}>
+                {entityIdFilter}
+              </Typography.Text>
+            </Typography.Text>
+            <Button size='small' onClick={() => router.push('/admin/data-science/inputs')}>
+              Clear filter
+            </Button>
+          </div>
+        )}
+
         {/* Content */}
         <Spin spinning={scanning}>
-          {!scanning && issues.length === 0 ? (
+          {!scanning && displayedIssues.length === 0 ? (
             /* Empty state */
             <div
               style={{
