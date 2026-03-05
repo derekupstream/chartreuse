@@ -201,7 +201,13 @@ Plans:
   6. If supersededById exists, a dashed edge links to the prior period node
   7. Clicking any node opens an AntD Drawer with record details and deep links
   8. Minimap, zoom/pan, and fit-view controls are present
-**Plans**: TBD
+**Plans**: 4 plans
+
+Plans:
+- [ ] 04-01-PLAN.md — Install reactflow + @dagrejs/dagre, add Data Map to nav, scaffold page shell
+- [ ] 04-02-PLAN.md — Periods feed API (paginated, search, filters) + trace detail API
+- [ ] 04-03-PLAN.md — Feed panel component (table, search, filters, row selection, auto-select)
+- [ ] 04-04-PLAN.md — React Flow trace graph (nodes, status coloring, supersession edges, node drawers, minimap)
 
 ### Phase 5: API Playground
 **Goal**: Admin can paste a JSON payload, pick an existing RSP API key, run validate-only or full ingest, and automatically see the trace graph for any created period
