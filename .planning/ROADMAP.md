@@ -237,7 +237,11 @@ Plans:
   4. Affected graph nodes show a red badge with issue count
   5. Clicking the badge navigates to `/admin/data-science/inputs` filtered by that entity
   6. RSP issues increment the governance overview KPI counter automatically
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 06-01-PLAN.md — Add RSP health checks to ingestUsagePeriod(); upsert DataHealthIssue for unknown type, negative events, high supersession
+- [ ] 06-02-PLAN.md — Trace API issue count field; IssueNode badge in TraceGraph; filtered Inputs page navigation
 
 ### Phase 7: Actuals + Projections Modes (V1)
 **Goal**: Data Map shows project-based provenance graphs for actuals and projections in addition to RSP mode
@@ -258,7 +262,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 4. Data Map + RSP Feed + Trace Graph | 4/4 | Complete   | 2026-03-05 |
 | 5. API Playground | 2/2 | Complete   | 2026-03-05 |
-| 6. Data Health + RSP Integration | 0/TBD | Not started | - |
+| 6. Data Health + RSP Integration | 0/2 | Not started | - |
 | 7. Actuals + Projections Modes | 0/TBD | Not started | - |
 
 ---
