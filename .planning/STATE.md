@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.8
 milestone_name: Data Governance Admin Overhaul
 status: Defining requirements
-stopped_at: Completed 04-02-PLAN.md
-last_updated: "2026-03-05T17:39:55.492Z"
+stopped_at: Completed 04-03-PLAN.md
+last_updated: "2026-03-05T17:43:43.044Z"
 last_activity: 2026-03-05 — Milestone v1.9 started
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 11
-  completed_plans: 9
+  completed_plans: 10
   percent: 0
 ---
 
@@ -57,6 +57,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 03-data-health-page P03 | 15 | 3 tasks | 2 files |
 | Phase 04-data-map-rsp-feed-trace-graph P01 | 12 | 2 tasks | 4 files |
 | Phase 04-data-map-rsp-feed-trace-graph P02 | 15 | 2 tasks | 2 files |
+| Phase 04-data-map-rsp-feed-trace-graph P03 | 5 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -88,6 +89,8 @@ Progress: [░░░░░░░░░░] 0%
 - [Phase 04-data-map-rsp-feed-trace-graph]: getUserFromContext + checkIsUpstream auth pattern used for Data Map page (consistent with all existing data-science admin pages)
 - [Phase 04-data-map-rsp-feed-trace-graph]: ComputeRun has no direct FK to UsageTimePeriod — periods feed fetches ComputeRuns by orgId; computeStatus filter uses 2-step subquery
 - [Phase 04-data-map-rsp-feed-trace-graph]: MetricResult.valueNumeric (not .value) is the actual schema field; mapped to value in API response for downstream consumers
+- [Phase 04-data-map-rsp-feed-trace-graph]: Search state split into searchInput (immediate) + search (debounced 300ms) to avoid excessive SWR refetches while typing
+- [Phase 04-data-map-rsp-feed-trace-graph]: Date range pickers deferred from FeedPanel filter row — keeps filter row simple (search + 2 selects)
 
 ### Pending Todos
 
@@ -100,6 +103,6 @@ None captured yet.
 
 ## Session Continuity
 
-Last session: 2026-03-05T17:39:55.482Z
-Stopped at: Completed 04-02-PLAN.md
+Last session: 2026-03-05T17:43:43.034Z
+Stopped at: Completed 04-03-PLAN.md
 Resume file: None

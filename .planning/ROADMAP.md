@@ -252,7 +252,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 4. Data Map + RSP Feed + Trace Graph | 2/4 | In Progress|  |
+| 4. Data Map + RSP Feed + Trace Graph | 3/4 | In Progress|  |
 | 5. API Playground | 0/TBD | Not started | - |
 | 6. Data Health + RSP Integration | 0/TBD | Not started | - |
 | 7. Actuals + Projections Modes | 0/TBD | Not started | - |
