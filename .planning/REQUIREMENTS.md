@@ -44,7 +44,7 @@
 
 ### Data Map (MAP)
 
-- [ ] **MAP-01**: New `/admin/data-science/data-map` page added to Data Governance nav group
+- [x] **MAP-01**: New `/admin/data-science/data-map` page added to Data Governance nav group
 - [ ] **MAP-02**: React Flow graph renders RSP ingestion trace: API Request → Validation → Dedup → UsageTimePeriod → UsagePeriodProducts → ComputeRun → MetricResults
 - [ ] **MAP-03**: Clicking any graph node opens an AntD Drawer with record details and deep links
 - [ ] **MAP-04**: Node status coloring (green=ok/active, orange=superseded, red=failed, blue=running); dashed edge for supersession chain
@@ -111,7 +111,7 @@
 | INP-05 | Phase 3 | Complete |
 | INP-06 | Phase 3 | Complete |
 | INP-07 | Phase 3 | Complete |
-| MAP-01 | Phase 4 | Pending |
+| MAP-01 | Phase 4 | Complete |
 | MAP-02 | Phase 4 | Pending |
 | MAP-03 | Phase 4 | Pending |
 | MAP-04 | Phase 4 | Pending |
