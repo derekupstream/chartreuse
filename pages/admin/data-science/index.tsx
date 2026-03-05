@@ -4,14 +4,13 @@ import {
   CheckCircleOutlined,
   CodeOutlined,
   ExclamationCircleOutlined,
-  FileTextOutlined,
   FunctionOutlined,
   ImportOutlined,
   QuestionCircleOutlined,
   UploadOutlined,
   WarningOutlined
 } from '@ant-design/icons';
-import { Button, Card, Col, Collapse, List, Row, Steps, Tag, Typography } from 'antd';
+import { Button, Card, Col, Collapse, Row, Steps, Tag, Typography } from 'antd';
 import type { GetServerSideProps } from 'next';
 import Link from 'next/link';
 import styled from 'styled-components';
@@ -59,24 +58,22 @@ const KpiTitle = styled.div`
   margin-bottom: 4px;
 `;
 
-type MethodologySubsection = {
-  id: string;
-  title: string;
-  sectionNumber: string;
-};
-
 type Props = {
   user: DashboardUser;
   stats: {
     inputIssues: number;
-    constantsWithoutKey: number;
-    constantsLastUpdated: string | null;
-    functionsWithoutCoverage: number;
-    totalFunctions: number;
+    pendingChangeRequests: number;
+    recentComputeRunErrors: number;
     testRunFailures: number;
     lastTestRunAt: string | null;
+    isStale: boolean;
+    projectCount: number;
+    factorCount: number;
+    recentComputeRunCount: number;
+    metricResultCount: number;
+    functionsWithoutCoverage: number;
+    totalFunctions: number;
   };
-  publishedSections: MethodologySubsection[];
 };
 
 function KpiCardBlock({
@@ -84,22 +81,32 @@ function KpiCardBlock({
   value,
   subtext,
   href,
-  icon
+  icon,
+  alertOverride
 }: {
   title: string;
   value: number;
   subtext: string;
   href: string;
   icon: React.ReactNode;
+  alertOverride?: boolean;
 }) {
-  const isZero = value === 0;
+  const isZero = value === 0 && alertOverride !== true;
   return (
     <KpiCard $alert={!isZero} hoverable>
       <KpiTitle>
         {icon} {title}
       </KpiTitle>
-      <KpiNumber $zero={isZero}>{isZero ? <CheckCircleOutlined /> : value}</KpiNumber>
-      <KpiLabel>{isZero ? 'No issues detected' : `${value} issue${value !== 1 ? 's' : ''} found`}</KpiLabel>
+      <KpiNumber $zero={isZero}>
+        {isZero ? <CheckCircleOutlined /> : value === 0 ? <CheckCircleOutlined /> : value}
+      </KpiNumber>
+      <KpiLabel>
+        {isZero
+          ? 'No issues detected'
+          : value === 0 && alertOverride
+            ? 'Factors updated — re-run tests'
+            : `${value} issue${value !== 1 ? 's' : ''} found`}
+      </KpiLabel>
       <KpiLabel style={{ fontSize: 11, marginTop: 2 }}>{subtext}</KpiLabel>
       <div style={{ marginTop: 'auto', paddingTop: 12 }}>
         <Button href={href} block size='small'>
@@ -110,56 +117,63 @@ function KpiCardBlock({
   );
 }
 
-export default function DataSciencePage({ user, stats, publishedSections }: Props) {
+export default function DataSciencePage({ user, stats }: Props) {
   const {
     inputIssues,
-    constantsWithoutKey,
-    constantsLastUpdated,
-    functionsWithoutCoverage,
+    pendingChangeRequests,
+    recentComputeRunErrors,
     testRunFailures,
-    lastTestRunAt
+    lastTestRunAt,
+    isStale,
+    projectCount,
+    factorCount,
+    recentComputeRunCount,
+    metricResultCount,
+    functionsWithoutCoverage,
+    totalFunctions
   } = stats;
 
   const fmtDate = (iso: string | null) =>
     iso ? `last updated ${new Date(iso).toLocaleDateString()}` : 'never updated';
 
   return (
-    <AdminLayout title='Data Science Admin' selectedMenuItem='data-science' user={user}>
+    <AdminLayout title='Data Governance Admin' selectedMenuItem='data-science' user={user}>
       <div style={{ padding: '24px' }}>
         <Title level={2} style={{ marginBottom: 4 }}>
-          Data Science Admin
+          Data Governance Admin
         </Title>
         <Paragraph type='secondary' style={{ marginBottom: 32 }}>
-          Monitor data quality, validate calculations, and manage imports across the calculator pipeline.
+          Govern the full impact calculation pipeline — validate inputs, maintain factors, verify calculations, and
+          trace every result back to its source.
         </Paragraph>
 
-        {/* Pipeline KPI cards */}
+        {/* System Health */}
         <Row gutter={[16, 16]}>
           <Col xs={24} sm={12} lg={6}>
             <KpiCardBlock
-              title='Inputs'
+              title='Data Inputs'
               value={inputIssues}
-              subtext='last checked: just now'
-              href='/admin/projects'
+              subtext='open data quality issues'
+              href='/admin/data-science/inputs'
               icon={<UploadOutlined />}
             />
           </Col>
           <Col xs={24} sm={12} lg={6}>
             <KpiCardBlock
-              title='Constants'
-              value={constantsWithoutKey}
-              subtext={fmtDate(constantsLastUpdated)}
-              href='/admin/data-science/constants'
-              icon={<CalculatorOutlined />}
+              title='Change Requests'
+              value={pendingChangeRequests}
+              subtext='pending review'
+              href='/admin/data-science/change-requests'
+              icon={<ExclamationCircleOutlined />}
             />
           </Col>
           <Col xs={24} sm={12} lg={6}>
             <KpiCardBlock
-              title='Calculations'
-              value={functionsWithoutCoverage}
-              subtext='last scanned: just now'
-              href='/admin/data-science/calculations'
-              icon={<FunctionOutlined />}
+              title='ComputeRun Errors'
+              value={recentComputeRunErrors}
+              subtext='last 7 days'
+              href='/admin/data-science/runs'
+              icon={<WarningOutlined />}
             />
           </Col>
           <Col xs={24} sm={12} lg={6}>
@@ -169,6 +183,7 @@ export default function DataSciencePage({ user, stats, publishedSections }: Prop
               subtext={fmtDate(lastTestRunAt)}
               href='/admin/data-science/test-runs'
               icon={<BarChartOutlined />}
+              alertOverride={isStale}
             />
           </Col>
         </Row>
@@ -205,43 +220,6 @@ export default function DataSciencePage({ user, stats, publishedSections }: Prop
             </Card>
           </Col>
         </Row>
-
-        {/* Methodology card */}
-        <Card
-          style={{ marginTop: 32 }}
-          title={
-            <span>
-              <FileTextOutlined style={{ marginRight: 8, color: '#2bbe50' }} />
-              Methodology Documents
-            </span>
-          }
-          extra={
-            <Button type='primary' href='/admin/methodology'>
-              Manage Methodologies
-            </Button>
-          }
-        >
-          {publishedSections.length === 0 ? (
-            <Text type='secondary'>No published subsections yet.</Text>
-          ) : (
-            <List
-              size='small'
-              dataSource={publishedSections}
-              renderItem={s => (
-                <List.Item>
-                  <Text>
-                    {s.sectionNumber && (
-                      <Text type='secondary' style={{ marginRight: 8, fontWeight: 600 }}>
-                        {s.sectionNumber}
-                      </Text>
-                    )}
-                    {s.title}
-                  </Text>
-                </List.Item>
-              )}
-            />
-          )}
-        </Card>
 
         {/* How to use */}
         <div style={{ marginTop: 24 }}>
@@ -338,17 +316,34 @@ export const getServerSideProps: GetServerSideProps = async context => {
   const isUpstream = await checkIsUpstream(user.org.id);
   if (!isUpstream) return { notFound: true };
 
-  const [inputIssues, constantsWithoutKey, lastFactor, lastTestRun, publishedSections] = await Promise.all([
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+
+  const [
+    inputIssues,
+    lastFactor,
+    lastTestRun,
+    pendingChangeRequests,
+    recentComputeRunErrors,
+    projectCount,
+    factorCount,
+    recentComputeRunCount,
+    metricResultCount
+  ] = await Promise.all([
     getInputIssueCount(),
-    prisma.factor.count({ where: { calculatorConstantKey: null } }),
     prisma.factor.findFirst({ orderBy: { updatedAt: 'desc' }, select: { updatedAt: true } }),
     prisma.testRun.findFirst({ orderBy: { createdAt: 'desc' }, select: { createdAt: true, failed: true } }),
-    prisma.methodologyDocument.findMany({
-      where: { status: 'published' },
-      orderBy: { order: 'asc' },
-      select: { id: true, title: true, sectionNumber: true }
-    })
+    prisma.changeRequest.count({ where: { status: 'pending' } }),
+    prisma.computeRun.count({ where: { status: 'failed', createdAt: { gte: sevenDaysAgo } } }),
+    prisma.project.count(),
+    prisma.factor.count(),
+    prisma.computeRun.count({ where: { createdAt: { gte: sevenDaysAgo } } }),
+    prisma.metricResult.count()
   ]);
+
+  const isStale =
+    lastFactor?.updatedAt != null &&
+    lastTestRun?.createdAt != null &&
+    new Date(lastFactor.updatedAt) > new Date(lastTestRun.createdAt);
 
   let scannedFunctions: ReturnType<typeof scanCalculatorFunctions> = [];
   try {
@@ -363,14 +358,18 @@ export const getServerSideProps: GetServerSideProps = async context => {
       user,
       stats: {
         inputIssues,
-        constantsWithoutKey,
-        constantsLastUpdated: lastFactor?.updatedAt ?? null,
-        functionsWithoutCoverage,
-        totalFunctions: scannedFunctions.length,
+        pendingChangeRequests,
+        recentComputeRunErrors,
         testRunFailures: lastTestRun?.failed ?? 0,
-        lastTestRunAt: lastTestRun?.createdAt ?? null
-      },
-      publishedSections
+        lastTestRunAt: lastTestRun?.createdAt ?? null,
+        isStale,
+        projectCount,
+        factorCount,
+        recentComputeRunCount,
+        metricResultCount,
+        functionsWithoutCoverage,
+        totalFunctions: scannedFunctions.length
+      }
     })
   };
 };
