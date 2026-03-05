@@ -151,7 +151,12 @@ Plans:
   3. Each issue row shows: issue type, affected table/entity name, record ID, short description, and severity badge
   4. Issue checks cover: return rate >100%, zero-unit line items, projects missing USState, projects missing single-use or reusable line items
   5. Clicking "Validate" on an issue transitions it to acknowledged, records the timestamp and user, and accepts an optional note
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+- [ ] 03-01-PLAN.md — DataHealthIssue Prisma model + migration
+- [ ] 03-02-PLAN.md — Scan engine library + 3 API routes
+- [ ] 03-03-PLAN.md — Data Inputs page + overview KPI update
 
 ## Progress
 
