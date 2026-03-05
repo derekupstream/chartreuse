@@ -1,26 +1,14 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 
-import { validateApiKey } from 'lib/rsp/apiKeyAuth';
-import { calcImpact } from 'lib/rsp/impactFactors';
 import prisma from 'lib/prisma';
-import {
-  finishComputeRun,
-  getLatestPublishedSnapshotId,
-  saveMetricResults,
-  startComputeRun
-} from 'lib/governance/computeRun';
-
-type EventRow = {
-  reusable_type: string;
-  in_warehouse_events: number;
-  out_warehouse_events: number;
-};
+import { validateApiKey } from 'lib/rsp/apiKeyAuth';
+import { ingestUsagePeriod } from 'lib/rsp/ingestUsagePeriod';
 
 type UsageBody = {
   client_id: string;
   date_min: string;
   date_max: string;
-  events: EventRow[];
+  events: { reusable_type: string; in_warehouse_events: number; out_warehouse_events: number }[];
 };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -57,126 +45,36 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     select: { id: true }
   });
 
-  // 4. Calculate impact per event
-  const productData = events.map(e => {
-    const impact = calcImpact(e.reusable_type, e.out_warehouse_events);
-    return {
-      reusableType: e.reusable_type,
-      inWarehouseEvents: e.in_warehouse_events,
-      outWarehouseEvents: e.out_warehouse_events,
-      co2AvoidedKg: impact.co2AvoidedKg,
-      waterSavedGallons: impact.waterSavedGallons,
-      wasteDivertedLbs: impact.wasteDivertedLbs
-    };
-  });
-
-  const totalCo2 = productData.reduce((s, p) => s + p.co2AvoidedKg, 0);
-  const totalWater = productData.reduce((s, p) => s + p.waterSavedGallons, 0);
-  const totalWaste = productData.reduce((s, p) => s + p.wasteDivertedLbs, 0);
-  const totalUnits = productData.reduce((s, p) => s + p.outWarehouseEvents, 0);
-
-  // 5. Find overlapping active periods for this client and supersede them
-  const overlapping = await prisma.usageTimePeriod.findMany({
-    where: {
-      orgId: apiKey.orgId,
-      clientExternalId: client_id,
-      status: 'active',
-      dateMin: { lte: dateMaxParsed },
-      dateMax: { gte: dateMinParsed }
-    },
-    select: { id: true }
-  });
-
-  // 6. Start a ComputeRun for provenance tracking
-  const snapshotId = await getLatestPublishedSnapshotId();
-  const computeRunId = await startComputeRun({
-    runType: 'actuals_ingest',
-    orgId: apiKey.orgId,
-    methodologySnapshotId: snapshotId
-  });
-
-  // 7. Create new period + products in a transaction
-  const newPeriodId = crypto.randomUUID();
-
+  // 4–7. Delegate pipeline to lib function
   try {
-    await prisma.$transaction([
-      // Create the new period FIRST so the FK from supersededById is satisfied
-      prisma.usageTimePeriod.create({
-        data: {
-          id: newPeriodId,
-          orgId: apiKey.orgId,
-          accountId: account?.id ?? null,
-          clientExternalId: client_id,
-          dateMin: dateMinParsed,
-          dateMax: dateMaxParsed,
-          submittedByKeyId: apiKey.id,
-          status: 'active',
-          rawPayload: req.body,
-          co2AvoidedKg: totalCo2,
-          waterSavedGallons: totalWater,
-          wasteDivertedLbs: totalWaste,
-          products: {
-            create: productData
-          }
-        }
-      }),
-      // THEN mark overlapping periods as superseded (FK now satisfied)
-      ...overlapping.map(p =>
-        prisma.usageTimePeriod.update({
-          where: { id: p.id },
-          data: { status: 'superseded', supersededById: newPeriodId }
-        })
-      )
-    ]);
+    const result = await ingestUsagePeriod({
+      orgId: apiKey.orgId,
+      clientId: client_id,
+      dateMin: dateMinParsed,
+      dateMax: dateMaxParsed,
+      events,
+      submittedByKeyId: apiKey.id,
+      accountId: account?.id ?? null,
+      rawPayload: req.body
+    });
 
-    await Promise.all([
-      saveMetricResults([
-        {
-          runId: computeRunId,
-          orgId: apiKey.orgId,
-          metricKey: 'co2_avoided_kg',
-          valueNumeric: totalCo2,
-          units: 'kg',
-          methodologySnapshotId: snapshotId
-        },
-        {
-          runId: computeRunId,
-          orgId: apiKey.orgId,
-          metricKey: 'water_saved_gallons',
-          valueNumeric: totalWater,
-          units: 'gallons',
-          methodologySnapshotId: snapshotId
-        },
-        {
-          runId: computeRunId,
-          orgId: apiKey.orgId,
-          metricKey: 'waste_diverted_lbs',
-          valueNumeric: totalWaste,
-          units: 'lbs',
-          methodologySnapshotId: snapshotId
-        }
-      ]),
-      finishComputeRun(computeRunId, 'success')
-    ]);
+    return res.status(200).json({
+      api_signature: `cr-period-${result.newPeriodId}`,
+      status: 'accepted',
+      period: {
+        id: result.newPeriodId,
+        date_min,
+        date_max,
+        superseded_count: result.overlappingCount
+      },
+      metrics: {
+        co2_avoided_kg: Math.round(result.metrics.co2AvoidedKg * 1000) / 1000,
+        water_saved_gallons: Math.round(result.metrics.waterSavedGallons * 100) / 100,
+        waste_diverted_lbs: Math.round(result.metrics.wasteDivertedLbs * 1000) / 1000,
+        single_use_equivalents: result.metrics.totalUnits
+      }
+    });
   } catch (err: any) {
-    await finishComputeRun(computeRunId, 'failed', err?.message);
     return res.status(500).json({ error: err?.message ?? 'Internal server error' });
   }
-
-  return res.status(200).json({
-    api_signature: `cr-period-${newPeriodId}`,
-    status: 'accepted',
-    period: {
-      id: newPeriodId,
-      date_min,
-      date_max,
-      superseded_count: overlapping.length
-    },
-    metrics: {
-      co2_avoided_kg: Math.round(totalCo2 * 1000) / 1000,
-      water_saved_gallons: Math.round(totalWater * 100) / 100,
-      waste_diverted_lbs: Math.round(totalWaste * 1000) / 1000,
-      single_use_equivalents: totalUnits
-    }
-  });
 }
