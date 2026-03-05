@@ -166,7 +166,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 1. Navigation & Labels | 2/2 | Complete    | 2026-03-05 |
 | 2. Overview Redesign | 2/2 | Complete   | 2026-03-05 |
-| 3. Data Health Page | 1/3 | In Progress|  |
+| 3. Data Health Page | 2/3 | In Progress|  |
 
 ---
 
