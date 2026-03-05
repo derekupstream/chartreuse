@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.8
 milestone_name: Data Governance Admin Overhaul
 status: Defining requirements
-stopped_at: Completed 04-01-PLAN.md
-last_updated: "2026-03-05T17:36:03.473Z"
+stopped_at: Completed 04-02-PLAN.md
+last_updated: "2026-03-05T17:39:55.492Z"
 last_activity: 2026-03-05 — Milestone v1.9 started
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 11
-  completed_plans: 8
+  completed_plans: 9
   percent: 0
 ---
 
@@ -56,6 +56,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 03-data-health-page P03 | 12 | 2 tasks | 2 files |
 | Phase 03-data-health-page P03 | 15 | 3 tasks | 2 files |
 | Phase 04-data-map-rsp-feed-trace-graph P01 | 12 | 2 tasks | 4 files |
+| Phase 04-data-map-rsp-feed-trace-graph P02 | 15 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -85,6 +86,8 @@ Progress: [░░░░░░░░░░] 0%
 - [Phase 03-data-health-page]: Auth-only getServerSideProps on inputs page — all data from client-side scan POST, no SSR data needed
 - [Phase 03-data-health-page]: Empty state guard uses !scanning && issues.length === 0 to prevent flash of empty state during initial scan
 - [Phase 04-data-map-rsp-feed-trace-graph]: getUserFromContext + checkIsUpstream auth pattern used for Data Map page (consistent with all existing data-science admin pages)
+- [Phase 04-data-map-rsp-feed-trace-graph]: ComputeRun has no direct FK to UsageTimePeriod — periods feed fetches ComputeRuns by orgId; computeStatus filter uses 2-step subquery
+- [Phase 04-data-map-rsp-feed-trace-graph]: MetricResult.valueNumeric (not .value) is the actual schema field; mapped to value in API response for downstream consumers
 
 ### Pending Todos
 
@@ -97,6 +100,6 @@ None captured yet.
 
 ## Session Continuity
 
-Last session: 2026-03-05T17:36:03.463Z
-Stopped at: Completed 04-01-PLAN.md
+Last session: 2026-03-05T17:39:55.482Z
+Stopped at: Completed 04-02-PLAN.md
 Resume file: None

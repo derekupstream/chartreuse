@@ -49,8 +49,8 @@
 - [ ] **MAP-03**: Clicking any graph node opens an AntD Drawer with record details and deep links
 - [ ] **MAP-04**: Node status coloring (green=ok/active, orange=superseded, red=failed, blue=running); dashed edge for supersession chain
 - [ ] **MAP-05**: Minimap, zoom/pan, fit-view controls present on graph
-- [ ] **MAP-06**: Search bar allows finding RSP periods by projectId, publicSlug, usagePeriodId, clientExternalId, org/account, or computeRunId
-- [ ] **MAP-07**: RSP feed supports filters: date range, RSP org, status (accepted/deduped/rejected/needs_review), has issues (critical/warn), compute status (success/fail)
+- [x] **MAP-06**: Search bar allows finding RSP periods by projectId, publicSlug, usagePeriodId, clientExternalId, org/account, or computeRunId
+- [x] **MAP-07**: RSP feed supports filters: date range, RSP org, status (accepted/deduped/rejected/needs_review), has issues (critical/warn), compute status (success/fail)
 - [ ] **MAP-08**: RSP trace graph includes an Intelligence Update node at end of chain showing whether benchmarks were refreshed
 
 ### API Playground (PLY)
@@ -116,8 +116,8 @@
 | MAP-03 | Phase 4 | Pending |
 | MAP-04 | Phase 4 | Pending |
 | MAP-05 | Phase 4 | Pending |
-| MAP-06 | Phase 4 | Pending |
-| MAP-07 | Phase 4 | Pending |
+| MAP-06 | Phase 4 | Complete |
+| MAP-07 | Phase 4 | Complete |
 | MAP-08 | Phase 4 | Pending |
 | PLY-01 | Phase 5 | Pending |
 | PLY-02 | Phase 5 | Pending |
