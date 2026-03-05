@@ -119,7 +119,11 @@ SaaS calculator for cost/environmental savings when switching from single-use to
   3. Snapshots, Run History, and Impact Simulator are nested under an "Advanced" submenu
   4. The Constants Library page title reads "Factors" and the Import page title reads "AI Data Uploader"
   5. The Lineage page description uses governance framing ("trace how a metric was produced")
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 01-01-PLAN.md — Rename Data Governance nav group, restructure children and Advanced submenu in AdminLayout.tsx
+- [ ] 01-02-PLAN.md — Update page titles, headings, descriptions, and back-link text across 6 pages
 
 ### Phase 2: Overview Redesign
 **Goal**: The Data Governance overview page communicates the full pipeline architecture, provides quick navigation to all major sections, and surfaces system health at a glance
@@ -151,7 +155,7 @@ SaaS calculator for cost/environmental savings when switching from single-use to
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Navigation & Labels | 0/TBD | Not started | - |
+| 1. Navigation & Labels | 0/2 | Not started | - |
 | 2. Overview Redesign | 0/TBD | Not started | - |
 | 3. Data Health Page | 0/TBD | Not started | - |
 
