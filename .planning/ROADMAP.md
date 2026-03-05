@@ -267,7 +267,7 @@ Plans:
 | 4. Data Map + RSP Feed + Trace Graph | 4/4 | Complete   | 2026-03-05 |
 | 5. API Playground | 2/2 | Complete   | 2026-03-05 |
 | 6. Data Health + RSP Integration | 0/2 | Not started | - |
-| 7. Actuals + Projections Modes | 0/TBD | Not started | - |
+| 7. Actuals + Projections Modes | 1/2 | In Progress|  |
 
 ---
 

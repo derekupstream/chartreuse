@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.8
-milestone_name: Data Governance Admin Overhaul
-status: Defining requirements
-stopped_at: Completed 06-02-PLAN.md
-last_updated: "2026-03-05T19:13:04.317Z"
-last_activity: 2026-03-05 — Milestone v1.9 started
+milestone: v1.9
+milestone_name: Data Map + RSP Observability
+status: In progress
+stopped_at: Completed 07-01-PLAN.md
+last_updated: "2026-03-05T21:23:00.000Z"
+last_activity: 2026-03-05 — Phase 07 Plan 01 complete
 progress:
   total_phases: 7
   completed_phases: 6
-  total_plans: 15
-  completed_plans: 15
-  percent: 0
+  total_plans: 4
+  completed_plans: 1
+  percent: 25
 ---
 
 # Project State
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-03-05)
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-03-05 — Milestone v1.9 started
+Phase: 07-actuals-projections-modes-v1
+Plan: 01 of 4
+Status: In progress
+Last activity: 2026-03-05 — Completed 07-01 (mode control + trace APIs)
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [██░░░░░░░░] 25%
 
 ## Performance Metrics
 
@@ -106,6 +106,10 @@ Progress: [░░░░░░░░░░] 0%
 - [Phase 06-data-health-rsp-integration]: IssueNode registered as default nodeType overrides all React Flow nodes — avoids per-node type complexity while intercepting all nodes with a single component
 - [Phase 06-data-health-rsp-integration]: entityId stored directly in node data for uniform access across usage-period and products nodes regardless of which period fields they carry
 - [Phase 06-data-health-rsp-integration]: Client-side filter on inputs page (not server-side re-fetch) — scan POST already returns all issues; entityId filter is a UX narrowing, not a data query
+- [Phase 07-actuals-projections-modes-v1]: Segmented control positioned in its own bordered div above Tabs — Tabs only render in RSP mode for clean conditional layout
+- [Phase 07-actuals-projections-modes-v1]: rspActiveTab renamed from activeTab to scope it clearly to RSP mode; selectedProjectId state added now for Plan 02 graph components
+- [Phase 07-actuals-projections-modes-v1]: actuals-trace returns last 10 computeRuns (runType actuals_ingest/backfill); projections-trace returns single latest projection run — different cardinality by design
+- [Phase 07-actuals-projections-modes-v1]: feedContent height calculation updated to subtract extra 46px for Segmented control bar
 
 ### Pending Todos
 

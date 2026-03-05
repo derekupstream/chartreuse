@@ -66,8 +66,8 @@
 
 ### Actuals + Projections Modes (ACT, PRJ)
 
-- [ ] **ACT-01**: Actuals mode graph: Project → ProjectMilestones → ComputeRuns → MetricResults
-- [ ] **PRJ-01**: Projections mode graph: Project → Line Items (aggregate nodes) → ComputeRun → MetricResults
+- [x] **ACT-01**: Actuals mode graph: Project → ProjectMilestones → ComputeRuns → MetricResults
+- [x] **PRJ-01**: Projections mode graph: Project → Line Items (aggregate nodes) → ComputeRun → MetricResults
 
 ## Future Requirements
 
@@ -124,8 +124,8 @@
 | PLY-03 | Phase 5 | Complete |
 | RSP-H-01 | Phase 6 | Complete |
 | RSP-H-02 | Phase 6 | Complete |
-| ACT-01 | Phase 7 | Pending |
-| PRJ-01 | Phase 7 | Pending |
+| ACT-01 | Phase 7 | Complete |
+| PRJ-01 | Phase 7 | Complete |
 
 **Coverage:**
 - v1.8 requirements: 21 total — all Complete
