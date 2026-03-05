@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.9
-milestone_name: Data Map + RSP Observability
-status: In progress
-stopped_at: Completed 07-01-PLAN.md
-last_updated: "2026-03-05T21:23:00.000Z"
-last_activity: 2026-03-05 — Phase 07 Plan 01 complete
+milestone: v1.8
+milestone_name: Data Governance Admin Overhaul
+status: executing
+stopped_at: Completed 07-02-PLAN.md
+last_updated: "2026-03-05T21:29:07.341Z"
+last_activity: 2026-03-05 — Completed 07-01 (mode control + trace APIs)
 progress:
   total_phases: 7
-  completed_phases: 6
-  total_plans: 4
-  completed_plans: 1
+  completed_phases: 7
+  total_plans: 17
+  completed_plans: 17
   percent: 25
 ---
 
@@ -63,6 +63,7 @@ Progress: [██░░░░░░░░] 25%
 | Phase 05-api-playground P02 | 15 | 2 tasks | 3 files |
 | Phase 06-data-health-rsp-integration P01 | 2 | 1 tasks | 2 files |
 | Phase 06-data-health-rsp-integration P02 | 121 | 2 tasks | 4 files |
+| Phase 07-actuals-projections-modes-v1 P02 | 3 | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -110,6 +111,9 @@ Progress: [██░░░░░░░░] 25%
 - [Phase 07-actuals-projections-modes-v1]: rspActiveTab renamed from activeTab to scope it clearly to RSP mode; selectedProjectId state added now for Plan 02 graph components
 - [Phase 07-actuals-projections-modes-v1]: actuals-trace returns last 10 computeRuns (runType actuals_ingest/backfill); projections-trace returns single latest projection run — different cardinality by design
 - [Phase 07-actuals-projections-modes-v1]: feedContent height calculation updated to subtract extra 46px for Segmented control bar
+- [Phase 07-actuals-projections-modes-v1]: IssueNode in ActualsGraph/ProjectionsGraph is simplified — no badge/link since these nodes don't connect to data health inputs page
+- [Phase 07-actuals-projections-modes-v1]: Unlinked compute runs (no milestone computeRunId match) draw from project directly to avoid orphaned nodes in actuals graph
+- [Phase 07-actuals-projections-modes-v1]: Full entity objects stored in node.data for NodeDrawer rich detail without additional fetches
 
 ### Pending Todos
 
@@ -122,6 +126,6 @@ None captured yet.
 
 ## Session Continuity
 
-Last session: 2026-03-05T19:10:20.341Z
-Stopped at: Completed 06-02-PLAN.md
+Last session: 2026-03-05T21:29:07.332Z
+Stopped at: Completed 07-02-PLAN.md
 Resume file: None
