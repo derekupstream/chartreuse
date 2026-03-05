@@ -38,6 +38,34 @@
 - [x] **INP-06**: "Validate" action acknowledges an issue — sets `acknowledgedAt` + `acknowledgedByUserId`, prompts for optional note, transitions status to `acknowledged`
 - [x] **INP-07**: API: `POST /api/admin/data-health/scan` (run checks, upsert issues), `GET /api/admin/data-health/issues` (list with status), `PATCH /api/admin/data-health/issues/[id]` (acknowledge or resolve)
 
+---
+
+## v1.9 Requirements — Data Map + RSP Observability
+
+### Data Map (MAP)
+
+- [ ] **MAP-01**: New `/admin/data-science/data-map` page added to Data Governance nav group
+- [ ] **MAP-02**: React Flow graph renders RSP ingestion trace: API Request → Validation → Dedup → UsageTimePeriod → UsagePeriodProducts → ComputeRun → MetricResults
+- [ ] **MAP-03**: Clicking any graph node opens an AntD Drawer with record details and deep links
+- [ ] **MAP-04**: Node status coloring (green=ok/active, orange=superseded, red=failed, blue=running); dashed edge for supersession chain
+- [ ] **MAP-05**: Minimap, zoom/pan, fit-view controls present on graph
+
+### API Playground (PLY)
+
+- [ ] **PLY-01**: Playground tab on Data Map: paste JSON payload, select API key, validate-only or ingest mode
+- [ ] **PLY-02**: After ingest, "View in Graph" button auto-navigates to the new period's trace
+- [ ] **PLY-03**: `ingestUsagePeriod()` extracted to `lib/rsp/ingestUsagePeriod.ts`; `pages/api/rsp/usage.ts` becomes a thin wrapper
+
+### RSP Data Health (RSP-H)
+
+- [ ] **RSP-H-01**: RSP ingestion creates DataHealthIssue records for: unknown reusable_type (warning), negative event counts (error), high supersession count >3 (warning)
+- [ ] **RSP-H-02**: Affected graph nodes show issue badge; clicking navigates to filtered Inputs page
+
+### Actuals + Projections Modes (ACT, PRJ)
+
+- [ ] **ACT-01**: Actuals mode graph: Project → ProjectMilestones → ComputeRuns → MetricResults
+- [ ] **PRJ-01**: Projections mode graph: Project → Line Items (aggregate nodes) → ComputeRun → MetricResults
+
 ## Future Requirements
 
 ### Data Health Enhancements
