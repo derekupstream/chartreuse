@@ -208,7 +208,7 @@ Plans:
 | Project Dashboard Charts (DASH-01, DASH-02) | Done | ~2026-03-03 |
 | Analytics Saved Views + Share + Multiplier | Done | ~2026-03-03 |
 | Analytics UX Overhaul | Done | 2026-03-04 |
-| v1.8: Data Governance Admin Overhaul | In progress | - |
+| v1.8: Data Governance Admin Overhaul | Done | 2026-03-05 |
 | Calculator Accuracy + Multi-Year | Not started | - |
 | Share & Export | Not started | - |
 | AI Recommendations | Not started | - |
