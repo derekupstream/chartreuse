@@ -55,6 +55,7 @@ const adminLinks: MenuProps['items'] = [
     key: 'data-science/change-requests',
     label: <Link href='/admin/data-science/change-requests'>Change Requests</Link>
   },
+  { key: 'data-science/inputs', label: <Link href='/admin/data-science/inputs'>Data Inputs</Link> },
   { key: 'data-science/lineage', label: <Link href='/admin/data-science/lineage'>Data Lineage</Link> },
   { key: 'data-science/calculations', label: <Link href='/admin/data-science/calculations'>Calculations</Link> },
   { key: 'data-science/import', label: <Link href='/admin/data-science/import'>Import Data</Link> },
@@ -62,7 +63,7 @@ const adminLinks: MenuProps['items'] = [
   { key: 'data-science/snapshots', label: <Link href='/admin/data-science/snapshots'>Snapshots</Link> },
   { key: 'data-science/runs', label: <Link href='/admin/data-science/runs'>Run History</Link> },
   { key: 'data-science/impact', label: <Link href='/admin/data-science/impact'>Impact Simulator</Link> },
-  { key: 'upstream/total-annual-impact', label: <Link href='/upstream/total-annual-impact'>Analytics</Link> },
+  { key: 'admin/analytics', label: <Link href='/admin/analytics'>Analytics</Link> },
   { key: 'settings', label: <Link href='/settings'>Settings</Link> },
   { key: 'rsp', label: <Link href='/admin/rsp'>RSP Dashboard</Link> },
   { key: 'rsp/api-keys', label: <Link href='/admin/rsp/api-keys'>RSP API Keys</Link> },
@@ -77,7 +78,7 @@ const adminDropdownItems: MenuProps['items'] = [
   { key: 'admin/projects', label: <Link href='/admin/projects'>Projects</Link> },
   { key: 'admin/users', label: <Link href='/admin/users'>Users</Link> },
   { key: 'admin/feedback', label: <Link href='/admin/feedback'>Feedback</Link> },
-  { key: 'upstream/total-annual-impact', label: <Link href='/upstream/total-annual-impact'>Analytics</Link> },
+  { key: 'admin/analytics', label: <Link href='/admin/analytics'>Analytics</Link> },
   { key: 'data-science', label: <Link href='/admin/data-science'>Data Science</Link> },
   { key: 'rsp', label: <Link href='/admin/rsp'>RSP Hub</Link> }
 ];
