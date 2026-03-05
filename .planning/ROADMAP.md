@@ -135,7 +135,11 @@ Plans:
   3. Section cards for each primary nav item are present with description, tooltip, and working "View →" link
   4. A collapsible "How Impact Governance Works" section expands to show the 6-step walkthrough
   5. A System Health row shows live KPI alert cards: open data health issues, pending change requests, recent ComputeRun errors, and last test run status with stale alert
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 02-01-PLAN.md — Update getServerSideProps, Props type, title/subtitle, System Health KPI row (OVW-01, OVW-05)
+- [ ] 02-02-PLAN.md — System Architecture diagram, Section Cards 3x2 grid, How It Works Collapse (OVW-02, OVW-03, OVW-04)
 
 ### Phase 3: Data Health Page
 **Goal**: Admin users can run on-demand data health scans, view detected issues grouped by severity, and acknowledge issues with an optional note
