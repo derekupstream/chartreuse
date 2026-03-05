@@ -50,6 +50,7 @@ const DATA_SCIENCE_KEYS = [
   'data-science/runs',
   'data-science/impact',
   'data-science/inputs',
+  'data-science/data-map',
   'data-science/lineage'
 ];
 
@@ -73,6 +74,7 @@ const siderMenuItems = [
     children: [
       { key: 'data-science', label: <Link href='/admin/data-science'>Overview</Link> },
       { key: 'data-science/inputs', label: <Link href='/admin/data-science/inputs'>Inputs</Link> },
+      { key: 'data-science/data-map', label: <Link href='/admin/data-science/data-map'>Data Map</Link> },
       { key: 'data-science/constants', label: <Link href='/admin/data-science/constants'>Factors</Link> },
       {
         key: 'data-science/calculations',
