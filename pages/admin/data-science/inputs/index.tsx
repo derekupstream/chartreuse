@@ -48,7 +48,7 @@ export default function DataInputsPage({ user }: Props) {
     try {
       const res = await fetch('/api/admin/data-health/scan', { method: 'POST' });
       const data = await res.json();
-      setIssues(data);
+      setIssues(Array.isArray(data) ? data : []);
       setLastScanAt(new Date());
     } finally {
       setScanning(false);
