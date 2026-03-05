@@ -45,13 +45,13 @@
 ### Data Map (MAP)
 
 - [x] **MAP-01**: New `/admin/data-science/data-map` page added to Data Governance nav group
-- [ ] **MAP-02**: React Flow graph renders RSP ingestion trace: API Request → Validation → Dedup → UsageTimePeriod → UsagePeriodProducts → ComputeRun → MetricResults
-- [ ] **MAP-03**: Clicking any graph node opens an AntD Drawer with record details and deep links
-- [ ] **MAP-04**: Node status coloring (green=ok/active, orange=superseded, red=failed, blue=running); dashed edge for supersession chain
-- [ ] **MAP-05**: Minimap, zoom/pan, fit-view controls present on graph
+- [x] **MAP-02**: React Flow graph renders RSP ingestion trace: API Request → Validation → Dedup → UsageTimePeriod → UsagePeriodProducts → ComputeRun → MetricResults
+- [x] **MAP-03**: Clicking any graph node opens an AntD Drawer with record details and deep links
+- [x] **MAP-04**: Node status coloring (green=ok/active, orange=superseded, red=failed, blue=running); dashed edge for supersession chain
+- [x] **MAP-05**: Minimap, zoom/pan, fit-view controls present on graph
 - [x] **MAP-06**: Search bar allows finding RSP periods by projectId, publicSlug, usagePeriodId, clientExternalId, org/account, or computeRunId
 - [x] **MAP-07**: RSP feed supports filters: date range, RSP org, status (accepted/deduped/rejected/needs_review), has issues (critical/warn), compute status (success/fail)
-- [ ] **MAP-08**: RSP trace graph includes an Intelligence Update node at end of chain showing whether benchmarks were refreshed
+- [x] **MAP-08**: RSP trace graph includes an Intelligence Update node at end of chain showing whether benchmarks were refreshed
 
 ### API Playground (PLY)
 
@@ -112,13 +112,13 @@
 | INP-06 | Phase 3 | Complete |
 | INP-07 | Phase 3 | Complete |
 | MAP-01 | Phase 4 | Complete |
-| MAP-02 | Phase 4 | Pending |
-| MAP-03 | Phase 4 | Pending |
-| MAP-04 | Phase 4 | Pending |
-| MAP-05 | Phase 4 | Pending |
+| MAP-02 | Phase 4 | Complete |
+| MAP-03 | Phase 4 | Complete |
+| MAP-04 | Phase 4 | Complete |
+| MAP-05 | Phase 4 | Complete |
 | MAP-06 | Phase 4 | Complete |
 | MAP-07 | Phase 4 | Complete |
-| MAP-08 | Phase 4 | Pending |
+| MAP-08 | Phase 4 | Complete |
 | PLY-01 | Phase 5 | Pending |
 | PLY-02 | Phase 5 | Pending |
 | PLY-03 | Phase 5 | Pending |
