@@ -182,7 +182,7 @@ Plans:
 ## Phases
 
 - [x] **Phase 4: Data Map Page + RSP Feed + Trace Graph** - New `/admin/data-science/data-map` page with paginated RSP ingestion feed, React Flow provenance graph (status coloring, supersession edges), node detail drawers, minimap/zoom/pan (completed 2026-03-05)
-- [ ] **Phase 5: API Playground** - Playground tab: paste JSON payload, select API key, validate-only or full ingest mode, auto-navigate to trace graph after ingest; extract `ingestUsagePeriod()` lib function from `usage.ts`
+- [x] **Phase 5: API Playground** - Playground tab: paste JSON payload, select API key, validate-only or full ingest mode, auto-navigate to trace graph after ingest; extract `ingestUsagePeriod()` lib function from `usage.ts` (completed 2026-03-05)
 - [ ] **Phase 6: Data Health + RSP Integration** - Create DataHealthIssue records during RSP ingestion (unknown type, negative events, high supersession); issue badges on graph nodes; click navigates to filtered Inputs page
 - [ ] **Phase 7: Actuals + Projections Modes (V1)** - Mode segmented control on Data Map (RSP API | Actuals | Projections); Actuals graph (Project → Milestones → ComputeRuns → MetricResults); Projections graph (Project → Line Items → ComputeRun → MetricResults)
 
@@ -257,7 +257,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 4. Data Map + RSP Feed + Trace Graph | 4/4 | Complete   | 2026-03-05 |
-| 5. API Playground | 0/2 | Not started | - |
+| 5. API Playground | 2/2 | Complete   | 2026-03-05 |
 | 6. Data Health + RSP Integration | 0/TBD | Not started | - |
 | 7. Actuals + Projections Modes | 0/TBD | Not started | - |
 

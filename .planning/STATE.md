@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.8
 milestone_name: Data Governance Admin Overhaul
 status: Defining requirements
-stopped_at: Completed 05-01-PLAN.md
-last_updated: "2026-03-05T18:13:36.241Z"
+stopped_at: Completed 05-02-PLAN.md
+last_updated: "2026-03-05T18:17:37.259Z"
 last_activity: 2026-03-05 — Milestone v1.9 started
 progress:
   total_phases: 7
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 13
-  completed_plans: 12
+  completed_plans: 13
   percent: 0
 ---
 
@@ -60,6 +60,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 04-data-map-rsp-feed-trace-graph P03 | 5 | 2 tasks | 2 files |
 | Phase 04-data-map-rsp-feed-trace-graph P04 | 3 | 2 tasks | 4 files |
 | Phase 05-api-playground P01 | 2 | 2 tasks | 2 files |
+| Phase 05-api-playground P02 | 15 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -95,6 +96,8 @@ Progress: [░░░░░░░░░░] 0%
 - [Phase 04-data-map-rsp-feed-trace-graph]: Date range pickers deferred from FeedPanel filter row — keeps filter row simple (search + 2 selects)
 - [Phase 04-data-map-rsp-feed-trace-graph]: Node label placed in data.label not top-level label — React Flow v11 Node type does not accept top-level label property
 - [Phase 05-api-playground]: Extract-to-lib pattern: compute logic in lib/, API routes are thin HTTP wrappers — ingestUsagePeriod() callable from any server-side context
+- [Phase 05-api-playground]: Playground endpoint reuses same overlap query as ingestUsagePeriod for validate mode — consistent reporting
+- [Phase 05-api-playground]: onIngest callback sets both selectedPeriodId and activeTab atomically — switches tab and selects period in single action
 
 ### Pending Todos
 
@@ -107,6 +110,6 @@ None captured yet.
 
 ## Session Continuity
 
-Last session: 2026-03-05T18:13:36.230Z
-Stopped at: Completed 05-01-PLAN.md
+Last session: 2026-03-05T18:17:37.248Z
+Stopped at: Completed 05-02-PLAN.md
 Resume file: None

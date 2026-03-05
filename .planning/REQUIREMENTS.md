@@ -55,8 +55,8 @@
 
 ### API Playground (PLY)
 
-- [ ] **PLY-01**: Playground tab on Data Map: paste JSON payload, select API key, validate-only or ingest mode
-- [ ] **PLY-02**: After ingest, "View in Graph" button auto-navigates to the new period's trace
+- [x] **PLY-01**: Playground tab on Data Map: paste JSON payload, select API key, validate-only or ingest mode
+- [x] **PLY-02**: After ingest, "View in Graph" button auto-navigates to the new period's trace
 - [x] **PLY-03**: `ingestUsagePeriod()` extracted to `lib/rsp/ingestUsagePeriod.ts`; `pages/api/rsp/usage.ts` becomes a thin wrapper
 
 ### RSP Data Health (RSP-H)
@@ -119,8 +119,8 @@
 | MAP-06 | Phase 4 | Complete |
 | MAP-07 | Phase 4 | Complete |
 | MAP-08 | Phase 4 | Complete |
-| PLY-01 | Phase 5 | Pending |
-| PLY-02 | Phase 5 | Pending |
+| PLY-01 | Phase 5 | Complete |
+| PLY-02 | Phase 5 | Complete |
 | PLY-03 | Phase 5 | Complete |
 | RSP-H-01 | Phase 6 | Pending |
 | RSP-H-02 | Phase 6 | Pending |
