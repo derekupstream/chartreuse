@@ -111,21 +111,21 @@
 | INP-05 | Phase 3 | Complete |
 | INP-06 | Phase 3 | Complete |
 | INP-07 | Phase 3 | Complete |
-| MAP-01 | v1.9 Phase 1 | Pending |
-| MAP-02 | v1.9 Phase 1 | Pending |
-| MAP-03 | v1.9 Phase 1 | Pending |
-| MAP-04 | v1.9 Phase 1 | Pending |
-| MAP-05 | v1.9 Phase 1 | Pending |
-| MAP-06 | v1.9 Phase 1 | Pending |
-| MAP-07 | v1.9 Phase 1 | Pending |
-| MAP-08 | v1.9 Phase 1 | Pending |
-| PLY-01 | v1.9 Phase 2 | Pending |
-| PLY-02 | v1.9 Phase 2 | Pending |
-| PLY-03 | v1.9 Phase 2 | Pending |
-| RSP-H-01 | v1.9 Phase 3 | Pending |
-| RSP-H-02 | v1.9 Phase 3 | Pending |
-| ACT-01 | v1.9 Phase 4 | Pending |
-| PRJ-01 | v1.9 Phase 4 | Pending |
+| MAP-01 | Phase 4 | Pending |
+| MAP-02 | Phase 4 | Pending |
+| MAP-03 | Phase 4 | Pending |
+| MAP-04 | Phase 4 | Pending |
+| MAP-05 | Phase 4 | Pending |
+| MAP-06 | Phase 4 | Pending |
+| MAP-07 | Phase 4 | Pending |
+| MAP-08 | Phase 4 | Pending |
+| PLY-01 | Phase 5 | Pending |
+| PLY-02 | Phase 5 | Pending |
+| PLY-03 | Phase 5 | Pending |
+| RSP-H-01 | Phase 6 | Pending |
+| RSP-H-02 | Phase 6 | Pending |
+| ACT-01 | Phase 7 | Pending |
+| PRJ-01 | Phase 7 | Pending |
 
 **Coverage:**
 - v1.8 requirements: 21 total — all Complete

@@ -177,18 +177,18 @@ Plans:
 **Milestone Goal:** Build a node-based Data Map visualization hub giving admins full observability into how data flows through the system — from RSP API ingestion through compute to metric results. Priority is RSP observability and a self-test harness for validating payloads before handing RSPs integration instructions.
 
 **New dependencies:** `reactflow` + `@dagrejs/dagre` (not yet installed)
-**DB changes:** None required for Phases 1–3. All models exist.
+**DB changes:** None required for Phases 4–6. All models exist.
 
 ## Phases
 
-- [ ] **Phase 1: Data Map Page + RSP Feed + Trace Graph** - New `/admin/data-science/data-map` page with paginated RSP ingestion feed, React Flow provenance graph (status coloring, supersession edges), node detail drawers, minimap/zoom/pan
-- [ ] **Phase 2: API Playground** - Playground tab: paste JSON payload, select API key, validate-only or full ingest mode, auto-navigate to trace graph after ingest; extract `ingestUsagePeriod()` lib function from `usage.ts`
-- [ ] **Phase 3: Data Health + RSP Integration** - Create DataHealthIssue records during RSP ingestion (unknown type, negative events, high supersession); issue badges on graph nodes; click navigates to filtered Inputs page
-- [ ] **Phase 4: Actuals + Projections Modes (V1)** - Mode segmented control on Data Map (RSP API | Actuals | Projections); Actuals graph (Project → Milestones → ComputeRuns → MetricResults); Projections graph (Project → Line Items → ComputeRun → MetricResults)
+- [ ] **Phase 4: Data Map Page + RSP Feed + Trace Graph** - New `/admin/data-science/data-map` page with paginated RSP ingestion feed, React Flow provenance graph (status coloring, supersession edges), node detail drawers, minimap/zoom/pan
+- [ ] **Phase 5: API Playground** - Playground tab: paste JSON payload, select API key, validate-only or full ingest mode, auto-navigate to trace graph after ingest; extract `ingestUsagePeriod()` lib function from `usage.ts`
+- [ ] **Phase 6: Data Health + RSP Integration** - Create DataHealthIssue records during RSP ingestion (unknown type, negative events, high supersession); issue badges on graph nodes; click navigates to filtered Inputs page
+- [ ] **Phase 7: Actuals + Projections Modes (V1)** - Mode segmented control on Data Map (RSP API | Actuals | Projections); Actuals graph (Project → Milestones → ComputeRuns → MetricResults); Projections graph (Project → Line Items → ComputeRun → MetricResults)
 
 ## Phase Details
 
-### Phase 1: Data Map Page + RSP Feed + Trace Graph
+### Phase 4: Data Map Page + RSP Feed + Trace Graph
 **Goal**: Admin can browse all RSP ingestions in a searchable, filterable feed table, click any row, and see a React Flow provenance graph with status coloring, supersession edges, node detail drawers, and an Intelligence Update node
 **Depends on**: Nothing (install reactflow + dagre first)
 **Requirements**: MAP-01, MAP-02, MAP-03, MAP-04, MAP-05, MAP-06, MAP-07, MAP-08
@@ -203,9 +203,9 @@ Plans:
   8. Minimap, zoom/pan, and fit-view controls are present
 **Plans**: TBD
 
-### Phase 2: API Playground
+### Phase 5: API Playground
 **Goal**: Admin can paste a JSON payload, pick an existing RSP API key, run validate-only or full ingest, and automatically see the trace graph for any created period
-**Depends on**: Phase 1
+**Depends on**: Phase 4
 **Requirements**: PLY-01, PLY-02, PLY-03
 **Success Criteria**:
   1. Playground tab visible on Data Map page (RSP API mode only)
@@ -216,9 +216,9 @@ Plans:
   6. `ingestUsagePeriod()` extracted to `lib/rsp/ingestUsagePeriod.ts`; `usage.ts` is a thin wrapper
 **Plans**: TBD
 
-### Phase 3: Data Health + RSP Integration
+### Phase 6: Data Health + RSP Integration
 **Goal**: RSP-specific data quality issues automatically appear in DataHealthIssue during ingestion, with issue badges on affected graph nodes
-**Depends on**: Phase 2
+**Depends on**: Phase 5
 **Requirements**: RSP-H-01, RSP-H-02
 **Success Criteria**:
   1. Ingesting a payload with unknown reusable_type creates a `warning` DataHealthIssue
@@ -229,9 +229,9 @@ Plans:
   6. RSP issues increment the governance overview KPI counter automatically
 **Plans**: TBD
 
-### Phase 4: Actuals + Projections Modes (V1)
+### Phase 7: Actuals + Projections Modes (V1)
 **Goal**: Data Map shows project-based provenance graphs for actuals and projections in addition to RSP mode
-**Depends on**: Phase 1 (can run in parallel with Phase 3)
+**Depends on**: Phase 4 (can run in parallel with Phase 6)
 **Requirements**: ACT-01, PRJ-01
 **Success Criteria**:
   1. Mode segmented control (RSP API | Actuals | Projections) appears above feed; mode persists in URL (`?mode=`)
@@ -242,14 +242,14 @@ Plans:
 
 ## Progress
 
-**Execution Order:** Phase 1 → Phase 2 → Phase 3, Phase 4 (parallel with Phase 3)
+**Execution Order:** Phase 4 → Phase 5 → Phase 6, Phase 7 (parallel with Phase 6)
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Data Map + RSP Feed + Trace Graph | 0/TBD | Not started | - |
-| 2. API Playground | 0/TBD | Not started | - |
-| 3. Data Health + RSP Integration | 0/TBD | Not started | - |
-| 4. Actuals + Projections Modes | 0/TBD | Not started | - |
+| 4. Data Map + RSP Feed + Trace Graph | 0/TBD | Not started | - |
+| 5. API Playground | 0/TBD | Not started | - |
+| 6. Data Health + RSP Integration | 0/TBD | Not started | - |
+| 7. Actuals + Projections Modes | 0/TBD | Not started | - |
 
 ---
 
