@@ -172,7 +172,7 @@ Plans:
 
 ---
 
-## v1.9: Data Map + RSP Observability (Next Milestone)
+## v1.9: Data Map + RSP Observability (Active Milestone)
 
 **Milestone Goal:** Build a node-based Data Map visualization hub giving admins full observability into how data flows through the system — from RSP API ingestion through compute to metric results. Priority is RSP observability and a self-test harness for validating payloads before handing RSPs integration instructions.
 
@@ -189,16 +189,18 @@ Plans:
 ## Phase Details
 
 ### Phase 1: Data Map Page + RSP Feed + Trace Graph
-**Goal**: Admin can browse all RSP ingestions in a feed table, click any row, and see a React Flow provenance graph with status coloring, supersession edges, and node detail drawers
+**Goal**: Admin can browse all RSP ingestions in a searchable, filterable feed table, click any row, and see a React Flow provenance graph with status coloring, supersession edges, node detail drawers, and an Intelligence Update node
 **Depends on**: Nothing (install reactflow + dagre first)
-**Requirements**: MAP-01, MAP-02, MAP-03, MAP-04, MAP-05
+**Requirements**: MAP-01, MAP-02, MAP-03, MAP-04, MAP-05, MAP-06, MAP-07, MAP-08
 **Success Criteria**:
   1. `/admin/data-science/data-map` loads with paginated RSP period feed table
-  2. Clicking a row renders a React Flow graph: API Request → Validation → Dedup → UsageTimePeriod → UsagePeriodProducts → ComputeRun → MetricResults
-  3. Node colors reflect status: green=ok/active, orange=superseded, red=failed, blue=running
-  4. If supersededById exists, a dashed edge links to the prior period node
-  5. Clicking any node opens an AntD Drawer with record details and deep links
-  6. Minimap, zoom/pan, and fit-view controls are present
+  2. Search bar finds periods by projectId, publicSlug, usagePeriodId, clientExternalId, org/account, or computeRunId
+  3. Feed filters (date range, RSP org, status, has issues, compute status) narrow the feed list
+  4. Clicking a row renders a React Flow graph: API Request → Validation → Dedup → UsageTimePeriod → UsagePeriodProducts → ComputeRun → MetricResults → Intelligence Update
+  5. Node colors reflect status: green=ok/active, orange=superseded, red=failed, blue=running
+  6. If supersededById exists, a dashed edge links to the prior period node
+  7. Clicking any node opens an AntD Drawer with record details and deep links
+  8. Minimap, zoom/pan, and fit-view controls are present
 **Plans**: TBD
 
 ### Phase 2: API Playground

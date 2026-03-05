@@ -4,16 +4,17 @@
 
 A personal fork of the UpstreamSolutions/ChartReuse SaaS calculator, hosted on derekupstream GitHub and deployed to a personal Vercel + Supabase stack. The app calculates the financial and environmental savings organizations achieve by switching from single-use to reusable foodware. This fork is an AI-assisted development sandbox for shipping improvements to the existing app and building a new public environmental impact API — with the best ideas potentially contributed back to Upstream.
 
-## Current Milestone: v1.8 Data Governance Admin Overhaul
+## Current Milestone: v1.9 Data Map + RSP Observability
 
-**Goal:** Reorganize the "Data Science" admin into a clear, trainable Data Governance platform organized around the actual pipeline architecture.
+**Goal:** Build a node-based Data Map visualization hub giving admins full observability into how data flows through the system — from RSP API ingestion through compute to metric results, with a self-test harness for validating payloads before handing RSPs integration instructions.
 
 **Target features:**
-- Rename and restructure admin nav: "Data Governance" group, new ordering, Advanced submenu
-- Overview redesign: System Architecture diagram, section cards, health KPI dashboard, How It Works walkthrough
-- Relabel existing pages: Constants → Factors, Pipeline → Lineage, Import → AI Data Uploader
-- New Inputs page: on-demand data health monitoring with issue detection + acknowledge/resolve workflow
-- DataHealthIssue model (lightweight): open → acknowledged → resolved
+- Data Map page: React Flow node graph with RSP ingestion trace (API Request → Validation → Dedup → UsageTimePeriod → ComputeRun → MetricResults)
+- Paginated RSP feed list + search (by projectId, usagePeriodId, clientExternalId, org, computeRunId) + filters (date, RSP org, status, issues, compute status)
+- API Playground: paste JSON, select API key, validate-only or ingest mode, auto-navigate to trace after ingest
+- DataHealthIssue integration: RSP ingestion creates issues; issue badges on graph nodes
+- Actuals + Projections modes (V1): Project → Milestones/LineItems → ComputeRun → MetricResults
+- New dependencies: `reactflow` + `@dagrejs/dagre`
 
 ## Core Value
 
@@ -54,6 +55,7 @@ The calculator's projection engine (GHG, waste, financial) must remain accurate 
 - ✅ Methodology Snapshot governance + ComputeRun/MetricResult traceability layer
 - ✅ Analytics lineage visualization + impact simulator
 - ✅ Admin: user role change, password reset, All-Projects view, RSP Test Hub
+- ✅ Data Governance admin overhaul: nav renamed/restructured, overview redesigned, Data Health page with issue detection + acknowledge/resolve workflow
 
 ### Active / Remaining
 
@@ -100,5 +102,8 @@ The calculator's projection engine (GHG, waste, financial) must remain accurate 
 | PDF export via browser print | Simpler than Puppeteer; covers 90% of use case | ⬜ Pending |
 | Expose calculator as public API | Pure functions in lib/calculator/ — minimal work to wrap | ⬜ Pending |
 
+| Use React Flow for Data Map | Pure React graph library, no backend deps, works with Next.js pages router | ⬜ Pending |
+| Use dagre for auto-layout | Standard DAG layout algorithm, pairs with React Flow | ⬜ Pending |
+
 ---
-*Last updated: 2026-03-04 — Milestone v1.8 started*
+*Last updated: 2026-03-05 — Milestone v1.9 started*

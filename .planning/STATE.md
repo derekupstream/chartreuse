@@ -1,36 +1,36 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.8
-milestone_name: Data Governance Admin Overhaul
-status: verifying
-stopped_at: Completed 03-data-health-page-03-PLAN.md — human verify approved, all tasks complete
-last_updated: "2026-03-05T11:53:20.647Z"
-last_activity: 2026-03-05 — Completed Phase 03 Plan 03 (Data Inputs page + human verify)
+milestone: v1.9
+milestone_name: Data Map + RSP Observability
+status: planning
+stopped_at: Milestone v1.9 started — defining requirements and roadmap
+last_updated: "2026-03-05T12:00:00.000Z"
+last_activity: 2026-03-05 — Milestone v1.9 started
 progress:
-  total_phases: 3
-  completed_phases: 3
-  total_plans: 7
-  completed_plans: 7
-  percent: 100
+  total_phases: 4
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-04)
+See: .planning/PROJECT.md (updated 2026-03-05)
 
 **Core value:** The calculator's projection engine (GHG, waste, financial) must remain accurate and reliable — everything else is enhancements on top of that foundation.
-**Current focus:** v1.8 Data Governance Admin Overhaul — COMPLETE
+**Current focus:** v1.9 Data Map + RSP Observability
 
 ## Current Position
 
-Phase: 3 of 3 (Data Health Page) — COMPLETE
-Plan: 3 of 3 — COMPLETE
-Status: Milestone complete — all 7 plans executed and verified
-Last activity: 2026-03-05 — Completed Phase 03 Plan 03 (Data Inputs page + human verify)
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-03-05 — Milestone v1.9 started
 
-Progress: [██████████] 100%
+Progress: [░░░░░░░░░░] 0%
 
 ## Performance Metrics
 

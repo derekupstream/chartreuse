@@ -49,6 +49,9 @@
 - [ ] **MAP-03**: Clicking any graph node opens an AntD Drawer with record details and deep links
 - [ ] **MAP-04**: Node status coloring (green=ok/active, orange=superseded, red=failed, blue=running); dashed edge for supersession chain
 - [ ] **MAP-05**: Minimap, zoom/pan, fit-view controls present on graph
+- [ ] **MAP-06**: Search bar allows finding RSP periods by projectId, publicSlug, usagePeriodId, clientExternalId, org/account, or computeRunId
+- [ ] **MAP-07**: RSP feed supports filters: date range, RSP org, status (accepted/deduped/rejected/needs_review), has issues (critical/warn), compute status (success/fail)
+- [ ] **MAP-08**: RSP trace graph includes an Intelligence Update node at end of chain showing whether benchmarks were refreshed
 
 ### API Playground (PLY)
 
@@ -108,12 +111,28 @@
 | INP-05 | Phase 3 | Complete |
 | INP-06 | Phase 3 | Complete |
 | INP-07 | Phase 3 | Complete |
+| MAP-01 | v1.9 Phase 1 | Pending |
+| MAP-02 | v1.9 Phase 1 | Pending |
+| MAP-03 | v1.9 Phase 1 | Pending |
+| MAP-04 | v1.9 Phase 1 | Pending |
+| MAP-05 | v1.9 Phase 1 | Pending |
+| MAP-06 | v1.9 Phase 1 | Pending |
+| MAP-07 | v1.9 Phase 1 | Pending |
+| MAP-08 | v1.9 Phase 1 | Pending |
+| PLY-01 | v1.9 Phase 2 | Pending |
+| PLY-02 | v1.9 Phase 2 | Pending |
+| PLY-03 | v1.9 Phase 2 | Pending |
+| RSP-H-01 | v1.9 Phase 3 | Pending |
+| RSP-H-02 | v1.9 Phase 3 | Pending |
+| ACT-01 | v1.9 Phase 4 | Pending |
+| PRJ-01 | v1.9 Phase 4 | Pending |
 
 **Coverage:**
-- v1.8 requirements: 21 total
-- Mapped to phases: 21
-- Unmapped: 0
+- v1.8 requirements: 21 total — all Complete
+- v1.9 requirements: 15 total
+- Mapped to phases: 15
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-03-04*
-*Last updated: 2026-03-04 — traceability finalized after roadmap creation*
+*Last updated: 2026-03-05 — v1.9 requirements added (MAP-06, MAP-07, MAP-08 from PRD), traceability updated*
