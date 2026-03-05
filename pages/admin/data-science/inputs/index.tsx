@@ -25,7 +25,10 @@ const ISSUE_DESCRIPTIONS: Record<string, string> = {
   reusable_negative_case_cost: 'Reusable line item has a negative case cost — check for data entry error',
   unrealistic_case_cost: 'Reusable line item case cost exceeds $1 billion — likely a data entry error',
   single_use_negative_case_cost: 'Single-use line item has a negative case cost — check for data entry error',
-  negative_quantity: 'Reusable line item has a negative quantity (casesPurchased < 0) — check for data entry error'
+  negative_quantity: 'Reusable line item has a negative quantity (casesPurchased < 0) — check for data entry error',
+  rsp_unknown_type: 'RSP payload contains an unrecognized reusable_type — impact calculated using default factors',
+  rsp_negative_events: 'RSP payload contains negative event counts — verify data integrity with the RSP provider',
+  rsp_high_supersession: 'RSP ingest superseded more than 3 prior periods — unusually broad date range overlap'
 };
 
 type Props = {

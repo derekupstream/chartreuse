@@ -1,5 +1,7 @@
 import crypto from 'crypto';
 
+import { Prisma } from '@prisma/client';
+
 import {
   finishComputeRun,
   getLatestPublishedSnapshotId,
@@ -7,7 +9,7 @@ import {
   startComputeRun
 } from 'lib/governance/computeRun';
 import prisma from 'lib/prisma';
-import { calcImpact } from 'lib/rsp/impactFactors';
+import { calcImpact, RSP_IMPACT_FACTORS } from 'lib/rsp/impactFactors';
 
 export type EventRow = {
   reusable_type: string;
@@ -141,6 +143,84 @@ export async function ingestUsagePeriod(params: IngestParams): Promise<IngestRes
       ]),
       finishComputeRun(computeRunId, 'success')
     ]);
+
+    // RSP health checks — write DataHealthIssue records for detected problems
+    const rspIssues: Array<{
+      issueType: string;
+      severity: 'error' | 'warning';
+      entity: string;
+      entityId: string;
+      details?: Record<string, unknown>;
+    }> = [];
+
+    // Check 1: Unknown reusable_type (warning)
+    const knownTypes = Object.keys(RSP_IMPACT_FACTORS).filter(k => k !== 'default');
+    const unknownTypes = events
+      .filter(e => !knownTypes.includes(e.reusable_type.toLowerCase()))
+      .map(e => e.reusable_type);
+    if (unknownTypes.length > 0) {
+      rspIssues.push({
+        issueType: 'rsp_unknown_type',
+        severity: 'warning',
+        entity: 'UsageTimePeriod',
+        entityId: newPeriodId,
+        details: { unknownTypes: Array.from(new Set(unknownTypes)) }
+      });
+    }
+
+    // Check 2: Negative event counts (error)
+    const negativeEvents = events.filter(e => e.in_warehouse_events < 0 || e.out_warehouse_events < 0);
+    if (negativeEvents.length > 0) {
+      rspIssues.push({
+        issueType: 'rsp_negative_events',
+        severity: 'error',
+        entity: 'UsageTimePeriod',
+        entityId: newPeriodId,
+        details: {
+          count: negativeEvents.length,
+          types: negativeEvents.map(e => e.reusable_type)
+        }
+      });
+    }
+
+    // Check 3: High supersession count >3 (warning)
+    if (overlapping.length > 3) {
+      rspIssues.push({
+        issueType: 'rsp_high_supersession',
+        severity: 'warning',
+        entity: 'UsageTimePeriod',
+        entityId: newPeriodId,
+        details: { supersededCount: overlapping.length }
+      });
+    }
+
+    if (rspIssues.length > 0) {
+      await Promise.all(
+        rspIssues.map(issue =>
+          prisma.dataHealthIssue.upsert({
+            where: {
+              issueType_entityId: {
+                issueType: issue.issueType,
+                entityId: issue.entityId
+              }
+            },
+            create: {
+              issueType: issue.issueType,
+              severity: issue.severity,
+              entity: issue.entity,
+              entityId: issue.entityId,
+              details: (issue.details ?? undefined) as Prisma.InputJsonValue | undefined,
+              status: 'open'
+            },
+            update: {
+              severity: issue.severity,
+              details: (issue.details ?? undefined) as Prisma.InputJsonValue | undefined
+              // Do NOT include status — preserves acknowledged/resolved state on re-ingest
+            }
+          })
+        )
+      );
+    }
   } catch (err: any) {
     await finishComputeRun(computeRunId, 'failed', err?.message);
     throw err;
