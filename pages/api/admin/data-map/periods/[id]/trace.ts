@@ -24,6 +24,14 @@ export default handlerWithUser().get(async (req: NextApiRequestWithUser, res: Ne
     return res.status(404).json({ error: 'Period not found' });
   }
 
+  // Count open DataHealthIssues linked to this period
+  const issueCount = await prisma.dataHealthIssue.count({
+    where: {
+      entityId: period.id,
+      status: 'open'
+    }
+  });
+
   // Fetch the latest rsp_usage ComputeRun for this org
   const computeRunRaw = await prisma.computeRun.findFirst({
     where: { orgId: period.orgId, runType: 'rsp_usage' },
@@ -106,6 +114,7 @@ export default handlerWithUser().get(async (req: NextApiRequestWithUser, res: Ne
       org: period.org,
       submittedByKey: period.submittedByKey ?? null,
       products: period.products,
+      issueCount,
       computeRun
     },
     priorPeriod

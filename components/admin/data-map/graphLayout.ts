@@ -45,6 +45,7 @@ interface TracePeriod {
   submittedByKey: { id: string; keyPrefix: string } | null;
   products: TraceProduct[];
   computeRun: TraceComputeRun | null;
+  issueCount?: number;
 }
 
 interface TracePriorPeriod {
@@ -147,13 +148,25 @@ export function buildTraceGraph(trace: TraceResponse): { nodes: Node[]; edges: E
     },
     {
       id: 'usage-period',
-      data: { type: 'usage-period', period: trace.period, label: 'Usage Period' },
+      data: {
+        type: 'usage-period',
+        period: trace.period,
+        label: 'Usage Period',
+        issueCount: trace.period.issueCount ?? 0,
+        entityId: trace.period.id
+      },
       position: { x: 0, y: 0 },
       style: getNodeStyle('usage-period', trace)
     },
     {
       id: 'products',
-      data: { type: 'products', products: trace.period.products, label: `${trace.period.products.length} Products` },
+      data: {
+        type: 'products',
+        products: trace.period.products,
+        label: `${trace.period.products.length} Products`,
+        issueCount: trace.period.issueCount ?? 0,
+        entityId: trace.period.id
+      },
       position: { x: 0, y: 0 },
       style: getNodeStyle('products', trace)
     },
