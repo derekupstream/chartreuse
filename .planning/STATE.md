@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.8
 milestone_name: Data Governance Admin Overhaul
 status: Defining requirements
-stopped_at: Completed 06-01-PLAN.md
-last_updated: "2026-03-05T19:06:45.174Z"
+stopped_at: Completed 06-02-PLAN.md
+last_updated: "2026-03-05T19:10:20.351Z"
 last_activity: 2026-03-05 — Milestone v1.9 started
 progress:
   total_phases: 7
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 15
-  completed_plans: 14
+  completed_plans: 15
   percent: 0
 ---
 
@@ -62,6 +62,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 05-api-playground P01 | 2 | 2 tasks | 2 files |
 | Phase 05-api-playground P02 | 15 | 2 tasks | 3 files |
 | Phase 06-data-health-rsp-integration P01 | 2 | 1 tasks | 2 files |
+| Phase 06-data-health-rsp-integration P02 | 121 | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -102,6 +103,9 @@ Progress: [░░░░░░░░░░] 0%
 - [Phase 06-data-health-rsp-integration]: RSP health checks placed after finishComputeRun inside try/catch — best-effort, errors do not propagate to caller
 - [Phase 06-data-health-rsp-integration]: Array.from(new Set(...)) used for dedup instead of spread on Set — TypeScript target does not enable downlevelIteration
 - [Phase 06-data-health-rsp-integration]: status absent from RSP DataHealthIssue upsert update block — preserves acknowledged/resolved state on re-ingest (consistent with scan.ts)
+- [Phase 06-data-health-rsp-integration]: IssueNode registered as default nodeType overrides all React Flow nodes — avoids per-node type complexity while intercepting all nodes with a single component
+- [Phase 06-data-health-rsp-integration]: entityId stored directly in node data for uniform access across usage-period and products nodes regardless of which period fields they carry
+- [Phase 06-data-health-rsp-integration]: Client-side filter on inputs page (not server-side re-fetch) — scan POST already returns all issues; entityId filter is a UX narrowing, not a data query
 
 ### Pending Todos
 
@@ -114,6 +118,6 @@ None captured yet.
 
 ## Session Continuity
 
-Last session: 2026-03-05T19:06:45.164Z
-Stopped at: Completed 06-01-PLAN.md
+Last session: 2026-03-05T19:10:20.341Z
+Stopped at: Completed 06-02-PLAN.md
 Resume file: None

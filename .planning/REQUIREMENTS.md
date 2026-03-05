@@ -62,7 +62,7 @@
 ### RSP Data Health (RSP-H)
 
 - [x] **RSP-H-01**: RSP ingestion creates DataHealthIssue records for: unknown reusable_type (warning), negative event counts (error), high supersession count >3 (warning)
-- [ ] **RSP-H-02**: Affected graph nodes show issue badge; clicking navigates to filtered Inputs page
+- [x] **RSP-H-02**: Affected graph nodes show issue badge; clicking navigates to filtered Inputs page
 
 ### Actuals + Projections Modes (ACT, PRJ)
 
@@ -123,7 +123,7 @@
 | PLY-02 | Phase 5 | Complete |
 | PLY-03 | Phase 5 | Complete |
 | RSP-H-01 | Phase 6 | Complete |
-| RSP-H-02 | Phase 6 | Pending |
+| RSP-H-02 | Phase 6 | Complete |
 | ACT-01 | Phase 7 | Pending |
 | PRJ-01 | Phase 7 | Pending |
 
