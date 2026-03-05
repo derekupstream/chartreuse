@@ -252,7 +252,11 @@ Plans:
   2. Actuals mode: select a project, graph shows Project → Milestones → ComputeRuns → MetricResults
   3. Projections mode: select a project, graph shows Project → Line Items (aggregate) → ComputeRun → MetricResults
   4. Node click opens Drawer with record details for all modes
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 07-01-PLAN.md — Mode segmented control, URL persistence, actuals-trace + projections-trace API routes
+- [ ] 07-02-PLAN.md — ActualsGraph + ProjectionsGraph components wired into data-map page
 
 ## Progress
 
