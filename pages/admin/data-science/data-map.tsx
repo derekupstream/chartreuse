@@ -4,8 +4,10 @@ import { Segmented, Tabs, Typography } from 'antd';
 import type { GetServerSideProps } from 'next';
 import { useRouter } from 'next/router';
 
+import { ActualsGraph } from 'components/admin/data-map/ActualsGraph';
 import { FeedPanel } from 'components/admin/data-map/FeedPanel';
 import { PlaygroundPanel } from 'components/admin/data-map/PlaygroundPanel';
+import { ProjectionsGraph } from 'components/admin/data-map/ProjectionsGraph';
 import { TraceGraph } from 'components/admin/data-map/TraceGraph';
 import type { DashboardUser } from 'interfaces';
 import { AdminLayout } from 'layouts/AdminLayout';
@@ -68,20 +70,6 @@ export default function DataMapPage({ user }: Props) {
     </div>
   );
 
-  const actualsContent = (
-    <div style={{ padding: 24 }}>
-      <Typography.Text type='secondary'>Actuals graph coming in Plan 02 — ActualsGraph component</Typography.Text>
-    </div>
-  );
-
-  const projectionsContent = (
-    <div style={{ padding: 24 }}>
-      <Typography.Text type='secondary'>
-        Projections graph coming in Plan 02 — ProjectionsGraph component
-      </Typography.Text>
-    </div>
-  );
-
   return (
     <AdminLayout title='Data Map' selectedMenuItem='data-science/data-map' user={user}>
       <div style={{ padding: '8px 16px', borderBottom: '1px solid #f0f0f0' }}>
@@ -115,8 +103,12 @@ export default function DataMapPage({ user }: Props) {
           ]}
         />
       )}
-      {mode === 'actuals' && actualsContent}
-      {mode === 'projections' && projectionsContent}
+      {mode === 'actuals' && (
+        <ActualsGraph selectedProjectId={selectedProjectId} onSelectProject={setSelectedProjectId} />
+      )}
+      {mode === 'projections' && (
+        <ProjectionsGraph selectedProjectId={selectedProjectId} onSelectProject={setSelectedProjectId} />
+      )}
     </AdminLayout>
   );
 }

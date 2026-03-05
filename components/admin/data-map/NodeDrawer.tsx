@@ -3,6 +3,42 @@ import { Descriptions, Drawer, Space, Table, Typography } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import type { Node } from 'reactflow';
 
+// ---- New node type interfaces for actuals/projections graphs ----
+
+interface ProjectNodeData {
+  id: string;
+  name: string;
+  category: string;
+  orgId: string;
+}
+
+interface MilestoneNodeData {
+  id: string;
+  snapshotDate: string;
+  label: string | null;
+  source: string;
+  co2AvoidedMtco2e: number | null;
+  waterSavedGallons: number | null;
+  wasteDivertedLbs: number | null;
+  annualCostSavings: number | null;
+  paybackMonths: number | null;
+}
+
+interface SingleUseItem {
+  id: string;
+  productId: string;
+  caseCost: number;
+  casesPurchased: number;
+  frequency: string;
+}
+
+interface ReusableItem {
+  id: string;
+  productName: string | null;
+  caseCost: number;
+  casesPurchased: number;
+}
+
 interface NodeDrawerProps {
   node: Node | null;
   onClose: () => void;
@@ -171,6 +207,62 @@ function IntelligenceUpdateContent({ metadataJson }: { metadataJson: unknown }) 
   return <Typography.Text type='secondary'>Benchmarks not refreshed for this run.</Typography.Text>;
 }
 
+function ProjectNodeContent({ project }: { project: ProjectNodeData }) {
+  return (
+    <Descriptions column={1} size='small' bordered>
+      <Descriptions.Item label='ID'>{project.id}</Descriptions.Item>
+      <Descriptions.Item label='Name'>{project.name}</Descriptions.Item>
+      <Descriptions.Item label='Category'>{project.category}</Descriptions.Item>
+      <Descriptions.Item label='Org ID'>{project.orgId}</Descriptions.Item>
+    </Descriptions>
+  );
+}
+
+function MilestoneNodeContent({ milestone }: { milestone: MilestoneNodeData }) {
+  return (
+    <Descriptions column={1} size='small' bordered>
+      <Descriptions.Item label='ID'>{milestone.id}</Descriptions.Item>
+      <Descriptions.Item label='Snapshot Date'>{milestone.snapshotDate}</Descriptions.Item>
+      <Descriptions.Item label='Label'>{milestone.label ?? '—'}</Descriptions.Item>
+      <Descriptions.Item label='Source'>{milestone.source}</Descriptions.Item>
+      <Descriptions.Item label='CO₂ Avoided (MTCO₂e)'>
+        {milestone.co2AvoidedMtco2e != null ? String(milestone.co2AvoidedMtco2e) : '—'}
+      </Descriptions.Item>
+      <Descriptions.Item label='Annual Cost Savings'>
+        {milestone.annualCostSavings != null ? `$${milestone.annualCostSavings.toLocaleString()}` : '—'}
+      </Descriptions.Item>
+      <Descriptions.Item label='Payback (months)'>
+        {milestone.paybackMonths != null ? String(milestone.paybackMonths) : '—'}
+      </Descriptions.Item>
+      <Descriptions.Item label='Water Saved (gal)'>
+        {milestone.waterSavedGallons != null ? String(milestone.waterSavedGallons) : '—'}
+      </Descriptions.Item>
+      <Descriptions.Item label='Waste Diverted (lbs)'>
+        {milestone.wasteDivertedLbs != null ? String(milestone.wasteDivertedLbs) : '—'}
+      </Descriptions.Item>
+    </Descriptions>
+  );
+}
+
+function SingleUseItemsContent({ items }: { items: SingleUseItem[] }) {
+  const columns: ColumnsType<SingleUseItem> = [
+    { title: 'Product ID', dataIndex: 'productId', key: 'productId', ellipsis: true },
+    { title: 'Case Cost', dataIndex: 'caseCost', key: 'caseCost', render: v => `$${v}` },
+    { title: 'Cases Purchased', dataIndex: 'casesPurchased', key: 'casesPurchased' },
+    { title: 'Frequency', dataIndex: 'frequency', key: 'frequency' }
+  ];
+  return <Table<SingleUseItem> dataSource={items} columns={columns} rowKey='id' size='small' pagination={false} />;
+}
+
+function ReusableItemsContent({ items }: { items: ReusableItem[] }) {
+  const columns: ColumnsType<ReusableItem> = [
+    { title: 'Product Name', dataIndex: 'productName', key: 'productName', render: v => v ?? '—' },
+    { title: 'Case Cost', dataIndex: 'caseCost', key: 'caseCost', render: v => `$${v}` },
+    { title: 'Cases Purchased', dataIndex: 'casesPurchased', key: 'casesPurchased' }
+  ];
+  return <Table<ReusableItem> dataSource={items} columns={columns} rowKey='id' size='small' pagination={false} />;
+}
+
 function PriorPeriodContent({ priorPeriod }: { priorPeriod: Record<string, unknown> }) {
   return (
     <>
@@ -222,6 +314,18 @@ function NodeContent({ node }: { node: Node }) {
 
     case 'prior-period':
       return <PriorPeriodContent priorPeriod={node.data.priorPeriod as Record<string, unknown>} />;
+
+    case 'project':
+      return <ProjectNodeContent project={node.data.project as ProjectNodeData} />;
+
+    case 'milestone':
+      return <MilestoneNodeContent milestone={node.data.milestone as MilestoneNodeData} />;
+
+    case 'single-use-items':
+      return <SingleUseItemsContent items={(node.data.singleUseItems as SingleUseItem[]) ?? []} />;
+
+    case 'reusable-items':
+      return <ReusableItemsContent items={(node.data.reusableItems as ReusableItem[]) ?? []} />;
 
     default:
       return <Typography.Text type='secondary'>No details available.</Typography.Text>;
