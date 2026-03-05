@@ -32,9 +32,9 @@ export default handlerWithUser().get(async (req: NextApiRequestWithUser, res: Ne
     }
   });
 
-  // Fetch the latest rsp_usage ComputeRun for this org
+  // Fetch the latest actuals_ingest ComputeRun for this org
   const computeRunRaw = await prisma.computeRun.findFirst({
-    where: { orgId: period.orgId, runType: 'rsp_usage' },
+    where: { orgId: period.orgId, runType: 'actuals_ingest' },
     include: {
       results: {
         select: {
