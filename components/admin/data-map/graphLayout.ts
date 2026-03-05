@@ -5,11 +5,11 @@ import type { Edge, Node } from 'reactflow';
 interface TraceProduct {
   id: string;
   reusableType: string | null;
-  inCount: number | null;
-  outCount: number | null;
-  co2Kg: number | null;
-  waterGal: number | null;
-  wasteLbs: number | null;
+  inWarehouseEvents: number | null;
+  outWarehouseEvents: number | null;
+  co2AvoidedKg: number | null;
+  waterSavedGallons: number | null;
+  wasteDivertedLbs: number | null;
 }
 
 interface TraceMetricResult {

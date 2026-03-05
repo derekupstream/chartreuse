@@ -127,21 +127,21 @@ function UsagePeriodContent({ period }: { period: Record<string, unknown> }) {
 interface Product {
   id: string;
   reusableType: string | null;
-  inCount: number | null;
-  outCount: number | null;
-  co2Kg: number | null;
-  waterGal: number | null;
-  wasteLbs: number | null;
+  inWarehouseEvents: number | null;
+  outWarehouseEvents: number | null;
+  co2AvoidedKg: number | null;
+  waterSavedGallons: number | null;
+  wasteDivertedLbs: number | null;
 }
 
 function ProductsContent({ products }: { products: Product[] }) {
   const columns: ColumnsType<Product> = [
     { title: 'Reusable Type', dataIndex: 'reusableType', key: 'reusableType', render: v => v ?? '—' },
-    { title: 'In Count', dataIndex: 'inCount', key: 'inCount', render: v => v ?? '—' },
-    { title: 'Out Count', dataIndex: 'outCount', key: 'outCount', render: v => v ?? '—' },
-    { title: 'CO₂ (kg)', dataIndex: 'co2Kg', key: 'co2Kg', render: v => v ?? '—' },
-    { title: 'Water (gal)', dataIndex: 'waterGal', key: 'waterGal', render: v => v ?? '—' },
-    { title: 'Waste (lbs)', dataIndex: 'wasteLbs', key: 'wasteLbs', render: v => v ?? '—' }
+    { title: 'In Events', dataIndex: 'inWarehouseEvents', key: 'inWarehouseEvents', render: v => v ?? '—' },
+    { title: 'Out Events', dataIndex: 'outWarehouseEvents', key: 'outWarehouseEvents', render: v => v ?? '—' },
+    { title: 'CO₂ (kg)', dataIndex: 'co2AvoidedKg', key: 'co2AvoidedKg', render: v => v ?? '—' },
+    { title: 'Water (gal)', dataIndex: 'waterSavedGallons', key: 'waterSavedGallons', render: v => v ?? '—' },
+    { title: 'Waste (lbs)', dataIndex: 'wasteDivertedLbs', key: 'wasteDivertedLbs', render: v => v ?? '—' }
   ];
   return <Table<Product> dataSource={products} columns={columns} rowKey='id' size='small' pagination={false} />;
 }

@@ -61,7 +61,7 @@ export default handlerWithUser().get(async (req: NextApiRequestWithUser, res: Ne
   // ComputeRun relation on UsageTimePeriod — filter by orgs that have matching runs
   if (computeStatus) {
     const matchingOrgIds = await prisma.computeRun.findMany({
-      where: { status: computeStatus, runType: 'rsp_usage' },
+      where: { status: computeStatus, runType: 'actuals_ingest' },
       select: { orgId: true },
       distinct: ['orgId']
     });
@@ -90,7 +90,7 @@ export default handlerWithUser().get(async (req: NextApiRequestWithUser, res: Ne
 
   if (periodOrgIds.length > 0) {
     const runs = await prisma.computeRun.findMany({
-      where: { orgId: { in: periodOrgIds }, runType: 'rsp_usage' },
+      where: { orgId: { in: periodOrgIds }, runType: 'actuals_ingest' },
       select: { id: true, status: true, runType: true, orgId: true, createdAt: true },
       orderBy: { createdAt: 'desc' }
     });
