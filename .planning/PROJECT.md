@@ -4,6 +4,17 @@
 
 A personal fork of the UpstreamSolutions/ChartReuse SaaS calculator, hosted on derekupstream GitHub and deployed to a personal Vercel + Supabase stack. The app calculates the financial and environmental savings organizations achieve by switching from single-use to reusable foodware. This fork is an AI-assisted development sandbox for shipping improvements to the existing app and building a new public environmental impact API — with the best ideas potentially contributed back to Upstream.
 
+## Current Milestone: v1.8 Data Governance Admin Overhaul
+
+**Goal:** Reorganize the "Data Science" admin into a clear, trainable Data Governance platform organized around the actual pipeline architecture.
+
+**Target features:**
+- Rename and restructure admin nav: "Data Governance" group, new ordering, Advanced submenu
+- Overview redesign: System Architecture diagram, section cards, health KPI dashboard, How It Works walkthrough
+- Relabel existing pages: Constants → Factors, Pipeline → Lineage, Import → AI Data Uploader
+- New Inputs page: on-demand data health monitoring with issue detection + acknowledge/resolve workflow
+- DataHealthIssue model (lightweight): open → acknowledged → resolved
+
 ## Core Value
 
 The calculator's projection engine (GHG, waste, financial) must remain accurate and reliable — everything else is enhancements on top of that foundation.
@@ -90,4 +101,4 @@ The calculator's projection engine (GHG, waste, financial) must remain accurate 
 | Expose calculator as public API | Pure functions in lib/calculator/ — minimal work to wrap | ⬜ Pending |
 
 ---
-*Last updated: 2026-03-02*
+*Last updated: 2026-03-04 — Milestone v1.8 started*

@@ -9,11 +9,12 @@ See: .planning/PROJECT.md (updated 2026-03-02)
 
 ## Current Position
 
-Milestone: 7 of ~10 (Analytics overhaul complete)
-Status: Stable — no active plans in flight
-Last activity: 2026-03-04 — Analytics UX overhaul (share toggle fix, print/export/share scope, Scenarios redesign)
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-03-04 — Milestone v1.8 started (Data Governance Admin Overhaul)
 
-Progress: [████████░░] ~75%
+Progress: [░░░░░░░░░░] 0%
 
 ## Completed Since Last STATE.md Update
 
