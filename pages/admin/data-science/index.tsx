@@ -1,16 +1,16 @@
 import {
+  ApartmentOutlined,
   BarChartOutlined,
+  BookOutlined,
   CalculatorOutlined,
   CheckCircleOutlined,
-  CodeOutlined,
   ExclamationCircleOutlined,
   FunctionOutlined,
-  ImportOutlined,
   QuestionCircleOutlined,
   UploadOutlined,
   WarningOutlined
 } from '@ant-design/icons';
-import { Button, Card, Col, Collapse, Row, Steps, Tag, Typography } from 'antd';
+import { Card, Col, Collapse, Row, Steps, Typography } from 'antd';
 import type { GetServerSideProps } from 'next';
 import Link from 'next/link';
 import styled from 'styled-components';
@@ -56,6 +56,55 @@ const KpiTitle = styled.div`
   font-weight: 600;
   color: rgba(0, 0, 0, 0.65);
   margin-bottom: 4px;
+`;
+
+const DiagramWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: center;
+`;
+
+const DiagramRow = styled.div`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0;
+  flex-wrap: wrap;
+  justify-content: center;
+`;
+
+const DiagramNode = styled.div<{ $group: 'input' | 'processing' | 'output'; $clickable?: boolean }>`
+  padding: 12px 16px;
+  border-radius: 8px;
+  text-align: center;
+  min-width: 120px;
+  background: ${p => (p.$group === 'input' ? '#f0f9ff' : p.$group === 'processing' ? '#f6ffed' : '#fff7e6')};
+  border: 1px solid ${p => (p.$group === 'input' ? '#bae0ff' : p.$group === 'processing' ? '#b7eb8f' : '#ffd591')};
+  cursor: ${p => (p.$clickable ? 'pointer' : 'default')};
+  transition: box-shadow 0.2s;
+  &:hover {
+    box-shadow: ${p => (p.$clickable ? '0 2px 8px rgba(0,0,0,0.12)' : 'none')};
+  }
+`;
+
+const DiagramArrow = styled.div`
+  padding: 0 8px;
+  color: rgba(0, 0, 0, 0.25);
+  font-size: 18px;
+  flex-shrink: 0;
+`;
+
+const DiagramNodeTitle = styled.div`
+  font-weight: 600;
+  font-size: 13px;
+  color: rgba(0, 0, 0, 0.85);
+`;
+
+const DiagramNodeSub = styled.div`
+  font-size: 11px;
+  color: rgba(0, 0, 0, 0.45);
+  margin-top: 2px;
 `;
 
 type Props = {
@@ -109,9 +158,9 @@ function KpiCardBlock({
       </KpiLabel>
       <KpiLabel style={{ fontSize: 11, marginTop: 2 }}>{subtext}</KpiLabel>
       <div style={{ marginTop: 'auto', paddingTop: 12 }}>
-        <Button href={href} block size='small'>
+        <a href={href} style={{ display: 'block', textAlign: 'center', fontSize: 12, color: '#1890ff' }}>
           View →
-        </Button>
+        </a>
       </div>
     </KpiCard>
   );
@@ -135,6 +184,51 @@ export default function DataSciencePage({ user, stats }: Props) {
 
   const fmtDate = (iso: string | null) =>
     iso ? `last updated ${new Date(iso).toLocaleDateString()}` : 'never updated';
+
+  const SECTION_CARDS = [
+    {
+      key: 'inputs',
+      icon: <UploadOutlined />,
+      title: 'Inputs',
+      description: 'Detect and acknowledge data quality issues across projects.',
+      href: '/admin/data-science/inputs'
+    },
+    {
+      key: 'factors',
+      icon: <CalculatorOutlined />,
+      title: 'Factors',
+      description: 'Manage environmental constants: EPA WARM factors, utility rates, and material weights.',
+      href: '/admin/data-science/constants'
+    },
+    {
+      key: 'calculations',
+      icon: <FunctionOutlined />,
+      title: 'Calculations',
+      description: 'Browse the auto-discovered calculator function registry and golden dataset coverage.',
+      href: '/admin/data-science/calculations'
+    },
+    {
+      key: 'test-runs',
+      icon: <BarChartOutlined />,
+      title: 'Test Runs',
+      description: 'Run regression tests against golden datasets to verify calculation accuracy.',
+      href: '/admin/data-science/test-runs'
+    },
+    {
+      key: 'lineage',
+      icon: <ApartmentOutlined />,
+      title: 'Lineage',
+      description: 'Trace how a metric was produced — from input data through factors to the final result.',
+      href: '/admin/data-science/lineage'
+    },
+    {
+      key: 'methodology',
+      icon: <BookOutlined />,
+      title: 'Methodology',
+      description: 'Maintain the methodology documents and subsections that govern impact calculation standards.',
+      href: '/admin/methodology'
+    }
+  ];
 
   return (
     <AdminLayout title='Data Governance Admin' selectedMenuItem='data-science' user={user}>
@@ -188,112 +282,166 @@ export default function DataSciencePage({ user, stats }: Props) {
           </Col>
         </Row>
 
-        {/* Quick links */}
-        <Row gutter={[16, 16]} style={{ marginTop: 24 }}>
-          <Col xs={24} sm={8}>
-            <Card size='small' style={{ textAlign: 'center' }}>
-              <CodeOutlined style={{ fontSize: 24, color: '#1890ff', marginBottom: 8, display: 'block' }} />
-              <div style={{ fontWeight: 600, marginBottom: 8 }}>Calculations</div>
-              <Button href='/admin/data-science/calculations' block>
-                Registry
-              </Button>
-            </Card>
-          </Col>
-          <Col xs={24} sm={8}>
-            <Card size='small' style={{ textAlign: 'center' }}>
-              <ImportOutlined style={{ fontSize: 24, color: '#722ed1', marginBottom: 8, display: 'block' }} />
-              <div style={{ fontWeight: 600, marginBottom: 8 }}>Import Data</div>
-              <Button href='/admin/data-science/import' block>
-                Spreadsheet Importer
-              </Button>
-            </Card>
-          </Col>
-          <Col xs={24} sm={8}>
-            <Card size='small' style={{ textAlign: 'center' }}>
-              <ExclamationCircleOutlined
-                style={{ fontSize: 24, color: '#fa8c16', marginBottom: 8, display: 'block' }}
-              />
-              <div style={{ fontWeight: 600, marginBottom: 8 }}>Governance</div>
-              <Button href='/admin/data-science/change-requests' block>
-                Change Requests
-              </Button>
-            </Card>
-          </Col>
-        </Row>
+        {/* System Architecture */}
+        <Card title='System Architecture' style={{ marginTop: 24 }}>
+          <DiagramWrapper>
+            {/* Row 1: Data Inputs → Factor Library → Calculator Engine */}
+            <DiagramRow>
+              <DiagramNode $group='input'>
+                <DiagramNodeTitle>Projects / RSP Data</DiagramNodeTitle>
+                <DiagramNodeSub>{projectCount} projects</DiagramNodeSub>
+              </DiagramNode>
+              <DiagramArrow>→</DiagramArrow>
+              <Link href='/admin/data-science/constants' style={{ textDecoration: 'none', color: 'inherit' }}>
+                <DiagramNode $group='processing' $clickable>
+                  <DiagramNodeTitle>Factor Library</DiagramNodeTitle>
+                  <DiagramNodeSub>{factorCount} factors</DiagramNodeSub>
+                </DiagramNode>
+              </Link>
+              <DiagramArrow>→</DiagramArrow>
+              <Link href='/admin/data-science/calculations' style={{ textDecoration: 'none', color: 'inherit' }}>
+                <DiagramNode $group='processing' $clickable>
+                  <DiagramNodeTitle>Calculator Engine</DiagramNodeTitle>
+                  <DiagramNodeSub>{totalFunctions} functions</DiagramNodeSub>
+                </DiagramNode>
+              </Link>
+            </DiagramRow>
+            {/* Vertical arrow between rows */}
+            <div style={{ color: 'rgba(0,0,0,0.25)', fontSize: 18, lineHeight: 1 }}>↓</div>
+            {/* Row 2: ComputeRun → MetricResult → Dashboards/Insights */}
+            <DiagramRow>
+              <Link href='/admin/data-science/runs' style={{ textDecoration: 'none', color: 'inherit' }}>
+                <DiagramNode $group='processing' $clickable>
+                  <DiagramNodeTitle>ComputeRun</DiagramNodeTitle>
+                  <DiagramNodeSub>{recentComputeRunCount} runs (7d)</DiagramNodeSub>
+                </DiagramNode>
+              </Link>
+              <DiagramArrow>→</DiagramArrow>
+              <Link href='/admin/data-science/runs' style={{ textDecoration: 'none', color: 'inherit' }}>
+                <DiagramNode $group='processing' $clickable>
+                  <DiagramNodeTitle>MetricResult</DiagramNodeTitle>
+                  <DiagramNodeSub>{metricResultCount.toLocaleString()} results</DiagramNodeSub>
+                </DiagramNode>
+              </Link>
+              <DiagramArrow>→</DiagramArrow>
+              <DiagramNode $group='output'>
+                <DiagramNodeTitle>Dashboards / Insights</DiagramNodeTitle>
+                <DiagramNodeSub>org analytics</DiagramNodeSub>
+              </DiagramNode>
+            </DiagramRow>
+          </DiagramWrapper>
+        </Card>
 
-        {/* How to use */}
+        {/* Section Cards */}
+        <div style={{ marginTop: 24 }}>
+          <Title level={4} style={{ marginBottom: 16 }}>
+            Governance Sections
+          </Title>
+          <Row gutter={[16, 16]}>
+            {SECTION_CARDS.map(card => (
+              <Col xs={24} sm={12} lg={8} key={card.key}>
+                <Link href={card.href} style={{ display: 'block', height: '100%' }}>
+                  <Card hoverable style={{ height: '100%' }}>
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+                      <div style={{ fontSize: 20, color: 'rgba(0,0,0,0.45)', flexShrink: 0, marginTop: 2 }}>
+                        {card.icon}
+                      </div>
+                      <div>
+                        <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 4 }}>{card.title}</div>
+                        <div style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)', lineHeight: 1.4 }}>
+                          {card.description}
+                        </div>
+                      </div>
+                    </div>
+                    <div style={{ marginTop: 12 }}>
+                      <Text style={{ fontSize: 12, color: '#1890ff' }}>View →</Text>
+                    </div>
+                  </Card>
+                </Link>
+              </Col>
+            ))}
+          </Row>
+        </div>
+
+        {/* How It Works */}
         <div style={{ marginTop: 24 }}>
           <Collapse
             ghost
             style={{ background: 'white', border: '1px solid #f0f0f0', borderRadius: 8 }}
             items={[
               {
-                key: 'howto',
+                key: 'how-it-works',
                 label: (
                   <span style={{ fontWeight: 600, fontSize: 15 }}>
                     <QuestionCircleOutlined style={{ marginRight: 8, color: '#2bbe50' }} />
-                    How to use the Data Science Admin
+                    How Impact Governance Works
                   </span>
                 ),
                 children: (
                   <div style={{ padding: '8px 8px 16px' }}>
-                    <Paragraph type='secondary' style={{ marginBottom: 24 }}>
-                      The pipeline flows: <strong>Inputs → Constants → Calculations → Test Runs</strong>. Each KPI card
-                      at the top shows how many issues exist at that layer. Aim for all cards to show 0.
-                    </Paragraph>
                     <Steps
                       direction='vertical'
                       current={-1}
                       items={[
                         {
                           title: (
-                            <Link href='/admin/data-science/constants'>
-                              <strong>Review the Constants Library</strong>
+                            <Link href='/admin/data-science/inputs'>
+                              <strong>1. Validate Inputs</strong>
                             </Link>
                           ),
                           description:
-                            'Every factor the calculator uses — EPA WARM emission factors, DOE utility rates, material weights. Ensure each has a calculatorConstantKey linking it to the code.',
+                            'Run on-demand data health scans to detect issues in project data — missing states, zero-unit line items, out-of-range return rates.',
+                          icon: <UploadOutlined />
+                        },
+                        {
+                          title: (
+                            <Link href='/admin/data-science/constants'>
+                              <strong>2. Maintain Factors</strong>
+                            </Link>
+                          ),
+                          description:
+                            'Keep the Factor Library current — EPA WARM emission factors, DOE utility rates, material weights. Propose changes via the governance workflow.',
                           icon: <CalculatorOutlined />
                         },
                         {
                           title: (
                             <Link href='/admin/data-science/calculations'>
-                              <strong>Browse Calculations Registry</strong>
+                              <strong>3. Verify Calculations</strong>
                             </Link>
                           ),
                           description:
-                            'Auto-discovered calculator functions. Every function should have at least one golden dataset providing test coverage.',
+                            'Browse the calculator function registry. Every function should have golden dataset coverage to detect regressions when code or factors change.',
                           icon: <FunctionOutlined />
                         },
                         {
                           title: (
                             <Link href='/admin/data-science/test-runs'>
-                              <strong>Manage Golden Datasets & Run Tests</strong>
+                              <strong>4. Run Regression Tests</strong>
                             </Link>
                           ),
                           description:
-                            'Capture known-good input/output pairs from real projects. Run tests after any code or constant change to detect regressions.',
+                            'Execute test runs against golden datasets after any code or constant change. All cards at the top should show 0 issues.',
                           icon: <BarChartOutlined />
                         },
                         {
                           title: (
-                            <Link href='/admin/data-science/import'>
-                              <strong>Import Spreadsheets</strong>
+                            <Link href='/admin/data-science/lineage'>
+                              <strong>5. Trace Results</strong>
                             </Link>
                           ),
                           description:
-                            'Upload CSV or Excel files. AI classifies the data type and suggests column mappings. Review and confirm before importing.',
-                          icon: <ImportOutlined />
+                            'Use the Lineage page to trace how a specific metric was produced — which ComputeRun, which factors, which calculator functions.',
+                          icon: <ApartmentOutlined />
                         },
                         {
                           title: (
-                            <Link href='/admin/data-science/change-requests'>
-                              <strong>Propose Factor Changes</strong>
+                            <Link href='/admin/methodology'>
+                              <strong>6. Maintain Methodology</strong>
                             </Link>
                           ),
                           description:
-                            'Use the governance workflow to propose, review, and implement factor updates with a full audit trail.',
-                          icon: <WarningOutlined />
+                            'Keep methodology documents up to date. Publish subsections that explain the scientific basis for each impact metric.',
+                          icon: <BookOutlined />
                         }
                       ]}
                     />
