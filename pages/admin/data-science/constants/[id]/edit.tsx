@@ -109,7 +109,7 @@ export default function EditFactorPage({ user, factor, categories, sources }: Pr
         <div style={{ marginBottom: 24 }}>
           <Link href='/admin/data-science/constants'>
             <Button icon={<ArrowLeftOutlined />} type='link' style={{ paddingLeft: 0 }}>
-              Back to Constants Library
+              Back to Factors
             </Button>
           </Link>
           <Title level={2} style={{ marginBottom: 4 }}>

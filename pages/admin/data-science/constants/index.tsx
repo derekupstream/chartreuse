@@ -209,14 +209,14 @@ export default function ConstantsPage({ user, factors, categories, sources }: Pr
   ];
 
   return (
-    <AdminLayout title='Constants Library' selectedMenuItem='data-science/constants' user={user}>
+    <AdminLayout title='Factors' selectedMenuItem='data-science/constants' user={user}>
       <div style={{ padding: '24px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
           <div>
-            <Title level={2}>Constants Library</Title>
+            <Title level={2}>Factors</Title>
             <Paragraph>
-              Industry-standard factors and constants used in calculations, with full versioning and governance. All
-              values are sourced from EPA WARM, DOE, and other authoritative sources.
+              Environmental and operational factors governing impact calculations, with full versioning and audit trail.
+              All values are sourced from EPA WARM, DOE, and other authoritative references.
             </Paragraph>
           </div>
           <Button type='primary' icon={<PlusOutlined />} href='/admin/data-science/constants/new'>

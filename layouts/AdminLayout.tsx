@@ -48,7 +48,9 @@ const DATA_SCIENCE_KEYS = [
   'data-science/pipeline',
   'data-science/snapshots',
   'data-science/runs',
-  'data-science/impact'
+  'data-science/impact',
+  'data-science/inputs',
+  'data-science/lineage'
 ];
 
 const RSP_KEYS = ['rsp', 'rsp/api-keys', 'rsp/test-hub'];
@@ -60,32 +62,39 @@ const siderMenuItems = [
   { key: 'admin/users', icon: <UserOutlined />, label: <Link href='/admin/users'>Users</Link> },
   { key: 'admin/feedback', icon: <FlagOutlined />, label: <Link href='/admin/feedback'>Feedback</Link> },
   {
-    key: 'upstream/total-annual-impact',
+    key: 'admin/analytics',
     icon: <BarChartOutlined />,
-    label: <Link href='/upstream/total-annual-impact'>Analytics</Link>
+    label: <Link href='/admin/analytics'>Analytics</Link>
   },
   {
     key: 'data-science-group',
     icon: <ExperimentOutlined />,
-    label: <Link href='/admin/data-science'>Data Science</Link>,
+    label: <Link href='/admin/data-science'>Data Governance</Link>,
     children: [
       { key: 'data-science', label: <Link href='/admin/data-science'>Overview</Link> },
-      { key: 'admin/methodology', label: <Link href='/admin/methodology'>Methodology</Link> },
+      { key: 'data-science/inputs', label: <Link href='/admin/data-science/inputs'>Inputs</Link> },
+      { key: 'data-science/constants', label: <Link href='/admin/data-science/constants'>Factors</Link> },
       {
         key: 'data-science/calculations',
         label: <Link href='/admin/data-science/calculations'>Calculations</Link>
       },
       { key: 'data-science/test-runs', label: <Link href='/admin/data-science/test-runs'>Test Runs</Link> },
-      { key: 'data-science/constants', label: <Link href='/admin/data-science/constants'>Constants</Link> },
+      { key: 'data-science/lineage', label: <Link href='/admin/data-science/lineage'>Lineage</Link> },
+      { key: 'admin/methodology', label: <Link href='/admin/methodology'>Methodology</Link> },
       {
         key: 'data-science/change-requests',
         label: <Link href='/admin/data-science/change-requests'>Change Requests</Link>
       },
-      { key: 'data-science/import', label: <Link href='/admin/data-science/import'>Import Data</Link> },
-      { key: 'data-science/pipeline', label: <Link href='/admin/data-science/pipeline'>Pipeline</Link> },
-      { key: 'data-science/snapshots', label: <Link href='/admin/data-science/snapshots'>Snapshots</Link> },
-      { key: 'data-science/runs', label: <Link href='/admin/data-science/runs'>Run History</Link> },
-      { key: 'data-science/impact', label: <Link href='/admin/data-science/impact'>Impact Simulator</Link> }
+      { key: 'data-science/import', label: <Link href='/admin/data-science/import'>AI Data Uploader</Link> },
+      {
+        key: 'data-science-advanced',
+        label: 'Advanced',
+        children: [
+          { key: 'data-science/snapshots', label: <Link href='/admin/data-science/snapshots'>Snapshots</Link> },
+          { key: 'data-science/runs', label: <Link href='/admin/data-science/runs'>Run History</Link> },
+          { key: 'data-science/impact', label: <Link href='/admin/data-science/impact'>Impact Simulator</Link> }
+        ]
+      }
     ]
   },
   {
