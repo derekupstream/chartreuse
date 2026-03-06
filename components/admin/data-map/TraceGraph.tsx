@@ -7,6 +7,8 @@ import ReactFlow, { Background, Controls, MiniMap, useEdgesState, useNodesState 
 import 'reactflow/dist/style.css';
 import useSWR from 'swr';
 
+const fetcher = (url: string) => fetch(url).then(r => r.json());
+
 import type { TraceResponse } from './graphLayout';
 import { buildTraceGraph } from './graphLayout';
 import { NodeDrawer } from './NodeDrawer';
@@ -44,7 +46,7 @@ function IssueNode({ data }: NodeProps) {
 const nodeTypes = { default: IssueNode };
 
 export function TraceGraph({ selectedId }: TraceGraphProps) {
-  const { data, isLoading } = useSWR<TraceResponse>('/api/admin/data-map/periods/' + selectedId + '/trace');
+  const { data, isLoading } = useSWR<TraceResponse>('/api/admin/data-map/periods/' + selectedId + '/trace', fetcher);
 
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);

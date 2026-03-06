@@ -8,6 +8,8 @@ import useSWR from 'swr';
 
 import type { ActualsTraceResponse } from './actualsGraphLayout';
 import { buildActualsGraph } from './actualsGraphLayout';
+
+const fetcher = (url: string) => fetch(url).then(r => r.json());
 import { NodeDrawer } from './NodeDrawer';
 import type { ProjectRow } from './ProjectsFeedPanel';
 import { ProjectsFeedPanel } from './ProjectsFeedPanel';
@@ -34,7 +36,8 @@ export function ActualsGraph({ projects, selectedProjectId, onSelectProject }: P
     isLoading,
     error: traceError
   } = useSWR<ActualsTraceResponse>(
-    selectedProjectId ? `/api/admin/data-map/actuals-trace?projectId=${selectedProjectId}` : null
+    selectedProjectId ? `/api/admin/data-map/actuals-trace?projectId=${selectedProjectId}` : null,
+    fetcher
   );
 
   const [nodes, setNodes, onNodesChange] = useNodesState([]);

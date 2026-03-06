@@ -9,6 +9,7 @@ import { FeedPanel } from 'components/admin/data-map/FeedPanel';
 import { PlaygroundPanel } from 'components/admin/data-map/PlaygroundPanel';
 import type { ProjectRow } from 'components/admin/data-map/ProjectsFeedPanel';
 import { ProjectionsGraph } from 'components/admin/data-map/ProjectionsGraph';
+import { SystemGraph } from 'components/admin/data-map/SystemGraph';
 import { TraceGraph } from 'components/admin/data-map/TraceGraph';
 import type { DashboardUser } from 'interfaces';
 import { AdminLayout } from 'layouts/AdminLayout';
@@ -18,7 +19,7 @@ import { serializeJSON } from 'lib/objects';
 import prisma from 'lib/prisma';
 import type { PageProps } from 'pages/_app';
 
-type DataMapMode = 'rsp' | 'actuals' | 'projections';
+type DataMapMode = 'system' | 'rsp' | 'actuals' | 'projections';
 
 type Props = {
   user: DashboardUser;
@@ -27,7 +28,7 @@ type Props = {
 
 export default function DataMapPage({ user, projects }: Props) {
   const router = useRouter();
-  const mode = ((router.query.mode as DataMapMode | undefined) ?? 'rsp') as DataMapMode;
+  const mode = ((router.query.mode as DataMapMode | undefined) ?? 'system') as DataMapMode;
 
   const [selectedPeriodId, setSelectedPeriodId] = useState<string | null>(null);
   const [rspActiveTab, setRspActiveTab] = useState('feed');
@@ -80,12 +81,14 @@ export default function DataMapPage({ user, projects }: Props) {
           value={mode}
           onChange={v => setMode(v as DataMapMode)}
           options={[
+            { label: 'System', value: 'system' },
             { label: 'RSP API', value: 'rsp' },
             { label: 'Actuals', value: 'actuals' },
             { label: 'Projections', value: 'projections' }
           ]}
         />
       </div>
+      {mode === 'system' && <SystemGraph />}
       {mode === 'rsp' && (
         <Tabs
           activeKey={rspActiveTab}

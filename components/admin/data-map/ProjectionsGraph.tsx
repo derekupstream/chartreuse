@@ -8,6 +8,8 @@ import useSWR from 'swr';
 
 import type { ProjectionsTraceResponse } from './projectionsGraphLayout';
 import { buildProjectionsGraph } from './projectionsGraphLayout';
+
+const fetcher = (url: string) => fetch(url).then(r => r.json());
 import { NodeDrawer } from './NodeDrawer';
 import type { ProjectRow } from './ProjectsFeedPanel';
 import { ProjectsFeedPanel } from './ProjectsFeedPanel';
@@ -30,7 +32,8 @@ interface Props {
 
 export function ProjectionsGraph({ projects, selectedProjectId, onSelectProject }: Props) {
   const { data: traceData, isLoading } = useSWR<ProjectionsTraceResponse>(
-    selectedProjectId ? `/api/admin/data-map/projections-trace?projectId=${selectedProjectId}` : null
+    selectedProjectId ? `/api/admin/data-map/projections-trace?projectId=${selectedProjectId}` : null,
+    fetcher
   );
 
   const [nodes, setNodes, onNodesChange] = useNodesState([]);

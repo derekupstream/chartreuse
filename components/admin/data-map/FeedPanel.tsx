@@ -6,6 +6,8 @@ import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import useSWR from 'swr';
 
+const fetcher = (url: string) => fetch(url).then(r => r.json());
+
 dayjs.extend(relativeTime);
 
 interface Period {
@@ -79,7 +81,7 @@ export function FeedPanel({ selectedId, onSelect }: FeedPanelProps) {
   if (statusFilter) params.set('status', statusFilter);
   if (computeStatusFilter) params.set('computeStatus', computeStatusFilter);
 
-  const { data, isLoading } = useSWR<PeriodsResponse>(`/api/admin/data-map/periods?${params}`);
+  const { data, isLoading } = useSWR<PeriodsResponse>(`/api/admin/data-map/periods?${params}`, fetcher);
 
   // Auto-select first row when data loads and nothing is selected
   useEffect(() => {
