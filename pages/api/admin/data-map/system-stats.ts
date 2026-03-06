@@ -1,5 +1,6 @@
 import type { NextApiResponse } from 'next';
 
+import { LINEAGE_MAP } from 'lib/admin/lineageMap';
 import { handlerWithUser } from 'lib/middleware/handler';
 import type { NextApiRequestWithUser } from 'lib/middleware/getUser';
 import prisma from 'lib/prisma';
@@ -19,7 +20,8 @@ export default handlerWithUser().get(async (_req: NextApiRequestWithUser, res: N
     importSessions,
     rspApiKeys,
     computeRunsByStatus,
-    computeRunsByType
+    computeRunsByType,
+    healthIssues
   ] = await Promise.all([
     prisma.project.count({ where: { isTemplate: false } }),
     prisma.singleUseLineItem.count(),
@@ -34,7 +36,12 @@ export default handlerWithUser().get(async (_req: NextApiRequestWithUser, res: N
     prisma.importSession.count(),
     prisma.rspApiKey.count(),
     prisma.computeRun.groupBy({ by: ['status'], _count: true }),
-    prisma.computeRun.groupBy({ by: ['runType'], _count: true })
+    prisma.computeRun.groupBy({ by: ['runType'], _count: true }),
+    prisma.dataHealthIssue.groupBy({
+      by: ['entity', 'severity'],
+      where: { status: 'open' },
+      _count: true
+    })
   ]);
 
   const runsByStatus: Record<string, number> = {};
@@ -46,6 +53,17 @@ export default handlerWithUser().get(async (_req: NextApiRequestWithUser, res: N
   for (const g of computeRunsByType) {
     runsByType[g.runType] = g._count;
   }
+
+  // Build health signals per entity: { "Project": { warning: 3, error: 1 }, ... }
+  const health: Record<string, Record<string, number>> = {};
+  for (const g of healthIssues) {
+    if (!health[g.entity]) health[g.entity] = {};
+    health[g.entity][g.severity] = (health[g.entity][g.severity] ?? 0) + g._count;
+  }
+
+  // Unique calculator functions from lineage map
+  const uniqueFunctions = new Set(LINEAGE_MAP.map(e => e.calculatorFunction));
+  const uniqueFiles = new Set(LINEAGE_MAP.map(e => e.calculatorFile));
 
   return res.json({
     projects,
@@ -61,6 +79,9 @@ export default handlerWithUser().get(async (_req: NextApiRequestWithUser, res: N
     importSessions,
     rspApiKeys,
     runsByStatus,
-    runsByType
+    runsByType,
+    health,
+    calculatorFunctions: uniqueFunctions.size,
+    calculatorFiles: uniqueFiles.size
   });
 });
