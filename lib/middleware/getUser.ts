@@ -19,9 +19,18 @@ export async function getUser(req: NextApiRequestWithUser, res: NextApiResponse,
     return;
   }
 
-  const user = await prisma.user.findUnique<Prisma.UserFindUniqueArgs>({
+  let user = await prisma.user.findUnique<Prisma.UserFindUniqueArgs>({
     where: { id: authUser.id }
   });
+
+  // If not found by Supabase UUID, try to re-link from seeded/Firebase-era record by email
+  if (!user && authUser.email) {
+    const userByEmail = await prisma.user.findUnique({ where: { email: authUser.email } });
+    if (userByEmail) {
+      await prisma.$executeRaw`UPDATE "User" SET id = ${authUser.id} WHERE id = ${userByEmail.id}`;
+      user = await prisma.user.findUnique<Prisma.UserFindUniqueArgs>({ where: { id: authUser.id } });
+    }
+  }
 
   if (!user) {
     res.status(401).send('User not found');

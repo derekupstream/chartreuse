@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-import { Select, Space, Spin, Typography } from 'antd';
+import { Spin, Typography } from 'antd';
 import type { Node, NodeProps } from 'reactflow';
 import ReactFlow, { Background, Controls, MiniMap, useEdgesState, useNodesState } from 'reactflow';
 import 'reactflow/dist/style.css';
@@ -9,12 +9,7 @@ import useSWR from 'swr';
 import type { ProjectionsTraceResponse } from './projectionsGraphLayout';
 import { buildProjectionsGraph } from './projectionsGraphLayout';
 import { NodeDrawer } from './NodeDrawer';
-
-interface ProjectOption {
-  id: string;
-  name: string;
-  category: string;
-}
+import { ProjectsFeedPanel } from './ProjectsFeedPanel';
 
 function IssueNode({ data }: NodeProps) {
   return (
@@ -32,7 +27,6 @@ interface Props {
 }
 
 export function ProjectionsGraph({ selectedProjectId, onSelectProject }: Props) {
-  const { data: projectsData } = useSWR<{ projects: ProjectOption[] }>('/api/admin/data-map/projects');
   const { data: traceData, isLoading } = useSWR<ProjectionsTraceResponse>(
     selectedProjectId ? `/api/admin/data-map/projections-trace?projectId=${selectedProjectId}` : null
   );
@@ -48,30 +42,25 @@ export function ProjectionsGraph({ selectedProjectId, onSelectProject }: Props) 
     setEdges(e);
   }, [traceData]);
 
-  const projectOptions = (projectsData?.projects ?? []).map(p => ({
-    value: p.id,
-    label: `${p.name} (${p.category})`
-  }));
-
   return (
-    <div style={{ display: 'flex', height: 'calc(100vh - 64px - 46px - 46px)', flexDirection: 'column' }}>
-      {/* Project selector bar */}
-      <div style={{ padding: '12px 16px', borderBottom: '1px solid #f0f0f0' }}>
-        <Space>
-          <Typography.Text strong>Project:</Typography.Text>
-          <Select
-            showSearch
-            placeholder='Select a project...'
-            style={{ width: 320 }}
-            options={projectOptions}
-            value={selectedProjectId ?? undefined}
-            onChange={onSelectProject}
-            filterOption={(input, opt) => ((opt?.label as string) ?? '').toLowerCase().includes(input.toLowerCase())}
-          />
-        </Space>
+    <div style={{ display: 'flex', height: 'calc(100vh - 64px - 46px - 46px)', overflow: 'hidden' }}>
+      {/* Left feed panel — 38% */}
+      <div
+        style={{
+          width: '38%',
+          borderRight: '1px solid #f0f0f0',
+          overflow: 'auto',
+          padding: '16px'
+        }}
+      >
+        <Typography.Title level={4} style={{ marginTop: 0 }}>
+          All Projects
+        </Typography.Title>
+        <ProjectsFeedPanel selectedId={selectedProjectId} onSelect={onSelectProject} mode='projections' />
       </div>
-      {/* Graph area */}
-      <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
+
+      {/* Right graph panel — 62% */}
+      <div style={{ flex: 1, overflow: 'hidden', position: 'relative' }}>
         {isLoading && (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
             <Spin size='large' />

@@ -62,9 +62,20 @@ export interface AllProjectsSummary {
 
 const defaultSummary = () => ({ baseline: 0, forecast: 0, forecasts: [] });
 
+async function runInBatches<T, R>(items: T[], fn: (item: T) => Promise<R>, batchSize: number): Promise<R[]> {
+  const results: R[] = [];
+  for (let i = 0; i < items.length; i += batchSize) {
+    const batch = items.slice(i, i + batchSize);
+    results.push(...(await Promise.all(batch.map(fn))));
+  }
+  return results;
+}
+
 export async function getAllProjections(_projects: ProjectData[]): Promise<AllProjectsSummary> {
-  const projects: ProjectSummary[] = await Promise.all(
-    _projects.map(p => getProjections(p.id).then(r => ({ ...p, projections: r })))
+  const projects: ProjectSummary[] = await runInBatches(
+    _projects,
+    p => getProjections(p.id).then(r => ({ ...p, projections: r })),
+    10
   );
 
   const summary = projects.reduce<AllProjectsSummary['summary']>(
