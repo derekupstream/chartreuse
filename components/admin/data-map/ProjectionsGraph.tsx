@@ -9,6 +9,7 @@ import useSWR from 'swr';
 import type { ProjectionsTraceResponse } from './projectionsGraphLayout';
 import { buildProjectionsGraph } from './projectionsGraphLayout';
 import { NodeDrawer } from './NodeDrawer';
+import type { ProjectRow } from './ProjectsFeedPanel';
 import { ProjectsFeedPanel } from './ProjectsFeedPanel';
 
 function IssueNode({ data }: NodeProps) {
@@ -22,11 +23,12 @@ function IssueNode({ data }: NodeProps) {
 const nodeTypes = { default: IssueNode };
 
 interface Props {
+  projects: ProjectRow[];
   selectedProjectId: string | null;
   onSelectProject: (id: string) => void;
 }
 
-export function ProjectionsGraph({ selectedProjectId, onSelectProject }: Props) {
+export function ProjectionsGraph({ projects, selectedProjectId, onSelectProject }: Props) {
   const { data: traceData, isLoading } = useSWR<ProjectionsTraceResponse>(
     selectedProjectId ? `/api/admin/data-map/projections-trace?projectId=${selectedProjectId}` : null
   );
@@ -56,7 +58,12 @@ export function ProjectionsGraph({ selectedProjectId, onSelectProject }: Props) 
         <Typography.Title level={4} style={{ marginTop: 0 }}>
           All Projects
         </Typography.Title>
-        <ProjectsFeedPanel selectedId={selectedProjectId} onSelect={onSelectProject} mode='projections' />
+        <ProjectsFeedPanel
+          projects={projects}
+          selectedId={selectedProjectId}
+          onSelect={onSelectProject}
+          mode='projections'
+        />
       </div>
 
       {/* Right graph panel — 62% */}

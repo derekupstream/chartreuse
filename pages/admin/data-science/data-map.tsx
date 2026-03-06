@@ -7,6 +7,7 @@ import { useRouter } from 'next/router';
 import { ActualsGraph } from 'components/admin/data-map/ActualsGraph';
 import { FeedPanel } from 'components/admin/data-map/FeedPanel';
 import { PlaygroundPanel } from 'components/admin/data-map/PlaygroundPanel';
+import type { ProjectRow } from 'components/admin/data-map/ProjectsFeedPanel';
 import { ProjectionsGraph } from 'components/admin/data-map/ProjectionsGraph';
 import { TraceGraph } from 'components/admin/data-map/TraceGraph';
 import type { DashboardUser } from 'interfaces';
@@ -14,15 +15,17 @@ import { AdminLayout } from 'layouts/AdminLayout';
 import { getUserFromContext } from 'lib/middleware';
 import { checkIsUpstream } from 'lib/middleware/requireUpstream';
 import { serializeJSON } from 'lib/objects';
+import prisma from 'lib/prisma';
 import type { PageProps } from 'pages/_app';
 
 type DataMapMode = 'rsp' | 'actuals' | 'projections';
 
 type Props = {
   user: DashboardUser;
+  projects: ProjectRow[];
 };
 
-export default function DataMapPage({ user }: Props) {
+export default function DataMapPage({ user, projects }: Props) {
   const router = useRouter();
   const mode = ((router.query.mode as DataMapMode | undefined) ?? 'rsp') as DataMapMode;
 
@@ -104,10 +107,18 @@ export default function DataMapPage({ user }: Props) {
         />
       )}
       {mode === 'actuals' && (
-        <ActualsGraph selectedProjectId={selectedProjectId} onSelectProject={setSelectedProjectId} />
+        <ActualsGraph
+          projects={projects}
+          selectedProjectId={selectedProjectId}
+          onSelectProject={setSelectedProjectId}
+        />
       )}
       {mode === 'projections' && (
-        <ProjectionsGraph selectedProjectId={selectedProjectId} onSelectProject={setSelectedProjectId} />
+        <ProjectionsGraph
+          projects={projects}
+          selectedProjectId={selectedProjectId}
+          onSelectProject={setSelectedProjectId}
+        />
       )}
     </AdminLayout>
   );
@@ -120,5 +131,20 @@ export const getServerSideProps: GetServerSideProps = async context => {
   if (!user?.org.isUpstream) return { notFound: true };
   const isUpstream = await checkIsUpstream(user.org.id);
   if (!isUpstream) return { notFound: true };
-  return { props: serializeJSON({ user }) };
+
+  const rawProjects = await prisma.project.findMany({
+    where: { NOT: { isTemplate: true } },
+    select: {
+      id: true,
+      name: true,
+      category: true,
+      updatedAt: true,
+      org: { select: { id: true, name: true } },
+      _count: { select: { singleUseItems: true, reusableItems: true, milestones: true } }
+    },
+    orderBy: { updatedAt: 'desc' },
+    take: 1000
+  });
+
+  return { props: serializeJSON({ user, projects: rawProjects }) };
 };
