@@ -10,14 +10,19 @@ export type NextApiRequestWithUser = NextApiRequest & {
 
 export async function getUser(req: NextApiRequestWithUser, res: NextApiResponse, next: () => void) {
   const supabase = createSupabaseApiClient(req, res);
+  // Use getSession() — reads JWT locally from cookies without a network round-trip.
+  // getUser() makes a server-to-server call to Supabase auth which can fail silently
+  // in Next.js API route context when token refresh is involved.
   const {
-    data: { user: authUser }
-  } = await supabase.auth.getUser();
+    data: { session }
+  } = await supabase.auth.getSession();
 
-  if (!authUser) {
+  if (!session) {
     res.status(401).send('Unauthorized');
     return;
   }
+
+  const authUser = session.user;
 
   let user = await prisma.user.findUnique<Prisma.UserFindUniqueArgs>({
     where: { id: authUser.id }

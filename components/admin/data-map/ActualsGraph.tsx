@@ -29,7 +29,11 @@ interface Props {
 }
 
 export function ActualsGraph({ projects, selectedProjectId, onSelectProject }: Props) {
-  const { data: traceData, isLoading } = useSWR<ActualsTraceResponse>(
+  const {
+    data: traceData,
+    isLoading,
+    error: traceError
+  } = useSWR<ActualsTraceResponse>(
     selectedProjectId ? `/api/admin/data-map/actuals-trace?projectId=${selectedProjectId}` : null
   );
 
@@ -73,7 +77,14 @@ export function ActualsGraph({ projects, selectedProjectId, onSelectProject }: P
             <Spin size='large' />
           </div>
         )}
-        {!isLoading && !selectedProjectId && (
+        {(traceError || (traceData as any)?.error) && (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+            <Typography.Text type='danger'>
+              API error: {(traceData as any)?.error ?? traceError?.message ?? 'auth failed'} — check server logs
+            </Typography.Text>
+          </div>
+        )}
+        {!isLoading && !selectedProjectId && !(traceError || (traceData as any)?.error) && (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
             <Typography.Text type='secondary'>Select a project to view its actuals trace</Typography.Text>
           </div>
