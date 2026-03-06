@@ -76,18 +76,18 @@ export default handlerWithUser().get(async (_req: NextApiRequestWithUser, res: N
     health[g.entity][g.severity] = (health[g.entity][g.severity] ?? 0) + g._count;
   }
 
-  const uniqueFunctions = new Set(LINEAGE_MAP.map(e => e.calculatorFunction));
-  const uniqueFiles = new Set(LINEAGE_MAP.map(e => e.calculatorFile));
-  const uniqueOutputMetrics = new Set(LINEAGE_MAP.flatMap(e => e.outputMetrics));
+  const uniqueFunctions = Array.from(new Set(LINEAGE_MAP.map(e => e.calculatorFunction)));
+  const uniqueFiles = Array.from(new Set(LINEAGE_MAP.map(e => e.calculatorFile)));
+  const uniqueOutputMetrics = Array.from(new Set(LINEAGE_MAP.flatMap(e => e.outputMetrics)));
 
   // Calculator function details for the drawer
-  const calcFunctionDetails = [...uniqueFunctions].map(fn => {
+  const calcFunctionDetails = uniqueFunctions.map(fn => {
     const entries = LINEAGE_MAP.filter(e => e.calculatorFunction === fn);
     return {
       name: fn,
       file: entries[0].calculatorFile,
       category: entries[0].metricCategory,
-      outputMetrics: [...new Set(entries.flatMap(e => e.outputMetrics))]
+      outputMetrics: Array.from(new Set(entries.flatMap(e => e.outputMetrics)))
     };
   });
 
@@ -112,10 +112,10 @@ export default handlerWithUser().get(async (_req: NextApiRequestWithUser, res: N
     runsByStatus,
     runsByType,
     health,
-    calculatorFunctions: uniqueFunctions.size,
-    calculatorFiles: uniqueFiles.size,
+    calculatorFunctions: uniqueFunctions.length,
+    calculatorFiles: uniqueFiles.length,
     calcFunctionDetails,
-    uniqueOutputMetrics: uniqueOutputMetrics.size,
+    uniqueOutputMetrics: uniqueOutputMetrics.length,
     // Impact path counts
     impactPaths: {
       projectsWithRuns,
