@@ -1,8 +1,8 @@
 import type { NextApiResponse } from 'next';
 
 import { LINEAGE_MAP } from 'lib/admin/lineageMap';
-import { handlerWithUser } from 'lib/middleware/handler';
 import type { NextApiRequestWithUser } from 'lib/middleware/getUser';
+import { handlerWithUser } from 'lib/middleware/handler';
 import prisma from 'lib/prisma';
 
 export default handlerWithUser().get(async (_req: NextApiRequestWithUser, res: NextApiResponse) => {
@@ -21,7 +21,13 @@ export default handlerWithUser().get(async (_req: NextApiRequestWithUser, res: N
     rspApiKeys,
     computeRunsByStatus,
     computeRunsByType,
-    healthIssues
+    healthIssues,
+    // Relationship counts for impact paths
+    projectsWithRuns,
+    projectsWithMilestones,
+    runsWithMetrics,
+    pendingChangeRequests,
+    metricKeyGroups
   ] = await Promise.all([
     prisma.project.count({ where: { isTemplate: false } }),
     prisma.singleUseLineItem.count(),
@@ -41,7 +47,17 @@ export default handlerWithUser().get(async (_req: NextApiRequestWithUser, res: N
       by: ['entity', 'severity'],
       where: { status: 'open' },
       _count: true
-    })
+    }),
+    // Impact path: projects that have at least one compute run
+    prisma.project.count({ where: { isTemplate: false, computeRuns: { some: {} } } }),
+    // Impact path: projects that have at least one milestone
+    prisma.project.count({ where: { isTemplate: false, milestones: { some: {} } } }),
+    // Impact path: compute runs that produced at least one metric
+    prisma.computeRun.count({ where: { results: { some: {} } } }),
+    // Governance: pending change requests
+    prisma.changeRequest.count({ where: { status: 'pending' } }),
+    // Output: unique metric keys
+    prisma.metricResult.groupBy({ by: ['metricKey'], _count: true })
   ]);
 
   const runsByStatus: Record<string, number> = {};
@@ -54,16 +70,31 @@ export default handlerWithUser().get(async (_req: NextApiRequestWithUser, res: N
     runsByType[g.runType] = g._count;
   }
 
-  // Build health signals per entity: { "Project": { warning: 3, error: 1 }, ... }
   const health: Record<string, Record<string, number>> = {};
   for (const g of healthIssues) {
     if (!health[g.entity]) health[g.entity] = {};
     health[g.entity][g.severity] = (health[g.entity][g.severity] ?? 0) + g._count;
   }
 
-  // Unique calculator functions from lineage map
   const uniqueFunctions = new Set(LINEAGE_MAP.map(e => e.calculatorFunction));
   const uniqueFiles = new Set(LINEAGE_MAP.map(e => e.calculatorFile));
+  const uniqueOutputMetrics = new Set(LINEAGE_MAP.flatMap(e => e.outputMetrics));
+
+  // Calculator function details for the drawer
+  const calcFunctionDetails = [...uniqueFunctions].map(fn => {
+    const entries = LINEAGE_MAP.filter(e => e.calculatorFunction === fn);
+    return {
+      name: fn,
+      file: entries[0].calculatorFile,
+      category: entries[0].metricCategory,
+      outputMetrics: [...new Set(entries.flatMap(e => e.outputMetrics))]
+    };
+  });
+
+  const metricKeys: Record<string, number> = {};
+  for (const g of metricKeyGroups) {
+    metricKeys[g.metricKey] = g._count;
+  }
 
   return res.json({
     projects,
@@ -82,6 +113,17 @@ export default handlerWithUser().get(async (_req: NextApiRequestWithUser, res: N
     runsByType,
     health,
     calculatorFunctions: uniqueFunctions.size,
-    calculatorFiles: uniqueFiles.size
+    calculatorFiles: uniqueFiles.size,
+    calcFunctionDetails,
+    uniqueOutputMetrics: uniqueOutputMetrics.size,
+    // Impact path counts
+    impactPaths: {
+      projectsWithRuns,
+      projectsWithMilestones,
+      runsWithMetrics,
+      pendingChangeRequests,
+      uniqueMetricKeys: Object.keys(metricKeys).length,
+      metricKeys
+    }
   });
 });

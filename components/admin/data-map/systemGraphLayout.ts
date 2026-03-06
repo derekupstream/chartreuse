@@ -15,6 +15,13 @@ const PROCESSING_STYLE = { background: '#fff7e6', border: '1px solid #fa8c16', b
 const OUTPUT_STYLE = { background: '#f6ffed', border: '1px solid #52c41a', borderRadius: 8 };
 
 // ---- API response interface ----
+export interface CalcFunctionDetail {
+  name: string;
+  file: string;
+  category: string;
+  outputMetrics: string[];
+}
+
 export interface SystemStatsResponse {
   projects: number;
   singleUseItems: number;
@@ -33,6 +40,16 @@ export interface SystemStatsResponse {
   health: Record<string, Record<string, number>>;
   calculatorFunctions: number;
   calculatorFiles: number;
+  calcFunctionDetails: CalcFunctionDetail[];
+  uniqueOutputMetrics: number;
+  impactPaths: {
+    projectsWithRuns: number;
+    projectsWithMilestones: number;
+    runsWithMetrics: number;
+    pendingChangeRequests: number;
+    uniqueMetricKeys: number;
+    metricKeys: Record<string, number>;
+  };
 }
 
 // Map node IDs to their DataHealthIssue entity names
