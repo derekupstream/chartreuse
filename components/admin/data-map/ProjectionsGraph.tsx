@@ -38,7 +38,7 @@ export function ProjectionsGraph({ projects, selectedProjectId, onSelectProject 
   const [drawerNode, setDrawerNode] = useState<Node | null>(null);
 
   useEffect(() => {
-    if (!traceData) return;
+    if (!traceData?.project) return;
     const { nodes: n, edges: e } = buildProjectionsGraph(traceData);
     setNodes(n);
     setEdges(e);
@@ -78,7 +78,12 @@ export function ProjectionsGraph({ projects, selectedProjectId, onSelectProject 
             <Typography.Text type='secondary'>Select a project to view its projections trace</Typography.Text>
           </div>
         )}
-        {!isLoading && selectedProjectId && traceData && (
+        {(traceData as any)?.error && (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+            <Typography.Text type='danger'>API error: {(traceData as any).error}</Typography.Text>
+          </div>
+        )}
+        {!isLoading && selectedProjectId && traceData?.project && !(traceData as any)?.error && (
           <ReactFlow
             nodes={nodes}
             edges={edges}

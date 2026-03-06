@@ -42,7 +42,7 @@ export function ActualsGraph({ projects, selectedProjectId, onSelectProject }: P
   const [drawerNode, setDrawerNode] = useState<Node | null>(null);
 
   useEffect(() => {
-    if (!traceData) return;
+    if (!traceData?.project) return;
     const { nodes: n, edges: e } = buildActualsGraph(traceData);
     setNodes(n);
     setEdges(e);
@@ -89,9 +89,9 @@ export function ActualsGraph({ projects, selectedProjectId, onSelectProject }: P
             <Typography.Text type='secondary'>Select a project to view its actuals trace</Typography.Text>
           </div>
         )}
-        {!isLoading && selectedProjectId && traceData && (
+        {!isLoading && selectedProjectId && traceData?.project && (
           <>
-            {traceData.milestones.length === 0 && traceData.computeRuns.length === 0 ? (
+            {(traceData.milestones ?? []).length === 0 && (traceData.computeRuns ?? []).length === 0 ? (
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
                 <Typography.Text type='secondary'>
                   No milestones or actuals compute runs for this project
