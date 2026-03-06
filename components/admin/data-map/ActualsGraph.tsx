@@ -1,28 +1,21 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { Spin, Typography } from 'antd';
-import type { Node, NodeProps } from 'reactflow';
+import type { Edge, Node } from 'reactflow';
 import ReactFlow, { Background, Controls, MiniMap, useEdgesState, useNodesState } from 'reactflow';
 import 'reactflow/dist/style.css';
 import useSWR from 'swr';
 
 import type { ActualsTraceResponse } from './actualsGraphLayout';
 import { buildActualsGraph } from './actualsGraphLayout';
-
-const fetcher = (url: string) => fetch(url).then(r => r.json());
 import { NodeDrawer } from './NodeDrawer';
 import type { ProjectRow } from './ProjectsFeedPanel';
 import { ProjectsFeedPanel } from './ProjectsFeedPanel';
+import { TraceNode } from './TraceNode';
+import { getConnectedEdges, getConnectedPath } from './systemGraphLayout';
 
-function IssueNode({ data }: NodeProps) {
-  return (
-    <div style={{ padding: '8px 12px', fontSize: 12, textAlign: 'center' }}>
-      <span>{data.label as string}</span>
-    </div>
-  );
-}
-
-const nodeTypes = { default: IssueNode };
+const fetcher = (url: string) => fetch(url).then(r => r.json());
+const nodeTypes = { default: TraceNode };
 
 interface Props {
   projects: ProjectRow[];
@@ -43,25 +36,65 @@ export function ActualsGraph({ projects, selectedProjectId, onSelectProject }: P
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [drawerNode, setDrawerNode] = useState<Node | null>(null);
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const [rawNodes, setRawNodes] = useState<Node[]>([]);
+  const [rawEdges, setRawEdges] = useState<Edge[]>([]);
 
   useEffect(() => {
     if (!traceData?.project) return;
     const { nodes: n, edges: e } = buildActualsGraph(traceData);
-    setNodes(n);
-    setEdges(e);
+    setRawNodes(n);
+    setRawEdges(e);
+    setSelectedNodeId(null);
+    setDrawerNode(null);
   }, [traceData]);
+
+  const highlightedGraph = useMemo(() => {
+    if (!selectedNodeId) return { nodes: rawNodes, edges: rawEdges };
+    const connectedNodes = getConnectedPath(selectedNodeId, rawEdges);
+    const connectedEdgeIds = getConnectedEdges(connectedNodes, rawEdges);
+    return {
+      nodes: rawNodes.map(n => {
+        const isConnected = connectedNodes.has(n.id);
+        return { ...n, data: { ...n.data, dimmed: !isConnected } };
+      }),
+      edges: rawEdges.map(e => {
+        const isConnected = connectedEdgeIds.has(e.id);
+        return {
+          ...e,
+          animated: isConnected,
+          style: { ...e.style, strokeWidth: isConnected ? 3 : 1, opacity: isConnected ? 1 : 0.15 }
+        };
+      })
+    };
+  }, [selectedNodeId, rawNodes, rawEdges]);
+
+  useEffect(() => {
+    setNodes(highlightedGraph.nodes);
+    setEdges(highlightedGraph.edges);
+  }, [highlightedGraph]);
+
+  const handleNodeClick = useCallback(
+    (_: React.MouseEvent, node: Node) => {
+      if (selectedNodeId === node.id) {
+        setSelectedNodeId(null);
+        setDrawerNode(null);
+      } else {
+        setSelectedNodeId(node.id);
+        setDrawerNode(node);
+      }
+    },
+    [selectedNodeId]
+  );
+
+  const handlePaneClick = useCallback(() => {
+    setSelectedNodeId(null);
+    setDrawerNode(null);
+  }, []);
 
   return (
     <div style={{ display: 'flex', height: 'calc(100vh - 64px - 46px - 46px)', overflow: 'hidden' }}>
-      {/* Left feed panel — 38% */}
-      <div
-        style={{
-          width: '38%',
-          borderRight: '1px solid #f0f0f0',
-          overflow: 'auto',
-          padding: '16px'
-        }}
-      >
+      <div style={{ width: '38%', borderRight: '1px solid #f0f0f0', overflow: 'auto', padding: '16px' }}>
         <Typography.Title level={4} style={{ marginTop: 0 }}>
           All Projects
         </Typography.Title>
@@ -72,8 +105,6 @@ export function ActualsGraph({ projects, selectedProjectId, onSelectProject }: P
           mode='actuals'
         />
       </div>
-
-      {/* Right graph panel — 62% */}
       <div style={{ flex: 1, overflow: 'hidden', position: 'relative' }}>
         {isLoading && (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
@@ -107,7 +138,8 @@ export function ActualsGraph({ projects, selectedProjectId, onSelectProject }: P
                 nodeTypes={nodeTypes}
                 onNodesChange={onNodesChange}
                 onEdgesChange={onEdgesChange}
-                onNodeClick={(_, node) => setDrawerNode(node)}
+                onNodeClick={handleNodeClick}
+                onPaneClick={handlePaneClick}
                 fitView
                 fitViewOptions={{ padding: 0.2 }}
               >
@@ -119,7 +151,13 @@ export function ActualsGraph({ projects, selectedProjectId, onSelectProject }: P
           </>
         )}
       </div>
-      <NodeDrawer node={drawerNode} onClose={() => setDrawerNode(null)} />
+      <NodeDrawer
+        node={drawerNode}
+        onClose={() => {
+          setDrawerNode(null);
+          setSelectedNodeId(null);
+        }}
+      />
     </div>
   );
 }

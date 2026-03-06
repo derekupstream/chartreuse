@@ -333,10 +333,12 @@ function NodeContent({ node }: { node: Node }) {
 }
 
 export function NodeDrawer({ node, onClose }: NodeDrawerProps) {
+  const nodeLabel = (node?.data as { label?: string } | undefined)?.label;
   const nodeType = (node?.data as { type?: string } | undefined)?.type ?? '';
+  const title = nodeLabel ?? nodeType;
 
   return (
-    <Drawer open={!!node} onClose={onClose} width={480} title={nodeType}>
+    <Drawer open={!!node} onClose={onClose} width={480} title={title}>
       {node && <NodeContent node={node} />}
     </Drawer>
   );

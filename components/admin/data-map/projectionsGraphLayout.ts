@@ -2,14 +2,20 @@ import dagre from '@dagrejs/dagre';
 import { MarkerType } from 'reactflow';
 import type { Edge, Node } from 'reactflow';
 
-// ---- Style constants (copied from graphLayout.ts conventions) ----
-const NODE_WIDTH = 160;
-const NODE_HEIGHT = 60;
+const NODE_WIDTH = 180;
+const NODE_HEIGHT = 64;
 
-const GREY_STYLE = { background: '#f0f0f0', border: '1px solid #d9d9d9', borderRadius: 6 };
-const GREEN_STYLE = { background: '#f6ffed', border: '1px solid #52c41a', borderRadius: 6 };
-const RED_STYLE = { background: '#fff2f0', border: '1px solid #ff4d4f', borderRadius: 6 };
-const BLUE_STYLE = { background: '#e6f4ff', border: '1px solid #1677ff', borderRadius: 6 };
+// ---- Style constants ----
+const GREY_STYLE = { background: '#f0f0f0', border: '1px solid #d9d9d9', borderRadius: 8 };
+const GREEN_STYLE = { background: '#f6ffed', border: '1px solid #52c41a', borderRadius: 8 };
+const RED_STYLE = { background: '#fff2f0', border: '1px solid #ff4d4f', borderRadius: 8 };
+const BLUE_STYLE = { background: '#e6f4ff', border: '1px solid #1677ff', borderRadius: 8 };
+const OUTPUT_STYLE = { background: '#f6ffed', border: '1px solid #52c41a', borderRadius: 8 };
+
+// ---- Edge colors ----
+const EDGE_INPUT = '#1677ff';
+const EDGE_COMPUTE = '#fa8c16';
+const EDGE_METRIC = '#52c41a';
 
 function getComputeRunStyle(status: string | null | undefined): Record<string, unknown> {
   switch (status) {
@@ -50,15 +56,37 @@ export interface ProjectionsTraceResponse {
   } | null;
 }
 
+function makeEdge(id: string, source: string, target: string, color: string): Edge {
+  return {
+    id,
+    source,
+    target,
+    animated: true,
+    markerEnd: { type: MarkerType.ArrowClosed, color },
+    style: { stroke: color, strokeWidth: 2 }
+  };
+}
+
 export function buildProjectionsGraph(data: ProjectionsTraceResponse): { nodes: Node[]; edges: Edge[] } {
   const { project, lineItemSummary, computeRun } = data;
   const metricCount = computeRun?.metricResults.length ?? 0;
   const shortId = computeRun ? computeRun.id.substring(0, 8) : '';
+  const totalItems = lineItemSummary.singleUseCount + lineItemSummary.reusableCount;
+
+  // Total cost summaries
+  const suTotalCost = lineItemSummary.singleUseItems.reduce((s, i) => s + i.caseCost * i.casesPurchased, 0);
+  const reTotalCost = lineItemSummary.reusableItems.reduce((s, i) => s + i.caseCost * i.casesPurchased, 0);
 
   const nodes: Node[] = [
     {
       id: 'project',
-      data: { type: 'project', project, label: project.name, entityId: project.id },
+      data: {
+        type: 'project',
+        project,
+        label: project.name,
+        entityId: project.id,
+        subtitle: `${totalItems} line items · ${project.category}`
+      },
       position: { x: 0, y: 0 },
       style: GREEN_STYLE
     },
@@ -68,7 +96,8 @@ export function buildProjectionsGraph(data: ProjectionsTraceResponse): { nodes: 
         type: 'single-use-items',
         singleUseItems: lineItemSummary.singleUseItems,
         label: `${lineItemSummary.singleUseCount} Single-Use Items`,
-        entityId: project.id
+        entityId: project.id,
+        subtitle: suTotalCost > 0 ? `$${suTotalCost.toLocaleString()} total cost` : 'No items'
       },
       position: { x: 0, y: 0 },
       style: GREY_STYLE
@@ -79,7 +108,8 @@ export function buildProjectionsGraph(data: ProjectionsTraceResponse): { nodes: 
         type: 'reusable-items',
         reusableItems: lineItemSummary.reusableItems,
         label: `${lineItemSummary.reusableCount} Reusable Items`,
-        entityId: project.id
+        entityId: project.id,
+        subtitle: reTotalCost > 0 ? `$${reTotalCost.toLocaleString()} total cost` : 'No items'
       },
       position: { x: 0, y: 0 },
       style: GREY_STYLE
@@ -90,7 +120,12 @@ export function buildProjectionsGraph(data: ProjectionsTraceResponse): { nodes: 
         type: 'compute-run',
         computeRun,
         label: computeRun ? `Run · ${computeRun.status} · ${shortId}` : 'No Compute Run',
-        entityId: computeRun?.id ?? null
+        entityId: computeRun?.id ?? null,
+        subtitle: computeRun
+          ? `${computeRun.runType} · ${metricCount} metric${metricCount !== 1 ? 's' : ''}`
+          : 'Not yet computed',
+        healthSignal: computeRun?.status === 'failed' ? (computeRun.errorText ?? 'Run failed') : null,
+        healthSeverity: computeRun?.status === 'failed' ? 'error' : null
       },
       position: { x: 0, y: 0 },
       style: getComputeRunStyle(computeRun?.status ?? null)
@@ -101,50 +136,32 @@ export function buildProjectionsGraph(data: ProjectionsTraceResponse): { nodes: 
         type: 'metric-results',
         metricResults: computeRun?.metricResults ?? [],
         label: `${metricCount} Metrics`,
-        entityId: computeRun?.id ?? null
+        entityId: computeRun?.id ?? null,
+        subtitle:
+          metricCount > 0
+            ? (computeRun?.metricResults ?? [])
+                .slice(0, 3)
+                .map(m => m.metricKey)
+                .join(', ') + (metricCount > 3 ? '...' : '')
+            : 'No metrics'
       },
       position: { x: 0, y: 0 },
-      style: computeRun?.status === 'success' ? GREEN_STYLE : GREY_STYLE
+      style: computeRun?.status === 'success' ? OUTPUT_STYLE : GREY_STYLE
     }
   ];
 
   const edges: Edge[] = [
-    {
-      id: 'project-single-use',
-      source: 'project',
-      target: 'single-use-items',
-      markerEnd: { type: MarkerType.ArrowClosed }
-    },
-    {
-      id: 'project-reusable',
-      source: 'project',
-      target: 'reusable-items',
-      markerEnd: { type: MarkerType.ArrowClosed }
-    },
-    {
-      id: 'single-use-compute',
-      source: 'single-use-items',
-      target: 'compute-run',
-      markerEnd: { type: MarkerType.ArrowClosed }
-    },
-    {
-      id: 'reusable-compute',
-      source: 'reusable-items',
-      target: 'compute-run',
-      markerEnd: { type: MarkerType.ArrowClosed }
-    },
-    {
-      id: 'compute-metrics',
-      source: 'compute-run',
-      target: 'metric-results',
-      markerEnd: { type: MarkerType.ArrowClosed }
-    }
+    makeEdge('project-single-use', 'project', 'single-use-items', EDGE_INPUT),
+    makeEdge('project-reusable', 'project', 'reusable-items', EDGE_INPUT),
+    makeEdge('single-use-compute', 'single-use-items', 'compute-run', EDGE_COMPUTE),
+    makeEdge('reusable-compute', 'reusable-items', 'compute-run', EDGE_COMPUTE),
+    makeEdge('compute-metrics', 'compute-run', 'metric-results', EDGE_METRIC)
   ];
 
-  // Apply dagre LR layout
+  // Dagre layout
   const g = new dagre.graphlib.Graph();
   g.setDefaultEdgeLabel(() => ({}));
-  g.setGraph({ rankdir: 'LR', nodesep: 40, ranksep: 80 });
+  g.setGraph({ rankdir: 'LR', nodesep: 40, ranksep: 100 });
 
   nodes.forEach(n => g.setNode(n.id, { width: NODE_WIDTH, height: NODE_HEIGHT }));
   edges.forEach(e => g.setEdge(e.source, e.target));
