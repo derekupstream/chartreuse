@@ -114,7 +114,7 @@ export function FeedPanel({ selectedId, onSelect }: FeedPanelProps) {
     {
       title: 'Impact',
       key: 'impact',
-      render: (_, record) => (record.co2AvoidedKg != null ? `${record.co2AvoidedKg} kg CO₂` : '—')
+      render: (_, record) => (record.co2AvoidedKg != null ? `${Number(record.co2AvoidedKg).toFixed(2)} kg CO₂` : '—')
     },
     {
       title: 'Ingested',

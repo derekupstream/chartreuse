@@ -2,17 +2,37 @@ import dagre from '@dagrejs/dagre';
 import { MarkerType } from 'reactflow';
 import type { Edge, Node } from 'reactflow';
 
-const NODE_WIDTH = 180;
-const NODE_HEIGHT = 64;
+export const NODE_WIDTH = 180;
+export const NODE_HEIGHT = 64;
+export const EXPANDED_NODE_WIDTH = 260;
 const LABEL_WIDTH = 180;
 const LABEL_HEIGHT = 28;
 
+/** Height per field row in expanded node */
+const FIELD_ROW_HEIGHT = 20;
+/** Max height for scrollable scalar fields area */
+export const SCALAR_SCROLL_MAX = 240;
+/** Max height for scrollable relations area */
+export const RELATION_SCROLL_MAX = 140;
+/** Fixed overhead: header (~45px) + footer (~26px) + padding */
+const EXPANDED_OVERHEAD = 75;
+/** Relations section label height */
+const RELATION_HEADER = 22;
+
 // ---- Style constants ----
-const SOURCE_STYLE = { background: '#e6f4ff', border: '1px solid #1677ff', borderRadius: 8 };
-const DATA_STYLE = { background: '#f0f0f0', border: '1px solid #d9d9d9', borderRadius: 8 };
-const GOVERNANCE_STYLE = { background: '#f9f0ff', border: '1px solid #722ed1', borderRadius: 8 };
-const PROCESSING_STYLE = { background: '#fff7e6', border: '1px solid #fa8c16', borderRadius: 8 };
-const OUTPUT_STYLE = { background: '#f6ffed', border: '1px solid #52c41a', borderRadius: 8 };
+export const SOURCE_STYLE = { background: '#e6f4ff', border: '1px solid #1677ff', borderRadius: 8 };
+export const DATA_STYLE = { background: '#f0f0f0', border: '1px solid #d9d9d9', borderRadius: 8 };
+export const GOVERNANCE_STYLE = { background: '#f9f0ff', border: '1px solid #722ed1', borderRadius: 8 };
+export const PROCESSING_STYLE = { background: '#fff7e6', border: '1px solid #fa8c16', borderRadius: 8 };
+export const OUTPUT_STYLE = { background: '#f6ffed', border: '1px solid #52c41a', borderRadius: 8 };
+
+/** Calculate expanded node height matching the ExpandableNode component's rendered size */
+export function getExpandedNodeHeight(scalarCount: number, relationCount: number): number {
+  const scalarsHeight = Math.min(scalarCount * FIELD_ROW_HEIGHT, SCALAR_SCROLL_MAX);
+  const relationsHeight =
+    relationCount > 0 ? RELATION_HEADER + Math.min(relationCount * FIELD_ROW_HEIGHT, RELATION_SCROLL_MAX) : 0;
+  return EXPANDED_OVERHEAD + scalarsHeight + relationsHeight;
+}
 
 // ---- API response interface ----
 export interface CalcFunctionDetail {
@@ -373,4 +393,84 @@ export function getConnectedEdges(connectedNodes: Set<string>, edges: Edge[]): S
     }
   }
   return result;
+}
+
+export interface ExpandedNodeInfo {
+  scalarCount: number;
+  relationCount: number;
+}
+
+/**
+ * Re-run dagre layout with variable node sizes.
+ * Called when a node is expanded/collapsed to reflow the graph.
+ */
+export function relayoutGraph(nodes: Node[], edges: Edge[], expandedNodes: Map<string, ExpandedNodeInfo>): Node[] {
+  const g = new dagre.graphlib.Graph();
+  g.setDefaultEdgeLabel(() => ({}));
+  // Increase node separation when nodes are expanded to prevent overlap
+  const hasExpanded = expandedNodes.size > 0;
+  g.setGraph({ rankdir: 'LR', nodesep: hasExpanded ? 50 : 30, ranksep: hasExpanded ? 120 : 100 });
+
+  const entityNodes = nodes.filter(n => !(n.data as Record<string, unknown>).isLabel);
+  const labelNodes = nodes.filter(n => (n.data as Record<string, unknown>).isLabel);
+
+  for (const n of entityNodes) {
+    const info = expandedNodes.get(n.id);
+    if (info) {
+      g.setNode(n.id, {
+        width: EXPANDED_NODE_WIDTH,
+        height: getExpandedNodeHeight(info.scalarCount, info.relationCount)
+      });
+    } else {
+      g.setNode(n.id, { width: NODE_WIDTH, height: NODE_HEIGHT });
+    }
+  }
+
+  for (const e of edges) {
+    g.setEdge(e.source, e.target);
+  }
+
+  dagre.layout(g);
+
+  const result = entityNodes.map(n => {
+    const pos = g.node(n.id);
+    const info = expandedNodes.get(n.id);
+    const w = info ? EXPANDED_NODE_WIDTH : NODE_WIDTH;
+    const h = info ? getExpandedNodeHeight(info.scalarCount, info.relationCount) : NODE_HEIGHT;
+    return {
+      ...n,
+      position: pos ? { x: pos.x - w / 2, y: pos.y - h / 2 } : n.position
+    };
+  });
+
+  // Reposition labels above their columns
+  const layerLabels: Record<string, string> = {
+    source: 'INPUT DATA',
+    data: 'RAW DATA',
+    governance: 'ASSUMPTIONS',
+    processing: 'CALCULATION ENGINE',
+    output: 'OUTPUTS'
+  };
+  const columns: Record<string, { minY: number; centerX: number }> = {};
+  for (const n of result) {
+    const layer = (n.data as Record<string, unknown>).layer as string;
+    if (!layer || !layerLabels[layer]) continue;
+    if (!columns[layer]) {
+      columns[layer] = { minY: n.position.y, centerX: n.position.x };
+    } else {
+      columns[layer].minY = Math.min(columns[layer].minY, n.position.y);
+      columns[layer].centerX = (columns[layer].centerX + n.position.x) / 2;
+    }
+  }
+
+  const repositionedLabels = labelNodes.map(ln => {
+    const layerKey = ln.id.replace('label-', '');
+    const col = columns[layerKey];
+    if (col) {
+      return { ...ln, position: { x: col.centerX, y: col.minY - 40 } };
+    }
+    return ln;
+  });
+
+  return [...result, ...repositionedLabels];
 }

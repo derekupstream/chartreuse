@@ -271,6 +271,28 @@ Plans:
 
 ---
 
+## Next Milestone
+
+### v2.0: Data Map Graph Explorer (Planned)
+
+**Milestone Goal:** Transform the Data Map into a zoomable graph explorer with semantic zoom levels (System → Schema → Relationships → Row data), a data dictionary, and additional view modes for Factors and Metrics.
+
+**Context doc:** `.planning/phases/08-data-map-graph-explorer/08-CONTEXT.md`
+
+## Phases
+
+- [ ] **Phase 8: Data Map Graph Explorer** — Schema introspection API, expandable nodes (zoom into table fields), relationship edge drawing, row-level data view, data dictionary, Factors/Metrics view modes
+
+Plans:
+- [ ] 08-01: Schema introspection API (`GET /api/admin/data-map/schema`)
+- [ ] 08-02: Expandable System Nodes (Level 1 → 2 zoom)
+- [ ] 08-03: Relationship Edges (Level 2 → 3 zoom, dynamic FK edges)
+- [ ] 08-04: Row/Data View (Level 3 → 4, sample data API)
+- [ ] 08-05: Data Dictionary Integration (field descriptions, usage context)
+- [ ] 08-06: View Mode Enhancements (Factors + Metrics tabs, node clustering)
+
+---
+
 ## Future Work
 
 ### Calculator Accuracy + Multi-Year Projections

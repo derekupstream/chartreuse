@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-05)
 
 **Core value:** The calculator's projection engine (GHG, waste, financial) must remain accurate and reliable — everything else is enhancements on top of that foundation.
-**Current focus:** v1.9 Data Map + RSP Observability
+**Current focus:** v2.0 Data Map Graph Explorer
 
 ## Current Position
 
-Phase: 07-actuals-projections-modes-v1
-Plan: 01 of 4
-Status: In progress
-Last activity: 2026-03-05 — Completed 07-01 (mode control + trace APIs)
+Phase: 08-data-map-graph-explorer
+Plan: 01 of 6
+Status: Planning complete, ready to execute
+Last activity: 2026-03-08 — Created 08-CONTEXT.md with full zoom-level plan
 
 Progress: [██░░░░░░░░] 25%
 

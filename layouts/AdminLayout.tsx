@@ -81,7 +81,6 @@ const siderMenuItems = [
         label: <Link href='/admin/data-science/calculations'>Calculations</Link>
       },
       { key: 'data-science/test-runs', label: <Link href='/admin/data-science/test-runs'>Test Runs</Link> },
-      { key: 'data-science/lineage', label: <Link href='/admin/data-science/lineage'>Lineage</Link> },
       { key: 'admin/methodology', label: <Link href='/admin/methodology'>Methodology</Link> },
       {
         key: 'data-science/change-requests',
@@ -92,6 +91,7 @@ const siderMenuItems = [
         key: 'data-science-advanced',
         label: 'Advanced',
         children: [
+          { key: 'data-science/lineage', label: <Link href='/admin/data-science/lineage'>Lineage</Link> },
           { key: 'data-science/snapshots', label: <Link href='/admin/data-science/snapshots'>Snapshots</Link> },
           { key: 'data-science/runs', label: <Link href='/admin/data-science/runs'>Run History</Link> },
           { key: 'data-science/impact', label: <Link href='/admin/data-science/impact'>Impact Simulator</Link> }

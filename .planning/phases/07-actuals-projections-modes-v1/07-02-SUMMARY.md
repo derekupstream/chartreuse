@@ -115,3 +115,14 @@ None — no external service configuration required.
 ---
 *Phase: 07-actuals-projections-modes-v1*
 *Completed: 2026-03-05*
+
+## Self-Check: PASSED
+
+- FOUND: components/admin/data-map/actualsGraphLayout.ts
+- FOUND: components/admin/data-map/projectionsGraphLayout.ts
+- FOUND: components/admin/data-map/ActualsGraph.tsx
+- FOUND: components/admin/data-map/ProjectionsGraph.tsx
+- FOUND: pages/api/admin/data-map/projects.ts
+- FOUND: .planning/phases/07-actuals-projections-modes-v1/07-02-SUMMARY.md
+- FOUND commit: bba43e5
+- FOUND commit: 1bb7f06

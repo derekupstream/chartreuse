@@ -1,14 +1,24 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import { Button, Descriptions, Divider, Drawer, List, Spin, Tag, Typography } from 'antd';
+import { Button, Descriptions, Divider, Drawer, List, Spin, Table, Tag, Typography } from 'antd';
+import type { ColumnsType } from 'antd/es/table';
 import Link from 'next/link';
-import type { Edge, Node, NodeProps } from 'reactflow';
-import ReactFlow, { Background, Controls, Handle, MiniMap, Position, useEdgesState, useNodesState } from 'reactflow';
+import type { Edge, Node, NodeProps, ReactFlowInstance } from 'reactflow';
+import ReactFlow, { Background, Controls, MarkerType, MiniMap, useEdgesState, useNodesState } from 'reactflow';
 import 'reactflow/dist/style.css';
 import useSWR from 'swr';
 
-import type { CalcFunctionDetail, SystemStatsResponse } from './systemGraphLayout';
-import { buildSystemGraph, getConnectedEdges, getConnectedPath } from './systemGraphLayout';
+import type { SchemaField, SchemaModel } from 'lib/admin/schemaTypes';
+
+import { ExpandableNode } from './ExpandableNode';
+import type { CalcFunctionDetail, ExpandedNodeInfo, SystemStatsResponse } from './systemGraphLayout';
+import {
+  EXPANDED_NODE_WIDTH,
+  buildSystemGraph,
+  getConnectedEdges,
+  getConnectedPath,
+  relayoutGraph
+} from './systemGraphLayout';
 
 const fetcher = (url: string) => fetch(url).then(r => r.json());
 
@@ -20,45 +30,7 @@ const LAYER_COLORS: Record<string, string> = {
   output: '#52c41a'
 };
 
-const HEALTH_COLORS: Record<string, string> = {
-  error: '#ff4d4f',
-  warning: '#faad14'
-};
-
 // ── Node renderers ──────────────────────────────────────────────
-
-function SystemNode({ data }: NodeProps) {
-  const layer = data.layer as string;
-  const subtitle = data.subtitle as string | undefined;
-  const signal = data.healthSignal as string | null;
-  const severity = data.healthSeverity as string | null;
-  const dimmed = data.dimmed as boolean | undefined;
-
-  return (
-    <>
-      <Handle type='target' position={Position.Left} style={{ opacity: 0 }} />
-      <div
-        style={{
-          padding: '8px 14px',
-          fontSize: 12,
-          textAlign: 'center',
-          minWidth: 140,
-          opacity: dimmed ? 0.25 : 1,
-          transition: 'opacity 0.2s'
-        }}
-      >
-        <div style={{ fontWeight: 600, color: LAYER_COLORS[layer] ?? '#333' }}>{data.label as string}</div>
-        {subtitle && <div style={{ fontSize: 10, color: '#888', marginTop: 2 }}>{subtitle}</div>}
-        {signal && (
-          <div style={{ fontSize: 10, color: HEALTH_COLORS[severity ?? 'warning'], marginTop: 3, fontWeight: 500 }}>
-            {severity === 'error' ? '\u274C' : '\u26A0\uFE0F'} {signal}
-          </div>
-        )}
-      </div>
-      <Handle type='source' position={Position.Right} style={{ opacity: 0 }} />
-    </>
-  );
-}
 
 function LabelNode({ data }: NodeProps) {
   return (
@@ -78,7 +50,7 @@ function LabelNode({ data }: NodeProps) {
   );
 }
 
-const nodeTypes = { default: SystemNode, 'layer-label': LabelNode };
+const nodeTypes = { default: ExpandableNode, 'layer-label': LabelNode };
 
 // ── Impact path descriptions per node ───────────────────────────
 
@@ -114,6 +86,89 @@ function ActionLinks({ links }: { links: Array<{ label: string; href: string }> 
           </Link>
         ))}
       </div>
+    </>
+  );
+}
+
+// ── Sample data content ─────────────────────────────────────────
+
+interface SampleModel {
+  model: string;
+  rows: Record<string, unknown>[];
+  total: number;
+}
+
+interface SampleResponse {
+  nodeId: string;
+  models: SampleModel[];
+}
+
+function SampleDataContent({ nodeId }: { nodeId: string }) {
+  const { data, isLoading } = useSWR<SampleResponse>(`/api/admin/data-map/sample?nodeId=${nodeId}&take=5`, fetcher);
+
+  if (isLoading) return <Spin size='small' />;
+  if (!data || data.models.length === 0) {
+    return <Typography.Text type='secondary'>No sample data available for this node.</Typography.Text>;
+  }
+
+  return (
+    <>
+      {data.models.map(m => {
+        if (m.rows.length === 0) {
+          return (
+            <div key={m.model}>
+              <Typography.Text strong>{m.model}</Typography.Text>
+              <Typography.Text type='secondary' style={{ marginLeft: 8 }}>
+                0 rows
+              </Typography.Text>
+            </div>
+          );
+        }
+
+        // Build columns from the first row's keys
+        const keys = Object.keys(m.rows[0]);
+        const columns: ColumnsType<Record<string, unknown>> = keys.map(key => ({
+          title: key,
+          dataIndex: key,
+          key,
+          ellipsis: true,
+          width: key === 'id' ? 80 : undefined,
+          render: (v: unknown) => {
+            if (v === null || v === undefined) return <Typography.Text type='secondary'>null</Typography.Text>;
+            if (v instanceof Object)
+              return (
+                <Typography.Text code style={{ fontSize: 10 }}>
+                  {JSON.stringify(v)}
+                </Typography.Text>
+              );
+            const s = String(v);
+            // Truncate long values
+            if (s.length > 60) return <Typography.Text title={s}>{s.slice(0, 57)}...</Typography.Text>;
+            return s;
+          }
+        }));
+
+        return (
+          <div key={m.model} style={{ marginBottom: 16 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+              <Typography.Text strong>{m.model}</Typography.Text>
+              <Tag>{m.total.toLocaleString()} total</Tag>
+              <Typography.Text type='secondary' style={{ fontSize: 11 }}>
+                showing {m.rows.length}
+              </Typography.Text>
+            </div>
+            <Table
+              dataSource={m.rows}
+              columns={columns}
+              rowKey={r => String(r.id ?? JSON.stringify(r))}
+              size='small'
+              pagination={false}
+              scroll={{ x: 'max-content' }}
+              style={{ fontSize: 11 }}
+            />
+          </div>
+        );
+      })}
     </>
   );
 }
@@ -479,6 +534,13 @@ function DrawerContent({ node, stats }: { node: Node; stats: SystemStatsResponse
   }
 }
 
+// ── Schema data cache type ──────────────────────────────────────
+
+interface SchemaResponse {
+  models: SchemaModel[];
+  nodeId: string;
+}
+
 // ── Main graph component ────────────────────────────────────────
 
 export function SystemGraph() {
@@ -488,9 +550,37 @@ export function SystemGraph() {
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [drawerNode, setDrawerNode] = useState<Node | null>(null);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const [sampleNodeId, setSampleNodeId] = useState<string | null>(null);
 
   const [rawNodes, setRawNodes] = useState<Node[]>([]);
   const [rawEdges, setRawEdges] = useState<Edge[]>([]);
+
+  // Track which nodes are expanded and their schema data
+  const [expandedNodes, setExpandedNodes] = useState<Map<string, SchemaModel>>(new Map());
+  const schemaCache = useRef<Map<string, SchemaModel[]>>(new Map());
+  const flowRef = useRef<ReactFlowInstance | null>(null);
+
+  // FK relationship edges created by clicking relation fields
+  interface FkEdge {
+    sourceNodeId: string;
+    targetNodeId: string;
+    fieldName: string;
+    relatedModel: string;
+  }
+  const [fkEdges, setFkEdges] = useState<FkEdge[]>([]);
+
+  // Expansion breadcrumb trail — ordered list of node IDs as they were expanded
+  const [expansionPath, setExpansionPath] = useState<string[]>([]);
+
+  // Reverse lookup: model name → node ID (built from rawNodes entity data)
+  const modelToNodeId = useMemo(() => {
+    const map: Record<string, string> = {};
+    for (const n of rawNodes) {
+      const entity = (n.data as Record<string, unknown>).entity as string | undefined;
+      if (entity) map[entity] = n.id;
+    }
+    return map;
+  }, [rawNodes]);
 
   useEffect(() => {
     if (!stats) return;
@@ -499,23 +589,173 @@ export function SystemGraph() {
     setRawEdges(e);
   }, [stats]);
 
-  // Apply path highlighting
+  // Toggle node expansion — fetch schema if needed
+  const handleToggleExpand = useCallback(
+    async (nodeId: string, addToPath = true) => {
+      if (expandedNodes.has(nodeId)) {
+        // Collapse — also remove any FK edges involving this node
+        setExpandedNodes(prev => {
+          const next = new Map(prev);
+          next.delete(nodeId);
+          return next;
+        });
+        setFkEdges(prev => prev.filter(e => e.sourceNodeId !== nodeId && e.targetNodeId !== nodeId));
+        setExpansionPath(prev => prev.filter(id => id !== nodeId));
+        return;
+      }
+
+      // Expand — fetch schema if not cached
+      let models = schemaCache.current.get(nodeId);
+      if (!models) {
+        try {
+          const res = await fetch(`/api/admin/data-map/schema?nodeId=${nodeId}`);
+          const data: SchemaResponse = await res.json();
+          models = data.models;
+          schemaCache.current.set(nodeId, models);
+        } catch {
+          return; // Silently fail — node stays collapsed
+        }
+      }
+
+      if (!models || models.length === 0) return; // No schema for this node (e.g., calc-functions)
+
+      setExpandedNodes(prev => {
+        const next = new Map(prev);
+        next.set(nodeId, models![0]);
+        return next;
+      });
+      if (addToPath) {
+        setExpansionPath(prev => (prev.includes(nodeId) ? prev : [...prev, nodeId]));
+      }
+    },
+    [expandedNodes]
+  );
+
+  // Handle relation field click — expand related node + create FK edge
+  const handleFieldClick = useCallback(
+    (field: SchemaField, sourceNodeId: string) => {
+      if (!field.isRelation || !field.relatedModel) return;
+
+      // Find which node maps to this related model
+      const targetNodeId = modelToNodeId[field.relatedModel];
+      if (!targetNodeId) return; // Model not represented in the system graph
+
+      // Create FK edge if it doesn't already exist
+      const edgeExists = fkEdges.some(
+        e => e.sourceNodeId === sourceNodeId && e.targetNodeId === targetNodeId && e.fieldName === field.name
+      );
+      if (!edgeExists) {
+        setFkEdges(prev => [
+          ...prev,
+          { sourceNodeId, targetNodeId, fieldName: field.name, relatedModel: field.relatedModel! }
+        ]);
+      }
+
+      // Expand target node if not already expanded
+      if (!expandedNodes.has(targetNodeId)) {
+        handleToggleExpand(targetNodeId);
+      }
+    },
+    [modelToNodeId, fkEdges, expandedNodes, handleToggleExpand]
+  );
+
+  // Undo last expansion in the breadcrumb trail
+  const handleBack = useCallback(() => {
+    if (expansionPath.length === 0) return;
+    const lastNodeId = expansionPath[expansionPath.length - 1];
+    handleToggleExpand(lastNodeId, false); // Collapse without re-adding to path
+  }, [expansionPath, handleToggleExpand]);
+
+  // Collapse all — reset everything
+  const handleCollapseAll = useCallback(() => {
+    setExpandedNodes(new Map());
+    setFkEdges([]);
+    setExpansionPath([]);
+  }, []);
+
+  // View sample data for a node
+  const handleViewData = useCallback((nodeId: string) => {
+    setSampleNodeId(nodeId);
+    setDrawerNode(null); // Close system drawer if open
+  }, []);
+
+  // Inject expand/collapse state + callbacks into node data, then relayout
+  const graphWithExpansion = useMemo(() => {
+    if (rawNodes.length === 0) return { nodes: rawNodes, edges: rawEdges };
+
+    // Build expanded size map for relayout with scalar/relation counts
+    const expandedSizes = new Map<string, ExpandedNodeInfo>();
+    Array.from(expandedNodes.entries()).forEach(([nodeId, model]) => {
+      const scalarCount = model.fields.filter(f => !f.isRelation).length;
+      const relationCount = model.fields.filter(f => f.isRelation).length;
+      expandedSizes.set(nodeId, { scalarCount, relationCount });
+    });
+
+    // Relayout with variable sizes
+    const relaidNodes = expandedSizes.size > 0 ? relayoutGraph(rawNodes, rawEdges, expandedSizes) : rawNodes;
+
+    // Inject expand state + callbacks into node data
+    const enrichedNodes = relaidNodes.map(n => {
+      const isLabel = (n.data as Record<string, unknown>).isLabel;
+      if (isLabel) return n;
+
+      const model = expandedNodes.get(n.id);
+      const isExpanded = !!model;
+
+      return {
+        ...n,
+        // When expanded, widen the node style
+        style: isExpanded ? { ...n.style, width: EXPANDED_NODE_WIDTH } : n.style,
+        data: {
+          ...n.data,
+          nodeId: n.id,
+          expanded: isExpanded,
+          fields: model?.fields,
+          modelName: model?.name,
+          onToggle: () => handleToggleExpand(n.id),
+          onFieldClick: handleFieldClick,
+          onViewData: handleViewData
+        }
+      };
+    });
+
+    // Build FK relationship edges (dashed, magenta)
+    const FK_COLOR = '#eb2f96';
+    const dynamicEdges: Edge[] = fkEdges.map(fk => ({
+      id: `fk-${fk.sourceNodeId}-${fk.targetNodeId}-${fk.fieldName}`,
+      source: fk.sourceNodeId,
+      target: fk.targetNodeId,
+      animated: true,
+      style: { stroke: FK_COLOR, strokeWidth: 2, strokeDasharray: '6 3' },
+      markerEnd: { type: MarkerType.ArrowClosed, color: FK_COLOR },
+      label: fk.fieldName,
+      labelStyle: { fontSize: 9, fill: FK_COLOR, fontFamily: 'SF Mono, Menlo, monospace' },
+      labelBgStyle: { fill: 'white', fillOpacity: 0.85 },
+      labelBgPadding: [4, 2] as [number, number]
+    }));
+
+    return { nodes: enrichedNodes, edges: [...rawEdges, ...dynamicEdges] };
+  }, [rawNodes, rawEdges, expandedNodes, fkEdges, handleToggleExpand, handleFieldClick, handleViewData]);
+
+  // Apply path highlighting on top of expansion state
   const highlightedGraph = useMemo(() => {
+    const { nodes: baseNodes, edges: baseEdges } = graphWithExpansion;
+
     if (!selectedNodeId) {
-      return { nodes: rawNodes, edges: rawEdges };
+      return { nodes: baseNodes, edges: baseEdges };
     }
 
-    const connectedNodes = getConnectedPath(selectedNodeId, rawEdges);
-    const connectedEdgeIds = getConnectedEdges(connectedNodes, rawEdges);
+    const connectedNodes = getConnectedPath(selectedNodeId, baseEdges);
+    const connectedEdgeIds = getConnectedEdges(connectedNodes, baseEdges);
 
-    const dimmedNodes = rawNodes.map(n => {
+    const dimmedNodes = baseNodes.map(n => {
       const isLabel = (n.data as Record<string, unknown>).isLabel;
       if (isLabel) return n;
       const isConnected = connectedNodes.has(n.id);
       return { ...n, data: { ...n.data, dimmed: !isConnected } };
     });
 
-    const dimmedEdges = rawEdges.map(e => {
+    const dimmedEdges = baseEdges.map(e => {
       const isConnected = connectedEdgeIds.has(e.id);
       return {
         ...e,
@@ -529,18 +769,30 @@ export function SystemGraph() {
     });
 
     return { nodes: dimmedNodes, edges: dimmedEdges };
-  }, [selectedNodeId, rawNodes, rawEdges]);
+  }, [selectedNodeId, graphWithExpansion]);
 
   useEffect(() => {
     setNodes(highlightedGraph.nodes);
     setEdges(highlightedGraph.edges);
   }, [highlightedGraph]);
 
+  // Fit view after expansion changes
+  useEffect(() => {
+    if (flowRef.current && expandedNodes.size >= 0) {
+      // Small delay to let ReactFlow update node dimensions
+      const timer = setTimeout(() => {
+        flowRef.current?.fitView({ padding: 0.3, duration: 300 });
+      }, 50);
+      return () => clearTimeout(timer);
+    }
+  }, [expandedNodes]);
+
   const handleNodeClick = useCallback(
     (_: React.MouseEvent, node: Node) => {
       const isLabel = (node.data as Record<string, unknown>).isLabel;
       if (isLabel) return;
 
+      setSampleNodeId(null); // Close sample drawer on node click
       if (selectedNodeId === node.id) {
         setSelectedNodeId(null);
         setDrawerNode(null);
@@ -562,6 +814,10 @@ export function SystemGraph() {
     setSelectedNodeId(null);
   }, []);
 
+  const handleInit = useCallback((instance: ReactFlowInstance) => {
+    flowRef.current = instance;
+  }, []);
+
   if (isLoading || !stats) {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 'calc(100vh - 160px)' }}>
@@ -580,6 +836,7 @@ export function SystemGraph() {
         onEdgesChange={onEdgesChange}
         onNodeClick={handleNodeClick}
         onPaneClick={handlePaneClick}
+        onInit={handleInit}
         fitView
         fitViewOptions={{ padding: 0.3 }}
       >
@@ -587,6 +844,81 @@ export function SystemGraph() {
         <Controls />
         <MiniMap />
       </ReactFlow>
+
+      {/* Zoom level indicator + breadcrumb */}
+      {(expandedNodes.size > 0 || fkEdges.length > 0) && (
+        <div
+          style={{
+            position: 'absolute',
+            top: 10,
+            left: 10,
+            background: 'rgba(255,255,255,0.95)',
+            border: '1px solid #d9d9d9',
+            borderRadius: 6,
+            padding: '6px 12px',
+            fontSize: 11,
+            color: '#666',
+            zIndex: 5,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 6,
+            maxWidth: 360
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ fontWeight: 600 }}>Schema Explorer</span>
+            <Tag color='blue' style={{ margin: 0, fontSize: 10 }}>
+              {expandedNodes.size} expanded
+            </Tag>
+            {fkEdges.length > 0 && (
+              <Tag color='magenta' style={{ margin: 0, fontSize: 10 }}>
+                {fkEdges.length} FK{fkEdges.length > 1 ? 's' : ''}
+              </Tag>
+            )}
+            <div style={{ flex: 1 }} />
+            {expansionPath.length > 0 && (
+              <Button
+                type='link'
+                size='small'
+                style={{ padding: 0, fontSize: 11, height: 'auto' }}
+                onClick={handleBack}
+              >
+                Back
+              </Button>
+            )}
+            <Button
+              type='link'
+              size='small'
+              style={{ padding: 0, fontSize: 11, height: 'auto' }}
+              onClick={handleCollapseAll}
+            >
+              Reset
+            </Button>
+          </div>
+          {/* Breadcrumb trail */}
+          {expansionPath.length > 0 && (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 2, alignItems: 'center' }}>
+              {expansionPath.map((nodeId, i) => {
+                const model = expandedNodes.get(nodeId);
+                const label = model?.name ?? nodeId;
+                return (
+                  <span key={nodeId} style={{ display: 'inline-flex', alignItems: 'center', gap: 2 }}>
+                    {i > 0 && <span style={{ color: '#ccc', fontSize: 10 }}>{'\u2192'}</span>}
+                    <Tag
+                      color='processing'
+                      style={{ margin: 0, fontSize: 10, cursor: 'pointer', lineHeight: '16px' }}
+                      onClick={() => handleToggleExpand(nodeId)}
+                    >
+                      {label}
+                    </Tag>
+                  </span>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
       <Drawer
         open={!!drawerNode}
         onClose={handleDrawerClose}
@@ -594,6 +926,24 @@ export function SystemGraph() {
         title={(drawerNode?.data as Record<string, unknown> | undefined)?.label as string}
       >
         {drawerNode && <DrawerContent node={drawerNode} stats={stats} />}
+      </Drawer>
+
+      <Drawer
+        open={!!sampleNodeId}
+        onClose={() => setSampleNodeId(null)}
+        width={560}
+        title={
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span>Sample Data</span>
+            {sampleNodeId && (
+              <Tag color='blue' style={{ margin: 0 }}>
+                {expandedNodes.get(sampleNodeId)?.name ?? sampleNodeId}
+              </Tag>
+            )}
+          </div>
+        }
+      >
+        {sampleNodeId && <SampleDataContent nodeId={sampleNodeId} />}
       </Drawer>
     </div>
   );
