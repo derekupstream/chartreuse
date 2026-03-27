@@ -393,17 +393,38 @@ export const getServerSideProps: GetServerSideProps = async context => {
   try {
     rawFunctions = scanCalculatorFunctions();
   } catch {
-    // source files may not be accessible in all deployment environments
+    // source files may not be accessible in serverless environments (e.g. Vercel)
   }
-  const functions = rawFunctions.map(fn => {
-    const lineageEntry = LINEAGE_MAP.find(entry => entry.calculatorFunction.startsWith(fn.name));
-    return {
-      ...fn,
-      outputMetrics: lineageEntry?.outputMetrics ?? [],
-      metricCategory: lineageEntry?.metricCategory ?? null,
-      lineageFile: lineageEntry?.calculatorFile ?? null
-    };
-  });
+
+  let functions: CalcFunction[];
+  if (rawFunctions.length > 0) {
+    functions = rawFunctions.map(fn => {
+      const lineageEntry = LINEAGE_MAP.find(entry => entry.calculatorFunction.startsWith(fn.name));
+      return {
+        ...fn,
+        outputMetrics: lineageEntry?.outputMetrics ?? [],
+        metricCategory: lineageEntry?.metricCategory ?? null,
+        lineageFile: lineageEntry?.calculatorFile ?? null
+      };
+    });
+  } else {
+    // Fallback: derive functions from LINEAGE_MAP when source files aren't on disk
+    const seen = new Set<string>();
+    functions = LINEAGE_MAP.reduce<CalcFunction[]>((acc, entry) => {
+      const name = entry.calculatorFunction.replace(/\(\)$/, '');
+      if (!seen.has(name)) {
+        seen.add(name);
+        acc.push({
+          name,
+          filePath: entry.calculatorFile,
+          outputMetrics: entry.outputMetrics,
+          metricCategory: entry.metricCategory,
+          lineageFile: entry.calculatorFile
+        });
+      }
+      return acc;
+    }, []);
+  }
 
   return {
     props: serializeJSON({ user, functions, scannedAt: new Date().toISOString() })

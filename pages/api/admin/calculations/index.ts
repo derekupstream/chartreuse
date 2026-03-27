@@ -13,19 +13,46 @@ export default handlerWithUser().get(async (req: NextApiRequestWithUser, res: Ne
   try {
     rawFunctions = scanCalculatorFunctions();
   } catch {
-    // source files may not be accessible in all deployment environments
+    // source files may not be accessible in serverless environments (e.g. Vercel)
   }
 
-  // Enrich with lineage data where available
-  const enriched = rawFunctions.map(fn => {
-    const lineageEntry = LINEAGE_MAP.find(entry => entry.calculatorFunction.startsWith(fn.name));
-    return {
-      ...fn,
-      outputMetrics: lineageEntry?.outputMetrics ?? [],
-      metricCategory: lineageEntry?.metricCategory ?? null,
-      lineageFile: lineageEntry?.calculatorFile ?? null
-    };
-  });
+  let enriched;
+  if (rawFunctions.length > 0) {
+    enriched = rawFunctions.map(fn => {
+      const lineageEntry = LINEAGE_MAP.find(entry => entry.calculatorFunction.startsWith(fn.name));
+      return {
+        ...fn,
+        outputMetrics: lineageEntry?.outputMetrics ?? [],
+        metricCategory: lineageEntry?.metricCategory ?? null,
+        lineageFile: lineageEntry?.calculatorFile ?? null
+      };
+    });
+  } else {
+    // Fallback: derive functions from LINEAGE_MAP when source files aren't on disk
+    const seen = new Set<string>();
+    enriched = LINEAGE_MAP.reduce<
+      Array<{
+        name: string;
+        filePath: string;
+        outputMetrics: string[];
+        metricCategory: string | null;
+        lineageFile: string | null;
+      }>
+    >((acc, entry) => {
+      const name = entry.calculatorFunction.replace(/\(\)$/, '');
+      if (!seen.has(name)) {
+        seen.add(name);
+        acc.push({
+          name,
+          filePath: entry.calculatorFile,
+          outputMetrics: entry.outputMetrics,
+          metricCategory: entry.metricCategory,
+          lineageFile: entry.calculatorFile
+        });
+      }
+      return acc;
+    }, []);
+  }
 
   res.json({ functions: enriched, scannedAt: new Date().toISOString(), total: enriched.length });
 });
