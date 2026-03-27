@@ -6,6 +6,7 @@ import { useState } from 'react';
 
 import type { DashboardUser } from 'interfaces';
 import { AdminLayout } from 'layouts/AdminLayout';
+import { CALCULATOR_REGISTRY } from 'lib/admin/calculatorRegistry';
 import { scanCalculatorFunctions } from 'lib/admin/calculatorScan';
 import { LINEAGE_MAP } from 'lib/admin/lineageMap';
 import { getUserFromContext } from 'lib/middleware';
@@ -408,22 +409,14 @@ export const getServerSideProps: GetServerSideProps = async context => {
       };
     });
   } else {
-    // Fallback: derive functions from LINEAGE_MAP when source files aren't on disk
-    const seen = new Set<string>();
-    functions = LINEAGE_MAP.reduce<CalcFunction[]>((acc, entry) => {
-      const name = entry.calculatorFunction.replace(/\(\)$/, '');
-      if (!seen.has(name)) {
-        seen.add(name);
-        acc.push({
-          name,
-          filePath: entry.calculatorFile,
-          outputMetrics: entry.outputMetrics,
-          metricCategory: entry.metricCategory,
-          lineageFile: entry.calculatorFile
-        });
-      }
-      return acc;
-    }, []);
+    // Fallback: use static registry when source files aren't on disk (e.g. Vercel)
+    functions = CALCULATOR_REGISTRY.map(fn => ({
+      name: fn.name,
+      filePath: fn.filePath,
+      outputMetrics: fn.outputMetrics,
+      metricCategory: fn.metricCategory,
+      lineageFile: fn.filePath
+    }));
   }
 
   return {

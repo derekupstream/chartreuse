@@ -2,6 +2,7 @@ import type { NextApiResponse } from 'next';
 import { handlerWithUser } from 'lib/middleware/handler';
 import { checkIsUpstream } from 'lib/middleware/requireUpstream';
 import type { NextApiRequestWithUser } from 'lib/middleware/getUser';
+import { CALCULATOR_REGISTRY } from 'lib/admin/calculatorRegistry';
 import { scanCalculatorFunctions } from 'lib/admin/calculatorScan';
 import { LINEAGE_MAP } from 'lib/admin/lineageMap';
 
@@ -28,30 +29,14 @@ export default handlerWithUser().get(async (req: NextApiRequestWithUser, res: Ne
       };
     });
   } else {
-    // Fallback: derive functions from LINEAGE_MAP when source files aren't on disk
-    const seen = new Set<string>();
-    enriched = LINEAGE_MAP.reduce<
-      Array<{
-        name: string;
-        filePath: string;
-        outputMetrics: string[];
-        metricCategory: string | null;
-        lineageFile: string | null;
-      }>
-    >((acc, entry) => {
-      const name = entry.calculatorFunction.replace(/\(\)$/, '');
-      if (!seen.has(name)) {
-        seen.add(name);
-        acc.push({
-          name,
-          filePath: entry.calculatorFile,
-          outputMetrics: entry.outputMetrics,
-          metricCategory: entry.metricCategory,
-          lineageFile: entry.calculatorFile
-        });
-      }
-      return acc;
-    }, []);
+    // Fallback: use static registry when source files aren't on disk (e.g. Vercel)
+    enriched = CALCULATOR_REGISTRY.map(fn => ({
+      name: fn.name,
+      filePath: fn.filePath,
+      outputMetrics: fn.outputMetrics,
+      metricCategory: fn.metricCategory,
+      lineageFile: fn.filePath
+    }));
   }
 
   res.json({ functions: enriched, scannedAt: new Date().toISOString(), total: enriched.length });
