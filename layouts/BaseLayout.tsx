@@ -59,6 +59,10 @@ const adminLinks: MenuProps['items'] = [
   { key: 'data-science/data-map', label: <Link href='/admin/data-science/data-map'>Data Map</Link> },
   { key: 'data-science/lineage', label: <Link href='/admin/data-science/lineage'>Data Lineage</Link> },
   { key: 'data-science/calculations', label: <Link href='/admin/data-science/calculations'>Calculations</Link> },
+  {
+    key: 'data-science/data-products',
+    label: <Link href='/admin/data-science/data-products'>Data Products</Link>
+  },
   { key: 'data-science/import', label: <Link href='/admin/data-science/import'>Import Data</Link> },
   { key: 'data-science/pipeline', label: <Link href='/admin/data-science/pipeline'>Pipeline</Link> },
   { key: 'data-science/snapshots', label: <Link href='/admin/data-science/snapshots'>Snapshots</Link> },

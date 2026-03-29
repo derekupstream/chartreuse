@@ -45,6 +45,7 @@ const DATA_SCIENCE_KEYS = [
   'data-science/change-requests',
   'data-science/calculations',
   'data-science/import',
+  'data-science/data-products',
   'data-science/pipeline',
   'data-science/snapshots',
   'data-science/runs',
@@ -79,6 +80,10 @@ const siderMenuItems = [
       {
         key: 'data-science/calculations',
         label: <Link href='/admin/data-science/calculations'>Calculations</Link>
+      },
+      {
+        key: 'data-science/data-products',
+        label: <Link href='/admin/data-science/data-products'>Data Products</Link>
       },
       { key: 'data-science/test-runs', label: <Link href='/admin/data-science/test-runs'>Test Runs</Link> },
       { key: 'admin/methodology', label: <Link href='/admin/methodology'>Methodology</Link> },
