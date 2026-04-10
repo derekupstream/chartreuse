@@ -1,4 +1,5 @@
-import { Form, Input, Select, Typography } from 'antd';
+import { EditOutlined } from '@ant-design/icons';
+import { Button, Form, Input, Select, Typography } from 'antd';
 import type { Node } from 'reactflow';
 
 import type { RegisteredFunction } from 'lib/admin/calculatorRegistry';
@@ -103,56 +104,116 @@ export function DesignerPropertiesPanel({ selectedNode, factors, calculations, o
 
           {/* Factor-specific: factor picker */}
           {data.nodeType === 'factor' && (
-            <Form.Item label='Factor'>
-              <Select
-                showSearch
-                value={data.factorId}
-                onChange={v => {
-                  const f = factors.find(f => f.id === v);
-                  onNodeUpdate(selectedNode.id, {
-                    factorId: v,
-                    factorName: f?.name,
-                    subtitle: f ? `${f.name} (${f.currentValue} ${f.unit})` : undefined
-                  });
-                }}
-                options={factors.map(f => ({
-                  value: f.id,
-                  label: `${f.name} — ${f.currentValue} ${f.unit}${f.category ? ` (${f.category.name})` : ''}`
-                }))}
-                placeholder='Search factors...'
-                filterOption={(input, option) =>
-                  (option?.label as string)?.toLowerCase().includes(input.toLowerCase()) ?? false
-                }
-                allowClear
-              />
-            </Form.Item>
+            <>
+              <Form.Item label='Factor'>
+                <Select
+                  showSearch
+                  value={data.factorId}
+                  onChange={v => {
+                    const f = factors.find(f => f.id === v);
+                    onNodeUpdate(selectedNode.id, {
+                      factorId: v,
+                      factorName: f?.name,
+                      subtitle: f ? `${f.name} (${f.currentValue} ${f.unit})` : undefined
+                    });
+                  }}
+                  options={factors.map(f => ({
+                    value: f.id,
+                    label: `${f.name} — ${f.currentValue} ${f.unit}${f.category ? ` (${f.category.name})` : ''}`
+                  }))}
+                  placeholder='Search factors...'
+                  filterOption={(input, option) =>
+                    (option?.label as string)?.toLowerCase().includes(input.toLowerCase()) ?? false
+                  }
+                  allowClear
+                />
+              </Form.Item>
+              {data.factorId ? (
+                <Button
+                  type='primary'
+                  icon={<EditOutlined />}
+                  size='small'
+                  block
+                  style={{ marginBottom: 16 }}
+                  onClick={() => window.open(`/admin/data-science/constants/${data.factorId}/edit`, '_blank')}
+                >
+                  Edit Factor
+                </Button>
+              ) : (
+                <Button
+                  type='primary'
+                  icon={<EditOutlined />}
+                  size='small'
+                  block
+                  style={{ marginBottom: 16 }}
+                  onClick={() => {
+                    // Extract a useful search term from the factorName pattern
+                    // e.g. "MATERIALS[*].waterUsageGalPerLb" → "waterUsageGalPerLb"
+                    // e.g. "TRANSPORTATION_CO2_EMISSIONS_FACTOR" → "TRANSPORTATION_CO2_EMISSIONS_FACTOR"
+                    const raw = data.factorName || data.label || '';
+                    const dotIdx = raw.lastIndexOf('.');
+                    const search = dotIdx >= 0 ? raw.substring(dotIdx + 1) : raw;
+                    window.open(
+                      `/admin/data-science/constants${search ? `?factor=${encodeURIComponent(search)}` : ''}`,
+                      '_blank'
+                    );
+                  }}
+                >
+                  View / Edit Factor
+                </Button>
+              )}
+            </>
           )}
 
           {/* Calculation-specific: calculation picker */}
           {data.nodeType === 'calculation' && (
-            <Form.Item label='Calculation'>
-              <Select
-                showSearch
-                value={data.calculationName}
-                onChange={v => {
-                  const c = calculations.find(c => c.name === v);
-                  onNodeUpdate(selectedNode.id, {
-                    calculationName: v,
-                    calculationFile: c?.filePath,
-                    subtitle: c ? `${c.name}() → ${c.outputMetrics.length} metrics` : undefined
-                  });
-                }}
-                options={calculations.map(c => ({
-                  value: c.name,
-                  label: `${c.name}() — ${c.outputMetrics.slice(0, 2).join(', ')}${c.outputMetrics.length > 2 ? '...' : ''}`
-                }))}
-                placeholder='Search calculations...'
-                filterOption={(input, option) =>
-                  (option?.label as string)?.toLowerCase().includes(input.toLowerCase()) ?? false
+            <>
+              <Form.Item label='Calculation'>
+                <Select
+                  showSearch
+                  value={data.calculationName}
+                  onChange={v => {
+                    const c = calculations.find(c => c.name === v);
+                    onNodeUpdate(selectedNode.id, {
+                      calculationName: v,
+                      calculationFile: c?.filePath,
+                      subtitle: c ? `${c.name}() → ${c.outputMetrics.length} metrics` : undefined
+                    });
+                  }}
+                  options={calculations.map(c => ({
+                    value: c.name,
+                    label: `${c.name}() — ${c.outputMetrics.slice(0, 2).join(', ')}${c.outputMetrics.length > 2 ? '...' : ''}`
+                  }))}
+                  placeholder='Search calculations...'
+                  filterOption={(input, option) =>
+                    (option?.label as string)?.toLowerCase().includes(input.toLowerCase()) ?? false
+                  }
+                  allowClear
+                />
+              </Form.Item>
+              {data.calculationFile && (
+                <div style={{ marginBottom: 8 }}>
+                  <Text type='secondary' style={{ fontSize: 10, fontFamily: 'monospace', wordBreak: 'break-all' }}>
+                    {data.calculationFile}
+                  </Text>
+                </div>
+              )}
+              <Button
+                type='primary'
+                icon={<EditOutlined />}
+                size='small'
+                block
+                style={{ marginBottom: 16 }}
+                onClick={() =>
+                  window.open(
+                    `/admin/data-science/calculations${data.calculationName ? `?fn=${encodeURIComponent(data.calculationName)}` : ''}`,
+                    '_blank'
+                  )
                 }
-                allowClear
-              />
-            </Form.Item>
+              >
+                {data.calculationName ? `View ${data.calculationName}()` : 'Browse Calculations'}
+              </Button>
+            </>
           )}
 
           {/* Output-specific: metric key + unit */}

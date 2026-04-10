@@ -6,6 +6,7 @@ import {
   MergeCellsOutlined,
   SwapOutlined
 } from '@ant-design/icons';
+import { Tooltip } from 'antd';
 import { memo } from 'react';
 import { Handle, Position } from 'reactflow';
 
@@ -35,6 +36,10 @@ export type DesignerNodeData = {
   config?: Record<string, unknown>;
   dimmed?: boolean;
   selected?: boolean;
+  // AI Designer "data gap" flag — set when a node depends on a missing factor,
+  // calculation, or data source and is therefore using an estimated value.
+  hasGap?: boolean;
+  gapReason?: string;
 };
 
 const handleStyle = (color: string, dimmed: boolean): React.CSSProperties => ({
@@ -54,16 +59,46 @@ function DesignerNodeComponent({ data }: { data: DesignerNodeData }) {
   return (
     <div
       style={{
+        position: 'relative',
         width: 200,
         background: data.dimmed ? '#fafafa' : typeDef.color,
         border: `2px solid ${data.dimmed ? '#d9d9d9' : typeDef.borderColor}`,
         borderRadius: 8,
         opacity: data.dimmed ? 0.4 : 1,
         transition: 'opacity 0.2s, border-color 0.2s',
-        overflow: 'hidden',
+        overflow: 'visible',
         fontSize: 12
       }}
     >
+      {/* Data Gap badge — red dot in top-right for nodes using estimated/missing data */}
+      {data.hasGap && !data.dimmed && (
+        <Tooltip
+          title={
+            <div style={{ fontSize: 11 }}>
+              <div style={{ fontWeight: 600, marginBottom: 2 }}>Data gap — uses estimated value</div>
+              {data.gapReason && <div style={{ opacity: 0.9 }}>{data.gapReason}</div>}
+            </div>
+          }
+          placement='top'
+        >
+          <div
+            style={{
+              position: 'absolute',
+              top: -6,
+              right: -6,
+              width: 14,
+              height: 14,
+              borderRadius: '50%',
+              background: '#ff4d4f',
+              border: '2px solid #fff',
+              boxShadow: '0 0 0 1px rgba(255,77,79,0.4), 0 2px 4px rgba(0,0,0,0.15)',
+              zIndex: 10,
+              cursor: 'help'
+            }}
+          />
+        </Tooltip>
+      )}
+
       {/* Input handle (left) — hidden on Input nodes since they are flow sources */}
       {data.nodeType !== 'input' && (
         <Handle type='target' position={Position.Left} style={handleStyle(typeDef.borderColor, !!data.dimmed)} />
@@ -79,7 +114,9 @@ function DesignerNodeComponent({ data }: { data: DesignerNodeData }) {
           alignItems: 'center',
           gap: 6,
           fontSize: 11,
-          fontWeight: 600
+          fontWeight: 600,
+          borderTopLeftRadius: 6,
+          borderTopRightRadius: 6
         }}
       >
         {icon}

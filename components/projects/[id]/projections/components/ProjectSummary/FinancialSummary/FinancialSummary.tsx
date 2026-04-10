@@ -2,6 +2,7 @@ import { Row, Col, Typography } from 'antd';
 import styled from 'styled-components';
 
 import { InfoIcon } from 'components/common/InfoIcon';
+import { InspectTooltip } from 'components/common/InspectMode';
 import type { ProjectionsResponse } from 'lib/calculator/getProjections';
 import { formatToDollar } from 'lib/calculator/utils';
 
@@ -85,9 +86,22 @@ const FinancialSummary: React.FC<Props> = ({ data: financialResults, businessSiz
             <MobileCard>
               <Text strong>Savings</Text>
               <Title>Annual total</Title>
-              <Value color={financialResults.summary.annualCost < 0 ? 'green' : 'black'}>
-                {formatToDollar(financialResults.summary.annualCost * -1, currencyAbbreviation)}
-              </Value>
+              <InspectTooltip
+                meta={{
+                  id: 'fin-annual-savings',
+                  label: 'Annual Cost Savings',
+                  type: 'calculation',
+                  path: 'financialResults.summary.annualCost',
+                  description:
+                    'Total annual cost change: single-use savings minus new recurring costs (labor, utilities, restocking, waste hauling)',
+                  calculatorFunction: 'getAnnualCostChanges()',
+                  sourceFile: 'lib/calculator/calculations/costs/getAnnualCostChanges.ts'
+                }}
+              >
+                <Value color={financialResults.summary.annualCost < 0 ? 'green' : 'black'}>
+                  {formatToDollar(financialResults.summary.annualCost * -1, currencyAbbreviation)}
+                </Value>
+              </InspectTooltip>
 
               <Title>
                 Annual program ROI{' '}
@@ -99,35 +113,74 @@ const FinancialSummary: React.FC<Props> = ({ data: financialResults, businessSiz
                   </InfoIcon>
                 )}
               </Title>
-              <Value>{financialResults.summary.annualROIPercent}%</Value>
+              <InspectTooltip
+                meta={{
+                  id: 'fin-annual-roi',
+                  label: 'Annual Program ROI',
+                  type: 'calculation',
+                  path: 'financialResults.summary.annualROIPercent',
+                  description: 'Annual net savings / one-time startup costs × 100',
+                  calculatorFunction: 'getFinancialSummary()',
+                  sourceFile: 'lib/calculator/calculations/costs/getFinancialSummary.ts'
+                }}
+              >
+                <Value>{financialResults.summary.annualROIPercent}%</Value>
+              </InspectTooltip>
 
               <hr />
 
-              <FooterData
-                title='Single-use purchasing'
-                icon={
-                  showTooltips && (
-                    <InfoIcon>
-                      Considers a full “place setting” worth of foodware items per customer, including foodware
-                      accessories
-                    </InfoIcon>
-                  )
-                }
-                value={formatToDollar(financialResults.annualCostChanges.singleUseProductChange, currencyAbbreviation)}
-              />
-              <FooterData
-                title='Waste hauling'
-                icon={
-                  showTooltips && (
-                    <InfoIcon maxWidth={450}>
-                      <ul style={{ paddingLeft: '1em', margin: 0 }}>
-                        <li>Assumes $22/cubic yard.</li>
-                      </ul>
-                    </InfoIcon>
-                  )
-                }
-                value={formatToDollar(financialResults.annualCostChanges.wasteHauling, currencyAbbreviation)}
-              />
+              <InspectTooltip
+                meta={{
+                  id: 'fin-single-use-purchasing',
+                  label: 'Single-Use Purchasing Cost',
+                  type: 'calculation',
+                  path: 'financialResults.annualCostChanges.singleUseProductChange',
+                  description: 'Annual cost of single-use products (baseline minus forecast)',
+                  calculatorFunction: 'getSingleUseResults()',
+                  sourceFile: 'lib/calculator/calculations/foodware/getSingleUseResults.ts'
+                }}
+              >
+                <FooterData
+                  title='Single-use purchasing'
+                  icon={
+                    showTooltips && (
+                      <InfoIcon>
+                        Considers a full “place setting” worth of foodware items per customer, including foodware
+                        accessories
+                      </InfoIcon>
+                    )
+                  }
+                  value={formatToDollar(
+                    financialResults.annualCostChanges.singleUseProductChange,
+                    currencyAbbreviation
+                  )}
+                />
+              </InspectTooltip>
+              <InspectTooltip
+                meta={{
+                  id: 'fin-waste-hauling-savings',
+                  label: 'Waste Hauling Savings',
+                  type: 'calculation',
+                  path: 'financialResults.annualCostChanges.wasteHauling',
+                  description: 'Cost change in waste hauling based on reduced waste volume',
+                  calculatorFunction: 'getWasteHaulingCost()',
+                  sourceFile: 'lib/calculator/calculations/costs/getWasteHaulingCost.ts'
+                }}
+              >
+                <FooterData
+                  title='Waste hauling'
+                  icon={
+                    showTooltips && (
+                      <InfoIcon maxWidth={450}>
+                        <ul style={{ paddingLeft: '1em', margin: 0 }}>
+                          <li>Assumes $22/cubic yard.</li>
+                        </ul>
+                      </InfoIcon>
+                    )
+                  }
+                  value={formatToDollar(financialResults.annualCostChanges.wasteHauling, currencyAbbreviation)}
+                />
+              </InspectTooltip>
             </MobileCard>
           </Col>
 
@@ -136,22 +189,58 @@ const FinancialSummary: React.FC<Props> = ({ data: financialResults, businessSiz
               <Text strong>One-time expenses</Text>
 
               <Title>Annual total</Title>
-              <Value color='black'>{formatToDollar(financialResults.oneTimeCosts.total, currencyAbbreviation)}</Value>
+              <InspectTooltip
+                meta={{
+                  id: 'fin-onetime-total',
+                  label: 'One-Time Costs Total',
+                  type: 'calculation',
+                  path: 'financialResults.oneTimeCosts.total',
+                  description: 'Reusable product costs + dishwasher + drying racks + bus tubs + installation',
+                  calculatorFunction: 'getOneTimeCosts()',
+                  sourceFile: 'lib/calculator/calculations/costs/getOneTimeCosts.ts'
+                }}
+              >
+                <Value color='black'>{formatToDollar(financialResults.oneTimeCosts.total, currencyAbbreviation)}</Value>
+              </InspectTooltip>
 
               <Title>Payback Period</Title>
-              <Value>
-                {financialResults.summary.paybackPeriodsMonths === 0
-                  ? 'N/A'
-                  : financialResults.summary.paybackPeriodsMonths + '  mos.'}
-              </Value>
+              <InspectTooltip
+                meta={{
+                  id: 'fin-payback-period',
+                  label: 'Payback Period',
+                  type: 'calculation',
+                  path: 'financialResults.summary.paybackPeriodsMonths',
+                  description: 'One-time costs / monthly net savings → months to recoup startup investment',
+                  calculatorFunction: 'getFinancialSummary()',
+                  sourceFile: 'lib/calculator/calculations/costs/getFinancialSummary.ts'
+                }}
+              >
+                <Value>
+                  {financialResults.summary.paybackPeriodsMonths === 0
+                    ? 'N/A'
+                    : financialResults.summary.paybackPeriodsMonths + '  mos.'}
+                </Value>
+              </InspectTooltip>
 
               <hr />
 
-              <FooterData
-                title='Reusables purchasing'
-                icon={showTooltips && <InfoIcon maxWidth={400}>Accounts for a 98% return rate</InfoIcon>}
-                value={formatToDollar(financialResults.oneTimeCosts.reusableProductCosts, currencyAbbreviation)}
-              />
+              <InspectTooltip
+                meta={{
+                  id: 'fin-reusable-purchasing',
+                  label: 'Reusable Purchasing Cost',
+                  type: 'calculation',
+                  path: 'financialResults.oneTimeCosts.reusableProductCosts',
+                  description: 'One-time cost of all reusable items based on configured quantities and prices',
+                  calculatorFunction: 'getReusableResults()',
+                  sourceFile: 'lib/calculator/calculations/foodware/getReusableResults.ts'
+                }}
+              >
+                <FooterData
+                  title='Reusables purchasing'
+                  icon={showTooltips && <InfoIcon maxWidth={400}>Accounts for a 98% return rate</InfoIcon>}
+                  value={formatToDollar(financialResults.oneTimeCosts.reusableProductCosts, currencyAbbreviation)}
+                />
+              </InspectTooltip>
               <FooterData
                 title='Additional expenses'
                 icon={
@@ -176,22 +265,49 @@ const FinancialSummary: React.FC<Props> = ({ data: financialResults, businessSiz
             <MobileCard>
               <Text strong>Recurring expenses</Text>
               <Title>Annual total</Title>
-              <Value color='black'>
-                {formatToDollar(
-                  financialResults.annualCostChanges.change - financialResults.annualCostChanges.singleUseProductChange,
-                  currencyAbbreviation
-                )}
-              </Value>
+              <InspectTooltip
+                meta={{
+                  id: 'fin-recurring-total',
+                  label: 'Recurring Expenses Total',
+                  type: 'calculation',
+                  path: 'financialResults.annualCostChanges.change',
+                  description:
+                    'Annual recurring costs: restocking + labor + dishwashing utilities + waste hauling + other expenses',
+                  calculatorFunction: 'getAnnualCostChanges()',
+                  sourceFile: 'lib/calculator/calculations/costs/getAnnualCostChanges.ts'
+                }}
+              >
+                <Value color='black'>
+                  {formatToDollar(
+                    financialResults.annualCostChanges.change -
+                      financialResults.annualCostChanges.singleUseProductChange,
+                    currencyAbbreviation
+                  )}
+                </Value>
+              </InspectTooltip>
 
               <Title>&nbsp;</Title>
               <Value>&nbsp;</Value>
               <hr />
 
-              <FooterData
-                title='Reusables restocking'
-                icon={showTooltips && <InfoIcon>Accounts for a 98% return rate</InfoIcon>}
-                value={formatToDollar(financialResults.annualCostChanges.reusableProductCosts, currencyAbbreviation)}
-              />
+              <InspectTooltip
+                meta={{
+                  id: 'fin-reusable-restocking',
+                  label: 'Reusable Restocking Cost',
+                  type: 'calculation',
+                  path: 'financialResults.annualCostChanges.reusableProductCosts',
+                  description: 'Annual cost to replace lost/damaged reusables based on return rate',
+                  calculatorFunction: 'getReusableResults()',
+                  sourceFile: 'lib/calculator/calculations/foodware/getReusableResults.ts',
+                  factorName: 'Return rate (shrinkage)'
+                }}
+              >
+                <FooterData
+                  title='Reusables restocking'
+                  icon={showTooltips && <InfoIcon>Accounts for a 98% return rate</InfoIcon>}
+                  value={formatToDollar(financialResults.annualCostChanges.reusableProductCosts, currencyAbbreviation)}
+                />
+              </InspectTooltip>
               <FooterData
                 title='Labor'
                 icon={
@@ -206,24 +322,38 @@ const FinancialSummary: React.FC<Props> = ({ data: financialResults, businessSiz
                 }
                 value={formatToDollar(financialResults.annualCostChanges.laborCosts, currencyAbbreviation)}
               />
-              <FooterData
-                title='Dishwashing'
-                icon={
-                  showTooltips && (
-                    <InfoIcon maxWidth={450}>
-                      <ul style={{ paddingLeft: '1em', margin: 0 }}>
-                        <li>Dishwasher specs: {tooltipVars.dishwashingSpecs}</li>
-                        <li>Utility rates: California</li>
-                        <li>Additional racks/day for reusables: {tooltipVars.dishwashingRacks}</li>
-                        <li>Annual dishwashing energy usage: {tooltipVars.dishwashingEnergyUsage}</li>
-                        <li>Annual dishwashing water usage: {tooltipVars.dishwashingWaterUsage}</li>
-                        <li>Annual dishwashing utility cost: {tooltipVars.dishwashingUtilityCost}</li>
-                      </ul>
-                    </InfoIcon>
-                  )
-                }
-                value={formatToDollar(financialResults.annualCostChanges.utilities, currencyAbbreviation)}
-              />
+              <InspectTooltip
+                meta={{
+                  id: 'fin-dishwashing-utility',
+                  label: 'Dishwashing Utility Cost',
+                  type: 'calculation',
+                  path: 'financialResults.annualCostChanges.utilities',
+                  description:
+                    'Electric + gas + water utility costs from dishwasher operation, based on state utility rates',
+                  calculatorFunction: 'getDishwasherStats()',
+                  sourceFile: 'lib/calculator/calculations/dishwashing/getDishwasherStats.ts',
+                  factorName: 'State utility rates (electric, gas, water)'
+                }}
+              >
+                <FooterData
+                  title='Dishwashing'
+                  icon={
+                    showTooltips && (
+                      <InfoIcon maxWidth={450}>
+                        <ul style={{ paddingLeft: '1em', margin: 0 }}>
+                          <li>Dishwasher specs: {tooltipVars.dishwashingSpecs}</li>
+                          <li>Utility rates: California</li>
+                          <li>Additional racks/day for reusables: {tooltipVars.dishwashingRacks}</li>
+                          <li>Annual dishwashing energy usage: {tooltipVars.dishwashingEnergyUsage}</li>
+                          <li>Annual dishwashing water usage: {tooltipVars.dishwashingWaterUsage}</li>
+                          <li>Annual dishwashing utility cost: {tooltipVars.dishwashingUtilityCost}</li>
+                        </ul>
+                      </InfoIcon>
+                    )
+                  }
+                  value={formatToDollar(financialResults.annualCostChanges.utilities, currencyAbbreviation)}
+                />
+              </InspectTooltip>
               <FooterData
                 title='Waste hauling'
                 value={formatToDollar(financialResults.annualCostChanges.wasteHauling, currencyAbbreviation)}

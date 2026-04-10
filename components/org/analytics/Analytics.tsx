@@ -741,6 +741,15 @@ export function AnalyticsPage({
               bottleAvoided={bottlesSaved}
               foodwareItemsAvoided={foodwareItemsAvoided}
               projectHasData={projectHasData}
+              inspectMeta={{
+                id: 'analytics-single-use-avoided',
+                label: 'Single-Use Items Avoided',
+                type: 'calculation',
+                path: 'annualSummary.singleUseProductCount + bottleStationResults.bottlesSaved',
+                description:
+                  'Sum of foodware items avoided + bottles saved from bottle stations across all filtered projects',
+                calculatorFunction: 'getSingleUseResults() + getBottleStationResults()'
+              }}
             />
           </StyledCol>
         )}
@@ -752,6 +761,15 @@ export function AnalyticsPage({
               isEventProject={false}
               formatter={val => formatToDollar(val, currencyAbbreviation)}
               value={activeSummary.savings}
+              inspectMeta={{
+                id: 'analytics-est-savings',
+                label: 'Estimated Savings (Aggregate)',
+                type: 'calculation',
+                path: 'annualSummary.dollarCost',
+                description: 'Aggregated annual cost savings across all filtered projects',
+                calculatorFunction: 'getAnnualCostChanges()',
+                sourceFile: 'lib/calculator/calculations/costs/getAnnualCostChanges.ts'
+              }}
             />
           </StyledCol>
         )}
@@ -763,6 +781,15 @@ export function AnalyticsPage({
               projectHasData={projectHasData}
               units='units'
               value={activeSummary.singleUse}
+              inspectMeta={{
+                id: 'analytics-single-use-reduction',
+                label: 'Single-Use Reduction (Aggregate)',
+                type: 'calculation',
+                path: 'annualSummary.singleUseProductCount',
+                description: 'Aggregated single-use unit count reduction across all filtered projects',
+                calculatorFunction: 'getSingleUseResults()',
+                sourceFile: 'lib/calculator/calculations/foodware/getSingleUseResults.ts'
+              }}
             />
           </StyledCol>
         )}
@@ -776,6 +803,15 @@ export function AnalyticsPage({
               Math.round(valueInPounds(val, { displayAsMetric, displayAsTons: false })).toLocaleString()
             }
             value={activeSummary.waste}
+            inspectMeta={{
+              id: 'analytics-waste',
+              label: 'Waste Reduction (Aggregate)',
+              type: 'calculation',
+              path: 'annualSummary.wasteWeight',
+              description: 'Aggregated waste weight reduction across all filtered projects',
+              calculatorFunction: 'getAnnualWasteChanges()',
+              sourceFile: 'lib/calculator/calculations/waste/getAnnualWasteChanges.ts'
+            }}
           />
         </StyledCol>
         <StyledCol xs={24} md={12}>
@@ -786,6 +822,15 @@ export function AnalyticsPage({
             units='MTC02e'
             value={activeSummary.gas}
             reverseChangePercent={projectCategory === 'event'}
+            inspectMeta={{
+              id: 'analytics-ghg',
+              label: 'GHG Reduction (Aggregate)',
+              type: 'calculation',
+              path: 'annualSummary.greenhouseGasEmissions.total',
+              description: 'Aggregated GHG emission reduction across all filtered projects',
+              calculatorFunction: 'getAnnualGasEmissionChanges()',
+              sourceFile: 'lib/calculator/calculations/ghg/getAnnualGasEmissionChanges.ts'
+            }}
           />
         </StyledCol>
         {projectCategory === 'event' && (
@@ -806,6 +851,15 @@ export function AnalyticsPage({
                 value={activeSummary.water}
                 formatter={val => Math.round(valueInGallons(val, { displayAsMetric })).toLocaleString()}
                 reverseChangePercent={projectCategory === 'event'}
+                inspectMeta={{
+                  id: 'analytics-water',
+                  label: 'Water Usage (Aggregate)',
+                  type: 'calculation',
+                  path: 'annualSummary.waterUsage',
+                  description: 'Aggregated water usage change across all filtered projects',
+                  calculatorFunction: 'getAnnualWaterUsageChanges()',
+                  sourceFile: 'lib/calculator/calculations/water/getAnnualWaterUsageChanges.ts'
+                }}
               />
             </StyledCol>
           </>

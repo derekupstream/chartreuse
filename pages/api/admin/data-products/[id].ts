@@ -32,6 +32,7 @@ export default handlerWithUser()
       inputSchemaJson,
       outputSchemaJson,
       flowDefinitionJson,
+      executionCode,
       methodologyDocumentId,
       isPublic
     } = req.body;
@@ -48,6 +49,7 @@ export default handlerWithUser()
         ...(inputSchemaJson !== undefined && { inputSchemaJson }),
         ...(outputSchemaJson !== undefined && { outputSchemaJson }),
         ...(flowDefinitionJson !== undefined && { flowDefinitionJson }),
+        ...(executionCode !== undefined && { executionCode }),
         ...(methodologyDocumentId !== undefined && { methodologyDocumentId }),
         ...(isPublic !== undefined && { isPublic }),
         updatedByUserId: req.user.id

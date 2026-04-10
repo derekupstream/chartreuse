@@ -3,6 +3,7 @@ import React from 'react';
 import styled from 'styled-components';
 
 import { useMetricSystem } from 'components/_app/MetricSystemProvider';
+import { InspectTooltip } from 'components/common/InspectMode';
 import type { ProjectionsResponse } from 'lib/calculator/getProjections';
 import { changeValue, formattedValueInPounds, valueInPounds, changeValueInPounds } from 'lib/number';
 
@@ -64,64 +65,113 @@ export const ProjectImpacts: React.FC<Props> = ({ data, showTitle }) => {
       )}
       <Row gutter={[30, 24]}>
         <StyledCol xs={24} lg={12}>
-          <Card
-            title='Your estimated annual savings'
-            changePercent={data.dollarCost.changePercent * -1}
-            changeStr={`${changeValue(data.dollarCost.change * -1, { preUnit: currencySymbol }).toLocaleString()}`}
+          <InspectTooltip
+            meta={{
+              id: 'impact-annual-savings',
+              label: 'Estimated Annual Savings',
+              type: 'calculation',
+              path: 'annualSummary.dollarCost.change',
+              description: 'Baseline single-use cost minus forecast reusable cost (annual)',
+              calculatorFunction: 'getAnnualCostChanges()',
+              sourceFile: 'lib/calculator/calculations/costs/getAnnualCostChanges.ts'
+            }}
           >
-            <br />
-            <BarChart
-              data={savingsData}
-              formatter={(text, data) => {
-                return `${data.label}: ${currencySymbol}${data.value.toLocaleString()}`;
-              }}
-              seriesField='label'
-            />
-          </Card>
+            <Card
+              title='Your estimated annual savings'
+              changePercent={data.dollarCost.changePercent * -1}
+              changeStr={`${changeValue(data.dollarCost.change * -1, { preUnit: currencySymbol }).toLocaleString()}`}
+            >
+              <br />
+              <BarChart
+                data={savingsData}
+                formatter={(text, data) => {
+                  return `${data.label}: ${currencySymbol}${data.value.toLocaleString()}`;
+                }}
+                seriesField='label'
+              />
+            </Card>
+          </InspectTooltip>
         </StyledCol>
         <StyledCol xs={24} lg={12}>
-          <Card
-            title='Your reduction in single-use purchasing'
-            changePercent={data.singleUseProductCount.changePercent * -1}
-            changeStr={changeValue(data.singleUseProductCount.change * -1) + ' units'}
+          <InspectTooltip
+            meta={{
+              id: 'impact-single-use-reduction',
+              label: 'Single-Use Purchasing Reduction',
+              type: 'calculation',
+              path: 'annualSummary.singleUseProductCount.change',
+              description: 'Baseline single-use unit count minus forecast unit count',
+              calculatorFunction: 'getSingleUseResults()',
+              sourceFile: 'lib/calculator/calculations/foodware/getSingleUseResults.ts'
+            }}
           >
-            <br />
-            <BarChart
-              data={singleUseData}
-              formatter={(text, data) => `${data.label}: ${data.value.toLocaleString()} pieces`}
-              seriesField='label'
-            />
-          </Card>
+            <Card
+              title='Your reduction in single-use purchasing'
+              changePercent={data.singleUseProductCount.changePercent * -1}
+              changeStr={changeValue(data.singleUseProductCount.change * -1) + ' units'}
+            >
+              <br />
+              <BarChart
+                data={singleUseData}
+                formatter={(text, data) => `${data.label}: ${data.value.toLocaleString()} pieces`}
+                seriesField='label'
+              />
+            </Card>
+          </InspectTooltip>
         </StyledCol>
         <StyledCol xs={24} lg={12}>
-          <Card
-            title='Your waste reductions'
-            changePercent={data.wasteWeight.changePercent * -1}
-            changeStr={changeValueInPounds(data.wasteWeight.change * -1, { displayAsMetric, displayAsTons: false })}
+          <InspectTooltip
+            meta={{
+              id: 'impact-waste-reduction',
+              label: 'Waste Reductions',
+              type: 'calculation',
+              path: 'annualSummary.wasteWeight.change',
+              description: 'Total landfill waste weight change: baseline product + shipping box weight minus forecast',
+              calculatorFunction: 'getAnnualWasteChanges()',
+              sourceFile: 'lib/calculator/calculations/waste/getAnnualWasteChanges.ts'
+            }}
           >
-            <br />
-            <BarChart
-              data={wasteData}
-              formatter={(text, data) =>
-                `${data.label}: ${formattedValueInPounds(data.value, { displayAsMetric, displayAsTons: false })}`
-              }
-              seriesField='label'
-            />
-          </Card>
+            <Card
+              title='Your waste reductions'
+              changePercent={data.wasteWeight.changePercent * -1}
+              changeStr={changeValueInPounds(data.wasteWeight.change * -1, { displayAsMetric, displayAsTons: false })}
+            >
+              <br />
+              <BarChart
+                data={wasteData}
+                formatter={(text, data) =>
+                  `${data.label}: ${formattedValueInPounds(data.value, { displayAsMetric, displayAsTons: false })}`
+                }
+                seriesField='label'
+              />
+            </Card>
+          </InspectTooltip>
         </StyledCol>
         <StyledCol xs={24} lg={12}>
-          <Card
-            title='Your GHG reductions'
-            changePercent={data.greenhouseGasEmissions.total.changePercent * -1}
-            changeStr={changeValue(data.greenhouseGasEmissions.total.change * -1) + ' MTC02e'}
+          <InspectTooltip
+            meta={{
+              id: 'impact-ghg-reduction',
+              label: 'GHG Reductions',
+              type: 'calculation',
+              path: 'annualSummary.greenhouseGasEmissions.total.change',
+              description:
+                'Total annual greenhouse gas emission change across landfill waste, shipping, and dishwashing',
+              calculatorFunction: 'getAnnualGasEmissionChanges()',
+              sourceFile: 'lib/calculator/calculations/ghg/getAnnualGasEmissionChanges.ts'
+            }}
           >
-            <br />
-            <BarChart
-              data={ghgData}
-              formatter={(text, data) => `${data.label}: ${data.value.toLocaleString()} MTC02e`}
-              seriesField='label'
-            />
-          </Card>
+            <Card
+              title='Your GHG reductions'
+              changePercent={data.greenhouseGasEmissions.total.changePercent * -1}
+              changeStr={changeValue(data.greenhouseGasEmissions.total.change * -1) + ' MTC02e'}
+            >
+              <br />
+              <BarChart
+                data={ghgData}
+                formatter={(text, data) => `${data.label}: ${data.value.toLocaleString()} MTC02e`}
+                seriesField='label'
+              />
+            </Card>
+          </InspectTooltip>
         </StyledCol>
       </Row>
     </SectionContainer>

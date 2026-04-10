@@ -19,6 +19,7 @@ import type { RegisteredFunction } from 'lib/admin/calculatorRegistry';
 import { DesignerNodePalette } from './DesignerNodePalette';
 import { DesignerPropertiesPanel } from './DesignerPropertiesPanel';
 import { autoLayoutNodes } from './designerLayout';
+import { annotateGaps } from './gapDetection';
 import type { DesignerNodeData } from './nodes/DesignerNode';
 import { DesignerNode } from './nodes/DesignerNode';
 import type { DesignerNodeType } from './nodes/nodeTypes';
@@ -38,6 +39,8 @@ type Props = {
   productId: string;
   initialNodes: Node<DesignerNodeData>[];
   initialEdges: Edge[];
+  /** Extras from flowDefinitionJson that aren't nodes/edges (gaps, reasoning) — preserved on save */
+  initialFlowExtras?: { gaps?: unknown[]; reasoning?: string };
   factors: Factor[];
   calculations: RegisteredFunction[];
 };
@@ -49,7 +52,14 @@ function getNodeId() {
   return `node_${Date.now()}_${nodeIdCounter++}`;
 }
 
-export function DesignerCanvas({ productId, initialNodes, initialEdges, factors, calculations }: Props) {
+export function DesignerCanvas({
+  productId,
+  initialNodes,
+  initialEdges,
+  initialFlowExtras,
+  factors,
+  calculations
+}: Props) {
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const [selectedNode, setSelectedNode] = useState<Node<DesignerNodeData> | null>(null);
@@ -58,11 +68,19 @@ export function DesignerCanvas({ productId, initialNodes, initialEdges, factors,
   const flowRef = useRef<ReactFlowInstance | null>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
+  // Derive gap annotations on every render — self-corrects as the Factor
+  // Library / Calculator Registry change. Not persisted to DB.
+  const annotatedNodes = useMemo(
+    () => annotateGaps(nodes, edges, factors, calculations),
+    [nodes, edges, factors, calculations]
+  );
+  const gapCount = useMemo(() => annotatedNodes.filter(n => n.data.hasGap).length, [annotatedNodes]);
+
   // Keep selected node in sync with nodes state
   const currentSelectedNode = useMemo(() => {
     if (!selectedNode) return null;
-    return nodes.find(n => n.id === selectedNode.id) ?? null;
-  }, [nodes, selectedNode]);
+    return annotatedNodes.find(n => n.id === selectedNode.id) ?? null;
+  }, [annotatedNodes, selectedNode]);
 
   const onConnect = useCallback(
     (connection: Connection) => {
@@ -160,7 +178,14 @@ export function DesignerCanvas({ productId, initialNodes, initialEdges, factors,
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          flowDefinitionJson: { nodes, edges, viewport }
+          flowDefinitionJson: {
+            nodes,
+            edges,
+            viewport,
+            // Preserve AI-generated extras so Save doesn't wipe them
+            ...(initialFlowExtras?.gaps && { gaps: initialFlowExtras.gaps }),
+            ...(initialFlowExtras?.reasoning && { reasoning: initialFlowExtras.reasoning })
+          }
         })
       });
       if (res.ok) {
@@ -173,7 +198,7 @@ export function DesignerCanvas({ productId, initialNodes, initialEdges, factors,
     } finally {
       setSaving(false);
     }
-  }, [productId, nodes, edges]);
+  }, [productId, nodes, edges, initialFlowExtras]);
 
   return (
     <div style={{ display: 'flex', height: 'calc(100vh - 220px)', border: '1px solid #f0f0f0', borderRadius: 8 }}>
@@ -195,6 +220,14 @@ export function DesignerCanvas({ productId, initialNodes, initialEdges, factors,
         >
           <Text type='secondary' style={{ fontSize: 11 }}>
             {nodes.length} nodes, {edges.length} edges
+            {gapCount > 0 && (
+              <>
+                {' · '}
+                <Text style={{ fontSize: 11, color: '#ff4d4f', fontWeight: 600 }}>
+                  {gapCount} data gap{gapCount === 1 ? '' : 's'}
+                </Text>
+              </>
+            )}
           </Text>
           <Space size={8}>
             <Button size='small' icon={<QuestionCircleOutlined />} onClick={() => setHelpOpen(true)}>
@@ -212,7 +245,7 @@ export function DesignerCanvas({ productId, initialNodes, initialEdges, factors,
         {/* ReactFlow Canvas */}
         <div ref={wrapperRef} style={{ flex: 1 }}>
           <ReactFlow
-            nodes={nodes}
+            nodes={annotatedNodes}
             edges={edges}
             nodeTypes={nodeTypes}
             onNodesChange={onNodesChange}

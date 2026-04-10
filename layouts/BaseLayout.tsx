@@ -12,6 +12,7 @@ import { createGlobalStyle } from 'styled-components';
 import { SubscriptionCheck } from 'components/_app/SubscriptionCheck';
 import { ImpersonationBanner } from 'components/admin/ImpersonationBanner';
 import { Header } from 'components/common/Header';
+import { InspectModeProvider, InspectFAB } from 'components/common/InspectMode';
 import { useAuth } from 'hooks/useAuth';
 import { useSubscription } from 'hooks/useSubscription';
 import type { DashboardUser } from 'interfaces';
@@ -162,6 +163,7 @@ export const BaseLayout: React.FC<DashboardProps> = ({ user, selectedMenuItem, t
   ];
 
   return (
+    <InspectModeProvider>
     <SubscriptionCheck>
       <Header title={title} />
       <GlobalStyles />
@@ -243,7 +245,9 @@ export const BaseLayout: React.FC<DashboardProps> = ({ user, selectedMenuItem, t
           <ImpersonationBanner />
           {children}
         </div>
+        {user.org.isUpstream && <InspectFAB />}
       </Layout>
     </SubscriptionCheck>
+    </InspectModeProvider>
   );
 };

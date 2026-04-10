@@ -4,6 +4,7 @@ import { InfoCircleOutlined } from '@ant-design/icons';
 import { useState } from 'react';
 import styled from 'styled-components';
 
+import { InspectTooltip } from 'components/common/InspectMode';
 import { poundsToTons } from 'lib/calculator/constants/conversions';
 import type { ProjectionsResponse } from 'lib/calculator/getProjections';
 import { changeValue, valueInGallons, valueInPounds, changeValueInGallons, changeValueInPounds } from 'lib/number';
@@ -154,88 +155,166 @@ export const EnvironmentalSummary: React.FC<Props> = ({ data, hideWaterUsage, is
 
       <Row gutter={[30, 24]}>
         <StyledCol xs={24} lg={12}>
-          <KPICard
-            style={{ height: '100%' }}
-            title={isEventProject ? 'Waste to landfill prevented' : `Annual waste changes`}
-            changePercent={
-              isEventProject
-                ? data.eventProjectWaste.summary.changePercent * -1
-                : data.annualWasteChanges.summary.changePercent * -1
-            }
-            changeStr={`${changeValueInPounds(isEventProject ? data.eventProjectWaste.summary.change * -1 : data.annualWasteChanges.summary.change, options)}`}
+          <InspectTooltip
+            meta={{
+              id: 'env-annual-waste',
+              label: 'Annual Waste Changes',
+              type: 'calculation',
+              path: 'environmentalResults.annualWasteChanges.summary.change',
+              description: 'Sum of landfill product weight + shipping box weight, baseline vs forecast',
+              calculatorFunction: 'getAnnualWasteChanges()',
+              sourceFile: 'lib/calculator/calculations/waste/getAnnualWasteChanges.ts'
+            }}
           >
-            <br />
-            <Chart data={annualWasteData} seriesField='wasteType' />
-            <ViewResultsWrapper>
-              <Typography.Text style={{ marginRight: '20px' }}>View results in:</Typography.Text>
-              <Radio.Group onChange={onChangeResults} defaultValue={units}>
-                <Radio.Button value='pounds'>{displayAsMetric ? 'kilograms' : 'pounds'}</Radio.Button>
-                <Radio.Button value='tons'>tons</Radio.Button>
-              </Radio.Group>
-            </ViewResultsWrapper>
-          </KPICard>
+            <KPICard
+              style={{ height: '100%' }}
+              title={isEventProject ? 'Waste to landfill prevented' : `Annual waste changes`}
+              changePercent={
+                isEventProject
+                  ? data.eventProjectWaste.summary.changePercent * -1
+                  : data.annualWasteChanges.summary.changePercent * -1
+              }
+              changeStr={`${changeValueInPounds(isEventProject ? data.eventProjectWaste.summary.change * -1 : data.annualWasteChanges.summary.change, options)}`}
+            >
+              <br />
+              <Chart data={annualWasteData} seriesField='wasteType' />
+              <ViewResultsWrapper>
+                <Typography.Text style={{ marginRight: '20px' }}>View results in:</Typography.Text>
+                <Radio.Group onChange={onChangeResults} defaultValue={units}>
+                  <Radio.Button value='pounds'>{displayAsMetric ? 'kilograms' : 'pounds'}</Radio.Button>
+                  <Radio.Button value='tons'>tons</Radio.Button>
+                </Radio.Group>
+              </ViewResultsWrapper>
+            </KPICard>
+          </InspectTooltip>
         </StyledCol>
         {!hideWaterUsage && (
           <StyledCol xs={24} lg={12}>
-            <KPICard
-              style={{ height: '100%' }}
-              title={
-                <span>
-                  {isEventProject ? 'Water Usage' : 'Annual water usage changes'}{' '}
-                  <Tooltip title='This metric covers water used specifically for foodware: the manufacturing of single-use items or the washing of reusables.'>
-                    <InfoCircleOutlined style={{ fontSize: '14px', color: '#8c8c8c', cursor: 'help' }} />
-                  </Tooltip>
-                </span>
-              }
-              changePercent={data.annualWaterUsageChanges.total.changePercent * -1}
-              changeStr={`${changeValueInGallons(data.annualWaterUsageChanges.total.change, {
-                displayAsMetric
-              })}`}
+            <InspectTooltip
+              meta={{
+                id: 'env-annual-water',
+                label: 'Annual Water Usage Changes',
+                type: 'calculation',
+                path: 'environmentalResults.annualWaterUsageChanges.total.change',
+                description:
+                  'Water used in manufacturing single-use items vs washing reusables (material water + dishwashing water)',
+                calculatorFunction: 'getAnnualWaterUsageChanges()',
+                sourceFile: 'lib/calculator/calculations/water/getAnnualWaterUsageChanges.ts',
+                factorName: 'MATERIALS[*].waterUsageGalPerLb'
+              }}
             >
-              <br />
-              <Chart data={waterData} seriesField='wasteType' />
-            </KPICard>
+              <KPICard
+                style={{ height: '100%' }}
+                title={
+                  <span>
+                    {isEventProject ? 'Water Usage' : 'Annual water usage changes'}{' '}
+                    <Tooltip title='This metric covers water used specifically for foodware: the manufacturing of single-use items or the washing of reusables.'>
+                      <InfoCircleOutlined style={{ fontSize: '14px', color: '#8c8c8c', cursor: 'help' }} />
+                    </Tooltip>
+                  </span>
+                }
+                changePercent={data.annualWaterUsageChanges.total.changePercent * -1}
+                changeStr={`${changeValueInGallons(data.annualWaterUsageChanges.total.change, {
+                  displayAsMetric
+                })}`}
+              >
+                <br />
+                <Chart data={waterData} seriesField='wasteType' />
+              </KPICard>
+            </InspectTooltip>
           </StyledCol>
         )}
 
         <StyledCol xs={24} lg={hideWaterUsage ? 12 : 24}>
-          <KPICard
-            style={{ height: '100%' }}
-            title={isEventProject ? 'GHG Emissions' : `Annual GHG changes`}
-            changePercent={data.annualGasEmissionChanges.total.changePercent * -1}
-            changeStr={`${changeValue(data.annualGasEmissionChanges.total.change)} MTCO2e`}
+          <InspectTooltip
+            meta={{
+              id: 'env-annual-ghg',
+              label: 'Annual GHG Emission Changes',
+              type: 'calculation',
+              path: 'environmentalResults.annualGasEmissionChanges.total.change',
+              description: 'Total MTCO2e change: landfill waste + shipping box + dishwashing emissions',
+              calculatorFunction: 'getAnnualGasEmissionChanges()',
+              sourceFile: 'lib/calculator/calculations/ghg/getAnnualGasEmissionChanges.ts',
+              factorName: 'MATERIALS[*].mtco2ePerLb, ELECTRIC_CO2_EMISSIONS_FACTOR, NATURAL_GAS_CO2_EMISSIONS_FACTOR'
+            }}
           >
-            <br />
-            <Chart data={ghgData} seriesField='wasteType' />
-          </KPICard>
+            <KPICard
+              style={{ height: '100%' }}
+              title={isEventProject ? 'GHG Emissions' : `Annual GHG changes`}
+              changePercent={data.annualGasEmissionChanges.total.changePercent * -1}
+              changeStr={`${changeValue(data.annualGasEmissionChanges.total.change)} MTCO2e`}
+            >
+              <br />
+              <Chart data={ghgData} seriesField='wasteType' />
+            </KPICard>
+          </InspectTooltip>
         </StyledCol>
 
         {data.envBreakEven &&
           (data.envBreakEven.co2BreakEvenMonths != null || data.envBreakEven.embodiedCO2Mtco2e > 0) && (
             <StyledCol xs={24} lg={12}>
-              <KPICard
-                style={{ height: '100%' }}
-                changeStr={
-                  data.envBreakEven.co2BreakEvenMonths != null ? `${data.envBreakEven.co2BreakEvenMonths} mos.` : 'N/A'
-                }
-                title={
-                  <span>
-                    Environmental Break-Even{' '}
-                    <Tooltip title='How many months until the manufacturing carbon footprint of all reusables purchased is offset by avoided single-use emissions. Based on material embodied carbon, transportation, and annual avoided GHG emissions.'>
-                      <InfoCircleOutlined style={{ fontSize: '14px', color: '#8c8c8c', cursor: 'help' }} />
-                    </Tooltip>
-                  </span>
-                }
+              <InspectTooltip
+                meta={{
+                  id: 'env-break-even',
+                  label: 'Environmental Break-Even',
+                  type: 'calculation',
+                  path: 'environmentalResults.envBreakEven.co2BreakEvenMonths',
+                  description:
+                    'Embodied CO2 of reusables (material MTCO2e + transport + box) / annual CO2 savings → months',
+                  calculatorFunction: 'getEnvBreakEven()',
+                  sourceFile: 'lib/calculator/calculations/getEnvBreakEven.ts'
+                }}
               >
-                <Typography.Text type='secondary' style={{ fontSize: 12, display: 'block', marginTop: 8 }}>
-                  Reusable manufacturing footprint:{' '}
-                  <strong>{data.envBreakEven.embodiedCO2Mtco2e.toFixed(4)} MTCO2e</strong>
-                </Typography.Text>
-                <Typography.Text type='secondary' style={{ fontSize: 12, display: 'block' }}>
-                  Annual avoided emissions:{' '}
-                  <strong>{data.envBreakEven.annualCO2SavingsMtco2e.toFixed(4)} MTCO2e/yr</strong>
-                </Typography.Text>
-              </KPICard>
+                <KPICard
+                  style={{ height: '100%' }}
+                  changeStr={
+                    data.envBreakEven.co2BreakEvenMonths != null
+                      ? `${data.envBreakEven.co2BreakEvenMonths} mos.`
+                      : 'N/A'
+                  }
+                  title={
+                    <span>
+                      Environmental Break-Even{' '}
+                      <Tooltip title='How many months until the manufacturing carbon footprint of all reusables purchased is offset by avoided single-use emissions. Based on material embodied carbon, transportation, and annual avoided GHG emissions.'>
+                        <InfoCircleOutlined style={{ fontSize: '14px', color: '#8c8c8c', cursor: 'help' }} />
+                      </Tooltip>
+                    </span>
+                  }
+                >
+                  <Typography.Text type='secondary' style={{ fontSize: 12, display: 'block', marginTop: 8 }}>
+                    Reusable manufacturing footprint:{' '}
+                    <InspectTooltip
+                      meta={{
+                        id: 'env-break-even-embodied',
+                        label: 'Embodied CO2',
+                        type: 'calculation',
+                        path: 'environmentalResults.envBreakEven.embodiedCO2Mtco2e',
+                        description:
+                          'Sum of material embodied carbon + transportation carbon for all reusable items purchased',
+                        calculatorFunction: 'getEnvBreakEven()',
+                        factorName: 'REUSABLE_MATERIALS[*].mtco2ePerLb, TRANSPORTATION_CO2_EMISSIONS_FACTOR'
+                      }}
+                    >
+                      <strong>{data.envBreakEven.embodiedCO2Mtco2e.toFixed(4)} MTCO2e</strong>
+                    </InspectTooltip>
+                  </Typography.Text>
+                  <Typography.Text type='secondary' style={{ fontSize: 12, display: 'block' }}>
+                    Annual avoided emissions:{' '}
+                    <InspectTooltip
+                      meta={{
+                        id: 'env-break-even-annual-savings',
+                        label: 'Annual CO2 Savings',
+                        type: 'calculation',
+                        path: 'environmentalResults.envBreakEven.annualCO2SavingsMtco2e',
+                        description: 'Annual GHG avoided by switching from single-use to reusable',
+                        calculatorFunction: 'getEnvBreakEven()'
+                      }}
+                    >
+                      <strong>{data.envBreakEven.annualCO2SavingsMtco2e.toFixed(4)} MTCO2e/yr</strong>
+                    </InspectTooltip>
+                  </Typography.Text>
+                </KPICard>
+              </InspectTooltip>
             </StyledCol>
           )}
       </Row>

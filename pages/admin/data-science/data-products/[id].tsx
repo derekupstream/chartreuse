@@ -1,5 +1,5 @@
 import { ArrowLeftOutlined, RobotOutlined, SaveOutlined } from '@ant-design/icons';
-import { Badge, Button, Card, Col, Form, Input, Row, Select, Tabs, Tag, Typography, message } from 'antd';
+import { Button, Card, Col, Form, Input, Row, Select, Tabs, Tag, Typography, message } from 'antd';
 import type { GetServerSideProps } from 'next';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
@@ -34,6 +34,11 @@ const AiDesigner = dynamic(() => import('components/admin/data-products/AiDesign
   ssr: false
 });
 
+const LiveCalculator = dynamic(
+  () => import('components/admin/data-products/LiveCalculator').then(m => m.LiveCalculator),
+  { ssr: false }
+);
+
 type Factor = {
   id: string;
   name: string;
@@ -51,9 +56,10 @@ type DataProduct = {
   audience: string;
   status: string;
   projectType: string | null;
-  inputSchemaJson: unknown;
-  outputSchemaJson: unknown;
+  inputSchemaJson: { fields?: unknown[] } | null;
+  outputSchemaJson: { metrics?: unknown[] } | null;
   flowDefinitionJson: { nodes?: unknown[]; edges?: unknown[]; viewport?: unknown } | null;
+  executionCode: string | null;
   methodologyDocumentId: string | null;
   version: number;
   isPublic: boolean;
@@ -73,22 +79,50 @@ type Props = {
   methodologyDocs: MethodologyDoc[];
 };
 
-export default function DataProductEditorPage({ product: initial, factors, calculations, methodologyDocs }: Props) {
+export default function DataProductEditorPage({
+  product: initial,
+  factors,
+  calculations,
+  methodologyDocs: initialMethodologyDocs
+}: Props) {
   const [product, setProduct] = useState(initial);
+  const [methodologyDocs, setMethodologyDocs] = useState(initialMethodologyDocs);
   const [savingOverview, setSavingOverview] = useState(false);
   const [designerKey, setDesignerKey] = useState(0);
   const [activeTab, setActiveTab] = useState('designer');
   const [form] = Form.useForm();
 
   const onFlowGenerated = useCallback(
-    (result: { nodes: unknown[]; edges: unknown[]; name?: string; description?: string }) => {
-      // Update local product state so Designer tab re-renders with new flow
+    (result: {
+      nodes: unknown[];
+      edges: unknown[];
+      inputSchema?: { fields?: unknown[] } | null;
+      outputSchema?: { metrics?: unknown[] } | null;
+      executionCode?: string | null;
+      methodologyDocumentId?: string | null;
+      methodologyTitle?: string | null;
+      name?: string;
+      description?: string;
+    }) => {
+      // Update local product state so Designer / Inputs / Outputs / Tests tabs all re-render
       setProduct(prev => ({
         ...prev,
         flowDefinitionJson: { nodes: result.nodes, edges: result.edges, viewport: { x: 0, y: 0, zoom: 0.65 } },
+        ...(result.inputSchema !== undefined && { inputSchemaJson: result.inputSchema }),
+        ...(result.outputSchema !== undefined && { outputSchemaJson: result.outputSchema }),
+        ...(result.executionCode !== undefined && { executionCode: result.executionCode }),
+        ...(result.methodologyDocumentId !== undefined && { methodologyDocumentId: result.methodologyDocumentId }),
         ...(result.name && { name: result.name }),
         ...(result.description && { description: result.description })
       }));
+      // Add the new methodology doc to the dropdown so the Methodology tab shows it as linked
+      if (result.methodologyDocumentId && result.methodologyTitle) {
+        setMethodologyDocs(prev =>
+          prev.some(d => d.id === result.methodologyDocumentId)
+            ? prev
+            : [...prev, { id: result.methodologyDocumentId!, title: result.methodologyTitle!, status: 'draft' }]
+        );
+      }
       setDesignerKey(k => k + 1);
     },
     []
@@ -113,32 +147,16 @@ export default function DataProductEditorPage({ product: initial, factors, calcu
     }
   }
 
-  async function updateStatus(status: string) {
-    try {
-      const res = await fetch(`/api/admin/data-products/${product.id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status })
-      });
-      if (!res.ok) throw new Error('Failed to update status');
-      const updated = await res.json();
-      setProduct(updated);
-      message.success(`Status changed to ${status}`);
-    } catch {
-      message.error('Failed to update status');
-    }
-  }
-
-  const statusBadge: Record<string, 'default' | 'processing' | 'success' | 'warning'> = {
-    draft: 'default',
-    review: 'processing',
-    published: 'success',
-    archived: 'warning'
-  };
-
-  const flow = product.flowDefinitionJson;
+  const flow = product.flowDefinitionJson as {
+    nodes?: unknown[];
+    edges?: unknown[];
+    viewport?: unknown;
+    gaps?: unknown[];
+    reasoning?: string;
+  } | null;
   const initialNodes = (flow?.nodes as any[]) ?? [];
   const initialEdges = (flow?.edges as any[]) ?? [];
+  const initialFlowExtras = { gaps: flow?.gaps, reasoning: flow?.reasoning };
 
   return (
     <>
@@ -152,7 +170,6 @@ export default function DataProductEditorPage({ product: initial, factors, calcu
           <Title level={2} style={{ margin: 0 }}>
             {product.name}
           </Title>
-          <Badge status={statusBadge[product.status] ?? 'default'} text={product.status} />
           <Text type='secondary'>v{product.version}</Text>
         </div>
       </div>
@@ -244,6 +261,7 @@ export default function DataProductEditorPage({ product: initial, factors, calcu
                 productId={product.id}
                 initialNodes={initialNodes}
                 initialEdges={initialEdges}
+                initialFlowExtras={initialFlowExtras}
                 factors={factors}
                 calculations={calculations}
               />
@@ -260,7 +278,15 @@ export default function DataProductEditorPage({ product: initial, factors, calcu
                 </Tag>
               </span>
             ),
-            children: <AiDesigner productId={product.id} productName={product.name} onFlowGenerated={onFlowGenerated} />
+            children: (
+              <AiDesigner
+                productId={product.id}
+                productName={product.name}
+                persistedGaps={(product.flowDefinitionJson as { gaps?: unknown[] } | null)?.gaps as never}
+                persistedReasoning={(product.flowDefinitionJson as { reasoning?: string } | null)?.reasoning}
+                onFlowGenerated={onFlowGenerated}
+              />
+            )
           },
           {
             key: 'inputs',
@@ -357,55 +383,11 @@ export default function DataProductEditorPage({ product: initial, factors, calcu
             key: 'tests',
             label: 'Tests',
             children: (
-              <Card style={{ maxWidth: 720, textAlign: 'center', padding: 40 }}>
-                <Title level={4} type='secondary'>
-                  Coming Soon
-                </Title>
-                <Paragraph type='secondary'>
-                  Test your data product flows against golden datasets to validate outputs before publishing.
-                </Paragraph>
-              </Card>
-            )
-          },
-          {
-            key: 'publish',
-            label: 'Publish',
-            children: (
-              <Card style={{ maxWidth: 720 }}>
-                <Title level={4}>Publishing Workflow</Title>
-                <Paragraph type='secondary'>
-                  Move this data product through the governance workflow: Draft → Review → Published.
-                </Paragraph>
-                <div style={{ display: 'flex', gap: 12, marginTop: 16 }}>
-                  {product.status === 'draft' && (
-                    <Button type='primary' onClick={() => updateStatus('review')}>
-                      Submit for Review
-                    </Button>
-                  )}
-                  {product.status === 'review' && (
-                    <>
-                      <Button type='primary' onClick={() => updateStatus('published')}>
-                        Publish
-                      </Button>
-                      <Button onClick={() => updateStatus('draft')}>Return to Draft</Button>
-                    </>
-                  )}
-                  {product.status === 'published' && (
-                    <Button danger onClick={() => updateStatus('archived')}>
-                      Archive
-                    </Button>
-                  )}
-                  {product.status === 'archived' && (
-                    <Button onClick={() => updateStatus('draft')}>Restore to Draft</Button>
-                  )}
-                </div>
-                <div style={{ marginTop: 16 }}>
-                  <Text type='secondary' style={{ fontSize: 12 }}>
-                    Current status: <Badge status={statusBadge[product.status] ?? 'default'} text={product.status} />{' '}
-                    &middot; Version {product.version}
-                  </Text>
-                </div>
-              </Card>
+              <LiveCalculator
+                inputSchema={product.inputSchemaJson}
+                outputSchema={product.outputSchemaJson}
+                executionCode={product.executionCode}
+              />
             )
           }
         ]}

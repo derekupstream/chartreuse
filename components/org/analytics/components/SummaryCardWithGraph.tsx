@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 import styled from 'styled-components';
 import Card from 'components/projects/[id]/projections/components/common/Card';
 import GroupedBar from 'components/projects/[id]/projections/components/common/GroupedBar';
+import { InspectTooltip, type InspectMeta } from 'components/common/InspectMode';
 import type { SummaryValues, AllProjectsSummary } from 'lib/calculator/getProjections';
 import { defaultFormatter } from '../utils';
 import { SingleUseItemBar } from 'components/projects/[id]/projections/components/common/SingleUseItemBar';
@@ -31,7 +32,8 @@ export const SummaryCardWithGraph = ({
   units,
   value,
   formatter = defaultFormatter,
-  reverseChangePercent
+  reverseChangePercent,
+  inspectMeta
 }: {
   label: string;
   projectHasData: boolean;
@@ -40,6 +42,7 @@ export const SummaryCardWithGraph = ({
   value: SummaryValues;
   reverseChangePercent?: boolean;
   formatter?: (val: number) => string | ReactNode;
+  inspectMeta?: InspectMeta;
 }) => {
   const graphData = {
     baseline: value.baseline,
@@ -48,7 +51,7 @@ export const SummaryCardWithGraph = ({
 
   const change = (value.forecast - value.baseline) * (reverseChangePercent ? 1 : -1);
 
-  return (
+  const card = (
     <Card style={{ height: '100%' }}>
       <Row>
         <Col xs={24} sm={13}>
@@ -79,20 +82,24 @@ export const SummaryCardWithGraph = ({
       </Row>
     </Card>
   );
+
+  return inspectMeta ? <InspectTooltip meta={inspectMeta}>{card}</InspectTooltip> : card;
 };
 
 export const SummaryCard = ({
   label,
   projectHasData,
   units,
-  value
+  value,
+  inspectMeta
 }: {
   label: string;
   projectHasData: boolean;
   units?: string;
   value: string;
+  inspectMeta?: InspectMeta;
 }) => {
-  return (
+  const card = (
     <Card style={{ height: '100%' }}>
       <Typography.Paragraph>
         <strong>{label}</strong>
@@ -108,21 +115,25 @@ export const SummaryCard = ({
       </KPIValue>
     </Card>
   );
+
+  return inspectMeta ? <InspectTooltip meta={inspectMeta}>{card}</InspectTooltip> : card;
 };
 
 export const SummaryCardSingleUseBreakdown = ({
   label,
   projectHasData,
   bottleAvoided,
-  foodwareItemsAvoided
+  foodwareItemsAvoided,
+  inspectMeta
 }: {
   label: string;
   projectHasData: boolean;
   bottleAvoided: number;
   foodwareItemsAvoided: number;
+  inspectMeta?: InspectMeta;
 }) => {
   const totalItemsAvoided = bottleAvoided + foodwareItemsAvoided;
-  return (
+  const card = (
     <Card style={{ height: '100%' }}>
       <Row>
         <Col xs={24} sm={13}>
@@ -152,4 +163,6 @@ export const SummaryCardSingleUseBreakdown = ({
       </Row>
     </Card>
   );
+
+  return inspectMeta ? <InspectTooltip meta={inspectMeta}>{card}</InspectTooltip> : card;
 };

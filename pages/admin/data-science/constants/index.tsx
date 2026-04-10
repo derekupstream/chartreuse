@@ -25,7 +25,8 @@ import {
 } from '@ant-design/icons';
 import type { GetServerSideProps } from 'next';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useRouter } from 'next/router';
+import { useEffect, useState } from 'react';
 import styled from 'styled-components';
 
 import { AdminLayout } from 'layouts/AdminLayout';
@@ -64,6 +65,7 @@ type Factor = {
   id: string;
   name: string;
   description?: string;
+  calculatorConstantKey?: string;
   currentValue: number;
   unit: string;
   region?: string;
@@ -107,19 +109,36 @@ type Props = {
 };
 
 export default function ConstantsPage({ user, factors, categories, sources }: Props) {
+  const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [selectedSource, setSelectedSource] = useState<string>('');
+  const [expandedRowKeys, setExpandedRowKeys] = useState<string[]>([]);
   const [versionModal, setVersionModal] = useState<{ visible: boolean; factor: Factor | null }>({
     visible: false,
     factor: null
   });
 
+  // Auto-search and expand when arriving with ?factor=name (from Data Product Designer)
+  useEffect(() => {
+    const factorQuery = router.query.factor;
+    if (typeof factorQuery === 'string' && factorQuery) {
+      setSearchTerm(factorQuery);
+      // Find and expand the matching factor
+      const match = factors.find(f => f.name.toLowerCase().includes(factorQuery.toLowerCase()));
+      if (match) {
+        setExpandedRowKeys([match.id]);
+      }
+    }
+  }, [router.query.factor]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Filter factors
   const filteredFactors = factors.filter(factor => {
+    const term = searchTerm.toLowerCase();
     const matchesSearch =
-      factor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      factor.description?.toLowerCase().includes(searchTerm.toLowerCase());
+      factor.name.toLowerCase().includes(term) ||
+      factor.description?.toLowerCase().includes(term) ||
+      factor.calculatorConstantKey?.toLowerCase().includes(term);
     const matchesCategory = !selectedCategory || factor.category.name === selectedCategory;
     const matchesSource = !selectedSource || factor.source.name === selectedSource;
     return matchesSearch && matchesCategory && matchesSource;
@@ -319,6 +338,8 @@ export default function ConstantsPage({ user, factors, categories, sources }: Pr
             showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} factors`
           }}
           expandable={{
+            expandedRowKeys,
+            onExpandedRowsChange: keys => setExpandedRowKeys(keys as string[]),
             expandedRowRender: (record: Factor) => (
               <div style={{ padding: '16px', background: '#fafafa' }}>
                 <Descriptions column={2} size='small'>

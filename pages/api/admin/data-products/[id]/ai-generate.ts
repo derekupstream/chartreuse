@@ -7,6 +7,39 @@ import { handlerWithUser } from 'lib/middleware/handler';
 import { checkIsUpstream } from 'lib/middleware/requireUpstream';
 import prisma from 'lib/prisma';
 
+// ─── Helpers ────────────────────────────────────────────────────────────────
+
+/** Convert simple `{heading, body}[]` sections to TipTap JSON doc used by MethodologyDocument.content */
+function sectionsToTipTapDoc(sections: Array<{ heading: string; body: string }>) {
+  const content: unknown[] = [];
+  for (const section of sections) {
+    if (section.heading) {
+      content.push({
+        type: 'heading',
+        attrs: { level: 2 },
+        content: [{ type: 'text', text: section.heading }]
+      });
+    }
+    const paragraphs = (section.body ?? '').split(/\n{2,}/).filter(p => p.trim());
+    for (const para of paragraphs) {
+      content.push({
+        type: 'paragraph',
+        content: [{ type: 'text', text: para.trim() }]
+      });
+    }
+  }
+  return { type: 'doc', content };
+}
+
+function slugify(text: string) {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
+}
+
+// ─── Handler ────────────────────────────────────────────────────────────────
+
 export default handlerWithUser().post(async (req: NextApiRequestWithUser, res: NextApiResponse) => {
   const isUpstream = await checkIsUpstream(req.user.orgId);
   if (!isUpstream) return res.status(403).json({ error: 'Forbidden' });
@@ -71,7 +104,9 @@ When the user describes a data product they want to build, you MUST respond with
         "calculationName": "functionName (only for calculation nodes)",
         "factorName": "factor name (only for factor nodes)",
         "metricKey": "key (only for output nodes)",
-        "metricUnit": "unit (only for output nodes)"
+        "metricUnit": "unit (only for output nodes)",
+        "hasGap": "boolean — OMIT unless this node represents estimated/substituted data (see DATA GAP RULES)",
+        "gapReason": "string, ≤80 chars — required when hasGap is true"
       }
     }
   ],
@@ -85,6 +120,45 @@ When the user describes a data product they want to build, you MUST respond with
       "style": { "stroke": "#hex", "strokeWidth": 2 }
     }
   ],
+  "inputSchema": {
+    "fields": [
+      {
+        "key": "camelCaseKey",
+        "label": "Human Label",
+        "type": "number|text|select",
+        "unit": "optional unit (e.g. students, meals/day, $)",
+        "defaultValue": number or string,
+        "min": optional number,
+        "max": optional number,
+        "helpText": "short description",
+        "options": [{ "value": "a", "label": "A" }]
+      }
+    ]
+  },
+  "outputSchema": {
+    "metrics": [
+      {
+        "key": "camelCaseKey",
+        "label": "Human Label",
+        "unit": "unit (e.g. MTCO2e, USD, gallons)",
+        "description": "what this metric represents",
+        "format": "number|currency|percent",
+        "decimals": 0
+      }
+    ]
+  },
+  "executionCode": "JavaScript function BODY that takes a single argument named 'inputs' (object keyed by inputSchema field keys) and returns an object keyed by outputSchema metric keys. Must be pure, synchronous, deterministic. Bake factor values in as literal numbers (pulled from the AVAILABLE FACTORS list above). Use 'const' / 'let' for locals. Do NOT reference any external variables. Example: 'const students = Number(inputs.students) || 0; const mealsPerDay = Number(inputs.mealsPerDay) || 0; const annualMeals = students * mealsPerDay * 180; const co2PerSingleUse = 0.015; const co2PerReusable = 0.003; const ghgSavings = annualMeals * (co2PerSingleUse - co2PerReusable) / 1000; const costPerSingleUse = 0.12; const annualCostSavings = annualMeals * (costPerSingleUse - 0.02); return { ghgSavings, annualCostSavings, traysDisplaced: annualMeals };'",
+  "methodology": {
+    "title": "Methodology document title",
+    "sections": [
+      { "heading": "Overview", "body": "Plain text paragraph(s). Use blank lines to separate paragraphs." },
+      { "heading": "Inputs", "body": "..." },
+      { "heading": "Calculation Steps", "body": "..." },
+      { "heading": "Factors Used", "body": "..." },
+      { "heading": "Assumptions", "body": "..." },
+      { "heading": "Limitations", "body": "..." }
+    ]
+  },
   "gaps": [
     {
       "type": "missing_factor|missing_calculation|missing_data",
@@ -95,6 +169,18 @@ When the user describes a data product they want to build, you MUST respond with
   "reasoning": "Brief explanation of the design decisions and flow structure"
 }
 
+DATA GAP RULES (drives the red notification dot in the designer):
+- Only factor nodes and calculation nodes can be gap nodes. Never tag inputs, aggregations, comparisons, or outputs — even if they consume a gap upstream.
+- A factor node is a gap node in ANY of these cases:
+  (a) You invented a numeric value for it because no matching factor exists, OR
+  (b) You picked a close-but-imperfect factor as a substitute (e.g. using a generic paper factor when the real use case needs a PLA-lined paper factor) — still a gap because the number is approximate.
+- A calculation node is a gap node in ANY of these cases:
+  (a) You invented math inline because no matching function exists in AVAILABLE CALCULATIONS, OR
+  (b) You picked a close function but its inputs/outputs don't perfectly match the intended calculation.
+- A factor or calculation node fully backed by an exact library match with correct semantics must NOT have hasGap set.
+- gapReason must be concise and user-facing (≤80 chars). Example: "Approximated with generic paper factor — specific PLA-liner factor not in library".
+- Every entry in the top-level "gaps" array should correspond to at least one tagged node (and vice versa) so the bottom gap list and the node badges agree.
+
 IMPORTANT RULES:
 - Position nodes in columns left-to-right: inputs (x=0), factors (x=280), calculations (x=560), aggregation (x=840), comparison (x=1080), outputs (x=1340)
 - Space nodes vertically by ~110px within each column
@@ -103,6 +189,12 @@ IMPORTANT RULES:
 - For calculation nodes, use calculationName matching an available calculation from the registry above
 - For factor nodes, match factorName to an available factor when possible. If no matching factor exists, still include the node but add a "gap" entry
 - Always include a "gaps" array identifying any factors, calculations, or data sources that don't exist yet but would be needed
+- inputSchema.fields keys MUST match the variable names referenced in executionCode via inputs.KEY
+- outputSchema.metrics keys MUST match the keys returned from executionCode
+- Every output metric MUST have a corresponding output node in the nodes array (with matching metricKey)
+- Every input field SHOULD have a corresponding input node in the nodes array
+- executionCode must be production-safe: only arithmetic, Math.*, Number(), parseFloat(), conditionals, loops. No eval, no fetch, no require, no imports
+- Bake real factor values as literal numbers in executionCode (read them from AVAILABLE FACTORS list, or use defensible estimates if missing and add a gap)
 - The "reasoning" field should explain your design decisions briefly`;
 
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
@@ -110,7 +202,7 @@ IMPORTANT RULES:
   try {
     const response = await client.messages.create({
       model: 'claude-sonnet-4-20250514',
-      max_tokens: 8000,
+      max_tokens: 12000,
       messages: [{ role: 'user', content: prompt }],
       system: systemPrompt
     });
@@ -125,15 +217,42 @@ IMPORTANT RULES:
 
     const result = JSON.parse(jsonStr);
 
-    // Save the flow to the data product
+    // ── Create or reuse a MethodologyDocument ─────────────────────────────
+    let methodologyDocumentId: string | undefined;
+    if (result.methodology?.title && Array.isArray(result.methodology?.sections)) {
+      const title: string = result.methodology.title;
+      const baseSlug = slugify(title) || `methodology-${id.slice(0, 8)}`;
+      // Ensure slug uniqueness
+      const existing = await prisma.methodologyDocument.findUnique({ where: { slug: baseSlug } });
+      const finalSlug = existing ? `${baseSlug}-${Date.now()}` : baseSlug;
+      const tiptap = sectionsToTipTapDoc(result.methodology.sections);
+      const doc = await prisma.methodologyDocument.create({
+        data: {
+          title,
+          slug: finalSlug,
+          content: tiptap as any,
+          status: 'draft',
+          sectionNumber: ''
+        }
+      });
+      methodologyDocumentId = doc.id;
+    }
+
+    // ── Save everything to the data product ───────────────────────────────
     await prisma.dataProductDefinition.update({
       where: { id },
       data: {
         flowDefinitionJson: {
-          nodes: result.nodes,
-          edges: result.edges,
-          viewport: { x: 0, y: 0, zoom: 0.65 }
+          nodes: result.nodes ?? [],
+          edges: result.edges ?? [],
+          viewport: { x: 0, y: 0, zoom: 0.65 },
+          gaps: result.gaps ?? [],
+          reasoning: result.reasoning ?? ''
         },
+        ...(result.inputSchema && { inputSchemaJson: result.inputSchema }),
+        ...(result.outputSchema && { outputSchemaJson: result.outputSchema }),
+        ...(typeof result.executionCode === 'string' && { executionCode: result.executionCode }),
+        ...(methodologyDocumentId && { methodologyDocumentId }),
         ...(result.name && { name: result.name }),
         ...(result.description && { description: result.description }),
         ...(result.productType && { productType: result.productType }),
@@ -142,8 +261,13 @@ IMPORTANT RULES:
     });
 
     res.json({
-      nodes: result.nodes,
-      edges: result.edges,
+      nodes: result.nodes ?? [],
+      edges: result.edges ?? [],
+      inputSchema: result.inputSchema ?? null,
+      outputSchema: result.outputSchema ?? null,
+      executionCode: result.executionCode ?? null,
+      methodologyDocumentId: methodologyDocumentId ?? null,
+      methodologyTitle: result.methodology?.title ?? null,
       gaps: result.gaps ?? [],
       reasoning: result.reasoning ?? '',
       name: result.name,

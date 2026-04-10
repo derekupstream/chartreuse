@@ -1,8 +1,18 @@
-import { ReloadOutlined, FunctionOutlined, FileOutlined, BarChartOutlined, LinkOutlined } from '@ant-design/icons';
-import { Badge, Button, Card, Drawer, Space, Spin, Table, Tag, Tooltip, Typography } from 'antd';
+import {
+  CheckOutlined,
+  EditOutlined,
+  EyeOutlined,
+  ReloadOutlined,
+  FunctionOutlined,
+  FileOutlined,
+  BarChartOutlined,
+  LinkOutlined
+} from '@ant-design/icons';
+import { Badge, Button, Card, Drawer, Space, Spin, Table, Tag, Tooltip, Typography, message } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import type { GetServerSideProps } from 'next';
-import { useState } from 'react';
+import { useRouter } from 'next/router';
+import { useEffect, useState } from 'react';
 
 import type { DashboardUser } from 'interfaces';
 import { AdminLayout } from 'layouts/AdminLayout';
@@ -37,6 +47,7 @@ const categoryColors: Record<string, string> = {
 };
 
 export default function CalculationsPage({ functions: initial, scannedAt: initialScannedAt }: Props) {
+  const router = useRouter();
   const [functions, setFunctions] = useState(initial);
   const [scannedAt, setScannedAt] = useState(initialScannedAt);
   const [rescanning, setRescanning] = useState(false);
@@ -46,6 +57,75 @@ export default function CalculationsPage({ functions: initial, scannedAt: initia
   const [drawerFn, setDrawerFn] = useState<CalcFunction | null>(null);
   const [sourceCode, setSourceCode] = useState<string | null>(null);
   const [sourceLoading, setSourceLoading] = useState(false);
+
+  // Edit mode
+  const [editMode, setEditMode] = useState(false);
+  const [fullFileSource, setFullFileSource] = useState<string | null>(null);
+  const [editedSource, setEditedSource] = useState<string>('');
+  const [saving, setSaving] = useState(false);
+
+  // Auto-open drawer when arriving with ?fn=functionName (from Data Product Designer)
+  useEffect(() => {
+    const fnName = router.query.fn;
+    if (typeof fnName === 'string' && fnName && functions.length > 0) {
+      const match = functions.find(f => f.name === fnName);
+      if (match) openCodeViewer(match);
+    }
+  }, [router.query.fn]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  async function enterEditMode() {
+    if (!drawerFn) return;
+    setSourceLoading(true);
+    try {
+      const res = await fetch(
+        `/api/admin/calculations/source?filePath=${encodeURIComponent(drawerFn.filePath)}&name=${encodeURIComponent(drawerFn.name)}&full=true`
+      );
+      const data = await res.json();
+      if (data.source) {
+        setFullFileSource(data.source);
+        setEditedSource(data.source);
+        setEditMode(true);
+      } else {
+        message.error('Could not load full file source');
+      }
+    } catch {
+      message.error('Failed to load file');
+    } finally {
+      setSourceLoading(false);
+    }
+  }
+
+  async function handleSave() {
+    if (!drawerFn) return;
+    setSaving(true);
+    try {
+      const res = await fetch('/api/admin/calculations/save', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filePath: drawerFn.filePath, source: editedSource })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        message.success(`Saved ${drawerFn.filePath}`);
+        setFullFileSource(editedSource);
+        // Refresh the function source view
+        setEditMode(false);
+        openCodeViewer(drawerFn);
+      } else {
+        message.error(data.error || 'Failed to save');
+      }
+    } catch {
+      message.error('Failed to save');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  function exitEditMode() {
+    setEditMode(false);
+    setEditedSource('');
+    setFullFileSource(null);
+  }
 
   async function handleRescan() {
     setRescanning(true);
@@ -299,9 +379,39 @@ export default function CalculationsPage({ functions: initial, scannedAt: initia
           ) : null
         }
         open={drawerOpen}
-        onClose={() => setDrawerOpen(false)}
+        onClose={() => {
+          setDrawerOpen(false);
+          exitEditMode();
+        }}
         width={720}
         styles={{ body: { padding: 0 } }}
+        extra={
+          drawerFn && (
+            <Space>
+              {editMode ? (
+                <>
+                  <Button size='small' onClick={exitEditMode} icon={<EyeOutlined />}>
+                    Cancel
+                  </Button>
+                  <Button
+                    size='small'
+                    type='primary'
+                    onClick={handleSave}
+                    loading={saving}
+                    icon={<CheckOutlined />}
+                    disabled={editedSource === fullFileSource}
+                  >
+                    Save File
+                  </Button>
+                </>
+              ) : (
+                <Button size='small' type='primary' onClick={enterEditMode} icon={<EditOutlined />}>
+                  Edit
+                </Button>
+              )}
+            </Space>
+          )
+        }
       >
         {drawerFn && (
           <>
@@ -342,13 +452,61 @@ export default function CalculationsPage({ functions: initial, scannedAt: initia
 
             {/* Source code */}
             <div style={{ padding: '16px 24px' }}>
-              <Text strong style={{ fontSize: 12, display: 'block', marginBottom: 8 }}>
-                Function source
-              </Text>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                <Text strong style={{ fontSize: 12 }}>
+                  {editMode ? 'Editing full file' : 'Function source'}
+                </Text>
+                {editMode && (
+                  <Text type='secondary' style={{ fontSize: 11 }}>
+                    {drawerFn?.filePath}
+                  </Text>
+                )}
+              </div>
               {sourceLoading ? (
                 <div style={{ textAlign: 'center', padding: 40 }}>
                   <Spin />
                 </div>
+              ) : editMode ? (
+                <textarea
+                  value={editedSource}
+                  onChange={e => setEditedSource(e.target.value)}
+                  spellCheck={false}
+                  style={{
+                    width: '100%',
+                    background: '#1e1e2e',
+                    color: '#cdd6f4',
+                    padding: '16px',
+                    borderRadius: 6,
+                    fontSize: 12,
+                    lineHeight: 1.6,
+                    height: 'calc(100vh - 320px)',
+                    resize: 'vertical',
+                    border: '2px solid #2bbe50',
+                    outline: 'none',
+                    fontFamily: "'JetBrains Mono', 'Fira Code', 'Courier New', monospace",
+                    tabSize: 2
+                  }}
+                  onKeyDown={e => {
+                    // Tab key inserts 2 spaces instead of changing focus
+                    if (e.key === 'Tab') {
+                      e.preventDefault();
+                      const target = e.target as HTMLTextAreaElement;
+                      const start = target.selectionStart;
+                      const end = target.selectionEnd;
+                      const value = target.value;
+                      setEditedSource(value.substring(0, start) + '  ' + value.substring(end));
+                      // Restore cursor position after React re-render
+                      requestAnimationFrame(() => {
+                        target.selectionStart = target.selectionEnd = start + 2;
+                      });
+                    }
+                    // Cmd/Ctrl+S to save
+                    if ((e.metaKey || e.ctrlKey) && e.key === 's') {
+                      e.preventDefault();
+                      if (editedSource !== fullFileSource) handleSave();
+                    }
+                  }}
+                />
               ) : sourceCode ? (
                 <pre
                   style={{
