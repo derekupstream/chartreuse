@@ -1,9 +1,42 @@
-import { RobotOutlined, SendOutlined, ThunderboltOutlined, WarningOutlined } from '@ant-design/icons';
-import { Alert, Badge, Button, Card, Input, Space, Spin, Tag, Typography } from 'antd';
+import {
+  EditOutlined,
+  PlusOutlined,
+  RobotOutlined,
+  SendOutlined,
+  ThunderboltOutlined,
+  WarningOutlined
+} from '@ant-design/icons';
+import { Alert, Badge, Button, Card, Collapse, Input, Radio, Segmented, Space, Spin, Tag, Typography } from 'antd';
 import { useCallback, useState } from 'react';
 
 const { Text, Title, Paragraph } = Typography;
 const { TextArea } = Input;
+
+type DesignType = 'model' | 'calculator' | 'dashboard' | 'workflow';
+type DesignMode = 'new' | 'modify';
+
+const TYPE_OPTIONS: Array<{ value: DesignType; label: string; description: string }> = [
+  {
+    value: 'model',
+    label: 'Model',
+    description: 'A pure math + I/O definition. Inputs → outputs, deterministic, reusable. No UI.'
+  },
+  {
+    value: 'calculator',
+    label: 'Calculator',
+    description: 'An interactive surface that exercises a Model. Form-style, one instance, one set of outputs.'
+  },
+  {
+    value: 'dashboard',
+    label: 'Dashboard',
+    description: 'A presentation of one or more computed results, often saved or shared. May aggregate.'
+  },
+  {
+    value: 'workflow',
+    label: 'Workflow',
+    description: 'A user journey across Models / Calculators / Dashboards. End-to-end UX.'
+  }
+];
 
 type Gap = {
   type: 'missing_factor' | 'missing_calculation' | 'missing_data';
@@ -58,6 +91,8 @@ export function AiDesigner({ productId, productName, persistedGaps, persistedRea
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<AiResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [designType, setDesignType] = useState<DesignType>('calculator');
+  const [designMode, setDesignMode] = useState<DesignMode>('new');
 
   const handleGenerate = useCallback(
     async (text?: string) => {
@@ -72,7 +107,7 @@ export function AiDesigner({ productId, productName, persistedGaps, persistedRea
         const res = await fetch(`/api/admin/data-products/${productId}/ai-generate`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ prompt: finalPrompt })
+          body: JSON.stringify({ prompt: finalPrompt, designType, designMode })
         });
 
         if (!res.ok) {
@@ -89,7 +124,7 @@ export function AiDesigner({ productId, productName, persistedGaps, persistedRea
         setLoading(false);
       }
     },
-    [productId, prompt, onFlowGenerated]
+    [productId, prompt, designType, designMode, onFlowGenerated]
   );
 
   const gapTypeColors: Record<string, string> = {
@@ -117,6 +152,40 @@ export function AiDesigner({ productId, productName, persistedGaps, persistedRea
         </Paragraph>
       </div>
 
+      {/* Vocabulary panel */}
+      <Collapse
+        size='small'
+        style={{ marginBottom: 16 }}
+        items={[
+          {
+            key: 'vocabulary',
+            label: (
+              <Text style={{ fontSize: 12 }}>
+                <strong>Glossary:</strong> Model · Calculator · Dashboard · Workflow
+              </Text>
+            ),
+            children: (
+              <Space direction='vertical' size={8} style={{ width: '100%' }}>
+                {TYPE_OPTIONS.map(t => (
+                  <div key={t.value}>
+                    <Text strong style={{ fontSize: 12 }}>
+                      {t.label}
+                    </Text>
+                    <Text type='secondary' style={{ fontSize: 12, marginLeft: 8 }}>
+                      {t.description}
+                    </Text>
+                  </div>
+                ))}
+                <Text type='secondary' style={{ fontSize: 11 }}>
+                  These distinctions also shape what the AI generates — picking <strong>Workflow</strong> tells it you
+                  want a user journey, not a math model.
+                </Text>
+              </Space>
+            )
+          }
+        ]}
+      />
+
       {/* Prompt Input */}
       <Card
         style={{
@@ -127,11 +196,62 @@ export function AiDesigner({ productId, productName, persistedGaps, persistedRea
       >
         <div style={{ marginBottom: 12 }}>
           <Text strong style={{ fontSize: 13 }}>
-            What kind of data product do you want to build?
+            What are you building?
+          </Text>
+        </div>
+        <div style={{ marginBottom: 16 }}>
+          <Segmented
+            block
+            value={designType}
+            onChange={v => setDesignType(v as DesignType)}
+            options={TYPE_OPTIONS.map(t => ({ label: t.label, value: t.value }))}
+          />
+          <Text type='secondary' style={{ fontSize: 11, display: 'block', marginTop: 6 }}>
+            {TYPE_OPTIONS.find(t => t.value === designType)?.description}
+          </Text>
+        </div>
+
+        <div style={{ marginBottom: 16 }}>
+          <Radio.Group
+            value={designMode}
+            onChange={e => setDesignMode(e.target.value)}
+            optionType='button'
+            buttonStyle='solid'
+            options={[
+              {
+                label: (
+                  <>
+                    <PlusOutlined /> Create new
+                  </>
+                ),
+                value: 'new'
+              },
+              {
+                label: (
+                  <>
+                    <EditOutlined /> Modify existing
+                  </>
+                ),
+                value: 'modify'
+              }
+            ]}
+          />
+          <Text type='secondary' style={{ fontSize: 11, display: 'block', marginTop: 6 }}>
+            {designMode === 'new'
+              ? 'Generate a fresh design — replaces the current flow, schemas, and execution logic.'
+              : "Make targeted edits to the existing design — preserves everything you don't explicitly ask to change."}
+          </Text>
+        </div>
+
+        <div style={{ marginBottom: 12 }}>
+          <Text strong style={{ fontSize: 13 }}>
+            {designMode === 'new' ? 'Describe what you want to build' : 'What would you like to change?'}
           </Text>
           <br />
           <Text type='secondary' style={{ fontSize: 12 }}>
-            Describe: what data do you have? What questions do you want to answer? What outputs do you need?
+            {designMode === 'new'
+              ? 'What data do you have? What questions do you want to answer? What outputs do you need?'
+              : 'Be specific about what to change. E.g., "Rename Number of Students to Total Students enrolled" or "Add a new output for water savings per student."'}
           </Text>
         </div>
 
@@ -156,7 +276,13 @@ export function AiDesigner({ productId, productName, persistedGaps, persistedRea
             disabled={!prompt.trim()}
             style={{ background: '#722ed1', borderColor: '#722ed1' }}
           >
-            {loading ? 'Generating...' : 'Generate Data Product'}
+            {loading
+              ? designMode === 'modify'
+                ? 'Applying changes…'
+                : 'Generating…'
+              : designMode === 'modify'
+                ? `Apply changes to this ${designType}`
+                : `Generate ${designType}`}
           </Button>
         </div>
       </Card>

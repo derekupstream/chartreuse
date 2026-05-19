@@ -49,8 +49,53 @@ export default handlerWithUser().post(async (req: NextApiRequestWithUser, res: N
   }
 
   const { id } = req.query as { id: string };
-  const { prompt } = req.body as { prompt: string };
+  const {
+    prompt,
+    designType = 'calculator',
+    designMode = 'new'
+  } = req.body as {
+    prompt: string;
+    designType?: 'model' | 'calculator' | 'dashboard' | 'workflow';
+    designMode?: 'new' | 'modify';
+  };
   if (!prompt) return res.status(400).json({ error: 'prompt is required' });
+
+  // For modify mode we load the existing product and pass it as context so the AI
+  // makes targeted edits instead of regenerating from scratch.
+  const existing =
+    designMode === 'modify'
+      ? await prisma.dataProductDefinition.findUnique({
+          where: { id },
+          select: {
+            name: true,
+            description: true,
+            productType: true,
+            flowDefinitionJson: true,
+            inputSchemaJson: true,
+            outputSchemaJson: true,
+            executionCode: true
+          }
+        })
+      : null;
+
+  const TYPE_GUIDANCE: Record<string, string> = {
+    model:
+      'You are designing a MODEL: a math + I/O contract. Focus on a clean, deterministic flow graph (inputs → factors → calculations → outputs). The "Calculator" interactive surface is built on top of this Model — but right now you are defining the Model itself, not the UI around it.',
+    calculator:
+      'You are designing a CALCULATOR: a Model wrapped in an interactive form-style surface. Inputs schema should be ergonomic for users to fill in (sensible labels, units, defaults). Outputs should be the headline metrics a user reads at a glance. Execution logic must be live and synchronous.',
+    dashboard:
+      'You are designing a DASHBOARD: a presentation of computed results, often aggregated across multiple instances. De-emphasize input forms; emphasize layout, output groupings, and how a viewer reads the story. Execution code may be omitted if the dashboard is purely presentational over upstream data.',
+    workflow:
+      'You are designing a WORKFLOW: a user journey that strings together Models, Calculators, and Dashboards. Output a flow that represents the SEQUENCE OF STEPS a user moves through (e.g., "create org → add inputs → see projection → save snapshot → share dashboard"), not a math computation graph. Each node should be a step in the journey or a tool the user touches at that step.'
+  };
+
+  const MODE_GUIDANCE =
+    designMode === 'modify'
+      ? `MODIFY MODE: You are receiving an existing product definition below. Make MINIMAL TARGETED CHANGES. Preserve every field, node, edge, schema entry, and code line EXACTLY AS-IS unless the user's prompt explicitly asks to change it. If the user asks to rename a field, only rename that field. If they ask to add a metric, only add that metric. Do not regenerate the whole product. Return the FULL product JSON with your edits applied — do not return a diff.
+
+EXISTING PRODUCT:
+${JSON.stringify(existing ?? {}, null, 2)}`
+      : 'CREATE MODE: Generate a fresh design from scratch.';
 
   // Gather context: available factors + calculations
   const factors = await prisma.factor.findMany({
@@ -71,6 +116,11 @@ export default handlerWithUser().post(async (req: NextApiRequestWithUser, res: N
   ).join('\n');
 
   const systemPrompt = `You are an expert data product designer for ChartReuse, a SaaS platform that calculates environmental and financial impacts of switching from single-use to reusable foodware.
+
+${TYPE_GUIDANCE[designType] ?? TYPE_GUIDANCE.calculator}
+
+${MODE_GUIDANCE}
+
 
 You design node-based data flows using these node types:
 - input: Data entering the flow (subtypes: user_input, project_data, api_data, imported_data, baseline_purchasing, forecast_purchasing)

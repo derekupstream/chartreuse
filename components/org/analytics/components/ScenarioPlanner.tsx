@@ -32,14 +32,27 @@ function useScenarios(orgId: string) {
     }
   }
 
-  const [scenarios, setScenarios] = useState<Scenario[]>(() => {
-    if (typeof window === 'undefined') return [];
-    return load();
-  });
+  // Start empty so server-rendered HTML matches the client's first paint.
+  // Saved scenarios are read in useEffect (after hydration), then sync on storage events.
+  const [scenarios, setScenarios] = useState<Scenario[]>([]);
+  useEffect(() => {
+    setScenarios(load());
+    function onUpdate() {
+      setScenarios(load());
+    }
+    window.addEventListener('storage', onUpdate);
+    window.addEventListener('cr-scenarios-updated', onUpdate);
+    return () => {
+      window.removeEventListener('storage', onUpdate);
+      window.removeEventListener('cr-scenarios-updated', onUpdate);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [orgId]);
 
   function save(list: Scenario[]) {
     localStorage.setItem(key, JSON.stringify(list));
     setScenarios(list);
+    window.dispatchEvent(new Event('cr-scenarios-updated'));
   }
 
   function upsert(s: Scenario) {

@@ -76,6 +76,7 @@ model Account {
   USState             String          @default("California")
   rspClientId         String?
   rspOrgId            String?         @db.Uuid
+  venueCategory       String?         // venue type — see lib/calculator/constants/venue-categories.ts
   org                 Org             @relation(fields: [orgId], references: [id], onDelete: Cascade)
   rspOrg              Org?            @relation("AccountRspOrg", fields: [rspOrgId], references: [id])
   invites             Invite[]
@@ -176,6 +177,8 @@ model EventFoodwareLineItem {
   projectId                String   @db.Uuid
   waterUsageGallons        Float?
   reusableReturnCount      Int      @default(0)
+  reusableCostPerItem      Float?
+  singleUseCostPerItem     Float?
   project                  Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
 }
 
@@ -517,8 +520,10 @@ model RspApiKey {
   isActive    Boolean           @default(true)
   lastUsedAt  DateTime?
   expiresAt   DateTime?
+  isSimulated Boolean           @default(false)
   org         Org               @relation(fields: [orgId], references: [id], onDelete: Cascade)
   periods     UsageTimePeriod[]
+  activityLogs RspApiActivityLog[]
 }
 
 model UsageTimePeriod {
@@ -562,6 +567,28 @@ model AdminInsight {
   generatedAt DateTime @default(now())
   content     Json
   modelUsed   String   @default("claude-haiku-4-5-20251001")
+}
+
+model RspApiActivityLog {
+  id              String     @id @default(uuid()) @db.Uuid
+  createdAt       DateTime   @default(now())
+  apiKeyId        String?    @db.Uuid
+  orgId           String?    @db.Uuid
+  endpoint        String     // e.g. "POST /api/rsp/usage"
+  httpStatus      Int
+  outcome         String     // success | auth_failed | validation_failed | server_error | dedup_conflict
+  errorMessage    String?
+  errorCode       String?
+  latencyMs       Int?
+  requestSummary  Json?      // truncated/summarized request body
+  responseSummary Json?      // truncated response
+  clientIp        String?
+  apiKey          RspApiKey? @relation(fields: [apiKeyId], references: [id], onDelete: SetNull)
+
+  @@index([createdAt])
+  @@index([apiKeyId, createdAt])
+  @@index([orgId, createdAt])
+  @@index([outcome, createdAt])
 }
 
 // ─── Governance / Methodology Snapshot layer ─────────────────────────────────

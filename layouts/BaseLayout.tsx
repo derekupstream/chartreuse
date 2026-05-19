@@ -1,4 +1,4 @@
-import { DownOutlined, MenuOutlined } from '@ant-design/icons';
+import { DownOutlined, MenuOutlined, RocketOutlined } from '@ant-design/icons';
 import { Layout, Menu, Drawer } from 'antd';
 import { Button, Dropdown, message, Typography, Divider } from 'antd';
 import type { MenuProps } from 'antd';
@@ -14,6 +14,7 @@ import { ImpersonationBanner } from 'components/admin/ImpersonationBanner';
 import { Header } from 'components/common/Header';
 import { InspectModeProvider, InspectFAB } from 'components/common/InspectMode';
 import { useAuth } from 'hooks/useAuth';
+import { useChartReuse2 } from 'hooks/useChartReuse2';
 import { useSubscription } from 'hooks/useSubscription';
 import type { DashboardUser } from 'interfaces';
 import * as S from 'layouts/styles';
@@ -33,19 +34,28 @@ const GlobalStyles = createGlobalStyle`
   }
 `;
 
-const menuLinks: MenuProps['items'] = [
+const legacyMenuLinks: MenuProps['items'] = [
   { key: 'projects', label: <Link href='/projects'>Projects</Link> },
   { key: 'org/analytics', label: <Link href='/org/analytics'>Analytics</Link> },
-  { key: 'accounts', label: <Link href='/accounts'>Accounts</Link> },
-  { key: 'members', label: <Link href='/members'>Members</Link> }
-  // { key: 'subscription', label: <Link href='/subscription'>Subscription</Link> }
+  { key: 'accounts', label: <Link href='/accounts'>Accounts</Link> }
 ];
+
+const v2MenuLinks: MenuProps['items'] = [
+  { key: 'dashboard', label: <Link href='/dashboard'>Analytics</Link> },
+  { key: 'projects', label: <Link href='/projects'>Calculators</Link> },
+  { key: 'scenarios', label: <Link href='/scenarios'>Scenarios</Link> },
+  { key: 'accounts', label: <Link href='/accounts'>Accounts</Link> }
+];
+
+// All keys that the validation guard accepts as a top-level menu position
+const VALID_TOP_MENU_KEYS = new Set(['projects', 'org/analytics', 'accounts', 'members', 'scenarios', 'dashboard']);
 
 // All valid admin keys — used for validation in the guard below
 const adminLinks: MenuProps['items'] = [
   { key: 'admin', label: <Link href='/admin'>Overview</Link> },
   { key: 'admin/orgs', label: <Link href='/admin/orgs'>Organizations</Link> },
   { key: 'admin/users', label: <Link href='/admin/users'>Users</Link> },
+  { key: 'admin/duplicates', label: <Link href='/admin/duplicates'>Duplicates</Link> },
   { key: 'admin/feedback', label: <Link href='/admin/feedback'>Feedback</Link> },
   { key: 'data-science', label: <Link href='/admin/data-science'>Data Science</Link> },
   { key: 'admin/methodology', label: <Link href='/admin/methodology'>Methodology</Link> },
@@ -74,6 +84,8 @@ const adminLinks: MenuProps['items'] = [
   { key: 'rsp', label: <Link href='/admin/rsp'>RSP Dashboard</Link> },
   { key: 'rsp/api-keys', label: <Link href='/admin/rsp/api-keys'>RSP API Keys</Link> },
   { key: 'rsp/test-hub', label: <Link href='/admin/rsp/test-hub'>RSP Test Hub</Link> },
+  { key: 'rsp/feed', label: <Link href='/admin/rsp/feed'>RSP Activity Feed</Link> },
+  { key: 'rsp/key-detail', label: <Link href='/admin/rsp/api-keys'>RSP Key Detail</Link> },
   { key: 'admin/projects', label: <Link href='/admin/projects'>All Projects</Link> }
 ];
 
@@ -95,6 +107,8 @@ export const BaseLayout: React.FC<DashboardProps> = ({ user, selectedMenuItem, t
   const [keys, setKeys] = useState<string[]>([]);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const { trialEndDateRelative } = useSubscription();
+  const { enabled: v2Enabled, setEnabled: setV2Enabled, hydrated: v2Hydrated } = useChartReuse2();
+  const menuLinks = v2Enabled ? v2MenuLinks : legacyMenuLinks;
 
   useEffect(() => {
     analytics.identify(user.id, {
@@ -104,7 +118,7 @@ export const BaseLayout: React.FC<DashboardProps> = ({ user, selectedMenuItem, t
   }, [user.id]);
 
   if (
-    !menuLinks.some(link => link?.key === selectedMenuItem) &&
+    !VALID_TOP_MENU_KEYS.has(selectedMenuItem) &&
     !adminLinks.some(link => link?.key === selectedMenuItem)
   ) {
     throw new Error('Menu link key not found: ' + selectedMenuItem);
@@ -132,6 +146,10 @@ export const BaseLayout: React.FC<DashboardProps> = ({ user, selectedMenuItem, t
   }, [selectedMenuItem]);
 
   const accountLinks: MenuProps['items'] = [
+    {
+      key: 'members',
+      label: <Link href='/members'>Members</Link>
+    },
     {
       key: 'help',
       label: (
@@ -212,6 +230,24 @@ export const BaseLayout: React.FC<DashboardProps> = ({ user, selectedMenuItem, t
           </S.LogoAndMenuWrapper>
           <S.OrgAndUserWrapper>
             <S.DesktopUserInfo>
+              {v2Hydrated && (
+                <Button
+                  size='small'
+                  icon={<RocketOutlined />}
+                  onClick={() => setV2Enabled(!v2Enabled)}
+                  style={{
+                    background: v2Enabled
+                      ? 'linear-gradient(90deg, #722ed1 0%, #1677ff 100%)'
+                      : 'linear-gradient(90deg, #fff7e6 0%, #ffeed7 100%)',
+                    color: v2Enabled ? 'white' : '#d46b08',
+                    border: v2Enabled ? 'none' : '1px solid #ffd591',
+                    fontWeight: 600,
+                    boxShadow: v2Enabled ? '0 2px 6px rgba(114,46,209,0.25)' : 'none'
+                  }}
+                >
+                  {v2Enabled ? 'Switch back to legacy' : 'Try Chart-Reuse 2.0'}
+                </Button>
+              )}
               <Typography.Text type='secondary'>{user.org.name}</Typography.Text>
               <Dropdown
                 menu={{ items: accountLinks }}

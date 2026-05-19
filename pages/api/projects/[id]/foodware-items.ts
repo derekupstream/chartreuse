@@ -16,6 +16,8 @@ export type ModifyFoodwareLineItemRequest = {
   reusableReturnCount?: number;
   reusableReturnPercentage?: number;
   waterUsageGallons?: number;
+  reusableCostPerItem?: number | null;
+  singleUseCostPerItem?: number | null;
 };
 
 const handler = projectHandler();

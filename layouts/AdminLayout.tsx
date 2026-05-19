@@ -6,7 +6,8 @@ import {
   HomeOutlined,
   ProjectOutlined,
   TeamOutlined,
-  UserOutlined
+  UserOutlined,
+  WarningOutlined
 } from '@ant-design/icons';
 import { Layout, Menu } from 'antd';
 import Link from 'next/link';
@@ -55,11 +56,21 @@ const DATA_SCIENCE_KEYS = [
   'data-science/lineage'
 ];
 
-const RSP_KEYS = ['rsp', 'rsp/api-keys', 'rsp/test-hub'];
+const RSP_KEYS = ['rsp', 'rsp/api-keys', 'rsp/test-hub', 'rsp/feed', 'rsp/key-detail'];
+
+const ORGS_KEYS = ['admin/orgs', 'admin/duplicates'];
 
 const siderMenuItems = [
   { key: 'admin', icon: <HomeOutlined />, label: <Link href='/admin'>Overview</Link> },
-  { key: 'admin/orgs', icon: <TeamOutlined />, label: <Link href='/admin/orgs'>Organizations</Link> },
+  {
+    key: 'orgs-group',
+    icon: <TeamOutlined />,
+    label: <Link href='/admin/orgs'>Organizations</Link>,
+    children: [
+      { key: 'admin/orgs', label: <Link href='/admin/orgs'>All Organizations</Link> },
+      { key: 'admin/duplicates', icon: <WarningOutlined />, label: <Link href='/admin/duplicates'>Duplicates</Link> }
+    ]
+  },
   { key: 'admin/projects', icon: <ProjectOutlined />, label: <Link href='/admin/projects'>Projects</Link> },
   { key: 'admin/users', icon: <UserOutlined />, label: <Link href='/admin/users'>Users</Link> },
   { key: 'admin/feedback', icon: <FlagOutlined />, label: <Link href='/admin/feedback'>Feedback</Link> },
@@ -71,7 +82,7 @@ const siderMenuItems = [
   {
     key: 'data-science-group',
     icon: <ExperimentOutlined />,
-    label: <Link href='/admin/data-science'>Data Governance</Link>,
+    label: <Link href='/admin/data-science'>Data Science</Link>,
     children: [
       { key: 'data-science', label: <Link href='/admin/data-science'>Overview</Link> },
       { key: 'data-science/inputs', label: <Link href='/admin/data-science/inputs'>Inputs</Link> },
@@ -110,6 +121,7 @@ const siderMenuItems = [
     label: <Link href='/admin/rsp'>RSP Hub</Link>,
     children: [
       { key: 'rsp', label: <Link href='/admin/rsp'>Dashboard</Link> },
+      { key: 'rsp/feed', label: <Link href='/admin/rsp/feed'>Activity Feed</Link> },
       { key: 'rsp/api-keys', label: <Link href='/admin/rsp/api-keys'>API Keys</Link> },
       { key: 'rsp/test-hub', label: <Link href='/admin/rsp/test-hub'>Test Hub</Link> }
     ]
@@ -125,6 +137,7 @@ type Props = {
 
 export const AdminLayout: React.FC<Props> = ({ children, selectedMenuItem, ...props }) => {
   const openKeys = [
+    ...(ORGS_KEYS.includes(selectedMenuItem) ? ['orgs-group'] : []),
     ...(DATA_SCIENCE_KEYS.includes(selectedMenuItem) ? ['data-science-group'] : []),
     ...(RSP_KEYS.includes(selectedMenuItem) ? ['rsp-group'] : [])
   ];

@@ -6,6 +6,7 @@ import type { GetServerSideProps } from 'next';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
 
+import { DuplicatesBanner } from 'components/admin/DuplicatesBanner';
 import type { DashboardUser } from 'interfaces';
 import { AdminLayout } from 'layouts/AdminLayout';
 import { checkIsUpstream } from 'lib/middleware/requireUpstream';
@@ -161,6 +162,7 @@ function AdminUsersPage({ users: initialUsers }: { user: DashboardUser; users: U
 
   return (
     <>
+      <DuplicatesBanner />
       <div
         style={{
           display: 'flex',

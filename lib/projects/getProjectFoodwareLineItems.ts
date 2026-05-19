@@ -9,7 +9,14 @@ import { FoodwareOption, getFoodwareOptions } from 'lib/inventory/assets/event-f
 
 export type FoodwareLineItem = Pick<
   PrismaEventFoodwareLineItem,
-  'id' | 'reusableItemCount' | 'reusableReturnPercentage' | 'reusableReturnCount' | 'projectId' | 'waterUsageGallons'
+  | 'id'
+  | 'reusableItemCount'
+  | 'reusableReturnPercentage'
+  | 'reusableReturnCount'
+  | 'projectId'
+  | 'waterUsageGallons'
+  | 'reusableCostPerItem'
+  | 'singleUseCostPerItem'
 > & {
   singleUseProduct: SingleUseProduct;
   reusableProduct: ReusableProduct;

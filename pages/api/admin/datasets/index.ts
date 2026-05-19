@@ -43,37 +43,62 @@ export default handlerWithUser()
     const isUpstream = await checkIsUpstream(req.user.orgId);
     if (!isUpstream) return res.status(403).json({ error: 'Forbidden' });
 
-    const { projectId, name, description, tolerance = 0.02, tags = [] } = req.body;
-    if (!projectId || !name) return res.status(400).json({ error: 'projectId and name required' });
+    const {
+      projectId,
+      name,
+      description,
+      tolerance = 0.02,
+      tags = [],
+      inputs: rawInputs,
+      expectedOutputs: rawExpectedOutputs,
+      category: rawCategory
+    } = req.body;
 
-    // Fetch the project to get its category
-    const project = await prisma.project.findUnique({
-      where: { id: projectId },
-      select: { id: true, category: true }
-    });
-    if (!project) return res.status(404).json({ error: 'Project not found' });
+    if (!name) return res.status(400).json({ error: 'name required' });
+    if (!projectId && !rawInputs) {
+      return res.status(400).json({ error: 'either projectId or inputs is required' });
+    }
 
-    // Snapshot the current inventory and compute expected outputs
-    const inventory = await getProjectInventory(projectId);
-    const expectedOutputs = {
-      annualSummary: getAnnualSummary(inventory),
-      environmentalResults: getEnvironmentalResults(inventory),
-      financialResults: getFinancialResults(inventory),
-      singleUseResults: getSingleUseResults(inventory),
-      reusableResults: getReusableResults(inventory),
-      bottleStationResults: getBottleStationResults(inventory)
-    };
+    let category: string;
+    let inputs: any;
+    let expectedOutputs: any;
+    let sourceProjectId: string | null = null;
+
+    if (projectId) {
+      const project = await prisma.project.findUnique({
+        where: { id: projectId },
+        select: { id: true, category: true }
+      });
+      if (!project) return res.status(404).json({ error: 'Project not found' });
+
+      const inventory = await getProjectInventory(projectId);
+      category = project.category;
+      inputs = inventory;
+      expectedOutputs = {
+        annualSummary: getAnnualSummary(inventory),
+        environmentalResults: getEnvironmentalResults(inventory),
+        financialResults: getFinancialResults(inventory),
+        singleUseResults: getSingleUseResults(inventory),
+        reusableResults: getReusableResults(inventory),
+        bottleStationResults: getBottleStationResults(inventory)
+      };
+      sourceProjectId = projectId;
+    } else {
+      category = rawCategory ?? 'default';
+      inputs = rawInputs;
+      expectedOutputs = rawExpectedOutputs ?? {};
+    }
 
     const dataset = await prisma.goldenDataset.create({
       data: {
         name,
         description: description || null,
-        category: project.category,
-        inputs: inventory as any,
-        expectedOutputs: expectedOutputs as any,
+        category,
+        inputs,
+        expectedOutputs,
         tolerance,
         tags,
-        sourceProjectId: projectId
+        sourceProjectId
       }
     });
 

@@ -139,6 +139,8 @@ function mapFoodwareItem(
     reusableReturnPercentage: item.reusableReturnPercentage,
     reusableReturnCount: item.reusableReturnCount,
     waterUsageGallons: item.waterUsageGallons ?? undefined,
+    reusableCostPerItem: (item as any).reusableCostPerItem ?? undefined,
+    singleUseCostPerItem: (item as any).singleUseCostPerItem ?? undefined,
     reusableProduct: reusableProducts.find(product => product.id === item.reusableProductId)!,
     singleUseProduct: products.find(product => product.id === item.singleUseProductId)!
   };

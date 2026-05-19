@@ -9,6 +9,7 @@ type ReusableItemRowProps = {
   useShrinkageRate: boolean;
   readOnly: boolean;
   updateItem: (id: string, reusableItemCount: number, reusableReturnCount?: number) => void;
+  updateCosts: (id: string, reusableCostPerItem?: number | null, singleUseCostPerItem?: number | null) => void;
   isLast: boolean;
   advancedEditing: boolean;
 };
@@ -18,6 +19,7 @@ export function ReusableItemRow({
   useShrinkageRate,
   readOnly,
   updateItem,
+  updateCosts,
   isLast,
   advancedEditing
 }: ReusableItemRowProps) {
@@ -176,6 +178,36 @@ export function ReusableItemRow({
             ? Math.round((itemReturnOrShrinkageCount / item.reusableItemCount) * 100) + '%'
             : 'N/A'}
         </Col>
+      </Row>
+      <Row align='middle' gutter={[8, 0]} style={{ marginTop: 8, paddingLeft: 16, fontSize: 12, opacity: 0.85 }}>
+        <Col span={8} style={{ color: '#888' }}>
+          Costs (optional — drives financial outputs)
+        </Col>
+        <Col span={6} style={{ textAlign: 'center' }}>
+          <InputNumber
+            placeholder='Reusable $/item'
+            prefix='$'
+            style={{ minWidth: '20ch' }}
+            disabled={readOnly}
+            min={0}
+            step={0.01}
+            defaultValue={item.reusableCostPerItem ?? undefined}
+            onChange={value => updateCosts(item.id, typeof value === 'number' ? value : null, undefined)}
+          />
+        </Col>
+        <Col span={6} style={{ textAlign: 'center' }}>
+          <InputNumber
+            placeholder='Single-use $/item'
+            prefix='$'
+            style={{ minWidth: '20ch' }}
+            disabled={readOnly}
+            min={0}
+            step={0.01}
+            defaultValue={item.singleUseCostPerItem ?? undefined}
+            onChange={value => updateCosts(item.id, undefined, typeof value === 'number' ? value : null)}
+          />
+        </Col>
+        <Col span={4} />
       </Row>
       {!isLast && <Divider />}
     </>

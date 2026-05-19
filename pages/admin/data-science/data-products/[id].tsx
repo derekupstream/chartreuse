@@ -387,6 +387,8 @@ export default function DataProductEditorPage({
                 inputSchema={product.inputSchemaJson}
                 outputSchema={product.outputSchemaJson}
                 executionCode={product.executionCode}
+                productSlug={product.slug}
+                productCategory={product.projectType ?? 'default'}
               />
             )
           }

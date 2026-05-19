@@ -4,6 +4,7 @@ import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import styled from 'styled-components';
 
+import { useChartReuse2 } from 'hooks/useChartReuse2';
 import { useSubscription } from 'hooks/useSubscription';
 import * as S from 'layouts/styles';
 
@@ -36,6 +37,7 @@ export const ProjectsDashboard = ({
 }) => {
   const router = useRouter();
   const { tags } = useTags(orgId); // TODO: get org id from context
+  const { enabled: v2Enabled } = useChartReuse2();
   //const { subscriptionStatus } = useSubscription();
   // temporary hack to allow Post-Landfill Action Network to have more projects
   // const projectLimit = orgId === '8793767e-ed9c-4adf-bb45-ba1c45378288' ? 4 : 1;
@@ -64,7 +66,7 @@ export const ProjectsDashboard = ({
   return (
     <>
       <S.HeaderRow>
-        <Typography.Title>Projects</Typography.Title>
+        <Typography.Title>{v2Enabled ? 'Calculators' : 'Projects'}</Typography.Title>
         {/* <Popconfirm
           title={
             <Space direction='vertical' size='small'>

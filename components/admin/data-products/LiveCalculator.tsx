@@ -2,7 +2,12 @@ import { ExperimentOutlined, ReloadOutlined, WarningOutlined } from '@ant-design
 import { Alert, Button, Card, Col, Empty, Input, InputNumber, Row, Select, Space, Statistic, Typography } from 'antd';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
+import { RealEngineTests } from './RealEngineTests';
+
 const { Text, Title, Paragraph } = Typography;
+
+// Slugs that route to the real-engine Tests UX (vs. AI executionCode sandbox).
+const REAL_ENGINE_SLUGS = new Set(['projections-model', 'actuals-event-model', 'rsp-ingestion-model']);
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -31,6 +36,8 @@ type Props = {
   inputSchema: { fields?: unknown[] } | null;
   outputSchema: { metrics?: unknown[] } | null;
   executionCode: string | null;
+  productSlug?: string;
+  productCategory?: string;
 };
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -89,12 +96,23 @@ function runExecutionCode(code: string, inputs: Record<string, unknown>): Record
 
 // ─── Component ──────────────────────────────────────────────────────────────
 
-export function LiveCalculator({ inputSchema, outputSchema, executionCode }: Props) {
+export function LiveCalculator({ inputSchema, outputSchema, executionCode, productSlug, productCategory }: Props) {
   const fields = useMemo<InputField[]>(() => (inputSchema?.fields as InputField[] | undefined) ?? [], [inputSchema]);
   const metrics = useMemo<OutputMetric[]>(
     () => (outputSchema?.metrics as OutputMetric[] | undefined) ?? [],
     [outputSchema]
   );
+
+  // Real-engine path: delegate the entire Tests tab. Skips the AI executionCode sandbox.
+  if (productSlug && REAL_ENGINE_SLUGS.has(productSlug)) {
+    return (
+      <RealEngineTests
+        productSlug={productSlug}
+        productCategory={productCategory ?? 'default'}
+        outputMetrics={metrics}
+      />
+    );
+  }
 
   const [values, setValues] = useState<Record<string, unknown>>(() => buildInitialValues(fields));
   const [outputs, setOutputs] = useState<Record<string, unknown>>({});

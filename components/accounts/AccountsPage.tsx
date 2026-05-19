@@ -7,6 +7,7 @@ import { useMutation } from 'react-query';
 import * as http from 'lib/http';
 import type { LoggedinProps } from 'lib/middleware';
 import chartreuseClient from 'lib/chartreuseClient';
+import type { AccountStats } from 'pages/accounts/index';
 
 import * as S from '../../layouts/styles';
 
@@ -14,9 +15,27 @@ type AccountRow = {
   invitingPending: boolean;
   key: string;
   name: string;
+  contact: string;
+  stats?: AccountStats;
 };
 
-export function AccountsPage({ user, org }: LoggedinProps & { org: { orgInviteCode: string | null } }) {
+function formatRelative(iso: string | null): string {
+  if (!iso) return '—';
+  const ms = Date.now() - new Date(iso).getTime();
+  if (ms < 0) return 'just now';
+  const days = Math.floor(ms / 86400000);
+  if (days === 0) return 'today';
+  if (days === 1) return 'yesterday';
+  if (days < 30) return `${days} days ago`;
+  if (days < 365) return `${Math.floor(days / 30)} months ago`;
+  return `${Math.floor(days / 365)} years ago`;
+}
+
+export function AccountsPage({
+  user,
+  org,
+  accountStats = []
+}: LoggedinProps & { org: { orgInviteCode: string | null }; accountStats?: AccountStats[] }) {
   const router = useRouter();
   const [inviteCode, setInviteCode] = useState<string | null>(org.orgInviteCode);
 
@@ -65,21 +84,65 @@ export function AccountsPage({ user, org }: LoggedinProps & { org: { orgInviteCo
     {
       title: 'Name',
       dataIndex: 'name',
-      key: 'name'
+      key: 'name',
+      render: (text: string, record: AccountRow) => (
+        <Space direction='vertical' size={0}>
+          <span>{text}</span>
+          {record.stats?.venueCategory && (
+            <Tag style={{ fontSize: 10, marginTop: 2 }} color='geekblue'>
+              {record.stats.venueCategory}
+            </Tag>
+          )}
+        </Space>
+      )
     },
     {
       title: 'Contact',
       dataIndex: 'contact',
       key: 'contact',
-      // eslint-disable-next-line react/display-name
-      render: (text: string, record: AccountRow) => {
-        return (
-          <Space size='small'>
-            {text}
-            {record.invitingPending ? <Tag color='orange'>Pending</Tag> : <Tag color='blue'>Active</Tag>}
-          </Space>
-        );
+      render: (text: string, record: AccountRow) => (
+        <Space size='small'>
+          {text}
+          {record.invitingPending ? <Tag color='orange'>Pending</Tag> : <Tag color='blue'>Active</Tag>}
+        </Space>
+      )
+    },
+    {
+      title: 'Projects',
+      key: 'projects',
+      align: 'right' as const,
+      render: (_: any, record: AccountRow) => record.stats?.projectCount ?? 0,
+      sorter: (a: AccountRow, b: AccountRow) => (a.stats?.projectCount ?? 0) - (b.stats?.projectCount ?? 0)
+    },
+    {
+      title: 'Members',
+      key: 'members',
+      align: 'right' as const,
+      render: (_: any, record: AccountRow) => record.stats?.userCount ?? 0
+    },
+    {
+      title: 'Line Items',
+      key: 'lineItems',
+      align: 'right' as const,
+      render: (_: any, record: AccountRow) => {
+        const s = record.stats;
+        if (!s) return 0;
+        return s.singleUseItemCount + s.reusableItemCount + s.eventFoodwareItemCount;
       }
+    },
+    {
+      title: 'RSP Periods',
+      key: 'usagePeriods',
+      align: 'right' as const,
+      render: (_: any, record: AccountRow) => record.stats?.usagePeriodCount ?? 0
+    },
+    {
+      title: 'Last activity',
+      key: 'lastActivity',
+      render: (_: any, record: AccountRow) => formatRelative(record.stats?.lastActivity ?? null),
+      sorter: (a: AccountRow, b: AccountRow) =>
+        (a.stats?.lastActivity ? new Date(a.stats.lastActivity).getTime() : 0) -
+        (b.stats?.lastActivity ? new Date(b.stats.lastActivity).getTime() : 0)
     },
     {
       title: 'Actions',
@@ -111,14 +174,14 @@ export function AccountsPage({ user, org }: LoggedinProps & { org: { orgInviteCo
     }
   ];
 
-  const data: AccountRow[] = user.org.accounts.map(account => {
-    return {
-      key: account.id,
-      name: account.name,
-      contact: account.accountContactEmail,
-      invitingPending: account.invites.some(i => i.email === account.accountContactEmail && !i.accepted)
-    };
-  });
+  const statsById = new Map((accountStats ?? []).map(s => [s.id, s]));
+  const data: AccountRow[] = user.org.accounts.map(account => ({
+    key: account.id,
+    name: account.name,
+    contact: account.accountContactEmail,
+    invitingPending: account.invites.some(i => i.email === account.accountContactEmail && !i.accepted),
+    stats: statsById.get(account.id)
+  }));
 
   const handleAddAcount = () => {
     router.push('/setup/account?dashboard=1');

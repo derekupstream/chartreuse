@@ -11,11 +11,12 @@ const handler = nc<NextApiRequest, NextApiResponse>({ onError, onNoMatch });
 handler.use(getUser).put(updateAccount).delete(deleteAccount);
 
 async function updateAccount(req: NextApiRequestWithUser, res: NextApiResponse) {
-  const { name, USState, rspClientId, rspOrgId } = req.body as {
+  const { name, USState, rspClientId, rspOrgId, venueCategory } = req.body as {
     name?: string;
     USState?: string;
     rspClientId?: string | null;
     rspOrgId?: string | null;
+    venueCategory?: string | null;
   };
 
   const account = await prisma.account.update<Prisma.AccountUpdateArgs>({
@@ -24,7 +25,8 @@ async function updateAccount(req: NextApiRequestWithUser, res: NextApiResponse) 
       ...(name !== undefined ? { name } : {}),
       ...(USState !== undefined ? { USState } : {}),
       ...(rspClientId !== undefined ? { rspClientId: rspClientId || null } : {}),
-      ...(rspOrgId !== undefined ? { rspOrgId: rspOrgId || null } : {})
+      ...(rspOrgId !== undefined ? { rspOrgId: rspOrgId || null } : {}),
+      ...(venueCategory !== undefined ? { venueCategory: venueCategory || null } : {})
     }
   });
 

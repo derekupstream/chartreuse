@@ -26,7 +26,7 @@ import {
 } from 'antd';
 import dayjs from 'dayjs';
 import { useRouter } from 'next/router';
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useReactToPrint } from 'react-to-print';
 import styled from 'styled-components';
 
@@ -45,6 +45,8 @@ import { useCurrency } from 'components/_app/CurrencyProvider';
 import { ScenarioPlanner, getMultipliedSummary, type ScenarioMultipliers } from './components/ScenarioPlanner';
 import { ShareAnalyticsButton } from './components/ShareAnalyticsButton';
 import { ProjectionTimeline } from './components/ProjectionTimeline';
+import { ImpactTimeline } from './components/ImpactTimeline';
+import { ScenarioTimeline } from './components/ScenarioTimeline';
 
 import * as S2 from '../../../layouts/styles';
 import { getReturnOrShrinkageRate } from 'components/projects/[id]/usage/UsageStep';
@@ -277,10 +279,12 @@ function useSavedViews(orgId: string) {
     }
   }
 
-  const [views, setViews] = useState<SavedView[]>(() => {
-    if (typeof window === 'undefined') return [];
-    return getStored();
-  });
+  // Defer localStorage read to useEffect — first server + client paint must match.
+  const [views, setViews] = useState<SavedView[]>([]);
+  useEffect(() => {
+    setViews(getStored());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [orgId]);
 
   function saveView(name: string, filters: Omit<SavedView, 'id' | 'name'>) {
     const next: SavedView = { id: Date.now().toString(), name, ...filters };
@@ -568,14 +572,7 @@ export function AnalyticsPage({
   const tabItems = [
     { key: 'projections', label: 'Projections' },
     ...(showCategoryTabs ? [{ key: 'actuals', label: 'Actuals' }] : []),
-    {
-      key: 'scenarios',
-      label: (
-        <span>
-          Scenarios <Badge count='New' color='#52c41a' size='small' style={{ marginLeft: 4 }} />
-        </span>
-      )
-    }
+    { key: 'scenarios', label: 'Scenarios' }
   ];
 
   return (
@@ -632,239 +629,273 @@ export function AnalyticsPage({
 
       <Spacer vertical={spacing} />
 
-      <Tabs activeKey={activeTab} style={{ marginBottom: 0 }} onChange={handleTabChange} items={tabItems} />
+      {/* ── Sticky header block: tabs + filters + summary cards pin together ── */}
+      <div
+        style={{
+          position: 'sticky',
+          top: 0,
+          zIndex: 10,
+          background: '#f4f3f0',
+          paddingTop: 8,
+          paddingBottom: 12,
+          marginBottom: 4,
+          boxShadow: '0 4px 8px -4px rgba(0,0,0,0.08)'
+        }}
+        className='dont-print-me-sticky'
+      >
+        <Tabs activeKey={activeTab} style={{ marginBottom: 0 }} onChange={handleTabChange} items={tabItems} />
 
-      {/* ── FilterRow — all tabs ─────────────────────────────────────────── */}
-      <FilterRow className='dont-print-me'>
-        {savedViews.length > 0 && (
+        {/* ── FilterRow — all tabs ─────────────────────────────────────────── */}
+        <FilterRow className='dont-print-me'>
+          {savedViews.length > 0 && (
+            <Select
+              placeholder='Load saved view'
+              style={{ minWidth: 160 }}
+              value={activeViewId}
+              onSelect={(id: string | undefined) => {
+                if (!id) return;
+                const view = savedViews.find(v => v.id === id);
+                if (view) loadView(view);
+              }}
+              options={savedViews.map(v => ({
+                label: (
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                    <span>{v.name}</span>
+                    <DeleteOutlined
+                      style={{ color: '#ff4d4f', fontSize: 12 }}
+                      onClick={e => {
+                        e.stopPropagation();
+                        deleteView(v.id);
+                      }}
+                    />
+                  </div>
+                ),
+                value: v.id
+              }))}
+            />
+          )}
           <Select
-            placeholder='Load saved view'
+            mode='multiple'
+            placeholder='Filter by project type'
+            style={{ minWidth: 215 }}
+            options={availableProjectTypes.map(t => ({ label: t, value: t }))}
+            value={selectedProjectTypes}
+            onChange={vals => {
+              setSelectedProjectTypes(vals);
+              syncFiltersToUrl({ projectTypes: vals });
+            }}
+            allowClear
+          />
+          {activeTab === 'actuals' && (
+            <DatePicker.RangePicker
+              value={dateRange as any}
+              placeholder={['Start date', 'End date']}
+              allowEmpty={[true, true]}
+              onChange={range => {
+                const newRange: [any, any] = [range?.[0] ?? null, range?.[1] ?? null];
+                setDateRange(newRange);
+                syncFiltersToUrl({
+                  startDate: newRange[0]?.format('YYYY-MM-DD') ?? null,
+                  endDate: newRange[1]?.format('YYYY-MM-DD') ?? null
+                });
+              }}
+            />
+          )}
+          <Select
+            mode='multiple'
+            placeholder='Filter by tag'
             style={{ minWidth: 160 }}
-            value={activeViewId}
-            onSelect={(id: string | undefined) => {
-              if (!id) return;
-              const view = savedViews.find(v => v.id === id);
-              if (view) loadView(view);
+            options={tags.map(t => ({ label: t.label, value: t.id }))}
+            value={selectedTagIds}
+            onChange={vals => {
+              setSelectedTagIds(vals);
+              syncFiltersToUrl({ tagIds: vals });
             }}
-            options={savedViews.map(v => ({
-              label: (
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-                  <span>{v.name}</span>
-                  <DeleteOutlined
-                    style={{ color: '#ff4d4f', fontSize: 12 }}
-                    onClick={e => {
-                      e.stopPropagation();
-                      deleteView(v.id);
-                    }}
-                  />
-                </div>
-              ),
-              value: v.id
-            }))}
+            allowClear
           />
-        )}
-        <Select
-          mode='multiple'
-          placeholder='Filter by project type'
-          style={{ minWidth: 215 }}
-          options={availableProjectTypes.map(t => ({ label: t, value: t }))}
-          value={selectedProjectTypes}
-          onChange={vals => {
-            setSelectedProjectTypes(vals);
-            syncFiltersToUrl({ projectTypes: vals });
-          }}
-          allowClear
-        />
-        {activeTab === 'actuals' && (
-          <DatePicker.RangePicker
-            value={dateRange as any}
-            placeholder={['Start date', 'End date']}
-            allowEmpty={[true, true]}
-            onChange={range => {
-              const newRange: [any, any] = [range?.[0] ?? null, range?.[1] ?? null];
-              setDateRange(newRange);
-              syncFiltersToUrl({
-                startDate: newRange[0]?.format('YYYY-MM-DD') ?? null,
-                endDate: newRange[1]?.format('YYYY-MM-DD') ?? null
-              });
-            }}
-          />
-        )}
-        <Select
-          mode='multiple'
-          placeholder='Filter by tag'
-          style={{ minWidth: 160 }}
-          options={tags.map(t => ({ label: t.label, value: t.id }))}
-          value={selectedTagIds}
-          onChange={vals => {
-            setSelectedTagIds(vals);
-            syncFiltersToUrl({ tagIds: vals });
-          }}
-          allowClear
-        />
-        {hasActiveFilters && <Button onClick={clearFilters}>Clear filters</Button>}
-        <Tooltip title='Save current filters as a named view'>
-          <Button icon={<SaveOutlined />} onClick={promptSaveView}>
-            Save view
-          </Button>
-        </Tooltip>
-      </FilterRow>
+          {hasActiveFilters && <Button onClick={clearFilters}>Clear filters</Button>}
+          <Tooltip title='Save current filters as a named view'>
+            <Button icon={<SaveOutlined />} onClick={promptSaveView}>
+              Save view
+            </Button>
+          </Tooltip>
+        </FilterRow>
 
-      <Divider style={{ margin: 0 }} />
+        <Divider style={{ margin: 0 }} />
 
-      <Spacer vertical={spacing} />
+        <Spacer vertical={spacing} />
 
-      {/* ── Summary cards — all tabs ──────────────────────────────────────── */}
-      <Row gutter={[24, 24]}>
-        {bottlesSaved > 0 && (
-          <StyledCol xs={24} lg={12}>
-            <SummaryCard
-              label='Water bottles avoided'
-              value={`${Math.round(bottlesSaved).toLocaleString()} bottles`}
-              projectHasData={projectHasData}
-            />
-          </StyledCol>
-        )}
-        {projectCategory === 'event' && !showBottlesAndFoodwareBreakdown && (
-          <StyledCol xs={24} lg={12}>
-            <SummaryCard
-              label='Single-use items avoided'
-              value={`${Math.round(singleUseItemsAvoided).toLocaleString()} items`}
-              projectHasData={projectHasData}
-            />
-          </StyledCol>
-        )}
-        {projectCategory === 'event' && showBottlesAndFoodwareBreakdown && (
-          <StyledCol xs={24} lg={12}>
-            <SummaryCardSingleUseBreakdown
-              label='Single-use items avoided'
-              bottleAvoided={bottlesSaved}
-              foodwareItemsAvoided={foodwareItemsAvoided}
-              projectHasData={projectHasData}
-              inspectMeta={{
-                id: 'analytics-single-use-avoided',
-                label: 'Single-Use Items Avoided',
-                type: 'calculation',
-                path: 'annualSummary.singleUseProductCount + bottleStationResults.bottlesSaved',
-                description:
-                  'Sum of foodware items avoided + bottles saved from bottle stations across all filtered projects',
-                calculatorFunction: 'getSingleUseResults() + getBottleStationResults()'
-              }}
-            />
-          </StyledCol>
-        )}
-        {projectCategory !== 'event' && (
-          <StyledCol xs={24} md={12}>
-            <SummaryCardWithGraph
-              label='Estimated Savings'
-              projectHasData={projectHasData}
-              isEventProject={false}
-              formatter={val => formatToDollar(val, currencyAbbreviation)}
-              value={activeSummary.savings}
-              inspectMeta={{
-                id: 'analytics-est-savings',
-                label: 'Estimated Savings (Aggregate)',
-                type: 'calculation',
-                path: 'annualSummary.dollarCost',
-                description: 'Aggregated annual cost savings across all filtered projects',
-                calculatorFunction: 'getAnnualCostChanges()',
-                sourceFile: 'lib/calculator/calculations/costs/getAnnualCostChanges.ts'
-              }}
-            />
-          </StyledCol>
-        )}
-        {projectCategory !== 'event' && (
-          <StyledCol xs={24} md={12}>
-            <SummaryCardWithGraph
-              label='Single-Use Reduction'
-              isEventProject={false}
-              projectHasData={projectHasData}
-              units='units'
-              value={activeSummary.singleUse}
-              inspectMeta={{
-                id: 'analytics-single-use-reduction',
-                label: 'Single-Use Reduction (Aggregate)',
-                type: 'calculation',
-                path: 'annualSummary.singleUseProductCount',
-                description: 'Aggregated single-use unit count reduction across all filtered projects',
-                calculatorFunction: 'getSingleUseResults()',
-                sourceFile: 'lib/calculator/calculations/foodware/getSingleUseResults.ts'
-              }}
-            />
-          </StyledCol>
-        )}
-        <StyledCol xs={24} md={12}>
-          <SummaryCardWithGraph
-            label={projectCategory === 'event' ? 'Waste to landfill prevented' : 'Waste reduction'}
-            isEventProject={projectCategory === 'event'}
-            projectHasData={projectHasData}
-            units={displayAsMetric ? 'kg' : 'lbs'}
-            formatter={val =>
-              Math.round(valueInPounds(val, { displayAsMetric, displayAsTons: false })).toLocaleString()
-            }
-            value={activeSummary.waste}
-            inspectMeta={{
-              id: 'analytics-waste',
-              label: 'Waste Reduction (Aggregate)',
-              type: 'calculation',
-              path: 'annualSummary.wasteWeight',
-              description: 'Aggregated waste weight reduction across all filtered projects',
-              calculatorFunction: 'getAnnualWasteChanges()',
-              sourceFile: 'lib/calculator/calculations/waste/getAnnualWasteChanges.ts'
-            }}
-          />
-        </StyledCol>
-        <StyledCol xs={24} md={12}>
-          <SummaryCardWithGraph
-            label={projectCategory === 'event' ? 'GHG emissions' : 'GHG reduction'}
-            isEventProject={projectCategory === 'event'}
-            projectHasData={projectHasData}
-            units='MTC02e'
-            value={activeSummary.gas}
-            reverseChangePercent={projectCategory === 'event'}
-            inspectMeta={{
-              id: 'analytics-ghg',
-              label: 'GHG Reduction (Aggregate)',
-              type: 'calculation',
-              path: 'annualSummary.greenhouseGasEmissions.total',
-              description: 'Aggregated GHG emission reduction across all filtered projects',
-              calculatorFunction: 'getAnnualGasEmissionChanges()',
-              sourceFile: 'lib/calculator/calculations/ghg/getAnnualGasEmissionChanges.ts'
-            }}
-          />
-        </StyledCol>
-        {projectCategory === 'event' && (
-          <>
+        {/* ── Summary cards — all tabs ──────────────────────────────────────── */}
+        <Row gutter={[24, 24]}>
+          {bottlesSaved > 0 && (
             <StyledCol xs={24} lg={12}>
               <SummaryCard
-                label={returnRatelabel}
-                value={`${Math.round((returnRateDisplayValue ?? 0) * 100) / 100}%`}
+                label='Water bottles avoided'
+                value={`${Math.round(bottlesSaved).toLocaleString()} bottles`}
                 projectHasData={projectHasData}
               />
             </StyledCol>
-            <StyledCol xs={24} md={12}>
-              <SummaryCardWithGraph
-                label={projectCategory === 'event' ? `Water usage` : `Annual water usage changes`}
-                isEventProject={projectCategory === 'event'}
+          )}
+          {projectCategory === 'event' && !showBottlesAndFoodwareBreakdown && (
+            <StyledCol xs={24} lg={12}>
+              <SummaryCard
+                label='Single-use items avoided'
+                value={`${Math.round(singleUseItemsAvoided).toLocaleString()} items`}
                 projectHasData={projectHasData}
-                units={displayAsMetric ? 'L' : 'gal'}
-                value={activeSummary.water}
-                formatter={val => Math.round(valueInGallons(val, { displayAsMetric })).toLocaleString()}
-                reverseChangePercent={projectCategory === 'event'}
+              />
+            </StyledCol>
+          )}
+          {projectCategory === 'event' && showBottlesAndFoodwareBreakdown && (
+            <StyledCol xs={24} lg={12}>
+              <SummaryCardSingleUseBreakdown
+                label='Single-use items avoided'
+                bottleAvoided={bottlesSaved}
+                foodwareItemsAvoided={foodwareItemsAvoided}
+                projectHasData={projectHasData}
                 inspectMeta={{
-                  id: 'analytics-water',
-                  label: 'Water Usage (Aggregate)',
+                  id: 'analytics-single-use-avoided',
+                  label: 'Single-Use Items Avoided',
                   type: 'calculation',
-                  path: 'annualSummary.waterUsage',
-                  description: 'Aggregated water usage change across all filtered projects',
-                  calculatorFunction: 'getAnnualWaterUsageChanges()',
-                  sourceFile: 'lib/calculator/calculations/water/getAnnualWaterUsageChanges.ts'
+                  path: 'annualSummary.singleUseProductCount + bottleStationResults.bottlesSaved',
+                  description:
+                    'Sum of foodware items avoided + bottles saved from bottle stations across all filtered projects',
+                  calculatorFunction: 'getSingleUseResults() + getBottleStationResults()'
                 }}
               />
             </StyledCol>
-          </>
-        )}
-      </Row>
+          )}
+          {projectCategory !== 'event' && (
+            <StyledCol xs={24} md={12}>
+              <SummaryCardWithGraph
+                label='Estimated Savings'
+                projectHasData={projectHasData}
+                isEventProject={false}
+                formatter={val => formatToDollar(val, currencyAbbreviation)}
+                value={activeSummary.savings}
+                inspectMeta={{
+                  id: 'analytics-est-savings',
+                  label: 'Estimated Savings (Aggregate)',
+                  type: 'calculation',
+                  path: 'annualSummary.dollarCost',
+                  description: 'Aggregated annual cost savings across all filtered projects',
+                  calculatorFunction: 'getAnnualCostChanges()',
+                  sourceFile: 'lib/calculator/calculations/costs/getAnnualCostChanges.ts'
+                }}
+              />
+            </StyledCol>
+          )}
+          {projectCategory !== 'event' && (
+            <StyledCol xs={24} md={12}>
+              <SummaryCardWithGraph
+                label='Single-Use Reduction'
+                isEventProject={false}
+                projectHasData={projectHasData}
+                units='units'
+                value={activeSummary.singleUse}
+                inspectMeta={{
+                  id: 'analytics-single-use-reduction',
+                  label: 'Single-Use Reduction (Aggregate)',
+                  type: 'calculation',
+                  path: 'annualSummary.singleUseProductCount',
+                  description: 'Aggregated single-use unit count reduction across all filtered projects',
+                  calculatorFunction: 'getSingleUseResults()',
+                  sourceFile: 'lib/calculator/calculations/foodware/getSingleUseResults.ts'
+                }}
+              />
+            </StyledCol>
+          )}
+          <StyledCol xs={24} md={12}>
+            <SummaryCardWithGraph
+              label={projectCategory === 'event' ? 'Waste to landfill prevented' : 'Waste reduction'}
+              isEventProject={projectCategory === 'event'}
+              projectHasData={projectHasData}
+              units={displayAsMetric ? 'kg' : 'lbs'}
+              formatter={val =>
+                Math.round(valueInPounds(val, { displayAsMetric, displayAsTons: false })).toLocaleString()
+              }
+              value={activeSummary.waste}
+              inspectMeta={{
+                id: 'analytics-waste',
+                label: 'Waste Reduction (Aggregate)',
+                type: 'calculation',
+                path: 'annualSummary.wasteWeight',
+                description: 'Aggregated waste weight reduction across all filtered projects',
+                calculatorFunction: 'getAnnualWasteChanges()',
+                sourceFile: 'lib/calculator/calculations/waste/getAnnualWasteChanges.ts'
+              }}
+            />
+          </StyledCol>
+          <StyledCol xs={24} md={12}>
+            <SummaryCardWithGraph
+              label={projectCategory === 'event' ? 'GHG emissions' : 'GHG reduction'}
+              isEventProject={projectCategory === 'event'}
+              projectHasData={projectHasData}
+              units='MTC02e'
+              value={activeSummary.gas}
+              reverseChangePercent={projectCategory === 'event'}
+              inspectMeta={{
+                id: 'analytics-ghg',
+                label: 'GHG Reduction (Aggregate)',
+                type: 'calculation',
+                path: 'annualSummary.greenhouseGasEmissions.total',
+                description: 'Aggregated GHG emission reduction across all filtered projects',
+                calculatorFunction: 'getAnnualGasEmissionChanges()',
+                sourceFile: 'lib/calculator/calculations/ghg/getAnnualGasEmissionChanges.ts'
+              }}
+            />
+          </StyledCol>
+          {projectCategory === 'event' && (
+            <>
+              <StyledCol xs={24} lg={12}>
+                <SummaryCard
+                  label={returnRatelabel}
+                  value={`${Math.round((returnRateDisplayValue ?? 0) * 100) / 100}%`}
+                  projectHasData={projectHasData}
+                />
+              </StyledCol>
+              <StyledCol xs={24} md={12}>
+                <SummaryCardWithGraph
+                  label={projectCategory === 'event' ? `Water usage` : `Annual water usage changes`}
+                  isEventProject={projectCategory === 'event'}
+                  projectHasData={projectHasData}
+                  units={displayAsMetric ? 'L' : 'gal'}
+                  value={activeSummary.water}
+                  formatter={val => Math.round(valueInGallons(val, { displayAsMetric })).toLocaleString()}
+                  reverseChangePercent={projectCategory === 'event'}
+                  inspectMeta={{
+                    id: 'analytics-water',
+                    label: 'Water Usage (Aggregate)',
+                    type: 'calculation',
+                    path: 'annualSummary.waterUsage',
+                    description: 'Aggregated water usage change across all filtered projects',
+                    calculatorFunction: 'getAnnualWaterUsageChanges()',
+                    sourceFile: 'lib/calculator/calculations/water/getAnnualWaterUsageChanges.ts'
+                  }}
+                />
+              </StyledCol>
+            </>
+          )}
+        </Row>
+      </div>
+
+      {/* ── Projections timeline ─────────────────────────────────────────── */}
+      {activeTab === 'projections' && filteredProjects.length > 0 && (
+        <div style={{ marginTop: 16 }}>
+          <ProjectionTimeline
+            projects={filteredProjects}
+            multipliers={{}}
+            timelineYear={timelineYear}
+            onTimelineYearChange={setTimelineYear}
+          />
+        </div>
+      )}
+
+      {/* ── Actuals timeline (milestone snapshots) ───────────────────────── */}
+      {activeTab === 'actuals' && (
+        <div style={{ marginTop: 16 }}>
+          <ImpactTimeline />
+        </div>
+      )}
 
       {/* ── Projections / Actuals leaderboard ────────────────────────────── */}
       {activeTab !== 'scenarios' && (
@@ -934,9 +965,10 @@ export function AnalyticsPage({
       {/* ── Scenarios tab ──────────────────────────────────────────────── */}
       {activeTab === 'scenarios' && (
         <div style={{ paddingTop: 24 }}>
-          <ProjectionTimeline
+          <ScenarioTimeline
             projects={filteredProjects}
-            multipliers={scenarioMultipliers}
+            orgId={user.org.id}
+            activeMultipliers={scenarioMultipliers}
             timelineYear={timelineYear}
             onTimelineYearChange={setTimelineYear}
           />

@@ -56,7 +56,24 @@ export const STATES = [
   { name: 'Washington', electric: 0.08, gas: 0.92 },
   { name: 'West Virginia', electric: 0.08, gas: 0.92 },
   { name: 'Wisconsin', electric: 0.11, gas: 0.92 },
-  { name: 'Wyoming', electric: 0.09, gas: 0.92 }
+  { name: 'Wyoming', electric: 0.09, gas: 0.92 },
+  // ── Canadian provinces / territories ──
+  // Approx commercial electricity rates from BC Hydro, Hydro-Québec, Manitoba Hydro,
+  // Ontario IESO, etc. (USD-equivalent, 2025 public tariffs). Gas is left at the US
+  // placeholder until we wire region-specific gas pricing.
+  { name: 'British Columbia', electric: 0.13, gas: 0.92 },
+  { name: 'Alberta', electric: 0.16, gas: 0.92 },
+  { name: 'Saskatchewan', electric: 0.16, gas: 0.92 },
+  { name: 'Manitoba', electric: 0.1, gas: 0.92 },
+  { name: 'Ontario', electric: 0.13, gas: 0.92 },
+  { name: 'Quebec', electric: 0.07, gas: 0.92 },
+  { name: 'New Brunswick', electric: 0.12, gas: 0.92 },
+  { name: 'Nova Scotia', electric: 0.18, gas: 0.92 },
+  { name: 'Prince Edward Island', electric: 0.17, gas: 0.92 },
+  { name: 'Newfoundland and Labrador', electric: 0.12, gas: 0.92 },
+  { name: 'Yukon', electric: 0.14, gas: 0.92 },
+  { name: 'Northwest Territories', electric: 0.3, gas: 0.92 },
+  { name: 'Nunavut', electric: 0.29, gas: 0.92 }
 ] as const;
 
 export type USState = (typeof STATES)[number]['name'];

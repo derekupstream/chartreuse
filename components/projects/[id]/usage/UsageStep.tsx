@@ -70,6 +70,13 @@ export function UsageStep({
     });
   }
 
+  function updateCosts(id: string, reusableCostPerItem?: number | null, singleUseCostPerItem?: number | null) {
+    const patch: Record<string, unknown> = { id };
+    if (reusableCostPerItem !== undefined) patch.reusableCostPerItem = reusableCostPerItem;
+    if (singleUseCostPerItem !== undefined) patch.singleUseCostPerItem = singleUseCostPerItem;
+    addOrUpdateFoodwareLineItem(patch as any);
+  }
+
   function updateWaterStation(id: string, waterUsageGallons?: number, reusableItemCount?: number) {
     addOrUpdateFoodwareLineItem({
       id,
@@ -188,6 +195,7 @@ export function UsageStep({
                 useShrinkageRate={org.useShrinkageRate}
                 readOnly={readOnly}
                 updateItem={updateItem}
+                updateCosts={updateCosts}
                 isLast={index === foodwareWithoutWaterStation.length - 1}
                 advancedEditing={advancedEditing}
               />

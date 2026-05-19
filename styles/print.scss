@@ -29,6 +29,11 @@
     display: none !important;
   }
 
+  .dont-print-me-sticky {
+    position: static !important;
+    box-shadow: none !important;
+  }
+
   // read about page breaks: https://github.com/gregnb/react-to-print#page-breaks
   .page-break {
     padding-top: 10mm;

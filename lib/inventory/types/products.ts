@@ -28,4 +28,8 @@ export type FoodwareSelection = {
   waterUsageGallons?: number;
   singleUseProduct: SingleUseProduct;
   reusableProduct: ReusableProduct;
+  // Optional, transient cost fields used by the event cost calculator. Not persisted
+  // on EventFoodwareLineItem yet — populated via test fixtures and (future) UI.
+  reusableCostPerItem?: number;
+  singleUseCostPerItem?: number;
 };

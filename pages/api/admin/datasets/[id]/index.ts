@@ -30,7 +30,7 @@ export default handlerWithUser()
     if (!isUpstream) return res.status(403).json({ error: 'Forbidden' });
 
     const { id } = req.query as { id: string };
-    const { name, description, tolerance, isActive, tags } = req.body;
+    const { name, description, tolerance, isActive, tags, inputs, expectedOutputs } = req.body;
     const dataset = await prisma.goldenDataset.update({
       where: { id },
       data: {
@@ -38,7 +38,9 @@ export default handlerWithUser()
         ...(description !== undefined && { description }),
         ...(tolerance !== undefined && { tolerance }),
         ...(isActive !== undefined && { isActive }),
-        ...(tags !== undefined && { tags })
+        ...(tags !== undefined && { tags }),
+        ...(inputs !== undefined && { inputs }),
+        ...(expectedOutputs !== undefined && { expectedOutputs })
       }
     });
     res.json(dataset);

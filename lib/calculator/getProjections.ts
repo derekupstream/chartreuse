@@ -1,5 +1,6 @@
 import { ProjectCategory } from '@prisma/client';
 import { getProjectInventory } from 'lib/inventory/getProjectInventory';
+import type { ProjectInventory } from 'lib/inventory/types/projects';
 
 import { getAnnualSummary } from './calculations/getAnnualSummary';
 import { getEnvironmentalResults } from './calculations/getEnvironmentalResults';
@@ -7,26 +8,32 @@ import { getFinancialResults } from './calculations/getFinancialResults';
 import { getReusableResults } from './calculations/foodware/getReusableResults';
 import { getSingleUseResults } from './calculations/foodware/getSingleUseResults';
 import { getBottleStationResults } from './calculations/foodware/getBottleStationResults';
+import { getEventCostResults } from './calculations/foodware/getEventCostResults';
 
-export type ProjectionsResponse = Awaited<ReturnType<typeof getProjections>>;
+export type ProjectionsResponse = ReturnType<typeof getProjectionsFromInventory>;
 
-export async function getProjections(projectId: string) {
-  const inventory = await getProjectInventory(projectId);
-
+export function getProjectionsFromInventory(inventory: ProjectInventory) {
   const annualSummary = getAnnualSummary(inventory);
   const environmentalResults = getEnvironmentalResults(inventory);
   const financialResults = getFinancialResults(inventory);
   const singleUseResults = getSingleUseResults(inventory);
   const reusableResults = getReusableResults(inventory);
   const bottleStationResults = getBottleStationResults(inventory);
+  const eventCostResults = getEventCostResults(inventory);
   return {
     annualSummary,
     environmentalResults,
     financialResults,
     singleUseResults,
     reusableResults,
-    bottleStationResults
+    bottleStationResults,
+    eventCostResults
   };
+}
+
+export async function getProjections(projectId: string) {
+  const inventory = await getProjectInventory(projectId);
+  return getProjectionsFromInventory(inventory);
 }
 
 export interface SummaryValues {
