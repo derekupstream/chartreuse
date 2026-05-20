@@ -116,6 +116,7 @@ model Project {
   templateDescription          String?
   templateId                   String?                   @db.Uuid
   category                     ProjectCategory           @default(default)
+  dataType                     ProjectDataType           @default(projection)
   eventGuestCount              Int                       @default(0)
   projectionsDescription       String?
   projectionsTitle             String?
@@ -698,6 +699,11 @@ enum ProjectCategory {
   default
   event
   eugene
+}
+
+enum ProjectDataType {
+  projection
+  actual
 }
 
 enum Role {
