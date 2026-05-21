@@ -3,6 +3,9 @@ import { ProjectCategory } from '@prisma/client';
 
 import type { PageProps } from 'components/org/analytics/Analytics';
 import { AnalyticsPage } from 'components/org/analytics/Analytics';
+import { PolicyScenariosPage } from 'components/org/scenarios/PolicyScenariosPage';
+import ContentLoader from 'components/common/ContentLoader';
+import { useChartReuse2 } from 'hooks/useChartReuse2';
 import { DashboardLayout as Template } from 'layouts/DashboardLayout/DashboardLayout';
 import { getAllProjections } from 'lib/calculator/getProjections';
 import { getUserFromContext } from 'lib/middleware';
@@ -107,6 +110,11 @@ const ScenariosPage = ({
   showCategoryTabs,
   initialTab
 }: PageProps) => {
+  const { enabled: v2Enabled, hydrated } = useChartReuse2();
+  if (!hydrated) return <ContentLoader />;
+  if (v2Enabled && data) {
+    return <PolicyScenariosPage data={data} orgId={user.org.id} />;
+  }
   return (
     <AnalyticsPage
       data={data}
