@@ -12,16 +12,16 @@ import {
   ShopOutlined,
   StarFilled
 } from '@ant-design/icons';
-import { Button, Card, Checkbox, Col, Drawer, Empty, Row, Space, Tag, Typography } from 'antd';
+import { Button, Card, Checkbox, Col, Drawer, Empty, Progress, Row, Space, Tag, Typography } from 'antd';
 import type { GetServerSideProps } from 'next';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import type { ReactNode } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
-import { SummaryCardWithGraph } from 'components/org/analytics/components/SummaryCardWithGraph';
 import type { DashboardUser } from 'interfaces';
 import { DashboardLayout as Template } from 'layouts/DashboardLayout/DashboardLayout';
 import { getAllProjections } from 'lib/calculator/getProjections';
-import type { AllProjectsSummary } from 'lib/calculator/getProjections';
+import type { AllProjectsSummary, ProjectSummary } from 'lib/calculator/getProjections';
 import { formatToDollar } from 'lib/calculator/utils';
 import { getUserFromContext } from 'lib/middleware';
 import { valueInPounds } from 'lib/number';
@@ -217,7 +217,63 @@ DashboardPage.getLayout = (page: React.ReactNode, pageProps: any) => (
   </Template>
 );
 
-// ─── KPI row — matches /org/analytics visual treatment ──────────────────────
+// ─── KPI row — stats-only with click-to-drill-down ──────────────────────────
+
+type MetricKey = 'savings' | 'singleUse' | 'waste' | 'gas';
+
+type MetricSpec = {
+  key: MetricKey;
+  label: string;
+  units?: string;
+  formatter: (val: number) => string;
+  // Higher = better. Most metrics return positive when the project saves something.
+  getProjectDelta: (p: ProjectSummary) => number;
+  visibleFor: (isEventOnly: boolean) => boolean;
+};
+
+function buildMetricSpecs(currency: string): MetricSpec[] {
+  const toLbs = (val: number) =>
+    Math.round(valueInPounds(val, { displayAsMetric: false, displayAsTons: false })).toLocaleString();
+  return [
+    {
+      key: 'savings',
+      label: 'Estimated Savings',
+      formatter: val => formatToDollar(val, currency),
+      getProjectDelta: p =>
+        p.projections.annualSummary.dollarCost.baseline - p.projections.annualSummary.dollarCost.forecast,
+      visibleFor: isEventOnly => !isEventOnly
+    },
+    {
+      key: 'singleUse',
+      label: 'Single-Use Reduction',
+      units: 'units',
+      formatter: val => Math.round(val).toLocaleString(),
+      getProjectDelta: p =>
+        p.projections.singleUseResults.summary.annualUnits.baseline -
+        p.projections.singleUseResults.summary.annualUnits.forecast,
+      visibleFor: isEventOnly => !isEventOnly
+    },
+    {
+      key: 'waste',
+      label: 'Waste Reduction',
+      units: 'lbs',
+      formatter: toLbs,
+      getProjectDelta: p =>
+        p.projections.annualSummary.wasteWeight.baseline - p.projections.annualSummary.wasteWeight.forecast,
+      visibleFor: () => true
+    },
+    {
+      key: 'gas',
+      label: 'GHG Avoided',
+      units: 'MTCO₂e',
+      formatter: val => val.toFixed(2),
+      getProjectDelta: p =>
+        p.projections.annualSummary.greenhouseGasEmissions.total.baseline -
+        p.projections.annualSummary.greenhouseGasEmissions.total.forecast,
+      visibleFor: () => true
+    }
+  ];
+}
 
 function ImpactKPIs({
   data,
@@ -230,9 +286,14 @@ function ImpactKPIs({
   totalProjects: number;
   currency: string;
 }) {
-  const summary = data.summary;
   const projectHasData = totalProjects > 0;
   const isEventOnly = !hasProjections;
+  const specs = useMemo(
+    () => buildMetricSpecs(currency).filter(s => s.visibleFor(isEventOnly)),
+    [currency, isEventOnly]
+  );
+  const [activeMetric, setActiveMetric] = useState<MetricSpec | null>(null);
+
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 12 }}>
@@ -246,51 +307,172 @@ function ImpactKPIs({
         </Link>
       </div>
       <Row gutter={[16, 16]}>
-        {!isEventOnly && (
-          <Col xs={24} md={12} lg={6}>
-            <SummaryCardWithGraph
-              label='Estimated Savings'
-              projectHasData={projectHasData}
-              isEventProject={false}
-              formatter={val => formatToDollar(val, currency)}
-              value={summary.savings}
-            />
-          </Col>
-        )}
-        {!isEventOnly && (
-          <Col xs={24} md={12} lg={6}>
-            <SummaryCardWithGraph
-              label='Single-Use Reduction'
-              isEventProject={false}
-              projectHasData={projectHasData}
-              units='units'
-              value={summary.singleUse}
-            />
-          </Col>
-        )}
-        <Col xs={24} md={12} lg={6}>
-          <SummaryCardWithGraph
-            label='Waste Reduction'
-            isEventProject={isEventOnly}
-            projectHasData={projectHasData}
-            units='lbs'
-            formatter={val =>
-              Math.round(valueInPounds(val, { displayAsMetric: false, displayAsTons: false })).toLocaleString()
-            }
-            value={summary.waste}
-          />
-        </Col>
-        <Col xs={24} md={12} lg={6}>
-          <SummaryCardWithGraph
-            label='GHG Avoided'
-            isEventProject={isEventOnly}
-            projectHasData={projectHasData}
-            units='MTCO₂e'
-            value={summary.gas}
-          />
-        </Col>
+        {specs.map(spec => {
+          const total = data.projects.reduce((acc, p) => acc + spec.getProjectDelta(p), 0);
+          const lg = specs.length <= 2 ? 12 : specs.length === 3 ? 8 : 6;
+          return (
+            <Col key={spec.key} xs={24} md={12} lg={lg}>
+              <ImpactStatCard
+                label={spec.label}
+                units={spec.units}
+                value={projectHasData ? spec.formatter(total) : null}
+                onClick={projectHasData ? () => setActiveMetric(spec) : undefined}
+              />
+            </Col>
+          );
+        })}
       </Row>
+      <ImpactDrilldown metric={activeMetric} projects={data.projects} onClose={() => setActiveMetric(null)} />
     </div>
+  );
+}
+
+function ImpactStatCard({
+  label,
+  units,
+  value,
+  onClick
+}: {
+  label: string;
+  units?: string;
+  value: ReactNode;
+  onClick?: () => void;
+}) {
+  const clickable = !!onClick;
+  return (
+    <Card hoverable={clickable} onClick={onClick} style={{ height: '100%', cursor: clickable ? 'pointer' : 'default' }}>
+      <Typography.Paragraph style={{ marginBottom: 8 }}>
+        <strong>{label}</strong>
+      </Typography.Paragraph>
+      <Title level={2} style={{ margin: 0 }}>
+        {value ?? 'N/A'} {units && value != null && <span style={{ fontSize: '.55em', fontWeight: 400 }}>{units}</span>}
+      </Title>
+      {clickable && (
+        <Text type='secondary' style={{ fontSize: 11 }}>
+          Click for project breakdown
+        </Text>
+      )}
+    </Card>
+  );
+}
+
+function ImpactDrilldown({
+  metric,
+  projects,
+  onClose
+}: {
+  metric: MetricSpec | null;
+  projects: ProjectSummary[];
+  onClose: () => void;
+}) {
+  const contributions = useMemo(() => {
+    if (!metric) return [];
+    return projects
+      .map(p => ({
+        id: p.id,
+        name: p.name || 'Untitled',
+        accountName: p.account?.name ?? '',
+        type: ((p as any).metadata?.type as string | undefined) ?? 'Untyped',
+        delta: metric.getProjectDelta(p)
+      }))
+      .filter(c => c.delta !== 0)
+      .sort((a, b) => b.delta - a.delta);
+  }, [metric, projects]);
+
+  const total = contributions.reduce((acc, c) => acc + c.delta, 0);
+  const maxAbs = contributions.reduce((acc, c) => Math.max(acc, Math.abs(c.delta)), 0);
+  const top3Sum = contributions.slice(0, 3).reduce((acc, c) => acc + c.delta, 0);
+  const top3Share = total !== 0 ? Math.round((top3Sum / total) * 100) : 0;
+
+  const segments = useMemo(() => {
+    const grouped = new Map<string, number>();
+    contributions.forEach(c => grouped.set(c.type, (grouped.get(c.type) ?? 0) + c.delta));
+    return Array.from(grouped.entries())
+      .map(([type, delta]) => ({ type, delta, share: total !== 0 ? (delta / total) * 100 : 0 }))
+      .sort((a, b) => b.delta - a.delta);
+  }, [contributions, total]);
+
+  return (
+    <Drawer open={!!metric} onClose={onClose} title={metric?.label ?? ''} width={560} destroyOnClose>
+      {metric && contributions.length > 0 ? (
+        <>
+          <Card size='small' style={{ marginBottom: 16, background: '#fafafa' }}>
+            <Space direction='vertical' size={4} style={{ width: '100%' }}>
+              <Text type='secondary' style={{ fontSize: 12 }}>
+                Total across {contributions.length} project{contributions.length === 1 ? '' : 's'}
+              </Text>
+              <Title level={3} style={{ margin: 0 }}>
+                {metric.formatter(total)}{' '}
+                {metric.units && <span style={{ fontSize: '.6em', fontWeight: 400 }}>{metric.units}</span>}
+              </Title>
+              <Text>
+                Top 3 project{contributions.length < 3 ? 's' : 's'} account for <strong>{top3Share}%</strong> of the
+                total
+                {top3Share >= 80
+                  ? ' — savings are concentrated.'
+                  : top3Share >= 50
+                    ? ' — savings are moderately concentrated.'
+                    : ' — savings are spread across many projects.'}
+              </Text>
+            </Space>
+          </Card>
+
+          <Title level={5}>By project</Title>
+          <Space direction='vertical' size={8} style={{ width: '100%' }}>
+            {contributions.map(c => (
+              <div key={c.id} style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
+                  <Link
+                    href={`/projects/${c.id}`}
+                    style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                  >
+                    {c.name}
+                  </Link>
+                  <Text style={{ whiteSpace: 'nowrap' }}>{metric.formatter(c.delta)}</Text>
+                </div>
+                <Progress
+                  percent={maxAbs > 0 ? Math.max(2, Math.round((Math.abs(c.delta) / maxAbs) * 100)) : 0}
+                  showInfo={false}
+                  strokeColor='#52c41a'
+                  size='small'
+                />
+                <Text type='secondary' style={{ fontSize: 11 }}>
+                  {c.accountName} · {c.type}
+                </Text>
+              </div>
+            ))}
+          </Space>
+
+          {segments.length > 1 && (
+            <>
+              <Title level={5} style={{ marginTop: 24 }}>
+                By segment
+              </Title>
+              <Space direction='vertical' size={8} style={{ width: '100%' }}>
+                {segments.map(s => (
+                  <div key={s.type} style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
+                      <Text strong>{s.type}</Text>
+                      <Text>
+                        {metric.formatter(s.delta)} ({Math.round(s.share)}%)
+                      </Text>
+                    </div>
+                    <Progress
+                      percent={Math.max(2, Math.round(s.share))}
+                      showInfo={false}
+                      strokeColor='#1677ff'
+                      size='small'
+                    />
+                  </div>
+                ))}
+              </Space>
+            </>
+          )}
+        </>
+      ) : (
+        <Empty description='No project contributions to show yet.' />
+      )}
+    </Drawer>
   );
 }
 
