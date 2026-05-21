@@ -24,9 +24,15 @@ jobs:
         run: yarn install --frozen-lockfile
 
       - name: Validate Prisma Schema
+        # validate parses the schema and resolves env() references but does
+        # not connect to the DB. Any well-formed URL string is fine here.
+        env:
+          DATABASE_URL: 'postgresql://validate:validate@localhost:5432/validate?schema=public'
         run: npx prisma validate
 
       - name: Generate Client
+        env:
+          DATABASE_URL: 'postgresql://validate:validate@localhost:5432/validate?schema=public'
         run: npx prisma generate
 
   migrate-prod:
