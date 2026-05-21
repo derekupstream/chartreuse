@@ -351,6 +351,7 @@ function ImpactKPIs({
                   { label: 'Baseline', value: baseline, formatted: spec.formatter(baseline) },
                   { label: 'Forecast', value: forecast, formatted: spec.formatter(forecast), color: '#73d13d' }
                 ]}
+                tickFormatter={spec.formatter}
                 onClick={projectHasData ? () => setActiveMetric(spec) : undefined}
                 clickHint='Click for project breakdown'
               />

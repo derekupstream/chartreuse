@@ -20,7 +20,7 @@ const Wrapper = styled(Card)<{ $clickable?: boolean }>`
     $clickable &&
     `
     &:hover {
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
     }
   `}
 `;
@@ -34,12 +34,14 @@ const HeadlineRow = styled.div`
 
 const Headline = styled(Typography.Title)`
   margin: 0 !important;
-  font-size: 36px !important;
+  font-size: 32px !important;
   line-height: 1 !important;
-  font-weight: 700 !important;
+  font-weight: 400 !important;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
 
   @media (max-width: 768px) {
-    font-size: 28px !important;
+    font-size: 26px !important;
   }
 `;
 
@@ -49,25 +51,48 @@ const DeltaPill = styled.span<{ $positive: boolean }>`
   gap: 4px;
   background: ${({ $positive }) => ($positive ? '#52c41a' : '#ff4d4f')};
   color: #fff;
-  border-radius: 999px;
-  padding: 4px 10px;
-  font-size: 13px;
-  font-weight: 600;
+  padding: 3px 8px;
+  font-size: 12px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
 `;
 
-const BarTrack = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+const ChartArea = styled.div`
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 6px;
   margin-top: 4px;
+`;
+
+const BarsBox = styled.div`
+  position: relative;
+  border-left: 1px solid rgba(0, 0, 0, 0.12);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+  padding: 8px 0;
+`;
+
+const GridLines = styled.div`
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  display: flex;
+  justify-content: space-between;
+`;
+
+const GridTick = styled.div`
+  width: 1px;
+  background: rgba(0, 0, 0, 0.06);
+  height: 100%;
 `;
 
 const BarRow = styled.div<{ $width: number; $color: string }>`
   position: relative;
-  height: 38px;
-  background: #fafafa;
-  border-radius: 6px;
-  overflow: hidden;
+  height: 30px;
+  background: rgba(0, 0, 0, 0.02);
+  margin: 4px 0;
 
   &::after {
     content: '';
@@ -77,7 +102,6 @@ const BarRow = styled.div<{ $width: number; $color: string }>`
     height: 100%;
     width: ${({ $width }) => `${$width}%`};
     background: ${({ $color }) => $color};
-    border-radius: 6px;
     transition: width 0.3s ease;
   }
 `;
@@ -88,34 +112,35 @@ const BarLabel = styled.span`
   display: inline-flex;
   align-items: center;
   height: 100%;
-  padding: 0 12px;
-  font-size: 13px;
+  padding: 0 10px;
+  font-size: 12px;
   color: rgba(0, 0, 0, 0.75);
-  font-weight: 500;
+  font-variant-numeric: tabular-nums;
 `;
 
-const Axis = styled.div`
+const XAxis = styled.div`
   display: flex;
   justify-content: space-between;
-  margin-top: 6px;
-  font-size: 11px;
-  color: rgba(0, 0, 0, 0.35);
+  margin-top: 4px;
+  padding-left: 1px;
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+  color: rgba(0, 0, 0, 0.45);
 `;
 
 const Legend = styled.div`
   display: flex;
   gap: 16px;
-  margin-top: 10px;
-  font-size: 12px;
-  color: rgba(0, 0, 0, 0.65);
+  margin-top: 12px;
+  font-size: 11px;
+  color: rgba(0, 0, 0, 0.55);
 `;
 
 const Swatch = styled.span<{ $color: string }>`
   display: inline-block;
-  width: 12px;
-  height: 12px;
+  width: 10px;
+  height: 10px;
   background: ${({ $color }) => $color};
-  border-radius: 2px;
   margin-right: 6px;
   vertical-align: middle;
 `;
@@ -141,13 +166,23 @@ export type ImpactCardProps = {
   reverseDeltaColor?: boolean;
   /** Two bars to compare. Bar widths scale to the larger absolute value. */
   bars: [ImpactCardBar, ImpactCardBar];
-  /** Optional axis ticks (rendered below bars). */
-  axisTicks?: string[];
+  /** Formats raw numeric tick values for the x-axis. If omitted, no axis renders. */
+  tickFormatter?: (value: number) => string;
   /** Click handler — if provided, card becomes hoverable + clickable. */
   onClick?: () => void;
   /** Hint shown at the bottom of the card when clickable. */
   clickHint?: string;
 };
+
+// Round to a clean upper bound for axis ticks: powers of 10 mapped to 1/2/2.5/5.
+function niceUpperBound(value: number): number {
+  if (value <= 0) return 1;
+  const exp = Math.floor(Math.log10(value));
+  const pow = Math.pow(10, exp);
+  const norm = value / pow;
+  const nice = norm <= 1 ? 1 : norm <= 2 ? 2 : norm <= 2.5 ? 2.5 : norm <= 5 ? 5 : 10;
+  return nice * pow;
+}
 
 export function ImpactCard({
   label,
@@ -155,12 +190,16 @@ export function ImpactCard({
   deltaPercent,
   reverseDeltaColor,
   bars,
-  axisTicks,
+  tickFormatter,
   onClick,
   clickHint
 }: ImpactCardProps) {
-  const max = Math.max(Math.abs(bars[0].value), Math.abs(bars[1].value), 1);
-  const widthOf = (v: number) => Math.max(8, Math.round((Math.abs(v) / max) * 100));
+  const maxBarValue = Math.max(Math.abs(bars[0].value), Math.abs(bars[1].value), 1);
+  const axisMax = niceUpperBound(maxBarValue);
+  const widthOf = (v: number) => Math.max(2, Math.round((Math.abs(v) / axisMax) * 100));
+
+  // 5 evenly spaced ticks 0..axisMax
+  const tickValues = [0, 0.25, 0.5, 0.75, 1].map(p => p * axisMax);
 
   // Delta pill: green = "good" (savings), red = "bad" (regression)
   const isPositive = deltaPercent !== undefined && deltaPercent >= 0;
@@ -171,7 +210,7 @@ export function ImpactCard({
 
   return (
     <Wrapper $clickable={!!onClick} onClick={onClick}>
-      <Typography.Text strong style={{ fontSize: 16 }}>
+      <Typography.Text style={{ fontSize: 14, color: 'rgba(0,0,0,0.65)', letterSpacing: '0.01em' }}>
         {label}
       </Typography.Text>
 
@@ -185,26 +224,32 @@ export function ImpactCard({
         )}
       </HeadlineRow>
 
-      <BarTrack>
-        <BarRow $width={widthOf(bars[0].value)} $color={bars[0].color ?? defaultLight}>
-          <BarLabel>
-            {bars[0].label}: {bars[0].formatted}
-          </BarLabel>
-        </BarRow>
-        <BarRow $width={widthOf(bars[1].value)} $color={bars[1].color ?? defaultDark}>
-          <BarLabel>
-            {bars[1].label}: {bars[1].formatted}
-          </BarLabel>
-        </BarRow>
-      </BarTrack>
-
-      {axisTicks && axisTicks.length > 0 && (
-        <Axis>
-          {axisTicks.map(t => (
-            <span key={t}>{t}</span>
-          ))}
-        </Axis>
-      )}
+      <ChartArea>
+        <BarsBox>
+          <GridLines>
+            {tickValues.map((_, i) => (
+              <GridTick key={i} />
+            ))}
+          </GridLines>
+          <BarRow $width={widthOf(bars[0].value)} $color={bars[0].color ?? defaultLight}>
+            <BarLabel>
+              {bars[0].label}: {bars[0].formatted}
+            </BarLabel>
+          </BarRow>
+          <BarRow $width={widthOf(bars[1].value)} $color={bars[1].color ?? defaultDark}>
+            <BarLabel>
+              {bars[1].label}: {bars[1].formatted}
+            </BarLabel>
+          </BarRow>
+        </BarsBox>
+        {tickFormatter && (
+          <XAxis>
+            {tickValues.map((v, i) => (
+              <span key={i}>{tickFormatter(v)}</span>
+            ))}
+          </XAxis>
+        )}
+      </ChartArea>
 
       <Legend>
         <span>

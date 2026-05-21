@@ -40,15 +40,20 @@ const legacyMenuLinks: MenuProps['items'] = [
   { key: 'accounts', label: <Link href='/accounts'>Accounts</Link> }
 ];
 
+// In v2, the home is /dashboard, reached only by clicking the logo. The
+// "Analytics" nav target is the full reporting page at /org/analytics —
+// the same destination as the dashboard's "Open full Reporting" link.
 const v2MenuLinks: MenuProps['items'] = [
-  { key: 'dashboard', label: <Link href='/dashboard'>Analytics</Link> },
   { key: 'projects', label: <Link href='/projects'>Calculators</Link> },
   { key: 'dashboards', label: <Link href='/dashboards'>Dashboards</Link> },
   { key: 'scenarios', label: <Link href='/scenarios'>Scenarios</Link> },
+  { key: 'org/analytics', label: <Link href='/org/analytics'>Analytics</Link> },
   { key: 'accounts', label: <Link href='/accounts'>Accounts</Link> }
 ];
 
-// All keys that the validation guard accepts as a top-level menu position
+// All keys that the validation guard accepts as a top-level menu position.
+// 'dashboard' is the home — valid as a selectedMenuItem even though it's
+// no longer in the visible v2 menu (you reach it via the logo).
 const VALID_TOP_MENU_KEYS = new Set([
   'projects',
   'dashboards',
@@ -197,7 +202,13 @@ export const BaseLayout: React.FC<DashboardProps> = ({ user, selectedMenuItem, t
       <Layout style={{ display: 'flex', minHeight: '100vh' }}>
         <S.LayoutHeader>
           <S.LogoAndMenuWrapper>
-            <Image src={Logo} alt='Chartreuse logo' objectFit='contain' />
+            <Link
+              href={v2Enabled ? '/dashboard' : '/projects'}
+              aria-label='Home'
+              style={{ display: 'inline-flex', alignItems: 'center' }}
+            >
+              <Image src={Logo} alt='Chartreuse logo' objectFit='contain' />
+            </Link>
             <S.DesktopMenu>
               <Menu items={menuLinks} mode='horizontal' disabledOverflow selectedKeys={keys} onClick={handleMenuClick} />
               {trialEndDateRelative && (

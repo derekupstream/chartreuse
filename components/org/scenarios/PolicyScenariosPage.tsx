@@ -162,26 +162,29 @@ export function PolicyScenariosPage({ data, orgId, isReadOnly }: Props) {
     [includedProjects, multipliers]
   );
 
-  // Optional comparison against another saved scenario. When set, stat cards
-  // render the current scenario's net vs the picked scenario's net.
-  const [compareScenarioId, setCompareScenarioId] = useState<string | null>(null);
-  const compareScenario = useMemo(
-    () => savedScenarios.find(s => s.id === compareScenarioId) ?? null,
-    [savedScenarios, compareScenarioId]
-  );
-  const compareSummary = useMemo(() => {
-    if (!compareScenario) return null;
+  // Pure A/B comparison: pick two saved scenarios explicitly. Independent of
+  // the live editor — when both are picked, the stat cards switch to A vs B.
+  const [compareAId, setCompareAId] = useState<string | null>(null);
+  const [compareBId, setCompareBId] = useState<string | null>(null);
+  const compareA = useMemo(() => savedScenarios.find(s => s.id === compareAId) ?? null, [savedScenarios, compareAId]);
+  const compareB = useMemo(() => savedScenarios.find(s => s.id === compareBId) ?? null, [savedScenarios, compareBId]);
+
+  function summarizeScenario(scenario: PolicyScenario | null) {
+    if (!scenario) return null;
     const filtered = data.projects.filter(p => {
-      if ((compareScenario.excludedProjectIds ?? []).includes(p.id)) return false;
-      const seg = compareScenario.segmentFilter ?? [];
+      if ((scenario.excludedProjectIds ?? []).includes(p.id)) return false;
+      const seg = scenario.segmentFilter ?? [];
       if (seg.length > 0) {
         const t = ((p as any).metadata?.type as string | undefined) ?? null;
         if (!t || !seg.includes(t)) return false;
       }
       return true;
     });
-    return getMultipliedSummary(filtered, compareScenario.multipliers ?? {}, 1);
-  }, [data.projects, compareScenario]);
+    return getMultipliedSummary(filtered, scenario.multipliers ?? {}, 1);
+  }
+  const compareASummary = useMemo(() => summarizeScenario(compareA), [data.projects, compareA]);
+  const compareBSummary = useMemo(() => summarizeScenario(compareB), [data.projects, compareB]);
+  const inCompareMode = !!compareASummary && !!compareBSummary;
 
   const hasChanges = excludedIds.size > 0 || segmentFilter.length > 0 || Object.values(multipliers).some(v => v !== 1);
 
@@ -301,15 +304,17 @@ export function PolicyScenariosPage({ data, orgId, isReadOnly }: Props) {
 
       <ScenarioComparePicker
         savedScenarios={savedScenarios}
-        compareScenarioId={compareScenarioId}
-        onChange={setCompareScenarioId}
+        compareAId={compareAId}
+        compareBId={compareBId}
+        onChangeA={setCompareAId}
+        onChangeB={setCompareBId}
       />
 
       <ScenarioStatCards
-        summary={summary}
-        compareSummary={compareSummary}
-        currentName={scenarioName}
-        compareName={compareScenario?.name ?? null}
+        summary={inCompareMode && compareASummary ? compareASummary : summary}
+        compareSummary={inCompareMode ? compareBSummary : null}
+        currentName={inCompareMode && compareA ? compareA.name : scenarioName}
+        compareName={inCompareMode && compareB ? compareB.name : null}
         currency={currency}
         displayAsMetric={displayAsMetric}
       />
@@ -445,14 +450,19 @@ function ScenarioHeader({
 
 function ScenarioComparePicker({
   savedScenarios,
-  compareScenarioId,
-  onChange
+  compareAId,
+  compareBId,
+  onChangeA,
+  onChangeB
 }: {
   savedScenarios: PolicyScenario[];
-  compareScenarioId: string | null;
-  onChange: (id: string | null) => void;
+  compareAId: string | null;
+  compareBId: string | null;
+  onChangeA: (id: string | null) => void;
+  onChangeB: (id: string | null) => void;
 }) {
   if (savedScenarios.length === 0) return null;
+  const inCompare = !!compareAId && !!compareBId;
   return (
     <div
       style={{
@@ -463,25 +473,47 @@ function ScenarioComparePicker({
         marginBottom: 12,
         padding: '10px 14px',
         background: '#fafafa',
-        borderRadius: 8
+        border: '1px solid #f0f0f0'
       }}
     >
-      <Typography.Text type='secondary' style={{ fontSize: 12 }}>
-        Compare against another scenario:
-      </Typography.Text>
+      <Typography.Text style={{ fontSize: 12, color: 'rgba(0,0,0,0.65)' }}>Compare:</Typography.Text>
       <Select
-        placeholder='Pick a scenario to compare'
-        style={{ minWidth: 220 }}
-        value={compareScenarioId ?? undefined}
-        onChange={v => onChange(v ?? null)}
-        options={savedScenarios.map(s => ({ label: s.name, value: s.id }))}
+        placeholder='Scenario A'
+        style={{ minWidth: 200 }}
+        value={compareAId ?? undefined}
+        onChange={v => onChangeA(v ?? null)}
+        options={savedScenarios.map(s => ({ label: s.name, value: s.id, disabled: s.id === compareBId }))}
         allowClear
         size='small'
       />
+      <Typography.Text type='secondary' style={{ fontSize: 12 }}>
+        vs
+      </Typography.Text>
+      <Select
+        placeholder='Scenario B'
+        style={{ minWidth: 200 }}
+        value={compareBId ?? undefined}
+        onChange={v => onChangeB(v ?? null)}
+        options={savedScenarios.map(s => ({ label: s.name, value: s.id, disabled: s.id === compareAId }))}
+        allowClear
+        size='small'
+      />
+      {(compareAId || compareBId) && (
+        <Button
+          size='small'
+          type='text'
+          onClick={() => {
+            onChangeA(null);
+            onChangeB(null);
+          }}
+        >
+          Clear
+        </Button>
+      )}
       <Typography.Text type='secondary' style={{ fontSize: 11 }}>
-        {compareScenarioId
-          ? 'Stat cards below show current scenario vs the picked scenario.'
-          : 'Pick a saved scenario to compare side-by-side.'}
+        {inCompare
+          ? 'Stat cards below show Scenario A vs Scenario B.'
+          : 'Pick two saved scenarios to put them side-by-side.'}
       </Typography.Text>
     </div>
   );
@@ -531,6 +563,7 @@ function ScenarioStatCards({
                     color: '#73d13d'
                   }
                 ]}
+                tickFormatter={v => formatMetric(key, v, ctx)}
               />
             </Col>
           );
@@ -552,6 +585,7 @@ function ScenarioStatCards({
                   color: '#73d13d'
                 }
               ]}
+              tickFormatter={v => formatMetric(key, v, ctx)}
             />
           </Col>
         );
