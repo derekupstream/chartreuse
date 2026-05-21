@@ -24,6 +24,7 @@ type AuthContextType = {
   firebaseUser: SessionUser | null;
   signInWithGoogle: () => Promise<void>;
   signInWithPassword: (email: string, password: string) => Promise<string | null>;
+  signUpWithPassword: (email: string, password: string, name?: string) => Promise<string | null>;
   resetPassword: (email: string) => Promise<string | null>;
   signout: () => Promise<void>;
 };
@@ -32,6 +33,7 @@ export const AuthContext = createContext<AuthContextType>({
   firebaseUser: null,
   signInWithGoogle: () => Promise.resolve(),
   signInWithPassword: () => Promise.resolve(null),
+  signUpWithPassword: () => Promise.resolve(null),
   resetPassword: () => Promise.resolve(null),
   signout: () => Promise.resolve()
 });
@@ -78,6 +80,21 @@ export const AuthProvider: React.FC<{ children: any }> = ({ children }) => {
     return error ? error.message : null;
   }, []);
 
+  const signUpWithPassword = useCallback(
+    async (email: string, password: string, name?: string): Promise<string | null> => {
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: name ? { name } : undefined,
+          emailRedirectTo: `${window.location.origin}/auth/callback`
+        }
+      });
+      return error ? error.message : null;
+    },
+    []
+  );
+
   const resetPassword = useCallback(async (email: string): Promise<string | null> => {
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/auth/callback`
@@ -91,7 +108,9 @@ export const AuthProvider: React.FC<{ children: any }> = ({ children }) => {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ firebaseUser, signInWithGoogle, signInWithPassword, resetPassword, signout }}>
+    <AuthContext.Provider
+      value={{ firebaseUser, signInWithGoogle, signInWithPassword, signUpWithPassword, resetPassword, signout }}
+    >
       {children}
     </AuthContext.Provider>
   );

@@ -1,4 +1,11 @@
-import { CopyOutlined, DeleteOutlined, EditOutlined } from '@ant-design/icons';
+import {
+  ArrowRightOutlined,
+  BookOutlined,
+  CopyOutlined,
+  DeleteOutlined,
+  EditOutlined,
+  PlusOutlined
+} from '@ant-design/icons';
 import type { Project, Account, ProjectTagRelation, ProjectTag, ProjectDataType } from '@prisma/client';
 import { Button, Card, Col, Divider, message, Popconfirm, Row, Space, Typography } from 'antd';
 import Link from 'next/link';
@@ -141,14 +148,7 @@ export function ActiveProjects({
   }
 
   if (projects?.length === 0) {
-    return (
-      <Card style={{ height: 280, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <Typography.Text>
-          You have no active projects. Select a template or click <strong>+ Start custom project</strong> above to get
-          started.
-        </Typography.Text>
-      </Card>
-    );
+    return <FirstProjectEmptyState />;
   }
 
   if (filteredProjects.length === 0) {
@@ -324,6 +324,61 @@ function ProjectCard({ project, refreshProjects }: { project: PopulatedProject; 
       <Button ghost block href={`/projects/${project.id}`}>
         View project
       </Button>
+    </Card>
+  );
+}
+
+function FirstProjectEmptyState() {
+  return (
+    <Card
+      style={{
+        padding: '24px 16px',
+        background: 'linear-gradient(180deg, #f6ffed 0%, #ffffff 60%)',
+        border: '1px solid #d9f7be'
+      }}
+    >
+      <Row gutter={[24, 24]} align='middle'>
+        <Col xs={24} md={14}>
+          <Typography.Title level={3} style={{ marginTop: 0 }}>
+            Welcome to Chart-Reuse 🌱
+          </Typography.Title>
+          <Typography.Paragraph>
+            Chart-Reuse helps you model the cost and environmental savings of switching from single-use to reusable
+            foodware at your venue. Calculators let you build a projection; once you have data from the field, you can
+            track actuals against it.
+          </Typography.Paragraph>
+          <Typography.Paragraph type='secondary' style={{ marginBottom: 16 }}>
+            You haven&apos;t built a calculator yet — here&apos;s how to get started.
+          </Typography.Paragraph>
+          <Space wrap>
+            <Link href='/projects/new'>
+              <Button type='primary' size='large' icon={<PlusOutlined />}>
+                Start your first calculator
+              </Button>
+            </Link>
+            <Link href='/projects?view=templates'>
+              <Button size='large'>Browse templates</Button>
+            </Link>
+          </Space>
+        </Col>
+        <Col xs={24} md={10}>
+          <Card style={{ background: '#fff' }} size='small'>
+            <Typography.Title level={5} style={{ marginTop: 0 }}>
+              Not sure where to begin?
+            </Typography.Title>
+            <Space direction='vertical' size={8} style={{ width: '100%' }}>
+              <Link href='/tutorials/calculator'>
+                <Button type='link' style={{ padding: 0 }} icon={<BookOutlined />}>
+                  Read the 10-minute tutorial <ArrowRightOutlined />
+                </Button>
+              </Link>
+              <Typography.Text type='secondary' style={{ fontSize: 12 }}>
+                Or jump in — every step has inline help, and you can always come back and tweak inputs.
+              </Typography.Text>
+            </Space>
+          </Card>
+        </Col>
+      </Row>
     </Card>
   );
 }

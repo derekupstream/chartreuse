@@ -20,7 +20,10 @@ export default function Login() {
     <>
       <Header title='Sign in' />
       <main>
-        <FormPageTemplate title='Welcome to Chart-Reuse' subtitle='Sign in with your Google account.'>
+        <FormPageTemplate
+          title='Welcome to Chart-Reuse'
+          subtitle='Sign in or create an account to model the cost and environmental savings of switching to reusables.'
+        >
           <LoginForm />
         </FormPageTemplate>
       </main>
