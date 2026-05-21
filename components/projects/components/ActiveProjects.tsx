@@ -335,7 +335,9 @@ function FirstProjectEmptyState() {
         minHeight: 'calc(100vh - 280px)',
         display: 'flex',
         alignItems: 'center',
-        background: '#fff'
+        background: 'transparent',
+        border: 'none',
+        boxShadow: 'none'
       }}
       bodyStyle={{ width: '100%', padding: '32px 24px' }}
     >
