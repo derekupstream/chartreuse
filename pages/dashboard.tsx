@@ -634,8 +634,8 @@ function PersonaInvitations() {
       icon: <ShopOutlined style={{ fontSize: 28, color: '#fff' }} />,
       title: 'Food venue operator',
       pitch: 'Make the case for switching from single-use to reuse — model cost, waste, GHG, and payback.',
-      cta: 'Create a calculator',
-      href: '/projects/new',
+      cta: 'Learn how to create a calculator',
+      href: '/tutorials/calculator',
       gradient: 'linear-gradient(135deg, #52c41a 0%, #389e0d 100%)',
       accent: '#52c41a'
     },
@@ -644,8 +644,8 @@ function PersonaInvitations() {
       icon: <BankOutlined style={{ fontSize: 28, color: '#fff' }} />,
       title: 'Reuse Service Provider',
       pitch: 'Show your clients’ impact with reports built on real ingestion data — GHG, water, waste, cost.',
-      cta: 'Generate a report',
-      href: '/org/analytics',
+      cta: 'Learn how to generate a report',
+      href: '/tutorials/report',
       gradient: 'linear-gradient(135deg, #1677ff 0%, #0958d9 100%)',
       accent: '#1677ff'
     },
@@ -654,8 +654,8 @@ function PersonaInvitations() {
       icon: <ExperimentOutlined style={{ fontSize: 28, color: '#fff' }} />,
       title: 'Government analyst',
       pitch: 'Model policy outcomes by building scenarios across locations and timelines, then compare them.',
-      cta: 'Build a scenario',
-      href: '/scenarios',
+      cta: 'Learn how to build a scenario',
+      href: '/tutorials/scenario',
       gradient: 'linear-gradient(135deg, #722ed1 0%, #531dab 100%)',
       accent: '#722ed1'
     }
