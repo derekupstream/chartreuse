@@ -21,6 +21,7 @@ export type PopulatedProject = Project & { account: Account; tags: ProjectTagRel
 async function createProject(req: NextApiRequestWithUser, res: NextApiResponse<{ project: Project }>) {
   const {
     category,
+    dataType,
     name,
     metadata,
     location,
@@ -73,6 +74,7 @@ async function createProject(req: NextApiRequestWithUser, res: NextApiResponse<{
       isTemplate: isTemplate,
       templateDescription: templateDescription || undefined,
       category: categorySafe,
+      dataType: dataType || undefined,
       dateType: dateType || undefined,
       startDate: startDateValue,
       endDate: endDateValue,

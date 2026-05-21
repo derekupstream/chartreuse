@@ -43,12 +43,21 @@ const legacyMenuLinks: MenuProps['items'] = [
 const v2MenuLinks: MenuProps['items'] = [
   { key: 'dashboard', label: <Link href='/dashboard'>Analytics</Link> },
   { key: 'projects', label: <Link href='/projects'>Calculators</Link> },
+  { key: 'dashboards', label: <Link href='/dashboards'>Dashboards</Link> },
   { key: 'scenarios', label: <Link href='/scenarios'>Scenarios</Link> },
   { key: 'accounts', label: <Link href='/accounts'>Accounts</Link> }
 ];
 
 // All keys that the validation guard accepts as a top-level menu position
-const VALID_TOP_MENU_KEYS = new Set(['projects', 'org/analytics', 'accounts', 'members', 'scenarios', 'dashboard']);
+const VALID_TOP_MENU_KEYS = new Set([
+  'projects',
+  'dashboards',
+  'org/analytics',
+  'accounts',
+  'members',
+  'scenarios',
+  'dashboard'
+]);
 
 // All valid admin keys — used for validation in the guard below
 const adminLinks: MenuProps['items'] = [

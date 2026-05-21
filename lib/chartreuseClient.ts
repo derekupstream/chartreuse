@@ -1,4 +1,4 @@
-import type { Project, ProjectCategory } from '@prisma/client';
+import type { Project, ProjectCategory, ProjectDataType } from '@prisma/client';
 
 import type { InventoryInput } from 'lib/inventory/saveInventoryRecords';
 import type { ImportedSingleUseLineItem } from 'lib/inventory/importSingleUseLineItemsFromExcel';
@@ -37,6 +37,7 @@ export type ProjectInput = {
   templateDescription?: string;
   isTemplate?: boolean;
   category: ProjectCategory;
+  dataType?: ProjectDataType;
 
   utilityRates: {
     water: number;

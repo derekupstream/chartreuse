@@ -1,5 +1,5 @@
 import { CopyOutlined, DeleteOutlined, EditOutlined } from '@ant-design/icons';
-import type { Project, Account, ProjectTagRelation, ProjectTag } from '@prisma/client';
+import type { Project, Account, ProjectTagRelation, ProjectTag, ProjectDataType } from '@prisma/client';
 import { Button, Card, Col, Divider, message, Popconfirm, Row, Space, Typography } from 'antd';
 import Link from 'next/link';
 import { useEffect, useMemo } from 'react';
@@ -23,9 +23,18 @@ interface ActiveProjectsProps {
   sortOrder: SortOrder;
   tags: ProjectTag[];
   categoryFilter?: 'event' | 'default' | null;
+  dataTypeFilter?: ProjectDataType | null;
+  emptyState?: React.ReactNode;
 }
 
-export function ActiveProjects({ tagIdsFilter, sortOrder, tags, categoryFilter }: ActiveProjectsProps) {
+export function ActiveProjects({
+  tagIdsFilter,
+  sortOrder,
+  tags,
+  categoryFilter,
+  dataTypeFilter,
+  emptyState
+}: ActiveProjectsProps) {
   const { data: { projects } = {}, isLoading, mutate: refreshProjects, error } = useGetProjects();
 
   const sortedProjects = useMemo<PopulatedProject[]>(() => {
@@ -88,11 +97,14 @@ export function ActiveProjects({ tagIdsFilter, sortOrder, tags, categoryFilter }
     if (categoryFilter) {
       result = result.filter(project => project.category === categoryFilter);
     }
+    if (dataTypeFilter) {
+      result = result.filter(project => project.dataType === dataTypeFilter);
+    }
     if (tagIdsFilter.length > 0) {
       result = result.filter(project => project.tags.some(tag => tagIdsFilter.includes(tag.tagId)));
     }
     return result;
-  }, [sortedProjects, tagIdsFilter, categoryFilter]);
+  }, [sortedProjects, tagIdsFilter, categoryFilter, dataTypeFilter]);
 
   // Group projects by month for projectDate sorting
   const projectsByMonth = useMemo(() => {
@@ -142,7 +154,7 @@ export function ActiveProjects({ tagIdsFilter, sortOrder, tags, categoryFilter }
   if (filteredProjects.length === 0) {
     return (
       <Card style={{ height: 280, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <Typography.Text>No projects found</Typography.Text>
+        {emptyState ?? <Typography.Text>No projects found</Typography.Text>}
       </Card>
     );
   }

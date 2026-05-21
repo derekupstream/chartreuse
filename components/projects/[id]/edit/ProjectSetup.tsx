@@ -1,4 +1,4 @@
-import type { Project, ProjectCategory } from '@prisma/client';
+import type { Project, ProjectCategory, ProjectDataType } from '@prisma/client';
 import { message } from 'antd';
 import { Space } from 'antd';
 import { useRouter } from 'next/router';
@@ -53,13 +53,15 @@ export function ProjectSetup({
   user,
   project: initialProjectState,
   template,
-  successPath
+  successPath,
+  defaultDataType
 }: {
   actionLabel: string;
   user: DashboardUser;
   project?: Project;
   template?: Pick<Project, 'name'>;
   successPath: (id: string, category: ProjectCategory) => string;
+  defaultDataType?: ProjectDataType;
 }) {
   const [currentStepIndex, setIndex] = useState(0);
   const router = useRouter();
@@ -69,7 +71,8 @@ export function ProjectSetup({
 
   async function saveProject(values: ProjectInput) {
     try {
-      const req = values.id ? chartreuseClient.updateProject(values) : chartreuseClient.createProject(values);
+      const payload: ProjectInput = values.id ? values : { ...values, dataType: values.dataType ?? defaultDataType };
+      const req = payload.id ? chartreuseClient.updateProject(payload) : chartreuseClient.createProject(payload);
       const result = await req;
       // setIndex(1);
       setProject(result.project);

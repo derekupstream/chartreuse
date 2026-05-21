@@ -6,33 +6,33 @@ import { checkLogin } from 'lib/middleware';
 import type { LoggedinProps } from 'lib/middleware';
 import type { PageProps } from 'pages/_app';
 
-type ProjectsPageProps = LoggedinProps & {
+type DashboardsPageProps = LoggedinProps & {
   query?: ParsedUrlQuery;
 };
 
 export const getServerSideProps: GetServerSideProps = async context => {
   const response = await checkLogin(context);
-  (response.props as ProjectsPageProps).query = context.query;
+  (response.props as DashboardsPageProps).query = context.query;
   return { ...response };
 };
 
-const ProjectsPage = ({ user, query }: ProjectsPageProps) => {
+const DashboardsPage = ({ user, query }: DashboardsPageProps) => {
   return (
     <ProjectsDashboard
       orgId={user.org.id}
       isUpstream={user.org.isUpstream}
       showTemplateByDefault={query?.view === 'templates'}
-      mode='projects'
+      mode='dashboards'
     />
   );
 };
 
-ProjectsPage.getLayout = (page: React.ReactNode, pageProps: PageProps) => {
+DashboardsPage.getLayout = (page: React.ReactNode, pageProps: PageProps) => {
   return (
-    <Template {...pageProps} selectedMenuItem='projects' title='Projects'>
+    <Template {...pageProps} selectedMenuItem='dashboards' title='Dashboards'>
       {page}
     </Template>
   );
 };
 
-export default ProjectsPage;
+export default DashboardsPage;

@@ -5,7 +5,6 @@ import { useEffect, useState } from 'react';
 import styled from 'styled-components';
 
 import { useChartReuse2 } from 'hooks/useChartReuse2';
-import { useSubscription } from 'hooks/useSubscription';
 import * as S from 'layouts/styles';
 
 const FiltersRow = styled.div`
@@ -26,28 +25,28 @@ const sortOptions: { label: string; value: SortOrder }[] = [
   { label: 'Project Date', value: 'projectDate' }
 ];
 
+export type ProjectsDashboardMode = 'projects' | 'dashboards';
+
 export const ProjectsDashboard = ({
   orgId,
   isUpstream,
-  showTemplateByDefault
+  showTemplateByDefault,
+  mode = 'projects'
 }: {
   orgId: string;
   isUpstream: boolean;
   showTemplateByDefault: boolean;
+  mode?: ProjectsDashboardMode;
 }) => {
   const router = useRouter();
-  const { tags } = useTags(orgId); // TODO: get org id from context
+  const { tags } = useTags(orgId);
   const { enabled: v2Enabled } = useChartReuse2();
-  //const { subscriptionStatus } = useSubscription();
-  // temporary hack to allow Post-Landfill Action Network to have more projects
-  // const projectLimit = orgId === '8793767e-ed9c-4adf-bb45-ba1c45378288' ? 4 : 1;
 
-  // disable the project limit per Derek
-  const projectLimitReached = false; // data?.projects && subscriptionStatus !== 'Active' && data.projects.length >= projectLimit;
+  const isDashboards = mode === 'dashboards';
+  const projectLimitReached = false;
 
   const [tagIdsFilter, setTagIdsFilter] = useState<string[]>([]);
   const [categoryFilter, setCategoryFilter] = useState<'event' | 'default' | null>(null);
-
   const [sortOrder, setSortOrder] = useState('created');
 
   useEffect(() => {
@@ -63,40 +62,31 @@ export const ProjectsDashboard = ({
     router.push('/subscription');
   }
 
+  // In v2, the page itself defines what kind of data lives here, so the legacy
+  // category radio is hidden and dataType becomes the implicit filter.
+  const dataTypeFilter = v2Enabled ? (isDashboards ? 'actual' : 'projection') : null;
+
+  const headerTitle = (() => {
+    if (!v2Enabled) return 'Projects';
+    return isDashboards ? 'Dashboards' : 'Calculators';
+  })();
+
+  const createHref = isDashboards ? '/projects/new?dataType=actual' : '/projects/new?dataType=projection';
+  const createLabel = isDashboards ? 'Record actual' : 'Start custom project';
+
+  const emptyState = isDashboards ? (
+    <Typography.Text>
+      No actuals recorded yet. Click <strong>+ Record actual</strong> above to log a real event or operation.
+    </Typography.Text>
+  ) : undefined;
+
   return (
     <>
       <S.HeaderRow>
-        <Typography.Title>{v2Enabled ? 'Calculators' : 'Projects'}</Typography.Title>
-        {/* <Popconfirm
-          title={
-            <Space direction='vertical' size='small'>
-              <Typography.Title level={5}>Upgrade to add more projects</Typography.Title>
-              <Typography.Text>Free trials are limited to {projectLimit} project per account</Typography.Text>
-            </Space>
-          }
-          disabled={!projectLimitReached}
-          icon={<DollarOutlined style={{ color: '#95EE49', fontSize: 24 }} />}
-          placement='left'
-          onConfirm={upgradeAccount}
-          okText='Upgrade'
-        > */}
-        {/* <Popconfirm
-            title={
-              <Space direction='vertical' size='small'>
-                <Typography.Title level={5}>Free project limit reached</Typography.Title>
-                <Typography.Text>
-                  Additional fees will be charged for adding more than {tier?.projectLimit} projects
-                </Typography.Text>
-              </Space>
-            }
-            disabled={!!projectLimitReached}
-            icon={<DollarOutlined style={{ color: '#95EE49', fontSize: 24 }} />}
-            placement='left'
-            onConfirm={newCustomProject}
-          > */}
+        <Typography.Title>{headerTitle}</Typography.Title>
         {!projectLimitReached && (
-          <Button href='/projects/new' type='primary' icon={<PlusOutlined />}>
-            Start custom project
+          <Button href={createHref} type='primary' icon={<PlusOutlined />}>
+            {createLabel}
           </Button>
         )}
       </S.HeaderRow>
@@ -105,16 +95,18 @@ export const ProjectsDashboard = ({
         size={'large'}
         tabBarExtraContent={
           <FiltersRow>
-            <Radio.Group
-              value={categoryFilter ?? 'all'}
-              onChange={e => setCategoryFilter(e.target.value === 'all' ? null : e.target.value)}
-              optionType='button'
-              buttonStyle='solid'
-            >
-              <Radio.Button value='all'>All</Radio.Button>
-              <Radio.Button value='default'>Projections</Radio.Button>
-              <Radio.Button value='event'>Actuals</Radio.Button>
-            </Radio.Group>
+            {!v2Enabled && (
+              <Radio.Group
+                value={categoryFilter ?? 'all'}
+                onChange={e => setCategoryFilter(e.target.value === 'all' ? null : e.target.value)}
+                optionType='button'
+                buttonStyle='solid'
+              >
+                <Radio.Button value='all'>All</Radio.Button>
+                <Radio.Button value='default'>Projections</Radio.Button>
+                <Radio.Button value='event'>Actuals</Radio.Button>
+              </Radio.Group>
+            )}
             <Select
               mode='multiple'
               placeholder='Filter by tag'
@@ -141,14 +133,20 @@ export const ProjectsDashboard = ({
                 sortOrder={sortOrder as SortOrder}
                 tags={tags}
                 categoryFilter={categoryFilter}
+                dataTypeFilter={dataTypeFilter}
+                emptyState={emptyState}
               />
             )
           },
-          {
-            label: `Templates`,
-            key: 'templates',
-            children: <ProjectTemplates isUpstream={isUpstream} tagIdsFilter={tagIdsFilter} />
-          }
+          ...(isDashboards
+            ? []
+            : [
+                {
+                  label: `Templates`,
+                  key: 'templates',
+                  children: <ProjectTemplates isUpstream={isUpstream} tagIdsFilter={tagIdsFilter} />
+                }
+              ])
         ]}
       />
     </>
