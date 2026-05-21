@@ -332,10 +332,12 @@ function FirstProjectEmptyState() {
   return (
     <Card
       style={{
-        padding: '24px 16px',
-        background: 'linear-gradient(180deg, #f6ffed 0%, #ffffff 60%)',
-        border: '1px solid #d9f7be'
+        minHeight: 'calc(100vh - 280px)',
+        display: 'flex',
+        alignItems: 'center',
+        background: '#fff'
       }}
+      bodyStyle={{ width: '100%', padding: '32px 24px' }}
     >
       <Row gutter={[24, 24]} align='middle'>
         <Col xs={24} md={14}>
