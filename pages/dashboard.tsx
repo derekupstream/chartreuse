@@ -12,12 +12,12 @@ import {
   ShopOutlined,
   StarFilled
 } from '@ant-design/icons';
-import { Button, Card, Checkbox, Col, Drawer, Empty, Progress, Row, Space, Tag, Typography } from 'antd';
+import { Button, Card, Checkbox, Col, Drawer, Empty, Progress, Row, Select, Space, Tag, Typography } from 'antd';
 import type { GetServerSideProps } from 'next';
 import Link from 'next/link';
-import type { ReactNode } from 'react';
 import { useEffect, useMemo, useState } from 'react';
 
+import { ImpactCard } from 'components/common/ImpactCard';
 import type { DashboardUser } from 'interfaces';
 import { DashboardLayout as Template } from 'layouts/DashboardLayout/DashboardLayout';
 import { getAllProjections } from 'lib/calculator/getProjections';
@@ -177,6 +177,7 @@ function DashboardPage({
             hasProjections={hasProjections}
             totalProjects={totalProjects}
             currency={user.org.currency || 'USD'}
+            orgId={user.org.id}
           />
         )}
         {hydrated && isOn('personas') && <PersonaInvitations />}
@@ -226,65 +227,98 @@ type MetricSpec = {
   label: string;
   units?: string;
   formatter: (val: number) => string;
-  // Higher = better. Most metrics return positive when the project saves something.
-  getProjectDelta: (p: ProjectSummary) => number;
+  getProjectBaseline: (p: ProjectSummary) => number;
+  getProjectForecast: (p: ProjectSummary) => number;
   visibleFor: (isEventOnly: boolean) => boolean;
 };
 
 function buildMetricSpecs(currency: string): MetricSpec[] {
-  const toLbs = (val: number) =>
-    Math.round(valueInPounds(val, { displayAsMetric: false, displayAsTons: false })).toLocaleString();
+  const lbs = (val: number) => Math.round(valueInPounds(val, { displayAsMetric: false, displayAsTons: false }));
   return [
     {
       key: 'savings',
-      label: 'Estimated Savings',
+      label: 'Your estimated annual savings',
       formatter: val => formatToDollar(val, currency),
-      getProjectDelta: p =>
-        p.projections.annualSummary.dollarCost.baseline - p.projections.annualSummary.dollarCost.forecast,
+      getProjectBaseline: p => p.projections.annualSummary.dollarCost.baseline,
+      getProjectForecast: p => p.projections.annualSummary.dollarCost.forecast,
       visibleFor: isEventOnly => !isEventOnly
     },
     {
       key: 'singleUse',
-      label: 'Single-Use Reduction',
+      label: 'Single-use reduction',
       units: 'units',
       formatter: val => Math.round(val).toLocaleString(),
-      getProjectDelta: p =>
-        p.projections.singleUseResults.summary.annualUnits.baseline -
-        p.projections.singleUseResults.summary.annualUnits.forecast,
+      getProjectBaseline: p => p.projections.singleUseResults.summary.annualUnits.baseline,
+      getProjectForecast: p => p.projections.singleUseResults.summary.annualUnits.forecast,
       visibleFor: isEventOnly => !isEventOnly
     },
     {
       key: 'waste',
-      label: 'Waste Reduction',
+      label: 'Waste reduction',
       units: 'lbs',
-      formatter: toLbs,
-      getProjectDelta: p =>
-        p.projections.annualSummary.wasteWeight.baseline - p.projections.annualSummary.wasteWeight.forecast,
+      formatter: val => `${lbs(val).toLocaleString()}`,
+      getProjectBaseline: p => p.projections.annualSummary.wasteWeight.baseline,
+      getProjectForecast: p => p.projections.annualSummary.wasteWeight.forecast,
       visibleFor: () => true
     },
     {
       key: 'gas',
-      label: 'GHG Avoided',
+      label: 'GHG avoided',
       units: 'MTCO₂e',
       formatter: val => val.toFixed(2),
-      getProjectDelta: p =>
-        p.projections.annualSummary.greenhouseGasEmissions.total.baseline -
-        p.projections.annualSummary.greenhouseGasEmissions.total.forecast,
+      getProjectBaseline: p => p.projections.annualSummary.greenhouseGasEmissions.total.baseline,
+      getProjectForecast: p => p.projections.annualSummary.greenhouseGasEmissions.total.forecast,
       visibleFor: () => true
     }
   ];
+}
+
+// Per-project location multipliers + filters (mirrors PolicyScenario shape so
+// we can read scenarios saved on /scenarios out of localStorage)
+type SavedScenario = {
+  id: string;
+  name: string;
+  multipliers?: Record<string, number>;
+  excludedProjectIds?: string[];
+  segmentFilter?: string[];
+};
+
+function applyScenario(
+  projects: ProjectSummary[],
+  scenario: SavedScenario | null,
+  spec: MetricSpec
+): { baseline: number; forecast: number } {
+  let baseline = 0;
+  let forecast = 0;
+  const multipliers = scenario?.multipliers ?? {};
+  const excludedIds = new Set(scenario?.excludedProjectIds ?? []);
+  const segmentFilter = scenario?.segmentFilter ?? [];
+
+  for (const p of projects) {
+    if (excludedIds.has(p.id)) continue;
+    if (segmentFilter.length > 0) {
+      const type = ((p as any).metadata?.type as string | undefined) ?? null;
+      if (!type || !segmentFilter.includes(type)) continue;
+    }
+    const m = multipliers[p.id] ?? 1;
+    baseline += spec.getProjectBaseline(p) * m;
+    forecast += spec.getProjectForecast(p) * m;
+  }
+  return { baseline, forecast };
 }
 
 function ImpactKPIs({
   data,
   hasProjections,
   totalProjects,
-  currency
+  currency,
+  orgId
 }: {
   data: AllProjectsSummary;
   hasProjections: boolean;
   totalProjects: number;
   currency: string;
+  orgId: string;
 }) {
   const projectHasData = totalProjects > 0;
   const isEventOnly = !hasProjections;
@@ -294,9 +328,50 @@ function ImpactKPIs({
   );
   const [activeMetric, setActiveMetric] = useState<MetricSpec | null>(null);
 
+  // Saved scenarios (read live from localStorage so the picker reflects what
+  // the user saved on /scenarios — no SSR roundtrip needed).
+  const [savedScenarios, setSavedScenarios] = useState<SavedScenario[]>([]);
+  useEffect(() => {
+    function load() {
+      try {
+        setSavedScenarios(JSON.parse(localStorage.getItem(`cr_scenarios_${orgId}`) ?? '[]'));
+      } catch {
+        setSavedScenarios([]);
+      }
+    }
+    load();
+    window.addEventListener('storage', load);
+    window.addEventListener('cr-scenarios-updated', load);
+    return () => {
+      window.removeEventListener('storage', load);
+      window.removeEventListener('cr-scenarios-updated', load);
+    };
+  }, [orgId]);
+
+  const [scenarioAId, setScenarioAId] = useState<string | null>(null);
+  const [scenarioBId, setScenarioBId] = useState<string | null>(null);
+  const scenarioA = useMemo(
+    () => savedScenarios.find(s => s.id === scenarioAId) ?? null,
+    [savedScenarios, scenarioAId]
+  );
+  const scenarioB = useMemo(
+    () => savedScenarios.find(s => s.id === scenarioBId) ?? null,
+    [savedScenarios, scenarioBId]
+  );
+  const compareMode = !!scenarioA && !!scenarioB;
+
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 12 }}>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'baseline',
+          marginBottom: 12,
+          flexWrap: 'wrap',
+          gap: 12
+        }}
+      >
         <Title level={4} style={{ margin: 0 }}>
           Your Impact
         </Title>
@@ -306,17 +381,120 @@ function ImpactKPIs({
           </Button>
         </Link>
       </div>
+
+      {savedScenarios.length > 0 && (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            flexWrap: 'wrap',
+            marginBottom: 16,
+            padding: '10px 14px',
+            background: '#fafafa',
+            borderRadius: 8
+          }}
+        >
+          <Text type='secondary' style={{ fontSize: 12 }}>
+            Compare scenarios:
+          </Text>
+          <Select
+            placeholder='Scenario A'
+            style={{ minWidth: 180 }}
+            value={scenarioAId ?? undefined}
+            onChange={v => setScenarioAId(v ?? null)}
+            options={savedScenarios.map(s => ({ label: s.name, value: s.id }))}
+            allowClear
+            size='small'
+          />
+          <Text type='secondary'>vs</Text>
+          <Select
+            placeholder='Scenario B'
+            style={{ minWidth: 180 }}
+            value={scenarioBId ?? undefined}
+            onChange={v => setScenarioBId(v ?? null)}
+            options={savedScenarios.map(s => ({ label: s.name, value: s.id }))}
+            allowClear
+            size='small'
+          />
+          {(scenarioAId || scenarioBId) && (
+            <Button
+              size='small'
+              type='text'
+              onClick={() => {
+                setScenarioAId(null);
+                setScenarioBId(null);
+              }}
+            >
+              Clear
+            </Button>
+          )}
+          <Text type='secondary' style={{ fontSize: 11 }}>
+            {compareMode
+              ? 'Showing Scenario A vs Scenario B'
+              : scenarioA || scenarioB
+                ? 'Showing scenario’s baseline vs reusable'
+                : 'No scenarios picked — showing org baseline vs reusable'}
+          </Text>
+        </div>
+      )}
+
       <Row gutter={[16, 16]}>
         {specs.map(spec => {
-          const total = data.projects.reduce((acc, p) => acc + spec.getProjectDelta(p), 0);
           const lg = specs.length <= 2 ? 12 : specs.length === 3 ? 8 : 6;
+
+          let bars: [{ label: string; value: number; formatted: string; color?: string }, any];
+          let headlineValue = 0;
+          let deltaPercent: number | undefined;
+
+          if (compareMode && scenarioA && scenarioB) {
+            const a = applyScenario(data.projects, scenarioA, spec);
+            const b = applyScenario(data.projects, scenarioB, spec);
+            const aSavings = a.baseline - a.forecast;
+            const bSavings = b.baseline - b.forecast;
+            headlineValue = bSavings - aSavings;
+            deltaPercent = aSavings !== 0 ? ((bSavings - aSavings) / Math.abs(aSavings)) * 100 : undefined;
+            bars = [
+              { label: scenarioA.name, value: aSavings, formatted: spec.formatter(aSavings) },
+              { label: scenarioB.name, value: bSavings, formatted: spec.formatter(bSavings), color: '#73d13d' }
+            ];
+          } else {
+            const active = scenarioA ?? scenarioB ?? null;
+            const totals = applyScenario(data.projects, active, spec);
+            const savings = totals.baseline - totals.forecast;
+            headlineValue = savings;
+            deltaPercent = totals.baseline !== 0 ? (savings / totals.baseline) * 100 : undefined;
+            bars = [
+              { label: 'Baseline', value: totals.baseline, formatted: spec.formatter(totals.baseline) },
+              {
+                label: 'Forecast',
+                value: totals.forecast,
+                formatted: spec.formatter(totals.forecast),
+                color: '#73d13d'
+              }
+            ];
+          }
+
           return (
             <Col key={spec.key} xs={24} md={12} lg={lg}>
-              <ImpactStatCard
+              <ImpactCard
                 label={spec.label}
-                units={spec.units}
-                value={projectHasData ? spec.formatter(total) : null}
+                headline={
+                  projectHasData ? (
+                    <>
+                      {spec.formatter(headlineValue)}
+                      {spec.units && (
+                        <span style={{ fontSize: '.55em', fontWeight: 400, marginLeft: 6 }}>{spec.units}</span>
+                      )}
+                    </>
+                  ) : (
+                    'N/A'
+                  )
+                }
+                deltaPercent={projectHasData ? deltaPercent : undefined}
+                bars={bars}
                 onClick={projectHasData ? () => setActiveMetric(spec) : undefined}
+                clickHint='Click for project breakdown'
               />
             </Col>
           );
@@ -324,35 +502,6 @@ function ImpactKPIs({
       </Row>
       <ImpactDrilldown metric={activeMetric} projects={data.projects} onClose={() => setActiveMetric(null)} />
     </div>
-  );
-}
-
-function ImpactStatCard({
-  label,
-  units,
-  value,
-  onClick
-}: {
-  label: string;
-  units?: string;
-  value: ReactNode;
-  onClick?: () => void;
-}) {
-  const clickable = !!onClick;
-  return (
-    <Card hoverable={clickable} onClick={onClick} style={{ height: '100%', cursor: clickable ? 'pointer' : 'default' }}>
-      <Typography.Paragraph style={{ marginBottom: 8 }}>
-        <strong>{label}</strong>
-      </Typography.Paragraph>
-      <Title level={2} style={{ margin: 0 }}>
-        {value ?? 'N/A'} {units && value != null && <span style={{ fontSize: '.55em', fontWeight: 400 }}>{units}</span>}
-      </Title>
-      {clickable && (
-        <Text type='secondary' style={{ fontSize: 11 }}>
-          Click for project breakdown
-        </Text>
-      )}
-    </Card>
   );
 }
 
@@ -373,7 +522,7 @@ function ImpactDrilldown({
         name: p.name || 'Untitled',
         accountName: p.account?.name ?? '',
         type: ((p as any).metadata?.type as string | undefined) ?? 'Untyped',
-        delta: metric.getProjectDelta(p)
+        delta: metric.getProjectBaseline(p) - metric.getProjectForecast(p)
       }))
       .filter(c => c.delta !== 0)
       .sort((a, b) => b.delta - a.delta);
