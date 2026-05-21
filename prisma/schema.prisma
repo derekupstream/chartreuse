@@ -706,6 +706,29 @@ enum ProjectDataType {
   actual
 }
 
+model FeatureRequest {
+  id              String        @id @default(uuid()) @db.Uuid
+  title           String
+  description     String?
+  status          String        @default("open") // open | planned | in_progress | shipped | rejected
+  createdAt       DateTime      @default(now())
+  createdByUserId String?
+  votes           FeatureVote[]
+
+  @@index([status, createdAt])
+}
+
+model FeatureVote {
+  id               String         @id @default(uuid()) @db.Uuid
+  createdAt        DateTime       @default(now())
+  userId           String
+  featureRequestId String         @db.Uuid
+  feature          FeatureRequest @relation(fields: [featureRequestId], references: [id], onDelete: Cascade)
+
+  @@unique([featureRequestId, userId])
+  @@index([userId])
+}
+
 enum Role {
   ORG_ADMIN
   ACCOUNT_ADMIN

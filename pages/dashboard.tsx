@@ -17,6 +17,7 @@ import type { GetServerSideProps } from 'next';
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 
+import { FeatureVotingWidget } from 'components/feature-voting/FeatureVotingWidget';
 import { ImpactCard } from 'components/common/ImpactCard';
 import type { DashboardUser } from 'interfaces';
 import { DashboardLayout as Template } from 'layouts/DashboardLayout/DashboardLayout';
@@ -44,13 +45,15 @@ const ALL_WIDGETS = [
     description: 'Persona-targeted invitations to Calculators, Reports, and Scenarios'
   },
   { id: 'calculators', label: 'Recent Calculators', description: 'Recently updated projects with quick open' },
-  { id: 'scenarios', label: 'Saved Scenarios', description: 'Recently saved scenarios you can revisit or compare' },
-  { id: 'preview', label: 'Featured Dashboard', description: 'Preview of a publicly shared project' },
-  { id: 'new', label: 'New & Coming Soon', description: 'New tools, reports, white papers, features' }
+  {
+    id: 'feature-voting',
+    label: 'Feature Voting',
+    description: 'See what other users have requested and upvote what you want next'
+  }
 ] as const;
 
 type WidgetId = (typeof ALL_WIDGETS)[number]['id'];
-const DEFAULT_WIDGETS: WidgetId[] = ['impact', 'personas', 'calculators', 'scenarios', 'preview', 'new'];
+const DEFAULT_WIDGETS: WidgetId[] = ['impact', 'personas', 'calculators', 'feature-voting'];
 
 type Props = {
   user: DashboardUser;
@@ -182,9 +185,7 @@ function DashboardPage({
         )}
         {hydrated && isOn('personas') && <PersonaInvitations />}
         {hydrated && isOn('calculators') && <CalculatorsWidget recentProjects={recentProjects} />}
-        {hydrated && isOn('scenarios') && <ScenariosWidget orgId={user.org.id} />}
-        {hydrated && isOn('preview') && <DashboardPreviewWidget recentProjects={recentProjects} />}
-        {hydrated && isOn('new') && <NewAndComingWidget />}
+        {hydrated && isOn('feature-voting') && <FeatureVotingWidget />}
         {hydrated && enabledWidgets.length === 0 && (
           <Empty description='No widgets enabled — click "Customize" to add some.' style={{ padding: 48 }} />
         )}
@@ -771,169 +772,6 @@ function CalculatorsWidget({ recentProjects }: { recentProjects: Props['recentPr
           ))}
         </Row>
       )}
-    </div>
-  );
-}
-
-function ScenariosWidget({ orgId }: { orgId: string }) {
-  const [scenarioCount, setScenarioCount] = useState<number | null>(null);
-  useEffect(() => {
-    try {
-      const raw = window.localStorage.getItem(`cr_scenarios_${orgId}`);
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        setScenarioCount(Array.isArray(parsed) ? parsed.length : 0);
-      } else {
-        setScenarioCount(0);
-      }
-    } catch {
-      setScenarioCount(0);
-    }
-  }, [orgId]);
-
-  return (
-    <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 12 }}>
-        <Title level={4} style={{ margin: 0 }}>
-          <RocketOutlined style={{ marginRight: 8 }} />
-          Saved Scenarios
-        </Title>
-        <Link href='/scenarios'>
-          <Button type='link' size='small'>
-            Plan or compare <ArrowRightOutlined />
-          </Button>
-        </Link>
-      </div>
-      <Card>
-        <Row align='middle' gutter={24}>
-          <Col xs={24} md={8}>
-            <Title level={1} style={{ margin: 0, color: '#722ed1' }}>
-              {scenarioCount ?? '—'}
-            </Title>
-            <Text type='secondary'>scenarios saved on this device</Text>
-          </Col>
-          <Col xs={24} md={16}>
-            <Paragraph style={{ fontSize: 13, marginBottom: 0 }}>
-              Scenarios scale your existing projects across locations and timeframes — useful for making the case for
-              policy changes or measuring the impact of expanding a successful pilot. Open the Scenarios tab to compare
-              multiple scenarios side-by-side.
-            </Paragraph>
-          </Col>
-        </Row>
-      </Card>
-    </div>
-  );
-}
-
-function DashboardPreviewWidget({ recentProjects }: { recentProjects: Props['recentProjects'] }) {
-  const shareable = recentProjects.find(p => p.publicSlug);
-  return (
-    <div>
-      <Title level={4} style={{ margin: '0 0 12px 0' }}>
-        <StarFilled style={{ marginRight: 8, color: '#faad14' }} />
-        Featured Dashboard
-      </Title>
-      <Card>
-        {shareable ? (
-          <Row align='middle' gutter={16}>
-            <Col xs={24} md={16}>
-              <Text strong style={{ fontSize: 16 }}>
-                {shareable.name}
-              </Text>
-              {shareable.accountName && (
-                <Paragraph type='secondary' style={{ fontSize: 12, marginTop: 4, marginBottom: 8 }}>
-                  {shareable.accountName}
-                </Paragraph>
-              )}
-              <Text type='secondary' style={{ fontSize: 12 }}>
-                Public link: <code style={{ fontSize: 11 }}>/share/p/{shareable.publicSlug}</code>
-              </Text>
-            </Col>
-            <Col xs={24} md={8} style={{ textAlign: 'right' }}>
-              <Space>
-                <Link href={`/share/p/${shareable.publicSlug}`} target='_blank'>
-                  <Button>Open shared view</Button>
-                </Link>
-                <Link href={`/projects/${shareable.id}/projections`}>
-                  <Button type='primary'>Edit project</Button>
-                </Link>
-              </Space>
-            </Col>
-          </Row>
-        ) : (
-          <Empty
-            description={
-              <Space direction='vertical' size={4}>
-                <Text type='secondary'>No shared dashboards yet</Text>
-                <Text type='secondary' style={{ fontSize: 12 }}>
-                  Open a calculator and toggle public sharing to feature it here.
-                </Text>
-              </Space>
-            }
-          />
-        )}
-      </Card>
-    </div>
-  );
-}
-
-function NewAndComingWidget() {
-  const items = [
-    {
-      icon: <RocketOutlined style={{ color: '#722ed1' }} />,
-      title: 'RSP Ingestion Model',
-      description: 'Per-period impact for service providers with material-aware factors, wash + transport modeling',
-      href: '/admin/data-science/data-products',
-      badge: 'New'
-    },
-    {
-      icon: <BookOutlined style={{ color: '#1677ff' }} />,
-      title: 'Data Product Designer',
-      description: 'Build new calculators and reports with AI-assisted flow generation',
-      href: '/admin/data-science/data-products',
-      badge: 'Beta'
-    },
-    {
-      icon: <FileTextOutlined style={{ color: '#52c41a' }} />,
-      title: 'Venue Benchmarking',
-      description: 'Compare your impact against similar venues by category',
-      href: null,
-      badge: 'Coming soon'
-    }
-  ];
-
-  return (
-    <div>
-      <Title level={4} style={{ margin: '0 0 12px 0' }}>
-        New & Coming Soon
-      </Title>
-      <Row gutter={[16, 16]}>
-        {items.map((item, idx) => {
-          const card = (
-            <Card hoverable={!!item.href} size='small' style={{ height: '100%', opacity: item.href ? 1 : 0.75 }}>
-              <Space direction='vertical' size={6} style={{ width: '100%' }}>
-                <Space>
-                  {item.icon}
-                  <Text strong>{item.title}</Text>
-                  {item.badge && (
-                    <Tag color={item.badge === 'Coming soon' ? 'default' : item.badge === 'New' ? 'purple' : 'cyan'}>
-                      {item.badge}
-                    </Tag>
-                  )}
-                </Space>
-                <Text type='secondary' style={{ fontSize: 12 }}>
-                  {item.description}
-                </Text>
-              </Space>
-            </Card>
-          );
-          return (
-            <Col xs={24} md={8} key={idx}>
-              {item.href ? <Link href={item.href}>{card}</Link> : card}
-            </Col>
-          );
-        })}
-      </Row>
     </div>
   );
 }
