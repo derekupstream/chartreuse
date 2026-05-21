@@ -29,6 +29,7 @@ import {
 import dynamic from 'next/dynamic';
 import { useEffect, useMemo, useState } from 'react';
 
+import { ImpactCard } from 'components/common/ImpactCard';
 import { useCurrency } from 'components/_app/CurrencyProvider';
 import { useMetricSystem } from 'components/_app/MetricSystemProvider';
 import { formatToDollar } from 'lib/calculator/utils';
@@ -161,6 +162,27 @@ export function PolicyScenariosPage({ data, orgId, isReadOnly }: Props) {
     [includedProjects, multipliers]
   );
 
+  // Optional comparison against another saved scenario. When set, stat cards
+  // render the current scenario's net vs the picked scenario's net.
+  const [compareScenarioId, setCompareScenarioId] = useState<string | null>(null);
+  const compareScenario = useMemo(
+    () => savedScenarios.find(s => s.id === compareScenarioId) ?? null,
+    [savedScenarios, compareScenarioId]
+  );
+  const compareSummary = useMemo(() => {
+    if (!compareScenario) return null;
+    const filtered = data.projects.filter(p => {
+      if ((compareScenario.excludedProjectIds ?? []).includes(p.id)) return false;
+      const seg = compareScenario.segmentFilter ?? [];
+      if (seg.length > 0) {
+        const t = ((p as any).metadata?.type as string | undefined) ?? null;
+        if (!t || !seg.includes(t)) return false;
+      }
+      return true;
+    });
+    return getMultipliedSummary(filtered, compareScenario.multipliers ?? {}, 1);
+  }, [data.projects, compareScenario]);
+
   const hasChanges = excludedIds.size > 0 || segmentFilter.length > 0 || Object.values(multipliers).some(v => v !== 1);
 
   // ─── Mutations ───────────────────────────────────────────────────────────────
@@ -277,7 +299,20 @@ export function PolicyScenariosPage({ data, orgId, isReadOnly }: Props) {
         onReset={reset}
       />
 
-      <ScenarioStatCards summary={summary} currency={currency} displayAsMetric={displayAsMetric} />
+      <ScenarioComparePicker
+        savedScenarios={savedScenarios}
+        compareScenarioId={compareScenarioId}
+        onChange={setCompareScenarioId}
+      />
+
+      <ScenarioStatCards
+        summary={summary}
+        compareSummary={compareSummary}
+        currentName={scenarioName}
+        compareName={compareScenario?.name ?? null}
+        currency={currency}
+        displayAsMetric={displayAsMetric}
+      />
 
       <ScenarioControls
         allSegments={allSegments}
@@ -406,36 +441,121 @@ function ScenarioHeader({
   );
 }
 
+// ─── Sub: compare picker ───────────────────────────────────────────────────────
+
+function ScenarioComparePicker({
+  savedScenarios,
+  compareScenarioId,
+  onChange
+}: {
+  savedScenarios: PolicyScenario[];
+  compareScenarioId: string | null;
+  onChange: (id: string | null) => void;
+}) {
+  if (savedScenarios.length === 0) return null;
+  return (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 8,
+        flexWrap: 'wrap',
+        marginBottom: 12,
+        padding: '10px 14px',
+        background: '#fafafa',
+        borderRadius: 8
+      }}
+    >
+      <Typography.Text type='secondary' style={{ fontSize: 12 }}>
+        Compare against another scenario:
+      </Typography.Text>
+      <Select
+        placeholder='Pick a scenario to compare'
+        style={{ minWidth: 220 }}
+        value={compareScenarioId ?? undefined}
+        onChange={v => onChange(v ?? null)}
+        options={savedScenarios.map(s => ({ label: s.name, value: s.id }))}
+        allowClear
+        size='small'
+      />
+      <Typography.Text type='secondary' style={{ fontSize: 11 }}>
+        {compareScenarioId
+          ? 'Stat cards below show current scenario vs the picked scenario.'
+          : 'Pick a saved scenario to compare side-by-side.'}
+      </Typography.Text>
+    </div>
+  );
+}
+
 // ─── Sub: stat cards ────────────────────────────────────────────────────────────
 
 function ScenarioStatCards({
   summary,
+  compareSummary,
+  currentName,
+  compareName,
   currency,
   displayAsMetric
 }: {
   summary: AllProjectsSummary['summary'];
+  compareSummary: AllProjectsSummary['summary'] | null;
+  currentName: string;
+  compareName: string | null;
   currency: string;
   displayAsMetric: boolean;
 }) {
-  const cards = ALL_METRICS.map(({ key, label }) => {
-    const v = metricValue(summary, key);
-    const delta = v.baseline - v.forecast;
-    return { key, label, value: formatMetric(key, delta, { currency, displayAsMetric }) };
-  });
+  const ctx = { currency, displayAsMetric };
   return (
     <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
-      {cards.map(card => (
-        <Col key={card.key} xs={24} sm={12} lg={6}>
-          <Card>
-            <Typography.Paragraph style={{ marginBottom: 8 }}>
-              <strong>{card.label}</strong>
-            </Typography.Paragraph>
-            <Typography.Title level={3} style={{ margin: 0 }}>
-              {card.value}
-            </Typography.Title>
-          </Card>
-        </Col>
-      ))}
+      {ALL_METRICS.map(({ key, label }) => {
+        const a = metricValue(summary, key);
+        const aSavings = a.baseline - a.forecast;
+
+        if (compareSummary && compareName) {
+          const b = metricValue(compareSummary, key);
+          const bSavings = b.baseline - b.forecast;
+          const headline = bSavings - aSavings;
+          const deltaPercent = aSavings !== 0 ? ((bSavings - aSavings) / Math.abs(aSavings)) * 100 : undefined;
+          return (
+            <Col key={key} xs={24} md={24} lg={12}>
+              <ImpactCard
+                label={label}
+                headline={formatMetric(key, headline, ctx)}
+                deltaPercent={deltaPercent}
+                bars={[
+                  { label: currentName, value: aSavings, formatted: formatMetric(key, aSavings, ctx) },
+                  {
+                    label: compareName,
+                    value: bSavings,
+                    formatted: formatMetric(key, bSavings, ctx),
+                    color: '#73d13d'
+                  }
+                ]}
+              />
+            </Col>
+          );
+        }
+
+        const deltaPercent = a.baseline !== 0 ? (aSavings / a.baseline) * 100 : undefined;
+        return (
+          <Col key={key} xs={24} md={24} lg={12}>
+            <ImpactCard
+              label={label}
+              headline={formatMetric(key, aSavings, ctx)}
+              deltaPercent={deltaPercent}
+              bars={[
+                { label: 'Baseline', value: a.baseline, formatted: formatMetric(key, a.baseline, ctx) },
+                {
+                  label: 'Forecast',
+                  value: a.forecast,
+                  formatted: formatMetric(key, a.forecast, ctx),
+                  color: '#73d13d'
+                }
+              ]}
+            />
+          </Col>
+        );
+      })}
     </Row>
   );
 }

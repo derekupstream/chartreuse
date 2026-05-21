@@ -12,7 +12,7 @@ import {
   ShopOutlined,
   StarFilled
 } from '@ant-design/icons';
-import { Button, Card, Checkbox, Col, Drawer, Empty, Progress, Row, Select, Space, Tag, Typography } from 'antd';
+import { Button, Card, Checkbox, Col, Drawer, Empty, Progress, Row, Space, Tag, Typography } from 'antd';
 import type { GetServerSideProps } from 'next';
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
@@ -180,7 +180,6 @@ function DashboardPage({
             hasProjections={hasProjections}
             totalProjects={totalProjects}
             currency={user.org.currency || 'USD'}
-            orgId={user.org.id}
           />
         )}
         {hydrated && isOn('personas') && <PersonaInvitations />}
@@ -274,52 +273,16 @@ function buildMetricSpecs(currency: string): MetricSpec[] {
   ];
 }
 
-// Per-project location multipliers + filters (mirrors PolicyScenario shape so
-// we can read scenarios saved on /scenarios out of localStorage)
-type SavedScenario = {
-  id: string;
-  name: string;
-  multipliers?: Record<string, number>;
-  excludedProjectIds?: string[];
-  segmentFilter?: string[];
-};
-
-function applyScenario(
-  projects: ProjectSummary[],
-  scenario: SavedScenario | null,
-  spec: MetricSpec
-): { baseline: number; forecast: number } {
-  let baseline = 0;
-  let forecast = 0;
-  const multipliers = scenario?.multipliers ?? {};
-  const excludedIds = new Set(scenario?.excludedProjectIds ?? []);
-  const segmentFilter = scenario?.segmentFilter ?? [];
-
-  for (const p of projects) {
-    if (excludedIds.has(p.id)) continue;
-    if (segmentFilter.length > 0) {
-      const type = ((p as any).metadata?.type as string | undefined) ?? null;
-      if (!type || !segmentFilter.includes(type)) continue;
-    }
-    const m = multipliers[p.id] ?? 1;
-    baseline += spec.getProjectBaseline(p) * m;
-    forecast += spec.getProjectForecast(p) * m;
-  }
-  return { baseline, forecast };
-}
-
 function ImpactKPIs({
   data,
   hasProjections,
   totalProjects,
-  currency,
-  orgId
+  currency
 }: {
   data: AllProjectsSummary;
   hasProjections: boolean;
   totalProjects: number;
   currency: string;
-  orgId: string;
 }) {
   const projectHasData = totalProjects > 0;
   const isEventOnly = !hasProjections;
@@ -328,38 +291,6 @@ function ImpactKPIs({
     [currency, isEventOnly]
   );
   const [activeMetric, setActiveMetric] = useState<MetricSpec | null>(null);
-
-  // Saved scenarios (read live from localStorage so the picker reflects what
-  // the user saved on /scenarios — no SSR roundtrip needed).
-  const [savedScenarios, setSavedScenarios] = useState<SavedScenario[]>([]);
-  useEffect(() => {
-    function load() {
-      try {
-        setSavedScenarios(JSON.parse(localStorage.getItem(`cr_scenarios_${orgId}`) ?? '[]'));
-      } catch {
-        setSavedScenarios([]);
-      }
-    }
-    load();
-    window.addEventListener('storage', load);
-    window.addEventListener('cr-scenarios-updated', load);
-    return () => {
-      window.removeEventListener('storage', load);
-      window.removeEventListener('cr-scenarios-updated', load);
-    };
-  }, [orgId]);
-
-  const [scenarioAId, setScenarioAId] = useState<string | null>(null);
-  const [scenarioBId, setScenarioBId] = useState<string | null>(null);
-  const scenarioA = useMemo(
-    () => savedScenarios.find(s => s.id === scenarioAId) ?? null,
-    [savedScenarios, scenarioAId]
-  );
-  const scenarioB = useMemo(
-    () => savedScenarios.find(s => s.id === scenarioBId) ?? null,
-    [savedScenarios, scenarioBId]
-  );
-  const compareMode = !!scenarioA && !!scenarioB;
 
   return (
     <div>
@@ -383,107 +314,30 @@ function ImpactKPIs({
         </Link>
       </div>
 
-      {savedScenarios.length > 0 && (
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 8,
-            flexWrap: 'wrap',
-            marginBottom: 16,
-            padding: '10px 14px',
-            background: '#fafafa',
-            borderRadius: 8
-          }}
-        >
-          <Text type='secondary' style={{ fontSize: 12 }}>
-            Compare scenarios:
-          </Text>
-          <Select
-            placeholder='Scenario A'
-            style={{ minWidth: 180 }}
-            value={scenarioAId ?? undefined}
-            onChange={v => setScenarioAId(v ?? null)}
-            options={savedScenarios.map(s => ({ label: s.name, value: s.id }))}
-            allowClear
-            size='small'
-          />
-          <Text type='secondary'>vs</Text>
-          <Select
-            placeholder='Scenario B'
-            style={{ minWidth: 180 }}
-            value={scenarioBId ?? undefined}
-            onChange={v => setScenarioBId(v ?? null)}
-            options={savedScenarios.map(s => ({ label: s.name, value: s.id }))}
-            allowClear
-            size='small'
-          />
-          {(scenarioAId || scenarioBId) && (
-            <Button
-              size='small'
-              type='text'
-              onClick={() => {
-                setScenarioAId(null);
-                setScenarioBId(null);
-              }}
-            >
-              Clear
-            </Button>
-          )}
-          <Text type='secondary' style={{ fontSize: 11 }}>
-            {compareMode
-              ? 'Showing Scenario A vs Scenario B'
-              : scenarioA || scenarioB
-                ? 'Showing scenario’s baseline vs reusable'
-                : 'No scenarios picked — showing org baseline vs reusable'}
-          </Text>
-        </div>
-      )}
-
       <Row gutter={[16, 16]}>
         {specs.map(spec => {
-          const lg = specs.length <= 2 ? 12 : specs.length === 3 ? 8 : 6;
+          // 2x2 grid when there are 4 cards; otherwise spread evenly.
+          // xs (mobile) and md (tablet) always single column / half width
+          // for breathing room; lg controls the desktop split.
+          const lg = specs.length <= 2 ? 12 : specs.length === 3 ? 8 : 12;
 
-          let bars: [{ label: string; value: number; formatted: string; color?: string }, any];
-          let headlineValue = 0;
-          let deltaPercent: number | undefined;
-
-          if (compareMode && scenarioA && scenarioB) {
-            const a = applyScenario(data.projects, scenarioA, spec);
-            const b = applyScenario(data.projects, scenarioB, spec);
-            const aSavings = a.baseline - a.forecast;
-            const bSavings = b.baseline - b.forecast;
-            headlineValue = bSavings - aSavings;
-            deltaPercent = aSavings !== 0 ? ((bSavings - aSavings) / Math.abs(aSavings)) * 100 : undefined;
-            bars = [
-              { label: scenarioA.name, value: aSavings, formatted: spec.formatter(aSavings) },
-              { label: scenarioB.name, value: bSavings, formatted: spec.formatter(bSavings), color: '#73d13d' }
-            ];
-          } else {
-            const active = scenarioA ?? scenarioB ?? null;
-            const totals = applyScenario(data.projects, active, spec);
-            const savings = totals.baseline - totals.forecast;
-            headlineValue = savings;
-            deltaPercent = totals.baseline !== 0 ? (savings / totals.baseline) * 100 : undefined;
-            bars = [
-              { label: 'Baseline', value: totals.baseline, formatted: spec.formatter(totals.baseline) },
-              {
-                label: 'Forecast',
-                value: totals.forecast,
-                formatted: spec.formatter(totals.forecast),
-                color: '#73d13d'
-              }
-            ];
+          let baseline = 0;
+          let forecast = 0;
+          for (const p of data.projects) {
+            baseline += spec.getProjectBaseline(p);
+            forecast += spec.getProjectForecast(p);
           }
+          const savings = baseline - forecast;
+          const deltaPercent = baseline !== 0 ? (savings / baseline) * 100 : undefined;
 
           return (
-            <Col key={spec.key} xs={24} md={12} lg={lg}>
+            <Col key={spec.key} xs={24} md={24} lg={lg}>
               <ImpactCard
                 label={spec.label}
                 headline={
                   projectHasData ? (
                     <>
-                      {spec.formatter(headlineValue)}
+                      {spec.formatter(savings)}
                       {spec.units && (
                         <span style={{ fontSize: '.55em', fontWeight: 400, marginLeft: 6 }}>{spec.units}</span>
                       )}
@@ -493,7 +347,10 @@ function ImpactKPIs({
                   )
                 }
                 deltaPercent={projectHasData ? deltaPercent : undefined}
-                bars={bars}
+                bars={[
+                  { label: 'Baseline', value: baseline, formatted: spec.formatter(baseline) },
+                  { label: 'Forecast', value: forecast, formatted: spec.formatter(forecast), color: '#73d13d' }
+                ]}
                 onClick={projectHasData ? () => setActiveMetric(spec) : undefined}
                 clickHint='Click for project breakdown'
               />
