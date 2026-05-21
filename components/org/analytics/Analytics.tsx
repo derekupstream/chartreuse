@@ -315,6 +315,10 @@ export interface PageProps {
   initialTab?: ActiveTab;
   initialScenarioMultipliers?: ScenarioMultipliers;
   initialTimelineYear?: number;
+  /** When true, the Scenarios tab is hidden — used by /org/analytics so the
+   * reporting page is just projections/actuals. The standalone /scenarios
+   * route still passes initialTab='scenarios' without this flag. */
+  hideScenariosTab?: boolean;
 }
 
 export function AnalyticsPage({
@@ -327,7 +331,8 @@ export function AnalyticsPage({
   isReadOnly,
   initialTab,
   initialScenarioMultipliers,
-  initialTimelineYear
+  initialTimelineYear,
+  hideScenariosTab
 }: PageProps) {
   const router = useRouter();
   const { tags } = useTags(user.org.id);
@@ -572,7 +577,7 @@ export function AnalyticsPage({
   const tabItems = [
     { key: 'projections', label: 'Projections' },
     ...(showCategoryTabs ? [{ key: 'actuals', label: 'Actuals' }] : []),
-    { key: 'scenarios', label: 'Scenarios' }
+    ...(hideScenariosTab ? [] : [{ key: 'scenarios', label: 'Scenarios' }])
   ];
 
   return (

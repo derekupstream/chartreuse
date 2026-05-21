@@ -127,6 +127,7 @@ const AnalyticsPageComponent = ({
       availableProjectTypes={availableProjectTypes}
       projectCategory={projectCategory}
       showCategoryTabs={showCategoryTabs}
+      hideScenariosTab
     />
   );
 };

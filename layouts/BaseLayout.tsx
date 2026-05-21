@@ -121,7 +121,10 @@ export const BaseLayout: React.FC<DashboardProps> = ({ user, selectedMenuItem, t
   const [keys, setKeys] = useState<string[]>([]);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const { trialEndDateRelative } = useSubscription();
-  const { enabled: v2Enabled, setEnabled: setV2Enabled, hydrated: v2Hydrated } = useChartReuse2();
+  const { enabled: v2EnabledRaw, setEnabled: setV2Enabled, hydrated: v2Hydrated } = useChartReuse2();
+  // v2 is gated to Upstream users today. A non-upstream user with v2=true in
+  // localStorage (e.g. carried over from earlier toggling) sees legacy.
+  const v2Enabled = v2EnabledRaw && user.org.isUpstream;
   const menuLinks = v2Enabled ? v2MenuLinks : legacyMenuLinks;
 
   useEffect(() => {
@@ -250,7 +253,7 @@ export const BaseLayout: React.FC<DashboardProps> = ({ user, selectedMenuItem, t
           </S.LogoAndMenuWrapper>
           <S.OrgAndUserWrapper>
             <S.DesktopUserInfo>
-              {v2Hydrated && (
+              {v2Hydrated && user.org.isUpstream && (
                 <Button
                   size='small'
                   icon={<RocketOutlined />}
