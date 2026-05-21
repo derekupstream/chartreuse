@@ -1,11 +1,4 @@
-import {
-  ArrowRightOutlined,
-  BookOutlined,
-  CopyOutlined,
-  DeleteOutlined,
-  EditOutlined,
-  PlusOutlined
-} from '@ant-design/icons';
+import { CopyOutlined, DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
 import type { Project, Account, ProjectTagRelation, ProjectTag, ProjectDataType } from '@prisma/client';
 import { Button, Card, Col, Divider, message, Popconfirm, Row, Space, Typography } from 'antd';
 import Link from 'next/link';
@@ -366,21 +359,12 @@ function FirstProjectEmptyState() {
           </Space>
         </Col>
         <Col xs={24} md={10}>
-          <Card style={{ background: '#fff' }} size='small'>
-            <Typography.Title level={5} style={{ marginTop: 0 }}>
-              Not sure where to begin?
-            </Typography.Title>
-            <Space direction='vertical' size={8} style={{ width: '100%' }}>
-              <Link href='/tutorials/calculator'>
-                <Button type='link' style={{ padding: 0 }} icon={<BookOutlined />}>
-                  Read the 10-minute tutorial <ArrowRightOutlined />
-                </Button>
-              </Link>
-              <Typography.Text type='secondary' style={{ fontSize: 12 }}>
-                Or jump in — every step has inline help, and you can always come back and tweak inputs.
-              </Typography.Text>
-            </Space>
-          </Card>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src='/images/welcome-illustration.png'
+            alt='Barista handing a reusable cup to a customer'
+            style={{ width: '100%', height: 'auto', display: 'block' }}
+          />
         </Col>
       </Row>
     </Card>
