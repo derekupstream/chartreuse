@@ -335,11 +335,11 @@ function FirstProjectEmptyState() {
         minHeight: 'calc(100vh - 280px)',
         display: 'flex',
         alignItems: 'center',
-        background: 'transparent',
+        background: '#f4f3f0',
         border: 'none',
         boxShadow: 'none'
       }}
-      bodyStyle={{ width: '100%', padding: '32px 24px' }}
+      bodyStyle={{ width: '100%', padding: '32px 24px', background: '#f4f3f0' }}
     >
       <Row gutter={[24, 24]} align='middle'>
         <Col xs={24} md={14}>
