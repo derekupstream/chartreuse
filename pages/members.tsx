@@ -30,12 +30,27 @@ export const getServerSideProps: GetServerSideProps<MembersProps> = async contex
       select: { orgInviteCode: true }
     });
 
+    const joinRequests =
+      response.props.user.role === 'ORG_ADMIN'
+        ? await prisma.joinRequest.findMany({
+            where: { orgId: response.props.user.orgId, status: 'pending' },
+            orderBy: { createdAt: 'desc' }
+          })
+        : [];
+
     return {
       props: serializeJSON({
         user: response.props.user,
         accounts: response.props.user.org.accounts,
         users,
         invites,
+        joinRequests: joinRequests.map(r => ({
+          id: r.id,
+          email: r.email,
+          name: r.name,
+          message: r.message,
+          createdAt: r.createdAt.toISOString()
+        })),
         org: { orgInviteCode: org?.orgInviteCode || null }
       })
     };

@@ -5,6 +5,8 @@ import type { ColumnType } from 'antd/lib/table/interface';
 import { useRouter } from 'next/router';
 import { useCallback } from 'react';
 
+import type { JoinRequestRow } from 'components/members/JoinRequestsTable';
+import { JoinRequestsTable } from 'components/members/JoinRequestsTable';
 import { members } from 'lib/api';
 
 import * as S from '../../layouts/styles';
@@ -23,6 +25,7 @@ export interface PageProps {
   accounts: Account[];
   users: User[];
   invites: Invite[];
+  joinRequests: JoinRequestRow[];
   org: {
     orgInviteCode: string | null;
   };
@@ -31,7 +34,7 @@ export interface PageProps {
   };
 }
 
-export function MembersPage({ accounts, users, invites, org, user }: PageProps) {
+export function MembersPage({ accounts, users, invites, joinRequests, org, user }: PageProps) {
   const router = useRouter();
 
   const deleteAccount = members.useDeleteMember();
@@ -166,6 +169,12 @@ export function MembersPage({ accounts, users, invites, org, user }: PageProps) 
         <Typography.Text>
           You have no users in your organization. Click <strong>+ Invite new member</strong> above to get started.
         </Typography.Text>
+      )}
+      {joinRequests.length > 0 && user?.role === 'ORG_ADMIN' && (
+        <>
+          <br />
+          <JoinRequestsTable joinRequests={joinRequests} />
+        </>
       )}
       {pendingUsers.length > 0 && (
         <>
