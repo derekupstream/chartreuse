@@ -11,19 +11,20 @@ datasource db {
 }
 
 model User {
-  id          String   @id
-  name        String?
-  email       String   @unique
-  title       String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  phone       String?
-  role        Role     @default(ORG_ADMIN)
-  orgId       String   @db.Uuid
-  accountId   String?  @db.Uuid
-  invitesSent Invite[]
-  account     Account? @relation(fields: [accountId], references: [id])
-  org         Org      @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  id                  String        @id
+  name                String?
+  email               String        @unique
+  title               String?
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+  phone               String?
+  role                Role          @default(ORG_ADMIN)
+  orgId               String        @db.Uuid
+  accountId           String?       @db.Uuid
+  invitesSent         Invite[]
+  joinRequestsDecided JoinRequest[]
+  account             Account?      @relation(fields: [accountId], references: [id])
+  org                 Org           @relation(fields: [orgId], references: [id], onDelete: Cascade)
 }
 
 model UserEvent {
@@ -36,16 +37,16 @@ model UserEvent {
 model Org {
   name                 String
   metadata             Json?
-  createdAt            DateTime     @default(now())
-  updatedAt            DateTime     @updatedAt
-  id                   String       @id @default(uuid()) @db.Uuid
-  isUpstream           Boolean      @default(false)
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+  id                   String            @id @default(uuid()) @db.Uuid
+  isUpstream           Boolean           @default(false)
   stripeCustomerId     String?
   stripeSubscriptionId String?
-  currency             String       @default("USD")
-  useMetricSystem      Boolean      @default(false)
-  useShrinkageRate     Boolean      @default(false)
-  orgInviteCode        String?      @unique
+  currency             String            @default("USD")
+  useMetricSystem      Boolean           @default(false)
+  useShrinkageRate     Boolean           @default(false)
+  orgInviteCode        String?           @unique
   orgType              String?
   country              String?
   city                 String?
@@ -63,22 +64,23 @@ model Org {
   usagePeriods         UsageTimePeriod[]
   users                User[]
   computeRuns          ComputeRun[]
+  joinRequests         JoinRequest[]
 }
 
 model Account {
   name                String
   metadata            Json?
-  createdAt           DateTime        @default(now())
-  updatedAt           DateTime        @updatedAt
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
   accountContactEmail String
-  id                  String          @id @default(uuid()) @db.Uuid
-  orgId               String          @db.Uuid
-  USState             String          @default("California")
+  id                  String            @id @default(uuid()) @db.Uuid
+  orgId               String            @db.Uuid
+  USState             String            @default("California")
   rspClientId         String?
-  rspOrgId            String?         @db.Uuid
-  venueCategory       String?         // venue type — see lib/calculator/constants/venue-categories.ts
-  org                 Org             @relation(fields: [orgId], references: [id], onDelete: Cascade)
-  rspOrg              Org?            @relation("AccountRspOrg", fields: [rspOrgId], references: [id])
+  rspOrgId            String?           @db.Uuid
+  venueCategory       String? // venue type — see lib/calculator/constants/venue-categories.ts
+  org                 Org               @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  rspOrg              Org?              @relation("AccountRspOrg", fields: [rspOrgId], references: [id])
   invites             Invite[]
   projects            Project[]
   usagePeriods        UsageTimePeriod[]
@@ -320,12 +322,12 @@ model ProjectTagRelation {
 }
 
 model MethodologyDocument {
-  id          String    @id @default(uuid()) @db.Uuid
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  title       String
-  slug        String    @unique
-  content     Json
+  id            String    @id @default(uuid()) @db.Uuid
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  title         String
+  slug          String    @unique
+  content       Json
   status        String    @default("draft")
   publishedAt   DateTime?
   order         Int       @default(0)
@@ -411,49 +413,49 @@ model FactorSource {
 }
 
 model Factor {
-  id             String             @id @default(uuid()) @db.Uuid
-  createdAt      DateTime           @default(now())
-  updatedAt      DateTime           @updatedAt
-  name           String
-  description    String?
-  categoryId     String             @db.Uuid
-  sourceId       String             @db.Uuid
-  currentValue   Float
-  unit           String
-  region         String?
-  notes                String?
-  isActive             Boolean            @default(true)
-  effectiveFrom        DateTime           @default(now())
-  effectiveTo          DateTime?
-  createdBy            String             @db.Uuid
-  approvedBy           String?            @db.Uuid
-  approvalNotes        String?
+  id                    String             @id @default(uuid()) @db.Uuid
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
+  name                  String
+  description           String?
+  categoryId            String             @db.Uuid
+  sourceId              String             @db.Uuid
+  currentValue          Float
+  unit                  String
+  region                String?
+  notes                 String?
+  isActive              Boolean            @default(true)
+  effectiveFrom         DateTime           @default(now())
+  effectiveTo           DateTime?
+  createdBy             String             @db.Uuid
+  approvedBy            String?            @db.Uuid
+  approvalNotes         String?
   calculatorConstantKey String?
-  changeRequests ChangeRequest[]
-  category       FactorCategory     @relation(fields: [categoryId], references: [id])
-  source         FactorSource       @relation(fields: [sourceId], references: [id])
-  dependents     FactorDependency[] @relation("FactorDependents")
-  dependencies   FactorDependency[] @relation("FactorDependsOn")
-  versions       FactorVersion[]
+  changeRequests        ChangeRequest[]
+  category              FactorCategory     @relation(fields: [categoryId], references: [id])
+  source                FactorSource       @relation(fields: [sourceId], references: [id])
+  dependents            FactorDependency[] @relation("FactorDependents")
+  dependencies          FactorDependency[] @relation("FactorDependsOn")
+  versions              FactorVersion[]
 
   @@unique([name, categoryId])
 }
 
 model FactorVersion {
-  id            String                        @id @default(uuid()) @db.Uuid
-  createdAt     DateTime                      @default(now())
-  factorId      String                        @db.Uuid
+  id            String                      @id @default(uuid()) @db.Uuid
+  createdAt     DateTime                    @default(now())
+  factorId      String                      @db.Uuid
   value         Float
   unit          String
   notes         String?
-  changedBy     String                        @db.Uuid
+  changedBy     String                      @db.Uuid
   changeReason  String
   sourceVersion String?
-  status        String                        @default("pending")
-  approvedBy    String?                       @db.Uuid
+  status        String                      @default("pending")
+  approvedBy    String?                     @db.Uuid
   approvedAt    DateTime?
   approvalNotes String?
-  factor        Factor                        @relation(fields: [factorId], references: [id])
+  factor        Factor                      @relation(fields: [factorId], references: [id])
   snapshotLinks MethodologySnapshotFactor[]
 }
 
@@ -495,60 +497,60 @@ model ChangeRequest {
 }
 
 model ImportSession {
-  id           String    @id @default(uuid()) @db.Uuid
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  id           String   @id @default(uuid()) @db.Uuid
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
   userId       String
   fileName     String
-  dataType     String    @default("unknown")
-  confidence   Float     @default(0)
-  totalRows    Int       @default(0)
-  importedRows Int       @default(0)
-  skippedRows  Int       @default(0)
-  status       String    @default("classifying")
+  dataType     String   @default("unknown")
+  confidence   Float    @default(0)
+  totalRows    Int      @default(0)
+  importedRows Int      @default(0)
+  skippedRows  Int      @default(0)
+  status       String   @default("classifying")
   mappings     Json?
   errors       Json?
 }
 
 model RspApiKey {
-  id          String            @id @default(uuid()) @db.Uuid
-  createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @updatedAt
-  orgId       String            @db.Uuid
-  label       String
-  keyHash     String            @unique
-  keyPrefix   String
-  isActive    Boolean           @default(true)
-  lastUsedAt  DateTime?
-  expiresAt   DateTime?
-  isSimulated Boolean           @default(false)
-  org         Org               @relation(fields: [orgId], references: [id], onDelete: Cascade)
-  periods     UsageTimePeriod[]
+  id           String              @id @default(uuid()) @db.Uuid
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+  orgId        String              @db.Uuid
+  label        String
+  keyHash      String              @unique
+  keyPrefix    String
+  isActive     Boolean             @default(true)
+  lastUsedAt   DateTime?
+  expiresAt    DateTime?
+  isSimulated  Boolean             @default(false)
+  org          Org                 @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  periods      UsageTimePeriod[]
   activityLogs RspApiActivityLog[]
 }
 
 model UsageTimePeriod {
-  id               String               @id @default(uuid()) @db.Uuid
-  createdAt        DateTime             @default(now())
-  updatedAt        DateTime             @updatedAt
-  orgId            String               @db.Uuid
-  accountId        String?              @db.Uuid
-  clientExternalId String
-  dateMin          DateTime             @db.Date
-  dateMax          DateTime             @db.Date
-  submittedByKeyId String?              @db.Uuid
-  status           String               @default("active")
-  supersededById   String?              @db.Uuid
-  rawPayload       Json?
-  co2AvoidedKg     Float                @default(0)
-  waterSavedGallons Float               @default(0)
-  wasteDivertedLbs Float                @default(0)
-  org              Org                  @relation(fields: [orgId], references: [id])
-  account          Account?             @relation(fields: [accountId], references: [id])
-  submittedByKey   RspApiKey?           @relation(fields: [submittedByKeyId], references: [id])
-  products         UsagePeriodProduct[]
-  supersededBy     UsageTimePeriod?     @relation("PeriodSupersedes", fields: [supersededById], references: [id])
-  supersedes       UsageTimePeriod[]    @relation("PeriodSupersedes")
+  id                String               @id @default(uuid()) @db.Uuid
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
+  orgId             String               @db.Uuid
+  accountId         String?              @db.Uuid
+  clientExternalId  String
+  dateMin           DateTime             @db.Date
+  dateMax           DateTime             @db.Date
+  submittedByKeyId  String?              @db.Uuid
+  status            String               @default("active")
+  supersededById    String?              @db.Uuid
+  rawPayload        Json?
+  co2AvoidedKg      Float                @default(0)
+  waterSavedGallons Float                @default(0)
+  wasteDivertedLbs  Float                @default(0)
+  org               Org                  @relation(fields: [orgId], references: [id])
+  account           Account?             @relation(fields: [accountId], references: [id])
+  submittedByKey    RspApiKey?           @relation(fields: [submittedByKeyId], references: [id])
+  products          UsagePeriodProduct[]
+  supersededBy      UsageTimePeriod?     @relation("PeriodSupersedes", fields: [supersededById], references: [id])
+  supersedes        UsageTimePeriod[]    @relation("PeriodSupersedes")
 }
 
 model UsagePeriodProduct {
@@ -575,14 +577,14 @@ model RspApiActivityLog {
   createdAt       DateTime   @default(now())
   apiKeyId        String?    @db.Uuid
   orgId           String?    @db.Uuid
-  endpoint        String     // e.g. "POST /api/rsp/usage"
+  endpoint        String // e.g. "POST /api/rsp/usage"
   httpStatus      Int
-  outcome         String     // success | auth_failed | validation_failed | server_error | dedup_conflict
+  outcome         String // success | auth_failed | validation_failed | server_error | dedup_conflict
   errorMessage    String?
   errorCode       String?
   latencyMs       Int?
-  requestSummary  Json?      // truncated/summarized request body
-  responseSummary Json?      // truncated response
+  requestSummary  Json? // truncated/summarized request body
+  responseSummary Json? // truncated response
   clientIp        String?
   apiKey          RspApiKey? @relation(fields: [apiKeyId], references: [id], onDelete: SetNull)
 
@@ -595,16 +597,16 @@ model RspApiActivityLog {
 // ─── Governance / Methodology Snapshot layer ─────────────────────────────────
 
 model MethodologySnapshot {
-  id            String                      @id @default(uuid()) @db.Uuid
-  createdAt     DateTime                    @default(now())
-  createdBy     String                      @db.Uuid
-  name          String
-  notes         String?
-  status        String                      @default("draft") // draft | published | deprecated
-  publishedAt   DateTime?
+  id             String                      @id @default(uuid()) @db.Uuid
+  createdAt      DateTime                    @default(now())
+  createdBy      String                      @db.Uuid
+  name           String
+  notes          String?
+  status         String                      @default("draft") // draft | published | deprecated
+  publishedAt    DateTime?
   factorVersions MethodologySnapshotFactor[]
-  computeRuns   ComputeRun[]
-  testRuns      TestRun[]
+  computeRuns    ComputeRun[]
+  testRuns       TestRun[]
 }
 
 model MethodologySnapshotFactor {
@@ -620,7 +622,7 @@ model MethodologySnapshotFactor {
 model ComputeRun {
   id                    String               @id @default(uuid()) @db.Uuid
   createdAt             DateTime             @default(now())
-  runType               String               // 'projection' | 'scenario' | 'test' | 'actuals_ingest' | 'backfill'
+  runType               String // 'projection' | 'scenario' | 'test' | 'actuals_ingest' | 'backfill'
   status                String               @default("running") // running | success | failed
   orgId                 String?              @db.Uuid
   projectId             String?              @db.Uuid
@@ -642,12 +644,12 @@ model MetricResult {
   runId                 String     @db.Uuid
   orgId                 String?    @db.Uuid
   projectId             String?    @db.Uuid
-  metricKey             String     // e.g. 'co2_avoided_mtco2e', 'annual_cost_savings_usd'
+  metricKey             String // e.g. 'co2_avoided_mtco2e', 'annual_cost_savings_usd'
   valueNumeric          Float?
   valueJson             Json?
   units                 String
   methodologySnapshotId String?    @db.Uuid
-  factorVersionIdsJson  Json?      // array of FactorVersion IDs used in this computation
+  factorVersionIdsJson  Json? // array of FactorVersion IDs used in this computation
   run                   ComputeRun @relation(fields: [runId], references: [id], onDelete: Cascade)
 }
 
@@ -673,24 +675,24 @@ model DataHealthIssue {
 // ─────────────────────────────────────────────────────────────────────────────
 
 model DataProductDefinition {
-  id                    String    @id @default(uuid()) @db.Uuid
-  createdAt             DateTime  @default(now())
-  updatedAt             DateTime  @updatedAt
+  id                    String   @id @default(uuid()) @db.Uuid
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
   name                  String
-  slug                  String    @unique
+  slug                  String   @unique
   description           String?
-  productType           String    @default("calculator") // calculator | dashboard | scenario | report
-  audience              String    @default("internal")   // internal | client | public
-  status                String    @default("draft")      // draft | review | published | archived
-  projectType           String?                          // default | event | eugene | null (any)
+  productType           String   @default("calculator") // calculator | dashboard | scenario | report
+  audience              String   @default("internal") // internal | client | public
+  status                String   @default("draft") // draft | review | published | archived
+  projectType           String? // default | event | eugene | null (any)
   inputSchemaJson       Json?
   outputSchemaJson      Json?
-  flowDefinitionJson    Json?                            // { nodes, edges, viewport }
-  executionCode         String?                          // JS function body: (inputs) => outputs, generated by AI Designer
-  methodologyDocumentId String?   @db.Uuid
-  version               Int       @default(1)
+  flowDefinitionJson    Json? // { nodes, edges, viewport }
+  executionCode         String? // JS function body: (inputs) => outputs, generated by AI Designer
+  methodologyDocumentId String?  @db.Uuid
+  version               Int      @default(1)
   publishedVersion      Int?
-  isPublic              Boolean   @default(false)
+  isPublic              Boolean  @default(false)
   createdByUserId       String
   updatedByUserId       String?
 }
@@ -732,4 +734,29 @@ model FeatureVote {
 enum Role {
   ORG_ADMIN
   ACCOUNT_ADMIN
+  MEMBER
+}
+
+enum JoinRequestStatus {
+  pending
+  approved
+  declined
+}
+
+model JoinRequest {
+  id          String            @id @default(uuid()) @db.Uuid
+  email       String
+  name        String
+  message     String?
+  orgId       String            @db.Uuid
+  status      JoinRequestStatus @default(pending)
+  decidedAt   DateTime?
+  decidedById String?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  org         Org               @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  decidedBy   User?             @relation(fields: [decidedById], references: [id])
+
+  @@unique([email, orgId])
+  @@index([orgId, status])
 }
