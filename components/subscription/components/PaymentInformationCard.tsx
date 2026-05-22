@@ -4,7 +4,7 @@ import { Elements } from '@stripe/react-stripe-js';
 import { Button, Drawer, Card, Space, Divider, Form, Typography, message, Input } from 'antd';
 import { useEffect, useState } from 'react';
 
-import { getStripe } from 'components/setup/trial/getStripe';
+import { getStripe } from 'lib/stripe/getStripe';
 import { useSubscription } from 'hooks/useSubscription';
 import * as S from 'layouts/styles';
 import { useCreatePaymentMethod } from 'lib/api';
@@ -84,8 +84,8 @@ export function PaymentInformationCard() {
           sidebarView === 'billing_email'
             ? 'Edit billing email'
             : paymentMethod
-            ? 'Change the payment method'
-            : 'Add a payment method'
+              ? 'Change the payment method'
+              : 'Add a payment method'
         }
         placement='right'
         onClose={closeDrawer}

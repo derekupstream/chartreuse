@@ -1,7 +1,7 @@
 import { Button, Radio, Drawer, Card, Divider, Space, List, Typography, Modal, message } from 'antd';
 import { useState } from 'react';
 
-import { getStripe } from 'components/setup/trial/getStripe';
+import { getStripe } from 'lib/stripe/getStripe';
 import { useSubscription } from 'hooks/useSubscription';
 import * as S from 'layouts/styles';
 import { useCancelSubscription, useUpdateSubscription, useGetSubscriptionProduct } from 'lib/api';

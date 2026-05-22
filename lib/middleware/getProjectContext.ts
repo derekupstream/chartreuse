@@ -55,7 +55,7 @@ export const getProjectContext: GetServerSideProps = async context => {
     });
 
     if (!user) {
-      return { redirect: { permanent: false, destination: '/setup/trial' } };
+      return { redirect: { permanent: false, destination: '/onboarding' } };
     }
 
     const { id } = context.query;

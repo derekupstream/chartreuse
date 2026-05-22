@@ -32,7 +32,7 @@ export const getServerSideProps: GetServerSideProps = async context => {
         }
       }
 
-      return { redirect: { permanent: false, destination: '/setup/trial' } };
+      return { redirect: { permanent: false, destination: '/onboarding' } };
     } catch (err) {
       // Auth worked but DB lookup failed — still send to projects,
       // getUserFromContext will handle linking on next request

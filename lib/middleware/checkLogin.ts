@@ -18,8 +18,8 @@ export const checkLogin = async (
 
     if (!user) {
       if (authUser) {
-        console.log('Supabase user found but no DB user. Redirect to /setup', { email: authUser.email });
-        return { props: {}, redirect: { permanent: false, destination: '/setup/trial' } };
+        console.log('Supabase user found but no DB user. Redirect to /onboarding', { email: authUser.email });
+        return { props: {}, redirect: { permanent: false, destination: '/onboarding' } };
       }
       console.log('No user found. Redirect to login');
       return { props: {}, redirect: { permanent: false, destination: '/login' } };

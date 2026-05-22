@@ -46,7 +46,7 @@ function _getQueryString(query: any = {}) {
 
 // API Hooks
 
-export function useCreateTrial() {
+export function useRegisterUser() {
   return _usePOST<TrialRequestBody & { inviteCode?: string; confirmCreate?: boolean }>('/api/user/register');
 }
 

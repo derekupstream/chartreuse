@@ -1,14 +1,14 @@
-import { Modal, message } from 'antd';
+import { Button, Modal, message } from 'antd';
 import type { GetServerSideProps } from 'next';
 import { useRouter } from 'next/router';
 import { useCallback, useEffect, useState } from 'react';
 
 import { Header } from 'components/common/Header';
-import type { TrialSetupFields } from 'components/setup/trial/TrialSetup';
-import { TrialSetupForm } from 'components/setup/trial/TrialSetup';
+import type { OnboardingFields } from 'components/setup/onboarding/Onboarding';
+import { OnboardingForm } from 'components/setup/onboarding/Onboarding';
 import { useAuth } from 'hooks/useAuth';
 import { FormPageTemplate } from 'layouts/FormPageLayout';
-import { useCreateTrial } from 'lib/api';
+import { useRegisterUser } from 'lib/api';
 import { getUserFromContext } from 'lib/middleware';
 import prisma from 'lib/prisma';
 import type { SuggestedOrg } from 'pages/api/orgs/suggest';
@@ -44,15 +44,13 @@ type DupeSuggestion = {
   inviteCode: string | null;
 };
 
-export default function TrialSetup() {
+export default function Onboarding() {
   const router = useRouter();
-  const { firebaseUser } = useAuth();
-  const { trigger, isMutating } = useCreateTrial();
+  const { firebaseUser, signout } = useAuth();
+  const { trigger, isMutating } = useRegisterUser();
 
   const [suggestions, setSuggestions] = useState<SuggestedOrg[]>([]);
 
-  // On mount, ask the server which orgs already exist for this user's email
-  // domain so we can show them in the form before the user types anything.
   useEffect(() => {
     let cancelled = false;
     fetch('/api/orgs/suggest')
@@ -66,7 +64,6 @@ export default function TrialSetup() {
     };
   }, []);
 
-  // Show a confirmation modal when the server flags a domain dupe after submit.
   function confirmCreateDespiteDupes(suggestionsFromServer: DupeSuggestion[], retry: () => void) {
     Modal.confirm({
       title: 'Heads up — existing organization detected',
@@ -109,8 +106,8 @@ export default function TrialSetup() {
     });
   }
 
-  const createTrial = useCallback(
-    (values: TrialSetupFields & { inviteCode?: string }) => {
+  const register = useCallback(
+    (values: OnboardingFields & { inviteCode?: string }) => {
       if (!firebaseUser) {
         message.error('There was an error, please refresh your page and try again.');
         return;
@@ -137,6 +134,11 @@ export default function TrialSetup() {
     [trigger, router, firebaseUser]
   );
 
+  const handleSignOut = useCallback(async () => {
+    await signout();
+    router.push('/login');
+  }, [signout, router]);
+
   return (
     <>
       <Header title='Start for free' />
@@ -145,11 +147,16 @@ export default function TrialSetup() {
           title='Create your account'
           subtitle='Set up your organization to get started with Chart-Reuse.'
         >
-          <TrialSetupForm
-            onSubmit={createTrial as (values: unknown) => void}
+          <OnboardingForm
+            onSubmit={register as (values: unknown) => void}
             isLoading={isMutating}
             suggestions={suggestions}
           />
+          <div style={{ textAlign: 'center', marginTop: 24 }}>
+            <Button type='link' size='small' onClick={handleSignOut}>
+              Sign out
+            </Button>
+          </div>
         </FormPageTemplate>
       </main>
     </>

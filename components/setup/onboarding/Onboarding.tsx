@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from 'hooks/useAuth';
 import type { SuggestedOrg } from 'pages/api/orgs/suggest';
 
-import * as S from './TrialSetup.styles';
+import * as S from './Onboarding.styles';
 
 type Props = {
   onSubmit: (values: unknown) => void;
@@ -12,7 +12,7 @@ type Props = {
   suggestions?: SuggestedOrg[];
 };
 
-export type TrialSetupFields = {
+export type OnboardingFields = {
   title: string;
   email: string;
   name: string;
@@ -21,9 +21,9 @@ export type TrialSetupFields = {
   inviteCode?: string;
 };
 
-export function TrialSetupForm({ onSubmit, isLoading, suggestions = [] }: Props) {
+export function OnboardingForm({ onSubmit, isLoading, suggestions = [] }: Props) {
   const { firebaseUser } = useAuth();
-  const [form] = Form.useForm<TrialSetupFields>();
+  const [form] = Form.useForm<OnboardingFields>();
   const [showInviteCode, setShowInviteCode] = useState(false);
 
   useEffect(() => {
@@ -35,10 +35,6 @@ export function TrialSetupForm({ onSubmit, isLoading, suggestions = [] }: Props)
         name: firebaseUser.displayName
       });
     }
-    // if (!firebaseUser?.email) {
-    //   message.error('There was an error, please refresh your page and try again.');
-    //   return;
-    // }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [firebaseUser]);
 
@@ -160,8 +156,8 @@ export function TrialSetupForm({ onSubmit, isLoading, suggestions = [] }: Props)
             rules={[
               {
                 required: true,
-                transform: value => value || undefined, // Those two lines
-                type: 'boolean', // Do the magic
+                transform: value => value || undefined,
+                type: 'boolean',
                 message: 'Please agree the terms and conditions.'
               }
             ]}

@@ -27,7 +27,7 @@ export const getServerSideProps: GetServerSideProps = async context => {
     });
 
     if (!user) {
-      return { redirect: { permanent: false, destination: '/setup/trial' } };
+      return { redirect: { permanent: false, destination: '/onboarding' } };
     }
 
     return { props: serializeJSON({ user, org: user.org }) };
