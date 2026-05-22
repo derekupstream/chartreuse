@@ -1,9 +1,12 @@
-import { Button, Modal, message } from 'antd';
+import { CheckCircleFilled } from '@ant-design/icons';
+import { Button, Modal, Typography, message } from 'antd';
 import type { GetServerSideProps } from 'next';
 import { useRouter } from 'next/router';
 import { useCallback, useEffect, useState } from 'react';
 
 import { Header } from 'components/common/Header';
+import { JoinFlow } from 'components/setup/onboarding/JoinFlow';
+import { ModePicker } from 'components/setup/onboarding/ModePicker';
 import type { OnboardingFields } from 'components/setup/onboarding/Onboarding';
 import { OnboardingForm } from 'components/setup/onboarding/Onboarding';
 import { useAuth } from 'hooks/useAuth';
@@ -44,11 +47,15 @@ type DupeSuggestion = {
   inviteCode: string | null;
 };
 
+type Mode = 'choose' | 'create' | 'join' | 'request-sent';
+
 export default function Onboarding() {
   const router = useRouter();
   const { firebaseUser, signout } = useAuth();
   const { trigger, isMutating } = useRegisterUser();
 
+  const [mode, setMode] = useState<Mode>('choose');
+  const [requestedOrgName, setRequestedOrgName] = useState('');
   const [suggestions, setSuggestions] = useState<SuggestedOrg[]>([]);
 
   useEffect(() => {
@@ -84,12 +91,6 @@ export default function Onboarding() {
                     {' '}
                     — ask <em>{s.adminName}</em>
                     {s.adminEmail && ` (${s.adminEmail})`} for an invite
-                  </>
-                )}
-                {s.inviteCode && (
-                  <>
-                    {' '}
-                    or use code <code>{s.inviteCode}</code>
                   </>
                 )}
               </li>
@@ -139,24 +140,68 @@ export default function Onboarding() {
     router.push('/login');
   }, [signout, router]);
 
+  const titleByMode: Record<Mode, string> = {
+    choose: 'Welcome to Chart-Reuse',
+    create: 'Create your organization',
+    join: '',
+    'request-sent': 'Request sent'
+  };
+  const subtitleByMode: Record<Mode, string> = {
+    choose: '',
+    create: 'Set up your organization to get started with Chart-Reuse.',
+    join: '',
+    'request-sent': ''
+  };
+
   return (
     <>
-      <Header title='Start for free' />
+      <Header title='Welcome' />
       <main>
-        <FormPageTemplate
-          title='Create your account'
-          subtitle='Set up your organization to get started with Chart-Reuse.'
-        >
-          <OnboardingForm
-            onSubmit={register as (values: unknown) => void}
-            isLoading={isMutating}
-            suggestions={suggestions}
-          />
-          <div style={{ textAlign: 'center', marginTop: 24 }}>
-            <Button type='link' size='small' onClick={handleSignOut}>
-              Sign out
-            </Button>
-          </div>
+        <FormPageTemplate title={titleByMode[mode]} subtitle={subtitleByMode[mode]}>
+          {mode === 'choose' && <ModePicker suggestions={suggestions} onChoose={m => setMode(m)} />}
+
+          {mode === 'create' && (
+            <OnboardingForm
+              onSubmit={register as (values: unknown) => void}
+              isLoading={isMutating}
+              onBack={() => setMode('choose')}
+            />
+          )}
+
+          {mode === 'join' && (
+            <JoinFlow
+              suggestions={suggestions}
+              isRegistering={isMutating}
+              onSubmitInviteCode={register}
+              onRequestSent={orgName => {
+                setRequestedOrgName(orgName);
+                setMode('request-sent');
+              }}
+              onBack={() => setMode('choose')}
+            />
+          )}
+
+          {mode === 'request-sent' && (
+            <div style={{ maxWidth: 480, margin: '0 auto', textAlign: 'center' }}>
+              <CheckCircleFilled style={{ fontSize: 56, color: '#2bbe50', marginBottom: 16 }} />
+              <Typography.Title level={4}>Your request has been sent</Typography.Title>
+              <Typography.Paragraph style={{ fontSize: 14, color: 'rgba(0,0,0,0.65)' }}>
+                We've emailed the admins at <strong>{requestedOrgName}</strong>. You'll get an email when your request
+                is approved or declined. You can close this tab in the meantime.
+              </Typography.Paragraph>
+              <Button onClick={handleSignOut} style={{ marginTop: 16 }}>
+                Sign out
+              </Button>
+            </div>
+          )}
+
+          {mode !== 'request-sent' && (
+            <div style={{ textAlign: 'center', marginTop: 32 }}>
+              <Button type='link' size='small' onClick={handleSignOut}>
+                Sign out
+              </Button>
+            </div>
+          )}
         </FormPageTemplate>
       </main>
     </>
