@@ -32,16 +32,18 @@ async function decline(req: NextApiRequestWithUser, res: NextApiResponse) {
     data: { status: 'declined', decidedAt: new Date(), decidedById: req.user.id }
   });
 
-  await sendEmail({
-    from: 'Chart-Reuse <hello@chart-reuse.eco>',
-    to: joinRequest.email,
-    subject: `Your request to join ${joinRequest.org.name} on Chart-Reuse`,
-    template: 'join-request-declined',
-    'v:requesterName': joinRequest.name,
-    'v:orgName': joinRequest.org.name
-  }).catch(err => {
+  try {
+    await sendEmail({
+      from: 'Chart-Reuse <hello@chart-reuse.eco>',
+      to: joinRequest.email,
+      subject: `Your request to join ${joinRequest.org.name} on Chart-Reuse`,
+      template: 'join-request-declined',
+      'v:requesterName': joinRequest.name,
+      'v:orgName': joinRequest.org.name
+    });
+  } catch (err) {
     console.error('Failed to send decline email', err);
-  });
+  }
 
   return res.status(200).json({ ok: true });
 }

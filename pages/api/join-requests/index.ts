@@ -95,9 +95,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const adminEmails = org.users.map(u => u.email).filter(Boolean);
   if (adminEmails.length > 0) {
     const origin = req.headers.origin || `https://${req.headers.host}`;
-    await Promise.all(
-      adminEmails.map(to =>
-        sendEmail({
+    for (const to of adminEmails) {
+      try {
+        await sendEmail({
           from: 'Chart-Reuse <hello@chart-reuse.eco>',
           to,
           subject: `${name} requested to join ${org.name} on Chart-Reuse`,
@@ -107,11 +107,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           'v:requesterMessage': message || '',
           'v:orgName': org.name,
           'v:membersUrl': `${origin}/members`
-        }).catch(err => {
-          console.error('Failed to send join-request email to admin', to, err);
-        })
-      )
-    );
+        });
+      } catch (err) {
+        console.error('Failed to send join-request email to admin', to, err);
+      }
+    }
   }
 
   return res.status(201).json({ id: joinRequest.id, orgName: org.name } satisfies CreateJoinRequestResponse);

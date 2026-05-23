@@ -51,17 +51,19 @@ async function approve(req: NextApiRequestWithUser, res: NextApiResponse) {
   ]);
 
   const origin = req.headers.origin || `https://${req.headers.host}`;
-  await sendEmail({
-    from: 'Chart-Reuse <hello@chart-reuse.eco>',
-    to: joinRequest.email,
-    subject: `You've been approved to join ${joinRequest.org.name} on Chart-Reuse`,
-    template: 'join-request-approved',
-    'v:requesterName': joinRequest.name,
-    'v:orgName': joinRequest.org.name,
-    'v:loginUrl': `${origin}/login`
-  }).catch(err => {
+  try {
+    await sendEmail({
+      from: 'Chart-Reuse <hello@chart-reuse.eco>',
+      to: joinRequest.email,
+      subject: `You've been approved to join ${joinRequest.org.name} on Chart-Reuse`,
+      template: 'join-request-approved',
+      'v:requesterName': joinRequest.name,
+      'v:orgName': joinRequest.org.name,
+      'v:loginUrl': `${origin}/login`
+    });
+  } catch (err) {
     console.error('Failed to send approval email', err);
-  });
+  }
 
   return res.status(200).json({ ok: true });
 }
