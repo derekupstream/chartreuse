@@ -18,7 +18,7 @@ export const FormPageTemplate: React.FC<Props> = ({ children, title, subtitle, n
   return (
     <Container>
       <S.Wrapper>
-        <Space direction='vertical' size={54} style={{ width: '100%' }}>
+        <Space direction='vertical' size={24} style={{ width: '100%' }}>
           {!navBackLink && <Image src={Logo} width={384} height={99} alt='Chart-Reuse' />}
           {navBackLink && (
             <S.LogoWithNavBackLink>
@@ -29,10 +29,12 @@ export const FormPageTemplate: React.FC<Props> = ({ children, title, subtitle, n
               <div style={{ visibility: 'hidden' }}>{navBackLink}</div>
             </S.LogoWithNavBackLink>
           )}
-          <Space direction='vertical' style={{ gap: '2em' }}>
-            <Typography.Title>{title}</Typography.Title>
-            {subtitle && <Typography.Text style={{ fontSize: '1rem' }}>{subtitle}</Typography.Text>}
-          </Space>
+          {title && (
+            <Space direction='vertical' style={{ gap: '2em' }}>
+              <Typography.Title>{title}</Typography.Title>
+              {subtitle && <Typography.Text style={{ fontSize: '1rem' }}>{subtitle}</Typography.Text>}
+            </Space>
+          )}
           <div>{children}</div>
           <LegalNotice />
         </Space>

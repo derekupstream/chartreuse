@@ -2,7 +2,7 @@ import styled from 'styled-components';
 
 export const Wrapper = styled.div`
   text-align: center;
-  padding-top: 4rem;
+  padding-top: 2rem;
 
   h1 {
     margin-bottom: 0;
