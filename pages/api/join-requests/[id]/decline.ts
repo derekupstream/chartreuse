@@ -1,6 +1,6 @@
 import type { NextApiResponse } from 'next';
 
-import { sendEmail } from 'lib/mailgun';
+import { sendEvent } from 'lib/email/sendEvent';
 import { handlerWithUser } from 'lib/middleware';
 import type { NextApiRequestWithUser } from 'lib/middleware';
 import prisma from 'lib/prisma';
@@ -32,18 +32,13 @@ async function decline(req: NextApiRequestWithUser, res: NextApiResponse) {
     data: { status: 'declined', decidedAt: new Date(), decidedById: req.user.id }
   });
 
-  try {
-    await sendEmail({
-      from: 'Chart-Reuse <hello@chart-reuse.eco>',
-      to: joinRequest.email,
-      subject: `Your request to join ${joinRequest.org.name} on Chart-Reuse`,
-      template: 'join-request-declined',
-      'v:requesterName': joinRequest.name,
-      'v:orgName': joinRequest.org.name
-    });
-  } catch (err) {
-    console.error('Failed to send decline email', err);
-  }
+  await sendEvent('join-request-declined', {
+    to: joinRequest.email,
+    vars: {
+      requesterName: joinRequest.name,
+      orgName: joinRequest.org.name
+    }
+  });
 
   return res.status(200).json({ ok: true });
 }

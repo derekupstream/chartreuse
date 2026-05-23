@@ -2,7 +2,7 @@ import type { Invite } from '@prisma/client';
 import type { NextApiRequest, NextApiResponse } from 'next';
 import nc from 'next-connect';
 
-import { sendEmail } from 'lib/mailgun';
+import { sendEvent } from 'lib/email/sendEvent';
 import type { NextApiRequestWithUser } from 'lib/middleware';
 import { onError, onNoMatch, getUser } from 'lib/middleware';
 import prisma from 'lib/prisma';
@@ -63,15 +63,14 @@ async function createAccount(req: NextApiRequestWithUser, res: NextApiResponse<R
 
   if (invitedUser) {
     const invite = ((account as any).invites || []).find((i: Invite) => i.email === email);
-    await sendEmail({
-      from: 'Chart-Reuse <hello@chart-reuse.eco>',
+    await sendEvent('member-invite', {
       to: email,
-      subject: `Invite from ${invite.sentBy.name} to join Chart-Reuse`,
-      template: 'invite',
-      'v:inviterName': invite.sentBy.name,
-      'v:inviterJobTitle': invite.sentBy.title,
-      'v:inviterOrg': invite.sentBy.org.name,
-      'v:inviteUrl': `${req.headers.origin}/accept?inviteId=${invite.id}`
+      vars: {
+        inviterName: invite.sentBy.name,
+        inviterJobTitle: invite.sentBy.title,
+        inviterOrg: invite.sentBy.org.name,
+        inviteUrl: `${req.headers.origin}/accept?inviteId=${invite.id}`
+      }
     });
   }
 

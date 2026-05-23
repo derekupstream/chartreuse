@@ -1,6 +1,6 @@
 import type { NextApiResponse } from 'next';
 
-import { sendEmail } from 'lib/mailgun';
+import { sendEvent } from 'lib/email/sendEvent';
 import { handlerWithUser } from 'lib/middleware';
 import type { NextApiRequestWithUser } from 'lib/middleware';
 import prisma from 'lib/prisma';
@@ -51,19 +51,14 @@ async function approve(req: NextApiRequestWithUser, res: NextApiResponse) {
   ]);
 
   const origin = req.headers.origin || `https://${req.headers.host}`;
-  try {
-    await sendEmail({
-      from: 'Chart-Reuse <hello@chart-reuse.eco>',
-      to: joinRequest.email,
-      subject: `You've been approved to join ${joinRequest.org.name} on Chart-Reuse`,
-      template: 'join-request-approved',
-      'v:requesterName': joinRequest.name,
-      'v:orgName': joinRequest.org.name,
-      'v:loginUrl': `${origin}/login`
-    });
-  } catch (err) {
-    console.error('Failed to send approval email', err);
-  }
+  await sendEvent('join-request-approved', {
+    to: joinRequest.email,
+    vars: {
+      requesterName: joinRequest.name,
+      orgName: joinRequest.org.name,
+      loginUrl: `${origin}/login`
+    }
+  });
 
   return res.status(200).json({ ok: true });
 }
