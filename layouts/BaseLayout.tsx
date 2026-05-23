@@ -72,6 +72,7 @@ const adminLinks: MenuProps['items'] = [
   { key: 'admin/users', label: <Link href='/admin/users'>Users</Link> },
   { key: 'admin/duplicates', label: <Link href='/admin/duplicates'>Duplicates</Link> },
   { key: 'admin/feedback', label: <Link href='/admin/feedback'>Feedback</Link> },
+  { key: 'admin/emails', label: <Link href='/admin/emails'>Emails</Link> },
   { key: 'data-science', label: <Link href='/admin/data-science'>Data Science</Link> },
   { key: 'admin/methodology', label: <Link href='/admin/methodology'>Methodology</Link> },
   { key: 'data-science/golden-datasets', label: <Link href='/admin/data-science/golden-datasets'>Golden Datasets</Link> },
