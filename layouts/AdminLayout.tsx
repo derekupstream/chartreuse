@@ -4,6 +4,7 @@ import {
   ExperimentOutlined,
   FlagOutlined,
   HomeOutlined,
+  MailOutlined,
   ProjectOutlined,
   TeamOutlined,
   UserOutlined,
@@ -74,6 +75,7 @@ const siderMenuItems = [
   { key: 'admin/projects', icon: <ProjectOutlined />, label: <Link href='/admin/projects'>Projects</Link> },
   { key: 'admin/users', icon: <UserOutlined />, label: <Link href='/admin/users'>Users</Link> },
   { key: 'admin/feedback', icon: <FlagOutlined />, label: <Link href='/admin/feedback'>Feedback</Link> },
+  { key: 'admin/emails', icon: <MailOutlined />, label: <Link href='/admin/emails'>Emails</Link> },
   {
     key: 'admin/analytics',
     icon: <BarChartOutlined />,
