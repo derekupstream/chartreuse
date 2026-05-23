@@ -23,6 +23,7 @@ const DashboardsPage = ({ user, query }: DashboardsPageProps) => {
       isUpstream={user.org.isUpstream}
       showTemplateByDefault={query?.view === 'templates'}
       mode='dashboards'
+      pageTitle='Dashboards'
     />
   );
 };

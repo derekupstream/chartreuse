@@ -6,34 +6,34 @@ import { checkLogin } from 'lib/middleware';
 import type { LoggedinProps } from 'lib/middleware';
 import type { PageProps } from 'pages/_app';
 
-type ProjectsPageProps = LoggedinProps & {
+type CalculatorsPageProps = LoggedinProps & {
   query?: ParsedUrlQuery;
 };
 
 export const getServerSideProps: GetServerSideProps = async context => {
   const response = await checkLogin(context);
-  (response.props as ProjectsPageProps).query = context.query;
+  (response.props as CalculatorsPageProps).query = context.query;
   return { ...response };
 };
 
-const ProjectsPage = ({ user, query }: ProjectsPageProps) => {
+const CalculatorsPage = ({ user, query }: CalculatorsPageProps) => {
   return (
     <ProjectsDashboard
       orgId={user.org.id}
       isUpstream={user.org.isUpstream}
       showTemplateByDefault={query?.view === 'templates'}
       mode='projects'
-      pageTitle='Projects'
+      pageTitle='Calculators'
     />
   );
 };
 
-ProjectsPage.getLayout = (page: React.ReactNode, pageProps: PageProps) => {
+CalculatorsPage.getLayout = (page: React.ReactNode, pageProps: PageProps) => {
   return (
-    <Template {...pageProps} selectedMenuItem='projects' title='Projects'>
+    <Template {...pageProps} selectedMenuItem='calculators' title='Calculators'>
       {page}
     </Template>
   );
 };
 
-export default ProjectsPage;
+export default CalculatorsPage;

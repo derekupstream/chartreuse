@@ -44,7 +44,7 @@ const legacyMenuLinks: MenuProps['items'] = [
 // "Analytics" nav target is the full reporting page at /org/analytics —
 // the same destination as the dashboard's "Open full Reporting" link.
 const v2MenuLinks: MenuProps['items'] = [
-  { key: 'projects', label: <Link href='/projects'>Calculators</Link> },
+  { key: 'calculators', label: <Link href='/calculators'>Calculators</Link> },
   { key: 'dashboards', label: <Link href='/dashboards'>Dashboards</Link> },
   { key: 'scenarios', label: <Link href='/scenarios'>Scenarios</Link> },
   { key: 'org/analytics', label: <Link href='/org/analytics'>Analytics</Link> },
@@ -56,6 +56,7 @@ const v2MenuLinks: MenuProps['items'] = [
 // no longer in the visible v2 menu (you reach it via the logo).
 const VALID_TOP_MENU_KEYS = new Set([
   'projects',
+  'calculators',
   'dashboards',
   'org/analytics',
   'accounts',

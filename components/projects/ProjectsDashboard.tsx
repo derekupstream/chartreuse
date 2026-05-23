@@ -31,12 +31,14 @@ export const ProjectsDashboard = ({
   orgId,
   isUpstream,
   showTemplateByDefault,
-  mode = 'projects'
+  mode = 'projects',
+  pageTitle
 }: {
   orgId: string;
   isUpstream: boolean;
   showTemplateByDefault: boolean;
   mode?: ProjectsDashboardMode;
+  pageTitle?: string;
 }) => {
   const router = useRouter();
   const { tags } = useTags(orgId);
@@ -66,10 +68,10 @@ export const ProjectsDashboard = ({
   // category radio is hidden and dataType becomes the implicit filter.
   const dataTypeFilter = v2Enabled ? (isDashboards ? 'actual' : 'projection') : null;
 
-  const headerTitle = (() => {
-    if (!v2Enabled) return 'Projects';
-    return isDashboards ? 'Dashboards' : 'Calculators';
-  })();
+  // Prefer explicit page title (set by route — /projects, /calculators, /dashboards)
+  // so the H1 matches the URL without flicker. Fall back to v2 hook for any
+  // ProjectsDashboard usage that hasn't been migrated to pass pageTitle.
+  const headerTitle = pageTitle ?? (!v2Enabled ? 'Projects' : isDashboards ? 'Dashboards' : 'Calculators');
 
   const createHref = isDashboards ? '/projects/new?dataType=actual' : '/projects/new?dataType=projection';
   const createLabel = isDashboards ? 'Record actual' : 'Start custom project';
