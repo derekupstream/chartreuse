@@ -112,6 +112,7 @@ const adminDropdownItems: MenuProps['items'] = [
   { key: 'admin/projects', label: <Link href='/admin/projects'>Projects</Link> },
   { key: 'admin/users', label: <Link href='/admin/users'>Users</Link> },
   { key: 'admin/feedback', label: <Link href='/admin/feedback'>Feedback</Link> },
+  { key: 'admin/emails', label: <Link href='/admin/emails'>Emails</Link> },
   { key: 'admin/analytics', label: <Link href='/admin/analytics'>Analytics</Link> },
   { key: 'data-science', label: <Link href='/admin/data-science'>Data Science</Link> },
   { key: 'rsp', label: <Link href='/admin/rsp'>RSP Hub</Link> }
