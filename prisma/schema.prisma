@@ -743,6 +743,21 @@ enum JoinRequestStatus {
   declined
 }
 
+model EmailEvent {
+  id            String   @id @default(uuid()) @db.Uuid
+  eventKey      String   @unique
+  displayName   String
+  description   String?
+  enabled       Boolean  @default(true)
+  subjectLine   String
+  htmlContent   String
+  textContent   String?
+  variables     String[]
+  recipientHint String
+  updatedAt     DateTime @updatedAt
+  updatedBy     String?
+}
+
 model JoinRequest {
   id          String            @id @default(uuid()) @db.Uuid
   email       String
