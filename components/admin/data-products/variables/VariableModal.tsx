@@ -77,35 +77,32 @@ export function VariableModal({
   const [formulaText, setFormulaText] = useState(initialVariable?.calculation?.formulaText ?? '');
   const [formula, setFormula] = useState<FormulaToken[]>(initialVariable?.calculation?.formula ?? []);
 
+  // Re-seed all internal state whenever the modal opens — covers both
+  // "Add" (initialVariable=undefined) and "Edit" with each variable having
+  // its own values. Without this, clicking a different node opens the modal
+  // but still shows the previous variable's data because useState only
+  // initializes once per mount and destroyOnClose doesn't run synchronously.
   useEffect(() => {
-    if (open && !isEdit) {
-      // reset for a fresh add
-      setKind('user_input');
-      setName('');
-      setDescription('');
-      setWidget('number');
-      setUnit('');
-      setDefaultValue('');
-      setSliderMin(0);
-      setSliderMax(100);
-      setSliderStep(1);
-      setConstSource('literal');
-      setLiteralValue(undefined);
-      setLiteralUnit('');
-      setFactorId(undefined);
-      setProductId(undefined);
-      setProductField(undefined);
-      setFormulaText('');
-      setFormula([]);
-    }
-  }, [open, isEdit]);
-
-  // When opening to edit a different variable, seed the formula state from it
-  useEffect(() => {
-    if (open && isEdit) {
-      setFormula(initialVariable?.calculation?.formula ?? []);
-    }
-  }, [open, isEdit, initialVariable]);
+    if (!open) return;
+    const iv = initialVariable;
+    setKind(iv?.kind ?? 'user_input');
+    setName(iv?.name ?? '');
+    setDescription(iv?.description ?? '');
+    setWidget(iv?.userInput?.widget ?? 'number');
+    setUnit(iv?.userInput?.unit ?? iv?.calculation?.unit ?? '');
+    setDefaultValue(iv?.userInput?.defaultValue ?? '');
+    setSliderMin(iv?.userInput?.min ?? 0);
+    setSliderMax(iv?.userInput?.max ?? 100);
+    setSliderStep(iv?.userInput?.step ?? 1);
+    setConstSource(iv?.constant?.source ?? 'literal');
+    setLiteralValue(iv?.constant?.literalValue);
+    setLiteralUnit(iv?.constant?.literalUnit ?? '');
+    setFactorId(iv?.constant?.factorId);
+    setProductId(iv?.constant?.productId);
+    setProductField(iv?.constant?.productField);
+    setFormulaText(iv?.calculation?.formulaText ?? '');
+    setFormula(iv?.calculation?.formula ?? []);
+  }, [open, initialVariable]);
 
   // Load catalog when one of the catalog sources is selected
   useEffect(() => {
