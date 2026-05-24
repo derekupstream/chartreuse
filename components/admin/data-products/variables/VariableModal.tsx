@@ -1,10 +1,10 @@
 import { DeleteOutlined } from '@ant-design/icons';
 import {
   Button,
-  Drawer,
   Form,
   Input,
   InputNumber,
+  Modal,
   Popconfirm,
   Radio,
   Select,
@@ -183,11 +183,11 @@ export function VariableModal({ open, initialVariable, existingNames, factors, o
   const saveDisabled = !trimmedName || !!nameInvalid || !!nameDuplicate;
 
   return (
-    <Drawer
+    <Modal
       open={open}
       title={isEdit ? `Edit variable: ${initialVariable?.name}` : 'Add variable'}
-      onClose={onCancel}
-      width={460}
+      onCancel={onCancel}
+      width={560}
       destroyOnClose
       footer={
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
@@ -442,6 +442,6 @@ export function VariableModal({ open, initialVariable, existingNames, factors, o
           </Form.Item>
         )}
       </Form>
-    </Drawer>
+    </Modal>
   );
 }

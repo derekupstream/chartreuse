@@ -46,6 +46,35 @@ export function VariableBuilder({ productId, initialVariables, initialFlowExtras
   const [dirty, setDirty] = useState(false);
   const flowRef = useRef<ReactFlowInstance | null>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
+  // Refs so node callbacks always see latest state without stale closures
+  const variablesRef = useRef(variables);
+  variablesRef.current = variables;
+
+  // Stable callbacks attached to every node's data payload so the hover icons
+  // can trigger edit/delete without re-deriving the node list each render.
+  const handleEditById = useCallback((id: string) => {
+    const v = variablesRef.current.find(x => x.id === id);
+    if (v) {
+      setEditing(v);
+      setModalOpen(true);
+    }
+  }, []);
+
+  const handleDelete = useCallback((id: string) => {
+    setVariables(prev => prev.filter(v => v.id !== id));
+    setNodes(curr => curr.filter(n => n.id !== id));
+    setDirty(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  function nodeData(v: Variable): VariableNodeData {
+    return {
+      variable: v,
+      valuePreview: previewValue(v, factors),
+      onEdit: handleEditById,
+      onDelete: handleDelete
+    };
+  }
 
   // Build ReactFlow nodes from any variable that has a position set
   const initialNodes = useMemo<Node<VariableNodeData>[]>(
@@ -56,7 +85,7 @@ export function VariableBuilder({ productId, initialVariables, initialFlowExtras
           id: v.id,
           type: 'variable',
           position: v.position!,
-          data: { variable: v, valuePreview: previewValue(v, factors) }
+          data: nodeData(v)
         })),
     // intentional: only on first render
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -73,7 +102,7 @@ export function VariableBuilder({ productId, initialVariables, initialFlowExtras
         .map(n => {
           const v = updated.find(x => x.id === n.id);
           if (!v) return n;
-          return { ...n, data: { variable: v, valuePreview: previewValue(v, factors) } };
+          return { ...n, data: nodeData(v) };
         })
     );
   }
@@ -86,12 +115,6 @@ export function VariableBuilder({ productId, initialVariables, initialFlowExtras
   const handleEdit = (v: Variable) => {
     setEditing(v);
     setModalOpen(true);
-  };
-
-  const handleDelete = (id: string) => {
-    setVariables(prev => prev.filter(v => v.id !== id));
-    setNodes(curr => curr.filter(n => n.id !== id));
-    setDirty(true);
   };
 
   const handleSave = (v: Variable) => {
@@ -142,7 +165,7 @@ export function VariableBuilder({ productId, initialVariables, initialFlowExtras
             id: variableId,
             type: 'variable',
             position,
-            data: { variable: v, valuePreview: previewValue(v, factors) }
+            data: nodeData(v)
           }
         ];
       });
