@@ -39,6 +39,11 @@ const LiveCalculator = dynamic(
   { ssr: false }
 );
 
+const VariableBuilder = dynamic(
+  () => import('components/admin/data-products/variables/VariableBuilder').then(m => m.VariableBuilder),
+  { ssr: false }
+);
+
 type Factor = {
   id: string;
   name: string;
@@ -89,7 +94,7 @@ export default function DataProductEditorPage({
   const [methodologyDocs, setMethodologyDocs] = useState(initialMethodologyDocs);
   const [savingOverview, setSavingOverview] = useState(false);
   const [designerKey, setDesignerKey] = useState(0);
-  const [activeTab, setActiveTab] = useState('designer');
+  const [activeTab, setActiveTab] = useState('variables');
   const [form] = Form.useForm();
 
   const onFlowGenerated = useCallback(
@@ -253,8 +258,29 @@ export default function DataProductEditorPage({
             )
           },
           {
+            key: 'variables',
+            label: (
+              <span>
+                Variables
+                <Tag color='green' style={{ marginLeft: 6, fontSize: 9, lineHeight: '16px', padding: '0 4px' }}>
+                  NEW
+                </Tag>
+              </span>
+            ),
+            children: (
+              <VariableBuilder
+                productId={product.id}
+                initialVariables={
+                  ((product.flowDefinitionJson as { variables?: unknown[] } | null)?.variables as never) ?? []
+                }
+                initialFlowExtras={(product.flowDefinitionJson as Record<string, unknown> | null) ?? {}}
+                factors={factors}
+              />
+            )
+          },
+          {
             key: 'designer',
-            label: 'Designer',
+            label: 'Designer (legacy)',
             children: (
               <DesignerCanvas
                 key={designerKey}
