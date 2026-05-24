@@ -30,13 +30,18 @@ export type CalculationConfig = {
   unit?: string;
 };
 
+export type ConstantSource = 'literal' | 'factor' | 'single_use_product' | 'reusable_product';
+
 export type ConstantConfig = {
-  source: 'literal' | 'factor';
+  source: ConstantSource;
   // literal-source
   literalValue?: number;
   literalUnit?: string;
   // factor-source
   factorId?: string;
+  // catalog-source (single_use_product | reusable_product)
+  productId?: string;
+  productField?: string; // e.g. 'itemWeight'
 };
 
 export type Variable = {

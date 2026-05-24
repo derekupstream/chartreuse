@@ -1,8 +1,9 @@
 import { Form, Input, InputNumber, Modal, Radio, Select, Space, Tag, Tooltip, Typography } from 'antd';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { VARIABLE_COLORS, VARIABLE_KIND_LABEL, isValidVariableName, newVariableId } from 'lib/dataProducts/variables';
-import type { Variable, VariableKind, UserInputWidget } from 'lib/dataProducts/variables';
+import type { Variable, VariableKind, UserInputWidget, ConstantSource } from 'lib/dataProducts/variables';
+import type { CatalogProductSummary } from 'pages/api/admin/catalogs/list';
 
 const { Text } = Typography;
 
@@ -11,6 +12,7 @@ type Factor = {
   name: string;
   currentValue: number;
   unit: string;
+  category?: { name: string };
 };
 
 type Props = {
@@ -33,10 +35,15 @@ export function VariableModal({ open, initialVariable, existingNames, factors, o
   const [sliderMin, setSliderMin] = useState<number>(initialVariable?.userInput?.min ?? 0);
   const [sliderMax, setSliderMax] = useState<number>(initialVariable?.userInput?.max ?? 100);
   const [sliderStep, setSliderStep] = useState<number>(initialVariable?.userInput?.step ?? 1);
-  const [constSource, setConstSource] = useState<'literal' | 'factor'>(initialVariable?.constant?.source ?? 'literal');
+  const [constSource, setConstSource] = useState<ConstantSource>(initialVariable?.constant?.source ?? 'literal');
   const [literalValue, setLiteralValue] = useState<number | undefined>(initialVariable?.constant?.literalValue);
   const [literalUnit, setLiteralUnit] = useState(initialVariable?.constant?.literalUnit ?? '');
   const [factorId, setFactorId] = useState<string | undefined>(initialVariable?.constant?.factorId);
+  const [factorCategoryFilter, setFactorCategoryFilter] = useState<string | undefined>(undefined);
+  const [productId, setProductId] = useState<string | undefined>(initialVariable?.constant?.productId);
+  const [productField, setProductField] = useState<string | undefined>(initialVariable?.constant?.productField);
+  const [catalog, setCatalog] = useState<CatalogProductSummary[]>([]);
+  const [catalogLoading, setCatalogLoading] = useState(false);
   const [formulaText, setFormulaText] = useState(initialVariable?.calculation?.formulaText ?? '');
 
   useEffect(() => {
@@ -55,9 +62,58 @@ export function VariableModal({ open, initialVariable, existingNames, factors, o
       setLiteralValue(undefined);
       setLiteralUnit('');
       setFactorId(undefined);
+      setProductId(undefined);
+      setProductField(undefined);
       setFormulaText('');
     }
   }, [open, isEdit]);
+
+  // Load catalog when one of the catalog sources is selected
+  useEffect(() => {
+    if (kind !== 'constant') return;
+    if (constSource !== 'single_use_product' && constSource !== 'reusable_product') return;
+    const apiSource = constSource === 'single_use_product' ? 'single_use' : 'reusable';
+    let cancelled = false;
+    setCatalogLoading(true);
+    fetch(`/api/admin/catalogs/list?source=${apiSource}`)
+      .then(r => (r.ok ? r.json() : { items: [] }))
+      .then(data => {
+        if (!cancelled) setCatalog(data.items ?? []);
+      })
+      .catch(() => {
+        if (!cancelled) setCatalog([]);
+      })
+      .finally(() => {
+        if (!cancelled) setCatalogLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [kind, constSource]);
+
+  // Factors grouped by category for the picker
+  const factorGroups = useMemo(() => {
+    const filtered = factorCategoryFilter ? factors.filter(f => f.category?.name === factorCategoryFilter) : factors;
+    const byCat = new Map<string, Factor[]>();
+    for (const f of filtered) {
+      const cat = f.category?.name || 'Uncategorized';
+      if (!byCat.has(cat)) byCat.set(cat, []);
+      byCat.get(cat)!.push(f);
+    }
+    return Array.from(byCat.entries())
+      .map(([label, options]) => ({ label, options }))
+      .sort((a, b) => a.label.localeCompare(b.label));
+  }, [factors, factorCategoryFilter]);
+
+  const factorCategories = useMemo(
+    () =>
+      Array.from(new Set(factors.map(f => f.category?.name).filter(Boolean) as string[])).sort((a, b) =>
+        a.localeCompare(b)
+      ),
+    [factors]
+  );
+
+  const selectedProduct = useMemo(() => catalog.find(p => p.id === productId), [catalog, productId]);
 
   const trimmedName = name.trim();
   const nameInvalid = trimmedName && !isValidVariableName(trimmedName);
@@ -70,6 +126,8 @@ export function VariableModal({ open, initialVariable, existingNames, factors, o
     if (kind === 'constant') {
       if (constSource === 'literal' && literalValue === undefined) return;
       if (constSource === 'factor' && !factorId) return;
+      if ((constSource === 'single_use_product' || constSource === 'reusable_product') && (!productId || !productField))
+        return;
     }
 
     const v: Variable = {
@@ -89,8 +147,10 @@ export function VariableModal({ open, initialVariable, existingNames, factors, o
       ...(kind === 'constant' && {
         constant:
           constSource === 'literal'
-            ? { source: 'literal', literalValue, literalUnit: literalUnit.trim() || undefined }
-            : { source: 'factor', factorId }
+            ? { source: 'literal' as const, literalValue, literalUnit: literalUnit.trim() || undefined }
+            : constSource === 'factor'
+              ? { source: 'factor' as const, factorId }
+              : { source: constSource, productId, productField }
       }),
       ...(kind === 'calculation' && {
         calculation: {
@@ -221,11 +281,13 @@ export function VariableModal({ open, initialVariable, existingNames, factors, o
             <Form.Item label='Source'>
               <Radio.Group value={constSource} onChange={e => setConstSource(e.target.value)}>
                 <Radio.Button value='literal'>Literal value</Radio.Button>
-                <Radio.Button value='factor'>From Factor library</Radio.Button>
+                <Radio.Button value='factor'>Factor library</Radio.Button>
+                <Radio.Button value='single_use_product'>Single-Use Database</Radio.Button>
+                <Radio.Button value='reusable_product'>Reusable Database</Radio.Button>
               </Radio.Group>
             </Form.Item>
 
-            {constSource === 'literal' ? (
+            {constSource === 'literal' && (
               <>
                 <Form.Item label='Value'>
                   <InputNumber
@@ -243,24 +305,80 @@ export function VariableModal({ open, initialVariable, existingNames, factors, o
                   />
                 </Form.Item>
               </>
-            ) : (
-              <Form.Item label='Factor'>
-                <Select
-                  showSearch
-                  value={factorId}
-                  onChange={setFactorId}
-                  placeholder='Search the Factor library…'
-                  filterOption={(input, option) =>
-                    String(option?.label ?? '')
-                      .toLowerCase()
-                      .includes(input.toLowerCase())
-                  }
-                  options={factors.map(f => ({
-                    value: f.id,
-                    label: `${f.name} = ${f.currentValue} ${f.unit}`
-                  }))}
-                />
-              </Form.Item>
+            )}
+
+            {constSource === 'factor' && (
+              <>
+                <Form.Item label='Category'>
+                  <Select
+                    allowClear
+                    value={factorCategoryFilter}
+                    onChange={setFactorCategoryFilter}
+                    placeholder='All categories'
+                    style={{ maxWidth: 280 }}
+                    options={factorCategories.map(c => ({ value: c, label: c }))}
+                  />
+                </Form.Item>
+                <Form.Item label='Factor'>
+                  <Select
+                    showSearch
+                    value={factorId}
+                    onChange={setFactorId}
+                    placeholder='Search the Factor library…'
+                    filterOption={(input, option) =>
+                      String(option?.label ?? '')
+                        .toLowerCase()
+                        .includes(input.toLowerCase())
+                    }
+                    options={factorGroups.map(g => ({
+                      label: g.label,
+                      options: g.options.map(f => ({
+                        value: f.id,
+                        label: `${f.name} = ${f.currentValue} ${f.unit}`
+                      }))
+                    }))}
+                  />
+                </Form.Item>
+              </>
+            )}
+
+            {(constSource === 'single_use_product' || constSource === 'reusable_product') && (
+              <>
+                <Form.Item label={constSource === 'single_use_product' ? 'Single-use product' : 'Reusable product'}>
+                  <Select
+                    showSearch
+                    loading={catalogLoading}
+                    value={productId}
+                    onChange={v => {
+                      setProductId(v);
+                      setProductField(undefined);
+                    }}
+                    placeholder='Search products…'
+                    filterOption={(input, option) =>
+                      String(option?.label ?? '')
+                        .toLowerCase()
+                        .includes(input.toLowerCase())
+                    }
+                    options={catalog.map(p => ({
+                      value: p.id,
+                      label: `${p.label} — ${p.category}`
+                    }))}
+                  />
+                </Form.Item>
+                {selectedProduct && (
+                  <Form.Item label='Field' help='Which numeric field from this product becomes the constant value.'>
+                    <Select
+                      value={productField}
+                      onChange={setProductField}
+                      placeholder='Pick a field'
+                      options={selectedProduct.numericFields.map(f => ({
+                        value: f.key,
+                        label: `${f.label} = ${f.value}${f.unit ? ' ' + f.unit : ''}`
+                      }))}
+                    />
+                  </Form.Item>
+                )}
+              </>
             )}
           </>
         )}
