@@ -1,5 +1,6 @@
 import { EditOutlined } from '@ant-design/icons';
-import { Button, Form, Input, Select, Typography } from 'antd';
+import { Button, Form, Input, Select, Spin, Typography } from 'antd';
+import { useEffect, useState } from 'react';
 import type { Node } from 'reactflow';
 
 import type { RegisteredFunction } from 'lib/admin/calculatorRegistry';
@@ -25,6 +26,40 @@ type Props = {
 };
 
 export function DesignerPropertiesPanel({ selectedNode, factors, calculations, onNodeUpdate }: Props) {
+  const [source, setSource] = useState<string | null>(null);
+  const [sourceLoading, setSourceLoading] = useState(false);
+
+  // Fetch the calculation source whenever a calculation node is selected with a
+  // chosen function. Lets the data scientist see the actual formula in-place
+  // instead of having to leave the canvas.
+  const calcName = selectedNode?.data.nodeType === 'calculation' ? selectedNode.data.calculationName : undefined;
+  const calcFile = selectedNode?.data.nodeType === 'calculation' ? selectedNode.data.calculationFile : undefined;
+
+  useEffect(() => {
+    if (!calcName || !calcFile) {
+      setSource(null);
+      return;
+    }
+    let cancelled = false;
+    setSourceLoading(true);
+    fetch(
+      `/api/admin/calculations/source?filePath=${encodeURIComponent(calcFile)}&name=${encodeURIComponent(calcName)}`
+    )
+      .then(r => (r.ok ? r.json() : { source: null }))
+      .then(data => {
+        if (!cancelled) setSource(data.source ?? null);
+      })
+      .catch(() => {
+        if (!cancelled) setSource(null);
+      })
+      .finally(() => {
+        if (!cancelled) setSourceLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [calcName, calcFile]);
+
   if (!selectedNode) {
     return (
       <div
@@ -198,8 +233,53 @@ export function DesignerPropertiesPanel({ selectedNode, factors, calculations, o
                   </Text>
                 </div>
               )}
+
+              {/* Inline source viewer — shows the actual function body so the data
+                  scientist can see the formula without leaving the canvas. */}
+              {data.calculationName && (
+                <div style={{ marginBottom: 12 }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      marginBottom: 4
+                    }}
+                  >
+                    <Text strong style={{ fontSize: 11 }}>
+                      Formula
+                    </Text>
+                    {sourceLoading && <Spin size='small' />}
+                  </div>
+                  {source ? (
+                    <pre
+                      style={{
+                        background: '#1e1e2e',
+                        color: '#cdd6f4',
+                        padding: 10,
+                        borderRadius: 4,
+                        fontSize: 11,
+                        lineHeight: 1.5,
+                        margin: 0,
+                        maxHeight: 360,
+                        overflow: 'auto',
+                        whiteSpace: 'pre',
+                        fontFamily: "'JetBrains Mono', 'Fira Code', 'Courier New', monospace"
+                      }}
+                    >
+                      {source}
+                    </pre>
+                  ) : (
+                    !sourceLoading && (
+                      <Text type='secondary' style={{ fontSize: 11 }}>
+                        Source unavailable.
+                      </Text>
+                    )
+                  )}
+                </div>
+              )}
+
               <Button
-                type='primary'
                 icon={<EditOutlined />}
                 size='small'
                 block
@@ -211,7 +291,7 @@ export function DesignerPropertiesPanel({ selectedNode, factors, calculations, o
                   )
                 }
               >
-                {data.calculationName ? `View ${data.calculationName}()` : 'Browse Calculations'}
+                {data.calculationName ? `Open ${data.calculationName}() to edit` : 'Browse Calculations'}
               </Button>
             </>
           )}
