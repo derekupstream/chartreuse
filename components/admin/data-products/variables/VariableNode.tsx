@@ -20,13 +20,6 @@ function VariableNodeComponent({ data }: { data: VariableNodeData }) {
   const [hovering, setHovering] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
 
-  // Stop ReactFlow from picking up the click — otherwise onNodeClick fires
-  // and the edit modal opens twice (or the delete confirm pops behind the modal).
-  const stop = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    e.preventDefault();
-  };
-
   const actionsVisible = hovering || confirmOpen;
 
   return (
@@ -45,9 +38,11 @@ function VariableNodeComponent({ data }: { data: VariableNodeData }) {
       }}
     >
       {/* Hover actions: edit + delete. Always mounted so the Popconfirm anchor
-          doesn't disappear mid-interaction; just toggled visible on hover. */}
+          doesn't disappear mid-interaction; just toggled visible on hover.
+          Stop ReactFlow from seeing these events so node-click doesn't fire. */}
       {(onEdit || onDelete) && (
         <div
+          className='nodrag'
           style={{
             position: 'absolute',
             top: -10,
@@ -59,16 +54,14 @@ function VariableNodeComponent({ data }: { data: VariableNodeData }) {
             pointerEvents: actionsVisible ? 'auto' : 'none',
             transition: 'opacity 120ms'
           }}
-          onMouseDown={stop}
+          onPointerDown={e => e.stopPropagation()}
+          onClick={e => e.stopPropagation()}
         >
           {onEdit && (
             <button
               type='button'
               aria-label='Edit variable'
-              onClick={e => {
-                stop(e);
-                onEdit(variable.id);
-              }}
+              onClick={() => onEdit(variable.id)}
               style={{
                 width: 22,
                 height: 22,
@@ -93,25 +86,12 @@ function VariableNodeComponent({ data }: { data: VariableNodeData }) {
               title={`Delete "${variable.name}"?`}
               okText='Delete'
               okButtonProps={{ danger: true }}
-              open={confirmOpen}
+              onConfirm={() => onDelete(variable.id)}
               onOpenChange={setConfirmOpen}
-              onConfirm={e => {
-                if (e) stop(e as unknown as React.MouseEvent);
-                setConfirmOpen(false);
-                onDelete(variable.id);
-              }}
-              onCancel={e => {
-                if (e) stop(e as unknown as React.MouseEvent);
-                setConfirmOpen(false);
-              }}
             >
               <button
                 type='button'
                 aria-label='Delete variable'
-                onClick={e => {
-                  stop(e);
-                  setConfirmOpen(o => !o);
-                }}
                 style={{
                   width: 22,
                   height: 22,
