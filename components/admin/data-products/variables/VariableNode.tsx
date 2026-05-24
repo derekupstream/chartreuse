@@ -1,5 +1,5 @@
 import { DeleteOutlined, EditOutlined } from '@ant-design/icons';
-import { Popconfirm, Tooltip } from 'antd';
+import { Popconfirm } from 'antd';
 import { memo, useState } from 'react';
 import { Handle, Position } from 'reactflow';
 
@@ -18,6 +18,7 @@ function VariableNodeComponent({ data }: { data: VariableNodeData }) {
   const { variable, valuePreview, onEdit, onDelete } = data;
   const colors = VARIABLE_COLORS[variable.kind];
   const [hovering, setHovering] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   // Stop ReactFlow from picking up the click — otherwise onNodeClick fires
   // and the edit modal opens twice (or the delete confirm pops behind the modal).
@@ -25,6 +26,8 @@ function VariableNodeComponent({ data }: { data: VariableNodeData }) {
     e.stopPropagation();
     e.preventDefault();
   };
+
+  const actionsVisible = hovering || confirmOpen;
 
   return (
     <div
@@ -41,8 +44,9 @@ function VariableNodeComponent({ data }: { data: VariableNodeData }) {
         boxShadow: data.selected ? `0 0 0 3px ${colors.border}40` : 'none'
       }}
     >
-      {/* Hover actions: edit + delete */}
-      {hovering && (onEdit || onDelete) && (
+      {/* Hover actions: edit + delete. Always mounted so the Popconfirm anchor
+          doesn't disappear mid-interaction; just toggled visible on hover. */}
+      {(onEdit || onDelete) && (
         <div
           style={{
             position: 'absolute',
@@ -50,23 +54,69 @@ function VariableNodeComponent({ data }: { data: VariableNodeData }) {
             right: -10,
             display: 'flex',
             gap: 4,
-            zIndex: 5
+            zIndex: 5,
+            opacity: actionsVisible ? 1 : 0,
+            pointerEvents: actionsVisible ? 'auto' : 'none',
+            transition: 'opacity 120ms'
           }}
           onMouseDown={stop}
         >
           {onEdit && (
-            <Tooltip title='Edit variable' mouseEnterDelay={0.4}>
+            <button
+              type='button'
+              aria-label='Edit variable'
+              onClick={e => {
+                stop(e);
+                onEdit(variable.id);
+              }}
+              style={{
+                width: 22,
+                height: 22,
+                borderRadius: '50%',
+                border: '1px solid #d9d9d9',
+                background: '#fff',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: 11,
+                padding: 0,
+                color: '#555',
+                boxShadow: '0 1px 4px rgba(0,0,0,0.12)'
+              }}
+            >
+              <EditOutlined />
+            </button>
+          )}
+          {onDelete && (
+            <Popconfirm
+              title={`Delete "${variable.name}"?`}
+              okText='Delete'
+              okButtonProps={{ danger: true }}
+              open={confirmOpen}
+              onOpenChange={setConfirmOpen}
+              onConfirm={e => {
+                if (e) stop(e as unknown as React.MouseEvent);
+                setConfirmOpen(false);
+                onDelete(variable.id);
+              }}
+              onCancel={e => {
+                if (e) stop(e as unknown as React.MouseEvent);
+                setConfirmOpen(false);
+              }}
+            >
               <button
                 type='button'
+                aria-label='Delete variable'
                 onClick={e => {
                   stop(e);
-                  onEdit(variable.id);
+                  setConfirmOpen(o => !o);
                 }}
                 style={{
                   width: 22,
                   height: 22,
                   borderRadius: '50%',
-                  border: '1px solid #d9d9d9',
+                  border: '1px solid #ffccc7',
                   background: '#fff',
                   cursor: 'pointer',
                   display: 'flex',
@@ -74,50 +124,12 @@ function VariableNodeComponent({ data }: { data: VariableNodeData }) {
                   justifyContent: 'center',
                   fontSize: 11,
                   padding: 0,
-                  color: '#555',
+                  color: '#ff4d4f',
                   boxShadow: '0 1px 4px rgba(0,0,0,0.12)'
                 }}
               >
-                <EditOutlined />
+                <DeleteOutlined />
               </button>
-            </Tooltip>
-          )}
-          {onDelete && (
-            <Popconfirm
-              title={`Delete "${variable.name}"?`}
-              okText='Delete'
-              okButtonProps={{ danger: true }}
-              onConfirm={e => {
-                if (e) stop(e as unknown as React.MouseEvent);
-                onDelete(variable.id);
-              }}
-              onCancel={e => {
-                if (e) stop(e as unknown as React.MouseEvent);
-              }}
-            >
-              <Tooltip title='Delete variable' mouseEnterDelay={0.4}>
-                <button
-                  type='button'
-                  onClick={stop}
-                  style={{
-                    width: 22,
-                    height: 22,
-                    borderRadius: '50%',
-                    border: '1px solid #ffccc7',
-                    background: '#fff',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: 11,
-                    padding: 0,
-                    color: '#ff4d4f',
-                    boxShadow: '0 1px 4px rgba(0,0,0,0.12)'
-                  }}
-                >
-                  <DeleteOutlined />
-                </button>
-              </Tooltip>
             </Popconfirm>
           )}
         </div>
