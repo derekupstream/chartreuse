@@ -1,5 +1,5 @@
-import { DeleteOutlined, EditOutlined } from '@ant-design/icons';
-import { Popconfirm } from 'antd';
+import { CloseOutlined, EditOutlined } from '@ant-design/icons';
+import { Tooltip } from 'antd';
 import { memo, useState } from 'react';
 import { Handle, Position } from 'reactflow';
 
@@ -11,16 +11,16 @@ export type VariableNodeData = {
   valuePreview?: string;
   selected?: boolean;
   onEdit?: (id: string) => void;
-  onDelete?: (id: string) => void;
+  /** Remove from the canvas only — variable persists in the sidebar */
+  onRemoveFromCanvas?: (id: string) => void;
 };
 
 function VariableNodeComponent({ data }: { data: VariableNodeData }) {
-  const { variable, valuePreview, onEdit, onDelete } = data;
+  const { variable, valuePreview, onEdit, onRemoveFromCanvas } = data;
   const colors = VARIABLE_COLORS[variable.kind];
   const [hovering, setHovering] = useState(false);
-  const [confirmOpen, setConfirmOpen] = useState(false);
 
-  const actionsVisible = hovering || confirmOpen;
+  const actionsVisible = hovering;
 
   return (
     <div
@@ -37,10 +37,10 @@ function VariableNodeComponent({ data }: { data: VariableNodeData }) {
         boxShadow: data.selected ? `0 0 0 3px ${colors.border}40` : 'none'
       }}
     >
-      {/* Hover actions: edit + delete. Always mounted so the Popconfirm anchor
-          doesn't disappear mid-interaction; just toggled visible on hover.
-          Stop ReactFlow from seeing these events so node-click doesn't fire. */}
-      {(onEdit || onDelete) && (
+      {/* Hover actions: edit + remove-from-canvas. The X just takes the variable
+          off the canvas — it stays in the sidebar and can be dragged back.
+          Real deletion of the variable lives on the sidebar trash icon. */}
+      {(onEdit || onRemoveFromCanvas) && (
         <div
           className='nodrag'
           style={{
@@ -81,22 +81,17 @@ function VariableNodeComponent({ data }: { data: VariableNodeData }) {
               <EditOutlined />
             </button>
           )}
-          {onDelete && (
-            <Popconfirm
-              title={`Delete "${variable.name}"?`}
-              okText='Delete'
-              okButtonProps={{ danger: true }}
-              onConfirm={() => onDelete(variable.id)}
-              onOpenChange={setConfirmOpen}
-            >
+          {onRemoveFromCanvas && (
+            <Tooltip title='Remove from canvas (variable stays in sidebar)' mouseEnterDelay={0.6}>
               <button
                 type='button'
-                aria-label='Delete variable'
+                aria-label='Remove from canvas'
+                onClick={() => onRemoveFromCanvas(variable.id)}
                 style={{
                   width: 22,
                   height: 22,
                   borderRadius: '50%',
-                  border: '1px solid #ffccc7',
+                  border: '1px solid #d9d9d9',
                   background: '#fff',
                   cursor: 'pointer',
                   display: 'flex',
@@ -104,13 +99,13 @@ function VariableNodeComponent({ data }: { data: VariableNodeData }) {
                   justifyContent: 'center',
                   fontSize: 11,
                   padding: 0,
-                  color: '#ff4d4f',
+                  color: '#595959',
                   boxShadow: '0 1px 4px rgba(0,0,0,0.12)'
                 }}
               >
-                <DeleteOutlined />
+                <CloseOutlined />
               </button>
-            </Popconfirm>
+            </Tooltip>
           )}
         </div>
       )}

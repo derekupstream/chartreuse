@@ -67,12 +67,21 @@ export function VariableBuilder({ productId, initialVariables, initialFlowExtras
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Take the variable off the canvas (clear its position + drop the ReactFlow node)
+  // but keep it in the sidebar list.
+  const handleRemoveFromCanvas = useCallback((id: string) => {
+    setVariables(prev => prev.map(v => (v.id === id ? { ...v, position: undefined } : v)));
+    setNodes(curr => curr.filter(n => n.id !== id));
+    setDirty(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   function nodeData(v: Variable): VariableNodeData {
     return {
       variable: v,
       valuePreview: previewValue(v, factors),
       onEdit: handleEditById,
-      onDelete: handleDelete
+      onRemoveFromCanvas: handleRemoveFromCanvas
     };
   }
 
