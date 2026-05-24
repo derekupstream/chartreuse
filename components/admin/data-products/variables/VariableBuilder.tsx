@@ -157,6 +157,18 @@ export function VariableBuilder({ productId, initialVariables, initialFlowExtras
     setDirty(true);
   }, []);
 
+  // Click a node on the canvas → open the edit modal so its settings/values are inspectable
+  const handleNodeClick = useCallback(
+    (_e: React.MouseEvent, node: Node<VariableNodeData>) => {
+      const v = variables.find(x => x.id === node.id);
+      if (v) {
+        setEditing(v);
+        setModalOpen(true);
+      }
+    },
+    [variables]
+  );
+
   const persist = async () => {
     setSaving(true);
     try {
@@ -238,6 +250,7 @@ export function VariableBuilder({ productId, initialVariables, initialFlowExtras
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
             onNodeDragStop={handleNodeDragStop}
+            onNodeClick={handleNodeClick}
             onInit={instance => (flowRef.current = instance)}
             nodeTypes={nodeTypes}
             fitView
