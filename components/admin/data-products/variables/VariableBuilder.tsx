@@ -1,6 +1,6 @@
 import { SaveOutlined } from '@ant-design/icons';
 import { Button, Space, Typography, message } from 'antd';
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import ReactFlow, {
   Background,
   Controls,
@@ -13,6 +13,7 @@ import ReactFlow, {
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 
+import { evaluateCalculation } from 'lib/dataProducts/evaluateFormula';
 import type { Variable } from 'lib/dataProducts/variables';
 
 import { VariableModal } from './VariableModal';
@@ -44,6 +45,8 @@ export function VariableBuilder({ productId, initialVariables, initialFlowExtras
   const [editing, setEditing] = useState<Variable | null>(null);
   const [saving, setSaving] = useState(false);
   const [dirty, setDirty] = useState(false);
+  // Map of calculation variable id → resolved preview string ('42 MTCO2e' or 'No formula')
+  const [calcPreviews, setCalcPreviews] = useState<Record<string, string>>({});
   const flowRef = useRef<ReactFlowInstance | null>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
   // Refs so node callbacks always see latest state without stale closures
@@ -77,9 +80,10 @@ export function VariableBuilder({ productId, initialVariables, initialFlowExtras
   }, []);
 
   function nodeData(v: Variable): VariableNodeData {
+    const fromCalc = v.kind === 'calculation' ? calcPreviews[v.id] : undefined;
     return {
       variable: v,
-      valuePreview: previewValue(v, factors),
+      valuePreview: fromCalc ?? previewValue(v, factors),
       onEdit: handleEditById,
       onRemoveFromCanvas: handleRemoveFromCanvas
     };
@@ -201,6 +205,62 @@ export function VariableBuilder({ productId, initialVariables, initialFlowExtras
     [variables]
   );
 
+  // Re-evaluate every calculation variable whenever the variable list or
+  // factors change. Results are stringified for the node value preview.
+  useEffect(() => {
+    let cancelled = false;
+    const inputValues: Record<string, number | undefined> = {};
+    for (const v of variables) {
+      if (v.kind === 'user_input') {
+        const def = v.userInput?.defaultValue;
+        if (typeof def === 'number') inputValues[v.id] = def;
+        else if (typeof def === 'string') {
+          const n = Number(def);
+          if (!Number.isNaN(n)) inputValues[v.id] = n;
+        }
+      }
+    }
+    const resolveConstant = (cv: Variable): number | undefined => {
+      if (cv.constant?.source === 'literal') return cv.constant.literalValue;
+      if (cv.constant?.source === 'factor') {
+        const f = factors.find(x => x.id === cv.constant!.factorId);
+        return f?.currentValue;
+      }
+      return undefined;
+    };
+
+    (async () => {
+      const next: Record<string, string> = {};
+      for (const v of variables.filter(x => x.kind === 'calculation')) {
+        const r = await evaluateCalculation(v, variables, { inputValues, resolveConstant });
+        if (cancelled) return;
+        if (r.ok) {
+          const formatted = formatNumber(r.value);
+          next[v.id] = `${formatted}${v.calculation?.unit ? ' ' + v.calculation.unit : ''}`;
+        } else {
+          next[v.id] = `⚠ ${r.error}`;
+        }
+      }
+      if (!cancelled) setCalcPreviews(next);
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [variables, factors]);
+
+  // Refresh node payloads whenever calc previews change so they show new values
+  useEffect(() => {
+    setNodes(curr =>
+      curr.map(n => {
+        const v = variablesRef.current.find(x => x.id === n.id);
+        if (!v) return n;
+        return { ...n, data: nodeData(v) };
+      })
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [calcPreviews]);
+
   const persist = async () => {
     setSaving(true);
     try {
@@ -300,6 +360,7 @@ export function VariableBuilder({ productId, initialVariables, initialFlowExtras
         initialVariable={editing ?? undefined}
         existingNames={variables.map(v => v.name)}
         factors={factors}
+        allVariables={variables}
         onSave={handleSave}
         onCancel={() => setModalOpen(false)}
         onDelete={id => {
@@ -326,10 +387,19 @@ function previewValue(v: Variable, factors: Factor[]): string | undefined {
   if (v.kind === 'user_input' && v.userInput?.defaultValue !== undefined) {
     return `${v.userInput.defaultValue}${v.userInput.unit ? ' ' + v.userInput.unit : ''}`;
   }
-  if (v.kind === 'calculation' && v.calculation?.formulaText) {
-    return v.calculation.formulaText.length > 24
-      ? v.calculation.formulaText.slice(0, 24) + '…'
-      : v.calculation.formulaText;
+  // calculation: previews resolved async in VariableBuilder; this is the fallback when none yet
+  if (v.kind === 'calculation') {
+    const formula = v.calculation?.formula ?? [];
+    if (formula.length === 0) return undefined;
+    return '…';
   }
   return undefined;
+}
+
+function formatNumber(n: number): string {
+  if (!Number.isFinite(n)) return String(n);
+  if (Math.abs(n) >= 1000) return n.toLocaleString(undefined, { maximumFractionDigits: 2 });
+  if (Math.abs(n) >= 1) return n.toFixed(2).replace(/\.?0+$/, '');
+  // small numbers — show more precision
+  return n.toPrecision(3).replace(/\.?0+$/, '');
 }

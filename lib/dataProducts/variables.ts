@@ -7,11 +7,12 @@ export type VariableKind = 'user_input' | 'calculation' | 'constant';
 
 export type UserInputWidget = 'text' | 'number' | 'slider';
 
-export type FormulaToken =
-  | { type: 'var'; id: string; name: string }
-  | { type: 'op'; value: string }
-  | { type: 'literal'; value: string }
-  | { type: 'fn'; name: string };
+/**
+ * Tokens that make up a formula. Either a reference to another variable,
+ * or a raw text chunk holding numbers / operators / function names /
+ * parens / whitespace. Order matters.
+ */
+export type FormulaToken = { type: 'var'; id: string; name: string } | { type: 'text'; value: string };
 
 export type UserInputConfig = {
   widget: UserInputWidget;

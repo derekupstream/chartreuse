@@ -16,8 +16,10 @@ import {
 import { useEffect, useMemo, useState } from 'react';
 
 import { VARIABLE_COLORS, VARIABLE_KIND_LABEL, isValidVariableName, newVariableId } from 'lib/dataProducts/variables';
-import type { Variable, VariableKind, UserInputWidget, ConstantSource } from 'lib/dataProducts/variables';
+import type { FormulaToken, Variable, VariableKind, UserInputWidget, ConstantSource } from 'lib/dataProducts/variables';
 import type { CatalogProductSummary } from 'pages/api/admin/catalogs/list';
+
+import { FormulaEditor } from './FormulaEditor';
 
 const { Text } = Typography;
 
@@ -34,13 +36,25 @@ type Props = {
   initialVariable?: Variable;
   existingNames: string[];
   factors: Factor[];
+  /** All variables in this data product — used to populate the formula editor's
+   *  insert-variable picker (the variable currently being edited is excluded). */
+  allVariables: Variable[];
   onSave: (v: Variable) => void;
   onCancel: () => void;
   /** Only invoked in edit mode; omit on Add */
   onDelete?: (id: string) => void;
 };
 
-export function VariableModal({ open, initialVariable, existingNames, factors, onSave, onCancel, onDelete }: Props) {
+export function VariableModal({
+  open,
+  initialVariable,
+  existingNames,
+  factors,
+  allVariables,
+  onSave,
+  onCancel,
+  onDelete
+}: Props) {
   const isEdit = !!initialVariable;
   const [kind, setKind] = useState<VariableKind>(initialVariable?.kind ?? 'user_input');
   const [name, setName] = useState(initialVariable?.name ?? '');
@@ -61,6 +75,7 @@ export function VariableModal({ open, initialVariable, existingNames, factors, o
   const [catalog, setCatalog] = useState<CatalogProductSummary[]>([]);
   const [catalogLoading, setCatalogLoading] = useState(false);
   const [formulaText, setFormulaText] = useState(initialVariable?.calculation?.formulaText ?? '');
+  const [formula, setFormula] = useState<FormulaToken[]>(initialVariable?.calculation?.formula ?? []);
 
   useEffect(() => {
     if (open && !isEdit) {
@@ -81,8 +96,16 @@ export function VariableModal({ open, initialVariable, existingNames, factors, o
       setProductId(undefined);
       setProductField(undefined);
       setFormulaText('');
+      setFormula([]);
     }
   }, [open, isEdit]);
+
+  // When opening to edit a different variable, seed the formula state from it
+  useEffect(() => {
+    if (open && isEdit) {
+      setFormula(initialVariable?.calculation?.formula ?? []);
+    }
+  }, [open, isEdit, initialVariable]);
 
   // Load catalog when one of the catalog sources is selected
   useEffect(() => {
@@ -170,7 +193,7 @@ export function VariableModal({ open, initialVariable, existingNames, factors, o
       }),
       ...(kind === 'calculation' && {
         calculation: {
-          formula: [],
+          formula,
           formulaText: formulaText.trim() || undefined,
           unit: unit.trim() || undefined
         }
@@ -220,28 +243,12 @@ export function VariableModal({ open, initialVariable, existingNames, factors, o
           <Radio.Group value={kind} onChange={e => setKind(e.target.value)}>
             {(['user_input', 'constant', 'calculation'] as VariableKind[]).map(k => {
               const c = VARIABLE_COLORS[k];
-              const disabled = k === 'calculation';
-              const radio = (
-                <Radio.Button key={k} value={k} disabled={disabled} style={{ borderColor: c.border }}>
+              return (
+                <Radio.Button key={k} value={k} style={{ borderColor: c.border }}>
                   <Tag color={c.border} style={{ marginRight: 4 }}>
                     {VARIABLE_KIND_LABEL[k]}
                   </Tag>
-                  {disabled && (
-                    <Text type='secondary' style={{ fontSize: 11 }}>
-                      (next phase)
-                    </Text>
-                  )}
                 </Radio.Button>
-              );
-              return disabled ? (
-                <Tooltip
-                  key={k}
-                  title='Calculation variables ship in Phase 2 — formula editor with draggable variable pills.'
-                >
-                  <span>{radio}</span>
-                </Tooltip>
-              ) : (
-                radio
               );
             })}
           </Radio.Group>
@@ -432,14 +439,27 @@ export function VariableModal({ open, initialVariable, existingNames, factors, o
         )}
 
         {kind === 'calculation' && (
-          <Form.Item label='Formula (placeholder)'>
-            <Input.TextArea
-              rows={3}
-              value={formulaText}
-              onChange={e => setFormulaText(e.target.value)}
-              placeholder='Phase 2 ships the proper pill-based editor. For now you can type a placeholder.'
-            />
-          </Form.Item>
+          <>
+            <Form.Item
+              label='Formula'
+              help='Type numbers and operators, drag variable pills from the sidebar, or use the "+ Insert variable" button. Excel functions like IF(), SUM(), ROUND() work too.'
+            >
+              <FormulaEditor
+                value={formula}
+                onChange={setFormula}
+                variables={allVariables.filter(v => v.id !== initialVariable?.id)}
+                placeholder='e.g. ProductVolume * EmissionFactor / 1000'
+              />
+            </Form.Item>
+            <Form.Item label='Unit (optional)'>
+              <Input
+                value={unit}
+                onChange={e => setUnit(e.target.value)}
+                placeholder='e.g. MTCO2e, kg, USD'
+                style={{ maxWidth: 240 }}
+              />
+            </Form.Item>
+          </>
         )}
       </Form>
     </Modal>

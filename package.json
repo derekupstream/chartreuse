@@ -70,6 +70,7 @@
     "firebase": "^10.9.0",
     "firebase-admin": "^13.4.0",
     "form-data": "^4.0.4",
+    "hyperformula": "^3.3.0",
     "juice": "^11.1.1",
     "lodash": "^4.17.21",
     "mailgun.js": "^8.0.6",
