@@ -1,5 +1,5 @@
 import { CloseOutlined, EditOutlined } from '@ant-design/icons';
-import { Tooltip } from 'antd';
+import { InputNumber, Slider, Input, Tooltip } from 'antd';
 import { memo, useState } from 'react';
 import { Handle, Position } from 'reactflow';
 
@@ -13,14 +13,69 @@ export type VariableNodeData = {
   onEdit?: (id: string) => void;
   /** Remove from the canvas only — variable persists in the sidebar */
   onRemoveFromCanvas?: (id: string) => void;
+  /** Current per-session test value for a user_input variable */
+  testValue?: number | string;
+  /** Update the test value (calc nodes recompute live as it changes) */
+  onTestValueChange?: (id: string, value: number | string) => void;
 };
 
 function VariableNodeComponent({ data }: { data: VariableNodeData }) {
-  const { variable, valuePreview, onEdit, onRemoveFromCanvas } = data;
+  const { variable, valuePreview, onEdit, onRemoveFromCanvas, testValue, onTestValueChange } = data;
   const colors = VARIABLE_COLORS[variable.kind];
   const [hovering, setHovering] = useState(false);
 
   const actionsVisible = hovering;
+
+  // For user_input: render an editable control right on the canvas. The
+  // value lives in per-session test state in the builder; calc nodes
+  // recompute as it changes.
+  const renderInputControl = () => {
+    if (variable.kind !== 'user_input' || !onTestValueChange) return null;
+    const cfg = variable.userInput;
+    if (!cfg) return null;
+    const current = testValue ?? cfg.defaultValue ?? (cfg.widget === 'text' ? '' : 0);
+    const stop = (e: React.SyntheticEvent) => e.stopPropagation();
+    if (cfg.widget === 'slider') {
+      return (
+        <div className='nodrag' onPointerDown={stop} onMouseDown={stop} style={{ marginTop: 6 }}>
+          <Slider
+            min={cfg.min ?? 0}
+            max={cfg.max ?? 100}
+            step={cfg.step ?? 1}
+            value={typeof current === 'number' ? current : Number(current) || 0}
+            onChange={v => onTestValueChange(variable.id, v as number)}
+            tooltip={{ formatter: v => `${v}${cfg.unit ? ' ' + cfg.unit : ''}` }}
+          />
+          <div style={{ fontSize: 11, color: '#595959', textAlign: 'right', marginTop: -4 }}>
+            {current}
+            {cfg.unit ? ' ' + cfg.unit : ''}
+          </div>
+        </div>
+      );
+    }
+    if (cfg.widget === 'number') {
+      return (
+        <div className='nodrag' onPointerDown={stop} onMouseDown={stop} style={{ marginTop: 6 }}>
+          <InputNumber
+            size='small'
+            value={typeof current === 'number' ? current : Number(current) || 0}
+            onChange={v => onTestValueChange(variable.id, (v as number) ?? 0)}
+            style={{ width: '100%' }}
+            addonAfter={cfg.unit || undefined}
+          />
+        </div>
+      );
+    }
+    return (
+      <div className='nodrag' onPointerDown={stop} onMouseDown={stop} style={{ marginTop: 6 }}>
+        <Input
+          size='small'
+          value={String(current ?? '')}
+          onChange={e => onTestValueChange(variable.id, e.target.value)}
+        />
+      </div>
+    );
+  };
 
   return (
     <div
@@ -138,22 +193,25 @@ function VariableNodeComponent({ data }: { data: VariableNodeData }) {
         >
           {variable.name}
         </div>
-        {valuePreview && (
-          <div
-            style={{
-              marginTop: 4,
-              fontSize: 11,
-              color: '#595959',
-              fontFamily: 'monospace',
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis'
-            }}
-            title={valuePreview}
-          >
-            = {valuePreview}
-          </div>
-        )}
+        {/* For user_input: live editable control inline; for others: read-only preview */}
+        {variable.kind === 'user_input'
+          ? renderInputControl()
+          : valuePreview && (
+              <div
+                style={{
+                  marginTop: 4,
+                  fontSize: 11,
+                  color: '#595959',
+                  fontFamily: 'monospace',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis'
+                }}
+                title={valuePreview}
+              >
+                = {valuePreview}
+              </div>
+            )}
         {variable.description && (
           <div
             style={{

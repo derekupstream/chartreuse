@@ -47,8 +47,16 @@ export function VariableBuilder({ productId, initialVariables, initialFlowExtras
   const [dirty, setDirty] = useState(false);
   // Map of calculation variable id → resolved preview string ('42 MTCO2e' or 'No formula')
   const [calcPreviews, setCalcPreviews] = useState<Record<string, string>>({});
+  // Per-session test overrides for user_input variables (not persisted)
+  const [testInputs, setTestInputs] = useState<Record<string, number | string>>({});
   const flowRef = useRef<ReactFlowInstance | null>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
+  const testInputsRef = useRef(testInputs);
+  testInputsRef.current = testInputs;
+
+  const handleTestValueChange = useCallback((id: string, value: number | string) => {
+    setTestInputs(prev => ({ ...prev, [id]: value }));
+  }, []);
   // Refs so node callbacks always see latest state without stale closures
   const variablesRef = useRef(variables);
   variablesRef.current = variables;
@@ -85,7 +93,9 @@ export function VariableBuilder({ productId, initialVariables, initialFlowExtras
       variable: v,
       valuePreview: fromCalc ?? previewValue(v, factors),
       onEdit: handleEditById,
-      onRemoveFromCanvas: handleRemoveFromCanvas
+      onRemoveFromCanvas: handleRemoveFromCanvas,
+      testValue: testInputsRef.current[v.id],
+      onTestValueChange: handleTestValueChange
     };
   }
 
@@ -205,16 +215,24 @@ export function VariableBuilder({ productId, initialVariables, initialFlowExtras
     [variables]
   );
 
-  // Re-evaluate every calculation variable whenever the variable list or
-  // factors change. Results are stringified for the node value preview.
+  // Re-evaluate every calculation variable whenever variables, factors, or
+  // per-session test inputs change. Results are stringified for the canvas.
   useEffect(() => {
     let cancelled = false;
     const inputValues: Record<string, number | undefined> = {};
     for (const v of variables) {
       if (v.kind === 'user_input') {
+        const overridden = testInputs[v.id];
+        if (overridden !== undefined) {
+          const n = typeof overridden === 'number' ? overridden : Number(overridden);
+          if (!Number.isNaN(n)) {
+            inputValues[v.id] = n;
+            continue;
+          }
+        }
         const def = v.userInput?.defaultValue;
         if (typeof def === 'number') inputValues[v.id] = def;
-        else if (typeof def === 'string') {
+        else if (typeof def === 'string' && def !== '') {
           const n = Number(def);
           if (!Number.isNaN(n)) inputValues[v.id] = n;
         }
@@ -247,9 +265,10 @@ export function VariableBuilder({ productId, initialVariables, initialFlowExtras
     return () => {
       cancelled = true;
     };
-  }, [variables, factors]);
+  }, [variables, factors, testInputs]);
 
-  // Refresh node payloads whenever calc previews change so they show new values
+  // Refresh node payloads whenever calc previews or test inputs change so
+  // they show new values + the live editable control reflects the current state.
   useEffect(() => {
     setNodes(curr =>
       curr.map(n => {
@@ -259,7 +278,31 @@ export function VariableBuilder({ productId, initialVariables, initialFlowExtras
       })
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [calcPreviews]);
+  }, [calcPreviews, testInputs]);
+
+  // Derive edges from each calculation's formula references — visualizes the
+  // dependency graph automatically. No manual edge drawing.
+  useEffect(() => {
+    const derived: Edge[] = [];
+    for (const v of variables) {
+      if (v.kind !== 'calculation') continue;
+      const seen = new Set<string>();
+      for (const tok of v.calculation?.formula ?? []) {
+        if (tok.type === 'var' && !seen.has(tok.id)) {
+          seen.add(tok.id);
+          derived.push({
+            id: `dep-${tok.id}-${v.id}`,
+            source: tok.id,
+            target: v.id,
+            animated: true,
+            style: { stroke: '#fa8c16', strokeWidth: 1.5 }
+          });
+        }
+      }
+    }
+    setEdges(derived);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [variables]);
 
   const persist = async () => {
     setSaving(true);
@@ -345,6 +388,9 @@ export function VariableBuilder({ productId, initialVariables, initialFlowExtras
             onNodeClick={handleNodeClick}
             onInit={instance => (flowRef.current = instance)}
             nodeTypes={nodeTypes}
+            nodesConnectable={false}
+            edgesUpdatable={false}
+            edgesFocusable={false}
             fitView
             attributionPosition='bottom-left'
           >
