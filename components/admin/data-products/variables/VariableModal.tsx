@@ -265,13 +265,21 @@ export function VariableModal({ open, initialVariable, existingNames, factors, o
             </Form.Item>
 
             {widget === 'slider' && (
-              <Form.Item label='Slider range'>
-                <Space>
-                  <InputNumber value={sliderMin} onChange={v => setSliderMin(v ?? 0)} placeholder='Min' />
-                  <InputNumber value={sliderMax} onChange={v => setSliderMax(v ?? 100)} placeholder='Max' />
-                  <InputNumber value={sliderStep} onChange={v => setSliderStep(v ?? 1)} placeholder='Step' />
-                </Space>
-              </Form.Item>
+              <Space size='middle' style={{ marginBottom: 24, width: '100%' }} wrap>
+                <Form.Item label='Min' style={{ marginBottom: 0 }} help='Lowest value the slider can be dragged to'>
+                  <InputNumber value={sliderMin} onChange={v => setSliderMin(v ?? 0)} style={{ width: 120 }} />
+                </Form.Item>
+                <Form.Item label='Max' style={{ marginBottom: 0 }} help='Highest value the slider can be dragged to'>
+                  <InputNumber value={sliderMax} onChange={v => setSliderMax(v ?? 100)} style={{ width: 120 }} />
+                </Form.Item>
+                <Form.Item
+                  label='Step'
+                  style={{ marginBottom: 0 }}
+                  help='How much the slider moves per click (e.g. 1, 0.1, 5)'
+                >
+                  <InputNumber value={sliderStep} onChange={v => setSliderStep(v ?? 1)} style={{ width: 120 }} />
+                </Form.Item>
+              </Space>
             )}
           </>
         )}
