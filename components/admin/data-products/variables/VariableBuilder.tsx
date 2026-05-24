@@ -270,6 +270,10 @@ export function VariableBuilder({ productId, initialVariables, initialFlowExtras
         factors={factors}
         onSave={handleSave}
         onCancel={() => setModalOpen(false)}
+        onDelete={id => {
+          handleDelete(id);
+          setModalOpen(false);
+        }}
       />
     </div>
   );

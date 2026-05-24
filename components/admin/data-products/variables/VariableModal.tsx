@@ -1,4 +1,18 @@
-import { Form, Input, InputNumber, Modal, Radio, Select, Space, Tag, Tooltip, Typography } from 'antd';
+import { DeleteOutlined } from '@ant-design/icons';
+import {
+  Button,
+  Drawer,
+  Form,
+  Input,
+  InputNumber,
+  Popconfirm,
+  Radio,
+  Select,
+  Space,
+  Tag,
+  Tooltip,
+  Typography
+} from 'antd';
 import { useEffect, useMemo, useState } from 'react';
 
 import { VARIABLE_COLORS, VARIABLE_KIND_LABEL, isValidVariableName, newVariableId } from 'lib/dataProducts/variables';
@@ -22,9 +36,11 @@ type Props = {
   factors: Factor[];
   onSave: (v: Variable) => void;
   onCancel: () => void;
+  /** Only invoked in edit mode; omit on Add */
+  onDelete?: (id: string) => void;
 };
 
-export function VariableModal({ open, initialVariable, existingNames, factors, onSave, onCancel }: Props) {
+export function VariableModal({ open, initialVariable, existingNames, factors, onSave, onCancel, onDelete }: Props) {
   const isEdit = !!initialVariable;
   const [kind, setKind] = useState<VariableKind>(initialVariable?.kind ?? 'user_input');
   const [name, setName] = useState(initialVariable?.name ?? '');
@@ -164,16 +180,40 @@ export function VariableModal({ open, initialVariable, existingNames, factors, o
     onSave(v);
   }
 
+  const saveDisabled = !trimmedName || !!nameInvalid || !!nameDuplicate;
+
   return (
-    <Modal
+    <Drawer
       open={open}
       title={isEdit ? `Edit variable: ${initialVariable?.name}` : 'Add variable'}
-      onCancel={onCancel}
-      onOk={handleOk}
-      okText={isEdit ? 'Save' : 'Add'}
-      okButtonProps={{ disabled: !trimmedName || !!nameInvalid || !!nameDuplicate }}
-      width={560}
+      onClose={onCancel}
+      width={460}
       destroyOnClose
+      footer={
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
+          <div>
+            {isEdit && onDelete && initialVariable && (
+              <Popconfirm
+                title={`Delete variable "${initialVariable.name}"?`}
+                description='Removes the variable and any node placed on the canvas.'
+                okText='Delete'
+                okButtonProps={{ danger: true }}
+                onConfirm={() => onDelete(initialVariable.id)}
+              >
+                <Button danger icon={<DeleteOutlined />}>
+                  Delete
+                </Button>
+              </Popconfirm>
+            )}
+          </div>
+          <Space>
+            <Button onClick={onCancel}>Cancel</Button>
+            <Button type='primary' onClick={handleOk} disabled={saveDisabled}>
+              {isEdit ? 'Save' : 'Add'}
+            </Button>
+          </Space>
+        </div>
+      }
     >
       <Form layout='vertical'>
         <Form.Item label='Type'>
@@ -402,6 +442,6 @@ export function VariableModal({ open, initialVariable, existingNames, factors, o
           </Form.Item>
         )}
       </Form>
-    </Modal>
+    </Drawer>
   );
 }
