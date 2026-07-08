@@ -40,14 +40,13 @@ const legacyMenuLinks: MenuProps['items'] = [
   { key: 'accounts', label: <Link href='/accounts'>Accounts</Link> }
 ];
 
-// In v2, the home is /dashboard, reached only by clicking the logo. The
-// "Analytics" nav target is the full reporting page at /org/analytics —
-// the same destination as the dashboard's "Open full Reporting" link.
+// In v2, the home is /dashboard, reached only by clicking the logo.
+// /org/analytics is still reachable via the dashboard's "Open full
+// Reporting" link, just no longer a top-level menu item.
 const v2MenuLinks: MenuProps['items'] = [
   { key: 'calculators', label: <Link href='/calculators'>Calculators</Link> },
   { key: 'dashboards', label: <Link href='/dashboards'>Dashboards</Link> },
   { key: 'scenarios', label: <Link href='/scenarios'>Scenarios</Link> },
-  { key: 'org/analytics', label: <Link href='/org/analytics'>Analytics</Link> },
   { key: 'accounts', label: <Link href='/accounts'>Accounts</Link> }
 ];
 
