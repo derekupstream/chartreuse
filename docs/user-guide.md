@@ -1,6 +1,6 @@
-# Getting Started with Trutlyse
+# Getting Started with Chart-Reuse
 
-This guide walks you through creating your first project on Trutlyse — from signing up to sharing your impact report.
+This guide walks you through creating your first project on Chart-Reuse — from signing up to sharing your impact report.
 
 ## Create your account
 
@@ -25,7 +25,7 @@ We recommend starting from a template if one fits your operation. Many of the si
 
 ## Choose actuals or projections
 
-Every project on Trutlyse is one of two types:
+Every project on Chart-Reuse is one of two types:
 
 - **Actuals** — track real reuse data after a program has run. Currently, actuals are supported for **events** only.
 - **Projections** — model the impact of a reuse program before or while you run it.
