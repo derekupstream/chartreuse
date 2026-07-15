@@ -32,6 +32,8 @@ Jest requires the `--experimental-vm-modules` flag (the package is `"type": "mod
 - Production is Vercel (app) + Supabase (DB + auth) at https://chartreuse-bay.vercel.app.
 - Production `DATABASE_URL` uses the Supabase **transaction pooler (port 6543)**; `lib/prisma.ts` auto-appends `?pgbouncer=true&sslmode=require` for Supabase URLs in production. Migrations against production must use the **direct connection (port 5432)** with `npx prisma migrate deploy`.
 - `prisma/schema.prisma` has `binaryTargets = ["native", "rhel-openssl-3.0.x"]` for Vercel Linux — don't remove it.
+- One-off scripts against production: `npx dotenv-cli -e .env.production -- npx tsx scripts/foo.ts`. A script that instantiates `PrismaClient` directly must append `?pgbouncer=true&sslmode=require` to `DATABASE_URL` itself (only `lib/prisma.ts` does this automatically) — otherwise the pooler fails with `prepared statement "s0" already exists`. Scripts must live inside the repo (not `/tmp`) so imports resolve, and top-level await doesn't work under `tsx` here — wrap in an async `main()`.
+- Useful diagnostics: `scripts/inspect-user-org.ts <email>` prints a user's DB record, org/account tree, and Supabase auth status.
 
 ## Architecture
 
@@ -52,6 +54,10 @@ Next.js 15 **pages router** (not app router), TypeScript, Ant Design 5 + styled-
 ### Auth
 
 Supabase Auth (Google OAuth + email/password) — Firebase was removed, but naming survives for backward compat: `lib/auth/auth.browser.tsx` exports `AuthContext` whose user field is still called `firebaseUser` (a `SessionUser` mapping Supabase User → `{ uid, email, displayName }`). Browser client: `lib/auth/supabaseClient.ts`; server: `lib/auth/supabaseServer.ts` (`createSupabaseApiClient` for API routes, `createSupabaseServerPropsClient` for getServerSideProps). OAuth callback: `pages/auth/callback.tsx`. `firebaseAdmin.ts` / `firebaseClient.ts` are dead code.
+
+### Signup & onboarding
+
+A Supabase auth user with no matching `User` row is redirected to `/onboarding`, which offers create-org or join-by-invite-code. `POST /api/user/register` has three paths: invite code (`Org.orgInviteCode`, 8-char hex) → join that org; work-email domain match → 409 with suggested orgs to join; otherwise create a new org + account. Upstream-admin UI access is gated by `Org.isUpstream` (see `lib/middleware/requireUpstream.ts`), **not** by `User.role` — `ORG_ADMIN` is the default role for every org creator/joiner and only controls org-level settings.
 
 ### API & client data fetching
 
