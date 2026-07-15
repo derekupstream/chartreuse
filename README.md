@@ -1,50 +1,39 @@
 # Chart-Reuse by Upstream
 
-Chart-Reuse is an app by Upstream Solutions for calculating the cost savings of switching from disposable food products to reusable products.
+Chart-Reuse is an app by Upstream Solutions for calculating the cost and environmental savings of switching from disposable food products to reusable products.
 
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app). It uses [Prisma](prisma.io/) as its ORM for a Postgres database hosted on Heroku. The app itself is deployed to [Vercel](https://vercel.com/upstreamsolutions). The UI elements are built with [Ant Design](https://ant.design/).
+Built with [Next.js](https://nextjs.org/) (pages router), [Prisma](https://prisma.io/) + PostgreSQL, and [Ant Design](https://ant.design/). Production runs on [Vercel](https://vercel.com/) with [Supabase](https://supabase.com/) providing the database and authentication.
+
+**📖 Full architecture reference: [docs/SYSTEM_OVERVIEW.md](docs/SYSTEM_OVERVIEW.md)** — the source-of-truth doc for the data model, calculator engine, auth, API surface, and operations.
 
 ## Setup
 
-1. Get the `.env` file from another developer and put it in the repo.
-2. Use [Postgres.app](https://postgresapp.com/) or your preferred way of creating a Postgres database on your local computer and update the `DATABASE_URL` variable in your `.env` file.
-3. Run `yarn` to install dependencies.
-4. Run `yarn prisma migrate dev` to set up the database locally.
+1. Get the `.env` file from another developer (or pull env vars from the Vercel dashboard). Key vars: `DATABASE_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`.
+2. Create a local Postgres database ([Postgres.app](https://postgresapp.com/) works well) and point `DATABASE_URL` at it.
+3. `yarn` to install dependencies.
+4. `yarn prisma:sync` to apply migrations and generate the client (see [docs/PRISMA_WORKFLOW.md](docs/PRISMA_WORKFLOW.md) for the safe-migration workflow).
+5. Optionally seed: `npx tsx scripts/seed.ts`
 
 ## Running
 
-Run `yarn dev` to start the development server and then go to [http://localhost:3000](http://localhost:3000) in your browser.
+```bash
+yarn dev        # http://localhost:3000
+yarn test       # jest (watch mode); yarn test:ci for a single run
+yarn lint
+```
 
-## Running against production data
+### Running against production data
 
-Create a ".env.production" config file with env vars and run:
-`NEXT_PUBLIC_REMOTE_USER_ID=<user_id> yarn start:remote`
-
-## Tests
+Create a `.env.production` config file with env vars and run:
 
 ```bash
-yarn test
+NEXT_PUBLIC_REMOTE_USER_ID=<user_id> yarn start:remote
 ```
 
 ## Migrations
 
-Migrations are managed by Prisma - refer to Prisma's migration documentation to run them.
+Managed by Prisma. Use the `prisma:validate` / `prisma:status` / `prisma:sync` scripts rather than raw prisma commands — see [docs/PRISMA_WORKFLOW.md](docs/PRISMA_WORKFLOW.md). Production migrations must use the Supabase direct connection (port 5432), not the pooler.
 
-## Stripe
+## Billing
 
-### Sign-up Flow:
-
-1. Login to Firebase: a new user creates a Firebase session by entering their email on the Sign up page.
-2. Register with Stripe  
-   2a. On the second page, we create a Stripe customer account and persist user and organization records to Postgres.  
-   2b. All users are immediately given a free 30-day trial subscription which has a placeholder product with $0 price.
-3. Upstream visits the customer's profile in Stripe and adds a new product to their subscription. They then send a link to the customer to check out.
-4. Once the customer visits the app again, their trial period will be ended and their first paid period will begin.
-
-When we have actual product tiers, the flow for step 3 may change: 3. Upgrade and pay for a subscription  
- 4a. Users visit /subscription and enter their payment information.  
- 4b. In Stripe, the new payment method is applied to the subscription, the trial is ended, and they are charged immediately.
-
-### Links:
-
-How coupons work with subscriptions: https://stripe.com/docs/billing/subscriptions/coupons
+Stripe is integrated for subscriptions but is **not** part of signup — signup is Supabase auth (Google OAuth or email/password) followed by in-app onboarding. See the Billing section of [docs/SYSTEM_OVERVIEW.md](docs/SYSTEM_OVERVIEW.md).

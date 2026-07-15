@@ -1,3 +1,5 @@
+> ⚠️ **SUPERSEDED (2026-07-15):** This document is outdated and may contain actively wrong guidance (Firebase/Heroku/Mailgun era). See [SYSTEM_OVERVIEW.md](SYSTEM_OVERVIEW.md) for current architecture, services, and setup.
+
 # Auth Migration Guide: Firebase ↔ Supabase
 
 This guide explains how to switch between Firebase and Supabase authentication with minimal code changes.

@@ -1,430 +1,172 @@
-# ChartReuse – System Overview & Architecture Reference
+# ChartReuse — System Overview & Architecture Reference
 
-> Generated: 2026-02-22
-> Branch: `feature/my-changes` (forked from `main` @ upstream Upstream Solutions repo)
+**This is the source-of-truth architecture document.** Regenerated 2026-07-15 by auditing every section against the live codebase. If this doc and another markdown file disagree, trust this one (and fix the other). For AI-assistant working notes see `CLAUDE.md` at the repo root.
+
+**Doc map — what remains authoritative elsewhere:**
+
+| Doc | Role |
+|---|---|
+| `docs/CALCULATOR_BUILD_PROMPT.md` | Calculation methodology: material emission/water factor tables, formulas, dishwasher profiles. The "why" behind `lib/calculator/constants/`. |
+| `docs/ACTUALS.md` | RSP/Sharewares Actuals API gap analysis and proposed schema improvements (live design doc). |
+| `docs/PRISMA_WORKFLOW.md` | Database migration runbook (drift recovery, safe operations). |
+| `docs/user-guide.md` | End-user walkthrough. |
+| `CHANGELOG.md` | Milestone history. |
+| `README.md` | Quick start only; points here. |
+| `docs/AUTH_MIGRATION_GUIDE.md`, `docs/getting-started.mdx`, `docs/services.mdx` | **Superseded** — kept only with deprecation banners. |
 
 ---
 
 ## 1. What the App Does
 
-**Chart-Reuse** is a SaaS web application built by **Upstream Solutions** that calculates the financial and environmental cost savings an organization achieves by switching from **single-use (disposable) food products** to **reusable foodware**.
+Chart-Reuse (by Upstream Solutions) is a SaaS calculator that projects the **cost and environmental savings** of switching from single-use to reusable foodware. Customers (venues, schools, stadiums, restaurant groups) enter their current single-use purchasing and planned reusable program; the engine produces financial results (payback, ROI, annual savings) and environmental results (GHG, water, waste, environmental break-even).
 
-Users create **Projects** for their venues/clients, enter purchasing data, dishwasher usage, labor, waste-hauling costs, and other expenses. The calculator then produces:
+Two data paths:
+- **Projections** — forward-looking forecasts from inventory inputs (`lib/calculator/getProjections.ts`).
+- **Actuals** — measured results, either entered per event or ingested automatically from Reuse Service Providers via the public RSP API (`lib/calculator/getActuals.ts`, `lib/rsp/`).
 
-- **Financial projections** – baseline vs. forecast annual spend, one-time costs, payback period, and ROI %
-- **Environmental projections** – greenhouse gas emissions, waste weight reduction, and water usage changes
-- **Single-use / reusable product breakdowns** by category and material
-- **Bottle station impact** (water dispensers replacing bottled water)
+## 2. Domain Glossary
 
----
+- **Org** — the tenant (a customer organization). Billing, currency, and sharing settings live here.
+- **Account** — a sub-entity of an Org (e.g. one venue or client of an RSP). Projects belong to an Account.
+- **Project** — one calculator scenario: a set of line items plus computed projections. Has a `category` (default/event/eugene) and a `dataType` (projection/actual).
+- **Inventory** — the assembled calculator input for a project (line items + product catalog data).
+- **Upstream** — Orgs with `isUpstream = true` are staff; this flag gates the entire `/admin` area and v2 UI.
+- **RSP** — Reuse Service Provider (e.g. Sharewares): an Org (`orgType = 'reuse-service-provider'`) that pushes usage data for its client Accounts via API.
 
-## 2. Tech Stack
+## 3. Tech Stack & External Services
 
-| Layer | Technology |
+Next.js 15 **pages router** (not app router), TypeScript, Prisma 6 + PostgreSQL, Ant Design 5 + styled-components (styles in sibling `styles.tsx` imported as `S`), `@ant-design/plots` for charts, ReactFlow + dagre for graph canvases, SWR for client data fetching, Jest for tests. Package manager is **Yarn**; dev server uses Turbopack.
+
+| Service | Role |
 |---|---|
-| Framework | Next.js 15 (App uses `pages/` router) |
-| Language | TypeScript |
-| UI Library | Ant Design 5.x + styled-components |
-| Charting | `@ant-design/plots` |
-| Database | PostgreSQL (Heroku in production) |
-| ORM | Prisma 6.x |
-| Auth | Firebase (email/password), `firebase-admin` on server |
-| Payments | Stripe (subscriptions, trials, payment intents) |
-| Analytics | Mixpanel + Google Analytics |
-| Email | Mailgun + Mailchimp |
-| Hosting | Vercel (frontend/API), Heroku (Postgres) |
-| Package mgr | Yarn |
-| Testing | Jest + `@swc/jest` |
-| Linting | ESLint + Prettier + Husky pre-commit |
-| Excel import | ExcelJS |
-
----
-
-## 3. Database Schema (Prisma)
-
-### Core Models
-
-```
-User
-  id (Firebase UID), name, email, title, phone, role (ORG_ADMIN | ACCOUNT_ADMIN)
-  → belongs to Org, optionally linked to Account
-
-Org
-  id, name, currency (default: USD), useMetricSystem, useShrinkageRate
-  stripeCustomerId, stripeSubscriptionId, orgInviteCode
-  → has many Users, Accounts, Projects, ProjectTags
-
-Account
-  id, name, accountContactEmail, USState
-  → belongs to Org; has many Users, Projects
-
-Project
-  id, name, category (default | event | eugene)
-  orgId, accountId
-  budget, currency, singleUseReductionPercentage
-  USState, utilityRates (Json), location (Json)
-  isTemplate, templateDescription, templateId (self-referential)
-  publicSlug (for share pages), showRecommendations, recommendations (Json)
-  projectionsTitle, projectionsDescription
-  dateType, startDate, endDate (for event projects)
-```
-
-### Project Line Items
-
-| Model | Purpose |
-|---|---|
-| `SingleUseLineItem` | A disposable product being purchased (caseCost, casesPurchased, frequency, unitsPerCase, newCaseCost, newCasesPurchased) |
-| `SingleUseLineItemRecord` | Historical purchase record per date for a single-use item |
-| `ReusableLineItem` | A reusable product (caseCost, casesPurchased, unitsPerCase, annualRepurchasePercentage, categoryId, productId) |
-| `EventFoodwareLineItem` | Pairs a single-use + reusable product for event-mode projects (reusableItemCount, reusableReturnPercentage/Count, waterUsageGallons) |
-| `OtherExpense` | Additional recurring or one-time expenses (categoryId, cost, frequency, description) |
-| `LaborCost` | Labor costs (same shape as OtherExpense) |
-| `WasteHaulingCost` | Monthly waste-hauling cost baseline vs. forecast per waste stream/service type |
-| `TruckTransportationCost` | Transportation distance in miles (event projects) |
-| `Dishwasher` | Advanced dishwasher config – racksPerDay, operatingDays, type, temperature, fuelTypes, energyStar |
-| `DishwasherSimple` | Simplified dishwasher – electricUsage, waterUsage, fuelType |
-
-### Supporting Models
-
-- `Invite` – org/account invite with accept status
-- `ProjectTag` / `ProjectTagRelation` – custom org-level tags applied to projects
-- `UserEvent` – user activity event log
-
----
-
-## 4. Application Structure
-
-```
-/pages                  Next.js pages (routes)
-  _app.tsx              Global layout, auth context, React Query provider
-  login.tsx             Firebase login
-  signup.tsx            Multi-step signup (Firebase → Stripe customer)
-  subscription.tsx      Stripe subscription management
-  members.tsx           Org member list
-  /projects             Project list + new project wizard
-  /projects/[id]/       Project detail tabs (dynamic route)
-    projections.tsx     Dashboard/results
-    single-use-items.tsx
-    reusable-items.tsx
-    dishwashing.tsx
-    additional-costs.tsx
-    foodware.tsx        (event mode)
-    usage.tsx           (event mode)
-    transportation.tsx  (event mode)
-    purchasing-updates.tsx
-  /org                  Org settings
-  /accounts             Account management
-  /upstream             Admin-only pages (Upstream staff)
-
-/lib
-  /calculator           Core computation engine (pure functions)
-    getProjections.ts   Main entry point → returns all projections
-    /calculations       Sub-calculators
-      getAnnualSummary.ts
-      getFinancialResults.ts     → annualCostChanges, oneTimeCosts, financialSummary
-      getEnvironmentalResults.ts → GHG, waste, water, event waste
-      /foodware          getSingleUseResults, getReusableResults, getBottleStationResults
-      /ghg               getAnnualGasEmissionChanges, getTransportationGHG
-      /waste             getAnnualWasteChanges, getEventProjectWaste
-      /water             getAnnualWaterUsageChanges
-      /dishwashing       getDishwasherUtilityUsage
-    /constants           Static lookup tables
-      utilities.ts       State-level electric/gas rates, water national average
-      materials.ts       Material types (plastic, paper, glass, etc.)
-      carbon-dioxide-emissions.ts  GHG factors by material
-      frequency.ts       Frequency → annual multiplier mapping
-      labor-categories.ts
-      other-expenses.ts
-      product-categories.ts
-      product-types.ts
-      reusable-product-types.ts
-      dishwashers.ts
-  /inventory            Data access layer
-    getProjectInventory.ts   Loads full project from DB, maps to calculator types
-    getSingleUseProducts.ts  Loads product catalog
-    /assets/reusables    Static reusable product catalog (CSV-backed)
-    /types               TypeScript types for ProjectInventory, products
-  /auth                 Firebase auth (browser + admin)
-  /middleware           Next-connect API middleware (auth, project validation)
-  /stripe               Stripe helpers (subscriptions, customers, products)
-  /projects             Project utilities (categories, templates, duplication)
-  /analytics            Mixpanel + GA helpers
-  /exports              Excel/CSV export logic
-  /share                Shareable project link logic
-  /currencies           Currency formatting
-
-/prisma
-  schema.prisma         Database schema
-  /migrations           Prisma migration history
-
-/components             React UI components, organized by page/feature
-/hooks                  Custom React hooks
-/utils                  Shared utility functions
-/styles                 Global CSS / SCSS
-/scripts                CLI scripts (e.g., sendInvite.ts)
-```
-
----
-
-## 5. Calculator Engine – How Projections Work
-
-The core calculation pipeline is:
-
-```
-getProjections(projectId)
-  └─ getProjectInventory(projectId)     ← DB fetch + data mapping
-      └─ Returns: ProjectInventory
-           (project metadata, singleUseItems, reusableItems, dishwashers,
-            laborCosts, otherExpenses, wasteHauling, utilityRates, products catalog)
-
-  ├─ getAnnualSummary(inventory)
-  │    ├─ dollarCost (from getFinancialResults → annualCostChanges)
-  │    ├─ singleUseProductCount (from getSingleUseResults → annualUnits)
-  │    ├─ greenhouseGasEmissions (from getEnvironmentalResults → annualGasEmissionChanges)
-  │    └─ wasteWeight (from getEnvironmentalResults → annualWasteChanges.summary)
-
-  ├─ getEnvironmentalResults(inventory)
-  │    ├─ annualGasEmissionChanges (GHG by material + transportation)
-  │    ├─ annualWasteChanges (waste weight by stream)
-  │    ├─ annualWaterUsageChanges (dishwasher + bottle station water)
-  │    └─ eventProjectWaste (event-specific waste)
-
-  ├─ getFinancialResults(inventory)
-  │    ├─ annualCostChanges
-  │    │    ├─ baseline  = singleUseCost + utilitiesBaseline + wasteHaulingBaseline
-  │    │    ├─ forecast  = additionalCosts + reusableProductCosts + singleUseForecast
-  │    │    │             + utilitiesForecast + wasteHaulingForecast
-  │    │    └─ change    = forecast - baseline  (negative = savings)
-  │    ├─ oneTimeCosts
-  │    │    └─ reusableProductCosts + one-time additionalCosts
-  │    └─ summary
-  │         ├─ annualROIPercent = (-annualCost / oneTimeCost) × 100
-  │         └─ paybackPeriodsMonths = ceil(-(oneTimeCost / annualCost) × 12)
-
-  ├─ getSingleUseResults(inventory)    ← by product category & material
-  ├─ getReusableResults(inventory)     ← reusable product purchase forecast
-  └─ getBottleStationResults(inventory) ← water station replacement of bottled water
-```
-
-### Key Calculation Concepts
-
-- **Baseline** = current cost if nothing changes
-- **Forecast** = projected cost after switching to reusables
-- **Frequency multiplier** – line items can be `Daily`, `Weekly`, `Monthly`, `Quarterly`, `Annually`, `One Time`; each is converted to an annual occurrence count
-- **Utility rates** – per-state electric ($/kWh) and gas ($/therm) rates; national avg water at $6.98/1000 gal
-- **Dishwasher utility cost** – calculated from racks/day × operating days, dishwasher type, energy star status, fuel types
-- **Annualized repurchase** – reusables have an `annualRepurchasePercentage` (fraction of initial cost spent yearly to replace broken/lost items)
-- **GHG factors** – material-level CO₂e emission factors (plastic, paper, aluminum, glass, etc.)
-- **Event projects** – use `EventFoodwareLineItem` which pairs single-use + reusable products; return rate/count tracked per item
-
----
-
-## 6. Project Modes (Calculator Steps)
-
-| Mode | Steps | Use Case |
-|---|---|---|
-| **Simple** (event) | Foodware → Usage → Dishwashing → Transportation → Dashboard | Event venues, rental programs |
-| **Advanced** | Single-Use Purchasing → Reusables Purchasing → Dishwashing → Additional Costs → Dashboard | Institutional/cafeteria programs |
-
-### Project Categories
-
-- `default` – standard advanced calculator
-- `event` – event-mode (simple steps, EventFoodwareLineItem, truck transport)
-- `eugene` – legacy category for City of Eugene
-
----
-
-## 7. Authentication & Authorization
-
-- **Firebase** handles all user auth (email/password sign-in)
-- Every API route uses next-connect middleware:
-  - `checkLogin` – verifies Firebase ID token from cookie
-  - `validateProject` – ensures the user's org owns the requested project
-  - `requireUpstream` – restricts `/upstream/` admin routes to Upstream staff orgs
-- **Roles**: `ORG_ADMIN` (full org access) vs `ACCOUNT_ADMIN` (scoped to their Account)
-- `isUpstream` flag on Org grants admin panel access
-
----
-
-## 8. Subscription & Billing
-
-- **Stripe** manages subscriptions
-- Sign-up flow:
-  1. Firebase creates user session
-  2. Stripe customer created; Org + User records persisted to Postgres
-  3. Free 30-day trial auto-applied
-  4. Upstream manually upgrades customer's Stripe subscription
-  5. Customer visits app → trial ends, paid period begins
-- Subscription status checked on each page load to gate access
-
----
-
-## 9. Feature Flags
-
-Hardcoded in `lib/featureFlags.ts`:
-
-- **Event projects** – enabled for: specific org IDs (madhavi, eugene, seattle), all Upstream staff orgs, and `development` env
-- **Eugene org** – special flag for City of Eugene-specific behavior
-
----
-
-## 10. Product Catalog
-
-- **Single-use products** – loaded from DB per org (org-specific custom products) and from a static CSV (`lib/inventory/single-use-products-data.csv`)
-- **Reusable products** – static CSV-backed catalog (`lib/inventory/assets/reusables/reusable-products-data.csv`) with special handling for bottle station product
-- **Bottle station** – identified by `BOTTLE_STATION_PRODUCT_ID` constant; water usage calculated at 27.15 gallons/station/day
-
----
-
-## 11. Key API Routes
-
-```
-/api/projects/index.ts         GET all projects, POST create project
-/api/projects/[id]/            GET/PUT/DELETE project
-/api/projects/duplicate.ts     POST duplicate a project
-/api/projects/project-templates GET org templates
-/api/accounts/                 Account CRUD
-/api/org/                      Org settings CRUD
-/api/user/                     User profile
-/api/invite/                   Send/accept invites
-/api/inventory/                Single-use product data
-/api/dishwashers/              Dishwasher CRUD
-/api/events/                   Event foodware CRUD
-/api/labor-costs/              Labor cost CRUD
-/api/other-expenses/           Other expense CRUD
-/api/waste-hauling/            Waste hauling CRUD
-/api/tags/                     Project tag CRUD
-/api/stripe/                   Stripe subscription/payment endpoints
-/api/admin/                    Upstream admin endpoints
-```
-
----
-
-## 12. Shared / Public Projects
-
-- Projects can have a `publicSlug` for shareable read-only URLs (`/share/[slug]`)
-- Projections title and description can be customized per project for the share view
-
----
-
-## 13. Analytics
-
-- **Mixpanel** – event tracking via `lib/analytics` (user actions, project events)
-- **Google Analytics** – page view tracking via `lib/ga`
-- **UserEvent** table – server-side event logging to Postgres
-
----
-
-## 14. Exports
-
-- Projects can be exported to **Excel** (`.xlsx`) via `lib/exports` using ExcelJS
-- Single-use and reusable line items can also be **imported** from Excel
-
----
-
-## 15. Multi-currency & Metric System Support
-
-- Each Org has a `currency` (default `USD`) and `useMetricSystem` flag
-- Currency formatting handled by `lib/currencies`
-- Metric conversions in `lib/number.ts` (LITER_TO_GALLON etc.)
-
----
-
-# Forking Plan: Building Your Own Branch with Your Own Database
-
-## Goals
-
-1. Run the app on your own local PostgreSQL database with the exported data
-2. Experiment freely without touching production
-3. Add AI-assisted improvements on your own branch
-
-## Step-by-Step Setup
-
-### Step 1 – Create your experimental branch
+| Vercel | Hosting + CI deploy of `main` → https://chartreuse-bay.vercel.app |
+| Supabase | Production Postgres **and** auth (Google OAuth + email/password) |
+| Stripe | Billing (retained; no longer part of signup) |
+| Anthropic API | AI features: import classification, admin insights, data-product designer |
+| Mixpanel + GA | Product analytics |
+| Mailchimp | Transactional/marketing email (`lib/mailchimp/`); `lib/mailgun.ts` is legacy |
+| Google Maps | Location lookup |
+
+Legacy note: Firebase packages and `lib/auth/firebase*.ts` still exist but are **dead code** — real auth is Supabase throughout. The `AuthAdapter` abstraction in `lib/auth/adapter.ts`/`config.ts` is vestigial; its Firebase implementation is unimplemented stubs. Do not set `AUTH_PROVIDER=firebase`.
+
+## 4. Data Model (Prisma)
+
+`prisma/schema.prisma` (~40 models). Grouped:
+
+**Tenancy & identity** — `Org` → `Account` → `User` hierarchy. `User.role` is `ORG_ADMIN | ACCOUNT_ADMIN | MEMBER` (role controls org-level settings only; admin UI is gated by `Org.isUpstream`, not role). `Org` carries Stripe fields, `currency`/`useMetricSystem`, `orgInviteCode` (join-by-code), `analyticsSlug` (public analytics page), and profile fields (`orgType`, `country`, `employeeCount`, `reuseJourneyStage`, …). `Invite`, `JoinRequest`, `ImpersonationSession`, `UserEvent`.
+
+**Projects & line items** — `Project` (belongs to Org + Account; `category: default|event|eugene`, `dataType: projection|actual`, `publicSlug`, `shareSettings` Json, optional self-referencing `templateId`). Line items: `SingleUseLineItem` (+ dated `SingleUseLineItemRecord`), `ReusableLineItem`, `EventFoodwareLineItem`, `LaborCost`, `OtherExpense`, `WasteHaulingCost`, `TruckTransportationCost`, `Dishwasher`, `DishwasherSimple`. `ProjectMilestone` stores point-in-time KPI snapshots. `ProjectTag`/`ProjectTagRelation` for org-scoped tagging.
+
+**Methodology governance (data-science)** — `FactorCategory`/`FactorSource`/`Factor`/`FactorVersion`/`FactorDependency` (versioned emission & calculation factors; `Factor.calculatorConstantKey` links each DB factor to its TypeScript constant path), `ChangeRequest` (factor change review workflow), `MethodologySnapshot`(+`Factor`) (pinned factor-version sets), `ComputeRun` + `MetricResult` (audited calculation runs), `GoldenDataset`/`TestRun`/`TestRunResult` (regression fixtures), `DataHealthIssue`, `DataProductDefinition` (AI-designed calculators/dashboards with execution code), `ImportSession`, `AdminInsight`, `MethodologyDocument`.
+
+**RSP integration** — `RspApiKey` (SHA-256 `keyHash`, `keyPrefix`), `UsageTimePeriod` (ingested usage window with computed impacts and supersession chain), `UsagePeriodProduct`, `RspApiActivityLog`.
+
+**Misc** — `EmailEvent` (editable email templates), `FeedbackSubmission`, `FeatureRequest`/`FeatureVote`.
+
+## 5. Application Structure
+
+### User-facing pages (`pages/`)
+
+Two navigation modes, both rendered by `layouts/BaseLayout.tsx`:
+
+- **Legacy nav:** Projects · Analytics (`/org/analytics`) · Accounts.
+- **v2 nav ("Chart-Reuse 2.0"):** Calculators (`/calculators`) · Dashboards (`/dashboards`) · Scenarios (`/scenarios`) · Accounts. Home is `/dashboard` (KPI drill-down cards), reached via the logo. `/org/analytics` still exists, reachable from the dashboard's "Open full Reporting" link.
+- **v2 gating:** `hooks/useChartReuse2.tsx` — a per-user localStorage toggle, ANDed with `user.org.isUpstream` in BaseLayout. It is *not* in `lib/featureFlags.ts`.
+
+Other notable routes: `login`, `onboarding` (post-auth org creation/join), `setup/account`, `settings/` (account/org/RSP API keys), `projects/[id]/*` (calculator step tabs + settings), `members`, `invite-*`, `subscription(-live)`, `methodology/`, `tutorials/`.
+
+**Public (unauthenticated) share pages:** `share/[slug]` + `/assumptions` (org projections), `share/p/[slug]` (single project via `Project.publicSlug` + `shareSettings`), `share/analytics/[slug]` (org analytics via `Org.analyticsSlug`). Logic in `lib/share/`.
+
+### Admin area (`pages/admin/`) — gated by `Org.isUpstream`
+
+- **Platform management:** orgs (+detail), users, all projects, duplicates (detection/merge), feedback, emails (template editor), analytics, methodology CMS.
+- **Data-science suite (`admin/data-science/`):** constants (Factor Library), change-requests, golden-datasets, test-runs, runs (compute-run history), snapshots, calculations registry, inputs, data-map (ReactFlow system/trace graphs), lineage, impact simulator, import (AI classification), pipeline, data-products (AI flow designer).
+- **RSP hub (`admin/rsp/`):** dashboard, api-keys (+key detail), activity feed, test-hub/simulator.
+
+The old `pages/upstream/` area is vestigial (two pages); `/admin` is the real staff area.
+
+## 6. Calculator Engine (`lib/calculator/`)
+
+- **Entry points:** `getProjections(projectId)` / pure `getProjectionsFromInventory(inventory)` → `ProjectionsResponse` `{ annualSummary, environmentalResults, financialResults, singleUseResults, reusableResults, bottleStationResults, eventCostResults }`. `getAllProjections(projects)` batches an org-wide rollup. `getActuals(inventory, {dateRange, categoryId})` handles the measured-data path.
+- **Input assembly:** `lib/inventory/getProjectInventory.ts` (DB → calculator input).
+- **Calculations:** `calculations/` — `getAnnualSummary`, `getEnvironmentalResults`, `getFinancialResults`, `getEnvBreakEven` (embodied CO2 of reusables ÷ annual CO2 savings → months), plus subfolders `foodware/` (single-use, reusable, event-cost, bottle-station, return-rate), `dishwashing/`, `ghg/`, `waste/`, `water/`.
+- **Constants:** `constants/` — emission factors, materials, state utility rates (`utilities.ts`), dishwashers, conversions, venue categories, waste hauling, etc. Methodology and factor sources are documented in `docs/CALCULATOR_BUILD_PROMPT.md`; the admin Factor Library mirrors these constants in the DB via `calculatorConstantKey`.
+- **Core concepts:** baseline (current single-use spend) vs forecast (reduced single-use + reusables + operating costs); frequency multipliers annualize usage; repurchase % models reusable replacement.
+- **Tests:** `__tests__/calculator.spreadsheet.spec.ts` validates against spreadsheet fixtures. Golden datasets + test runs in the admin area provide DB-driven regression testing on top.
+
+## 7. Project Modes & Categories
+
+`lib/projects/steps.ts` defines two wizard modes:
+- **simple** (event projects): Dashboard → Foodware → Usage → Dishwashing → Transportation.
+- **advanced** (default): Dashboard → Single-Use purchasing → Reusables purchasing → Dishwashing → Additional costs.
+
+`Project.category`: `default` (ongoing program), `event` (one-time, treated as "Actuals"), `eugene` (bespoke). Category access is gated by `lib/projects/categories.ts` + `lib/featureFlags.ts`. `Project.dataType` (`projection|actual`) additionally distinguishes forecast vs measured data. Templates live in `lib/projects/templates/`.
+
+## 8. Authentication & Authorization
+
+- **Supabase Auth** — Google OAuth + email/password. Browser client `lib/auth/supabaseClient.ts`; server `lib/auth/supabaseServer.ts` (`createSupabaseApiClient` for API routes, `createSupabaseServerPropsClient` for getServerSideProps). OAuth callback: `pages/auth/callback.tsx`.
+- **Backward-compat naming:** `lib/auth/auth.browser.tsx` exports `AuthContext` whose user field is still called `firebaseUser` (a `SessionUser` mapping Supabase User → `{ uid, email, displayName }`).
+- **Middleware (`lib/middleware/`):** `defaultHandler()` (no auth) / `handlerWithUser()` (Supabase session → Prisma `User`, with email-based re-linking of Firebase-era records) / `projectHandler()` (adds project ownership validation). `requireUpstream` gates admin routes on `Org.isUpstream`. SSR guard `checkLogin`: no session → `/login`; session but no DB user → `/onboarding`.
+- **Onboarding (`POST /api/user/register`):** three paths — invite code (`Org.orgInviteCode`, 8-char hex) joins that org; work-email domain match returns 409 with suggested orgs; otherwise creates a new Org + Account. First user gets `ORG_ADMIN`.
+- **Impersonation:** admins can impersonate users via `ImpersonationSession` + `/api/admin/impersonate`.
+
+## 9. API Surface (`pages/api/`)
+
+Routes use `next-connect` with the middleware above. Domains: user/org/account/profile, invites & join-requests, projects (per-project: projections, usage, milestones, share, share-settings, banner-upload, line-item CRUD + bulk Excel import, inventory up/download), line-item resources (dishwashers, events, labor-costs, other-expenses, waste-hauling), inventory catalogs, feedback & feature-requests, Stripe, and a large `api/admin/*` tree (factors, change-requests, compute-runs, data-health, data-map, data-products incl. AI generate, import classify/apply, insights, methodology, RSP management + simulator, impersonation, user role/password management).
+
+**Public endpoints:** `POST /api/rsp/usage` (Bearer token), `GET /api/share/analytics/[slug]`, plus signup-time helpers (`/api/user/register`, `/api/orgs/suggest`, `/api/invite-signup`, `/api/join-requests`).
+
+## 10. RSP Integration
+
+RSPs push usage data machine-to-machine: `POST /api/rsp/usage` with `Authorization: Bearer cr_rsp_{64hex}`. Keys are stored as SHA-256 hashes (`RspApiKey.keyHash`; utilities in `lib/rsp/apiKeyAuth.ts`), validated per request, and every call is logged to `RspApiActivityLog`. Ingestion (`lib/rsp/ingestUsagePeriod.ts`) resolves the client `Account` (`rspClientId`/`rspOrgId`), writes `UsageTimePeriod`/`UsagePeriodProduct` with computed impacts (`lib/rsp/impactFactors.ts` — currently flat per-unit factors; see `docs/ACTUALS.md` for the critique and improvement plan), and supports temporal supersession. Admin tooling: `admin/rsp/*` (keys, feed, simulator); customer-facing key management under `/settings`.
+
+## 11. Feature Flags
+
+`lib/featureFlags.ts` — hardcoded org-ID allowlists (plus `isUpstream` and dev mode), not a flag service. Gates event projects and Eugene features. The v2 UI toggle is separate (see §5).
+
+## 12. Product Catalog
+
+Static, code-committed catalogs: single-use products in `lib/inventory/single-use-products-data.csv` (+ `assets/upstream/`, `assets/taco-bell/`), reusables in `lib/inventory/assets/reusables/`, event foodware in `assets/event-foodware/`. Loaded via `getSingleUseProducts` / `getReusableProducts` / `getFoodwareOptions`. Bottle station is product ID `171` (`lib/calculator/constants/reusable-product-types.ts`). The admin Data Products area (`DataProductDefinition`) is the beginning of DB-driven product/calculator definitions, but the CSV catalogs remain the runtime source.
+
+## 13. Billing
+
+Stripe is retained (`lib/stripe/`, `/api/stripe/*`, `Org.stripeCustomerId/stripeSubscriptionId`, `subscription(-live).tsx`) but **is not part of signup** — signup is Supabase OAuth → onboarding. Subscription management is a standalone flow.
+
+## 14. Multi-currency & Units
+
+`Org.currency` (default USD) with formatting via `lib/currencies/` and the `<CurrencySymbol />` component + `CurrencyProvider` (use these, not the legacy `formatToDollar`). `Org.useMetricSystem` drives unit conversion in `lib/number.ts`.
+
+## 15. Local Development & Operations
+
+### Environment
+
+`.env` (local) / `.env.production` (production values, used by one-off scripts). Required vars: `DATABASE_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`; optional: `ANTHROPIC_API_KEY`, Stripe keys, Mixpanel, Google Maps. (Any `NEXT_PUBLIC_FIREBASE_*` template you find elsewhere is obsolete.)
+
+### Setup & daily commands
 
 ```bash
-git checkout -b feature/my-experimental-version
+yarn                        # install
+yarn dev                    # dev server (Turbopack) at :3000, local Postgres via .env
+yarn build                  # prisma generate + next build
+yarn test                   # jest watch mode; yarn test:ci for single run
+yarn prisma:validate|status|sync   # safe Prisma workflow (docs/PRISMA_WORKFLOW.md)
+npx tsx scripts/seed.ts     # seed local DB
 ```
 
-### Step 2 – Set up a local Postgres database
+Local DB: Postgres.app, database `chartreuse_local` (`psql` at `/Applications/Postgres.app/Contents/Versions/latest/bin`).
 
-Use [Postgres.app](https://postgresapp.com/) or Docker:
+### Production database rules
 
-```bash
-# Docker option
-docker run --name chartreuse-local -e POSTGRES_PASSWORD=password -p 5432:5432 -d postgres
-```
+- App connects through the Supabase **transaction pooler (port 6543)**; `lib/prisma.ts` auto-appends `?pgbouncer=true&sslmode=require` in production.
+- **Migrations must use the direct connection (port 5432)** with `npx prisma migrate deploy`.
+- One-off scripts against production: `npx dotenv-cli -e .env.production -- npx tsx scripts/foo.ts`. A script constructing its own `PrismaClient` must append `?pgbouncer=true&sslmode=require` itself or the pooler fails with `prepared statement "s0" already exists`. Scripts must live inside the repo (import resolution) and wrap logic in an async `main()` (no top-level await under tsx).
+- Diagnostics: `scripts/inspect-user-org.ts <email>` prints a user's DB record, org/account tree, and Supabase auth status.
+- Run the app locally against production data: `NEXT_PUBLIC_REMOTE_USER_ID=<user_id> yarn start:remote` (uses `.env.production`).
 
-Create a database:
+### Deployment
 
-```bash
-psql -h localhost -U postgres -c "CREATE DATABASE chartreuse_local;"
-```
+Push to `main` on `derekupstream/chartreuse` → Vercel auto-deploys. `prisma/schema.prisma` needs `binaryTargets = ["native", "rhel-openssl-3.0.x"]` for Vercel Linux. The Vercel build target does not support spreading a Set (`[...new Set(x)]`) — use `Array.from(new Set(x))`.
 
-### Step 3 – Configure environment
+### Client data-fetching gotcha
 
-Create a `.env` file in the project root:
-
-```env
-DATABASE_URL="postgresql://postgres:password@localhost:5432/chartreuse_local"
-NEXTAUTH_SECRET=<any-random-string>
-
-# Firebase (needed for auth – get from Firebase Console or use test config)
-NEXT_PUBLIC_FIREBASE_API_KEY=
-NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=
-NEXT_PUBLIC_FIREBASE_PROJECT_ID=
-NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=
-NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=
-NEXT_PUBLIC_FIREBASE_APP_ID=
-
-# Stripe (optional if not testing billing)
-STRIPE_SECRET_KEY=
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=
-
-# Mailgun (optional)
-MAILGUN_API_KEY=
-```
-
-### Step 4 – Run migrations and generate Prisma client
-
-```bash
-yarn prisma migrate dev
-yarn prisma generate
-```
-
-### Step 5 – Seed your database with the exported JSON data
-
-Write a seed script in `scripts/seed.ts` that reads your exported JSON files and uses Prisma to insert records in the correct order (respecting foreign key dependencies):
-
-```
-Order: Org → Account → User → Project → line items
-```
-
-### Step 6 – Run the app
-
-```bash
-yarn dev
-```
-
-Visit `http://localhost:3000`
-
----
-
-## Improvement Ideas for AI-Assisted Experimentation
-
-| Area | Idea |
-|---|---|
-| Calculator | Add more granular material-level GHG factors with updated EPA data |
-| Calculator | Add multi-year projection curves (not just year 1) |
-| Products | Replace static CSV catalog with a DB-backed product table |
-| Auth | Replace Firebase with NextAuth.js to simplify the auth stack |
-| Feature flags | Move org-ID-based flags to a DB-driven feature flag system |
-| UI | AI-assisted recommendations based on project data |
-| Analytics | Build an admin dashboard summarizing all customer projects |
-| Exports | Add PDF export of the projections dashboard |
-| API | Add a REST/GraphQL API layer for external integrations |
-| Testing | Increase test coverage for calculator pure functions |
-
----
-
-*This document reflects the codebase as of the `feature/my-changes` branch, based on commits through February 2026.*
+There is **no global `SWRConfig`** — `client/helpers.ts` wrappers (`useGET`, `usePOST`, …) supply fetchers, but any raw `useSWR` call must pass an explicit fetcher or it silently does nothing.
