@@ -1,6 +1,6 @@
-# ChartReuse — System Overview & Architecture Reference
+# Chart-Reuse — Product Roadmap & System Overview
 
-**This is the source-of-truth architecture document.** Regenerated 2026-07-15 by auditing every section against the live codebase. If this doc and another markdown file disagree, trust this one (and fix the other). For AI-assistant working notes see `CLAUDE.md` at the repo root.
+**This is the source-of-truth document for the product: what it is today and where it's heading.** (Formerly `SYSTEM_OVERVIEW.md`.) The architecture sections below were regenerated 2026-07-15 by auditing every section against the live codebase. If this doc and another markdown file disagree, trust this one (and fix the other). For the history of what shipped when, see `CHANGELOG.md`; for AI-assistant working notes see `CLAUDE.md` at the repo root.
 
 **Doc map — what remains authoritative elsewhere:**
 

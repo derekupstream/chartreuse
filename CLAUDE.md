@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What This App Is
 
-Chart-Reuse (by Upstream Solutions) is a SaaS calculator that projects the cost and environmental savings of switching from single-use to reusable foodware. Full architecture reference: `docs/SYSTEM_OVERVIEW.md`.
+Chart-Reuse (by Upstream Solutions) is a SaaS calculator that projects the cost and environmental savings of switching from single-use to reusable foodware. Full architecture reference: `docs/ROADMAP.md`.
 
 ## Commands
 

@@ -1,4 +1,4 @@
-> ⚠️ **SUPERSEDED (2026-07-15):** This document is outdated and may contain actively wrong guidance (Firebase/Heroku/Mailgun era). See [SYSTEM_OVERVIEW.md](SYSTEM_OVERVIEW.md) for current architecture, services, and setup.
+> ⚠️ **SUPERSEDED (2026-07-15):** This document is outdated and may contain actively wrong guidance (Firebase/Heroku/Mailgun era). See [ROADMAP.md](ROADMAP.md) for current architecture, services, and setup.
 
 # Auth Migration Guide: Firebase ↔ Supabase
 

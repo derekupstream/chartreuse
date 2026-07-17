@@ -4,7 +4,7 @@ Chart-Reuse is an app by Upstream Solutions for calculating the cost and environ
 
 Built with [Next.js](https://nextjs.org/) (pages router), [Prisma](https://prisma.io/) + PostgreSQL, and [Ant Design](https://ant.design/). Production runs on [Vercel](https://vercel.com/) with [Supabase](https://supabase.com/) providing the database and authentication.
 
-**📖 Full architecture reference: [docs/SYSTEM_OVERVIEW.md](docs/SYSTEM_OVERVIEW.md)** — the source-of-truth doc for the data model, calculator engine, auth, API surface, and operations.
+**📖 Full architecture reference: [docs/ROADMAP.md](docs/ROADMAP.md)** — the source-of-truth doc for the data model, calculator engine, auth, API surface, and operations.
 
 ## Setup
 
@@ -36,4 +36,4 @@ Managed by Prisma. Use the `prisma:validate` / `prisma:status` / `prisma:sync` s
 
 ## Billing
 
-Stripe is integrated for subscriptions but is **not** part of signup — signup is Supabase auth (Google OAuth or email/password) followed by in-app onboarding. See the Billing section of [docs/SYSTEM_OVERVIEW.md](docs/SYSTEM_OVERVIEW.md).
+Stripe is integrated for subscriptions but is **not** part of signup — signup is Supabase auth (Google OAuth or email/password) followed by in-app onboarding. See the Billing section of [docs/ROADMAP.md](docs/ROADMAP.md).

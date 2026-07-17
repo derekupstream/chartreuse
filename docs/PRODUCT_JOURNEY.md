@@ -1,4 +1,4 @@
-> ℹ️ **Note (2026-07-15):** This is a product-strategy narrative. Its built/partial/missing status tables are outdated — lineage, change requests, data products, and RSP ingestion have since shipped. For current architecture see [SYSTEM_OVERVIEW.md](SYSTEM_OVERVIEW.md).
+> ℹ️ **Note (2026-07-15):** This is a product-strategy narrative. Its built/partial/missing status tables are outdated — lineage, change requests, data products, and RSP ingestion have since shipped. For current architecture see [ROADMAP.md](ROADMAP.md).
 
 # Chart-Reuse Product Journey
 
