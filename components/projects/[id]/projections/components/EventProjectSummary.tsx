@@ -26,12 +26,14 @@ type Props = {
   data: ProjectionsResponse;
   showTitle?: boolean;
   useShrinkageRate: boolean;
+  showEnvBreakEven?: boolean;
 };
 
 export const EventProjectSummary: React.FC<Props> = ({
   data: { reusableResults, annualSummary, environmentalResults, bottleStationResults },
   useShrinkageRate,
-  showTitle
+  showTitle,
+  showEnvBreakEven
 }) => {
   const { symbol: currencySymbol } = useCurrency();
   const displayAsMetric = useMetricSystem();
@@ -146,7 +148,7 @@ export const EventProjectSummary: React.FC<Props> = ({
           </StyledCol> */}
         </Row>
       </SectionContainer>
-      <EnvironmentalSummary data={environmentalResults} isEventProject />
+      <EnvironmentalSummary data={environmentalResults} isEventProject showEnvBreakEven={showEnvBreakEven} />
     </>
   );
 };

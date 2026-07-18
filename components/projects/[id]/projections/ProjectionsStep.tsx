@@ -24,6 +24,7 @@ import { Switch } from 'antd';
 import Card from './components/common/Card';
 import { Divider, SectionHeader, SectionContainer } from './components/common/styles';
 import { isEugeneOrg } from 'lib/featureFlags';
+import { useChartReuse2 } from 'hooks/useChartReuse2';
 import type { InfoPage } from 'lib/infoPages';
 import { parseInfoPages, serializeInfoPages, EMPTY_SLATE } from 'lib/infoPages';
 
@@ -163,15 +164,15 @@ export const ProjectionsStep = ({ project, readOnly }: { project: ProjectContext
   }
 
   const hideSingleAndReusableDetailsForEugeneOrg = isEugeneOrg({ id: project.orgId });
+  // Timeline (milestone history) is a Chart-Reuse 2.0 feature — hidden on legacy.
+  const { enabled: v2Enabled } = useChartReuse2();
+  const timelineMenuItem = v2Enabled ? [{ key: 'timeline', label: 'Timeline' }] : [];
 
   const sidebarMenuItems = hideSingleAndReusableDetailsForEugeneOrg
-    ? [
-        { key: 'summary', label: 'Summary' },
-        { key: 'timeline', label: 'Timeline' }
-      ]
+    ? [{ key: 'summary', label: 'Summary' }, ...timelineMenuItem]
     : [
         { key: 'summary', label: 'Summary' },
-        { key: 'timeline', label: 'Timeline' },
+        ...timelineMenuItem,
         { key: 'single_use_details', label: 'Single-use details' },
         { key: 'reusable_details', label: 'Reusable details' }
       ];
@@ -222,7 +223,12 @@ export const ProjectionsStep = ({ project, readOnly }: { project: ProjectContext
         <div style={{ display: 'flex', gap: 16, alignItems: 'center', flexShrink: 0 }}>
           <PrintButton printRef={printRef} pdfTitle={`${project.name} - Chart-Reuse`} />
           {!project.isTemplate && <ShareButton projectId={project.id} publicSlug={project.publicSlug} />}
-          {!project.isTemplate && !readOnly && <SaveSnapshotButton projectId={project.id} />}
+          {!project.isTemplate && !readOnly && (
+            <SaveSnapshotButton
+              projectId={project.id}
+              isActuals={project.dataType === 'actual' || project.category === 'event'}
+            />
+          )}
         </div>
       </div>
       <Typography.Paragraph
@@ -267,12 +273,16 @@ export const ProjectionsStep = ({ project, readOnly }: { project: ProjectContext
         <StyledCol xs={24} md={19}>
           <span className={view === 'summary' ? '' : 'print-only'}>
             {project.category === 'event' ? (
-              <EventProjectSummary data={data} useShrinkageRate={project.org.useShrinkageRate} />
+              <EventProjectSummary
+                data={data}
+                useShrinkageRate={project.org.useShrinkageRate}
+                showEnvBreakEven={v2Enabled}
+              />
             ) : (
-              <ProjectSummary data={data} />
+              <ProjectSummary data={data} showEnvBreakEven={v2Enabled} />
             )}
           </span>
-          {view === 'timeline' && <ProjectTimeline projectId={project.id} data={data} />}
+          {v2Enabled && view === 'timeline' && <ProjectTimeline projectId={project.id} data={data} />}
 
           {!hideSingleAndReusableDetailsForEugeneOrg && (
             <>

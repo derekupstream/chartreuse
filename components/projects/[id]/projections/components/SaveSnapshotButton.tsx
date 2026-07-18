@@ -1,12 +1,17 @@
-import { CameraOutlined } from '@ant-design/icons';
+import { CameraOutlined, FlagOutlined } from '@ant-design/icons';
 import { Button, DatePicker, Form, Input, Modal, message } from 'antd';
 import dayjs from 'dayjs';
 import { useState } from 'react';
 
-export function SaveSnapshotButton({ projectId }: { projectId: string }) {
+// Projection projects create "Milestones"; actuals projects save "Snapshots".
+// Same API + ProjectMilestone record underneath — only the language differs.
+export function SaveSnapshotButton({ projectId, isActuals }: { projectId: string; isActuals?: boolean }) {
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [form] = Form.useForm();
+
+  const actionLabel = isActuals ? 'Save Snapshot' : 'Create Milestone';
+  const icon = isActuals ? <CameraOutlined /> : <FlagOutlined />;
 
   async function handleSave(values: { label?: string; snapshotDate?: dayjs.Dayjs }) {
     setSaving(true);
@@ -21,9 +26,9 @@ export function SaveSnapshotButton({ projectId }: { projectId: string }) {
       });
       if (!res.ok) {
         const err = await res.json();
-        throw new Error(err.message || 'Failed to save snapshot');
+        throw new Error(err.message || `Failed to ${isActuals ? 'save snapshot' : 'create milestone'}`);
       }
-      message.success('Snapshot saved');
+      message.success(isActuals ? 'Snapshot saved' : 'Milestone created');
       setOpen(false);
       form.resetFields();
     } catch (err: any) {
@@ -35,11 +40,11 @@ export function SaveSnapshotButton({ projectId }: { projectId: string }) {
 
   return (
     <>
-      <Button icon={<CameraOutlined />} onClick={() => setOpen(true)}>
-        Save Snapshot
+      <Button icon={icon} onClick={() => setOpen(true)}>
+        {actionLabel}
       </Button>
       <Modal
-        title='Save Milestone Snapshot'
+        title={actionLabel}
         open={open}
         onCancel={() => {
           setOpen(false);
@@ -50,11 +55,12 @@ export function SaveSnapshotButton({ projectId }: { projectId: string }) {
         destroyOnClose
       >
         <p style={{ color: 'rgba(0,0,0,0.55)', marginTop: 0 }}>
-          Captures the current calculated metrics as a milestone. Snapshots build a timeline of your program&apos;s
-          impact over time.
+          {isActuals
+            ? "Captures the current measured metrics as a snapshot. Snapshots build a timeline of your program's impact over time."
+            : "Captures the current calculated metrics as a milestone. Milestones build a timeline of your program's projected impact over time."}
         </p>
         <Form form={form} layout='vertical' onFinish={handleSave} initialValues={{ snapshotDate: dayjs() }}>
-          <Form.Item name='snapshotDate' label='Snapshot Date'>
+          <Form.Item name='snapshotDate' label={isActuals ? 'Snapshot Date' : 'Milestone Date'}>
             <DatePicker style={{ width: '100%' }} />
           </Form.Item>
           <Form.Item name='label' label='Label (optional)'>
@@ -64,8 +70,8 @@ export function SaveSnapshotButton({ projectId }: { projectId: string }) {
             <Button onClick={() => setOpen(false)} style={{ marginRight: 8 }}>
               Cancel
             </Button>
-            <Button type='primary' htmlType='submit' loading={saving} icon={<CameraOutlined />}>
-              Save Snapshot
+            <Button type='primary' htmlType='submit' loading={saving} icon={icon}>
+              {actionLabel}
             </Button>
           </Form.Item>
         </Form>

@@ -6,11 +6,13 @@ import { EnvironmentalSummary } from './EnvironmentalSummary/EnvironmentalSummar
 export function ProjectSummary({
   data,
   businessSize,
-  isOnSiteDiningProject
+  isOnSiteDiningProject,
+  showEnvBreakEven
 }: {
   data: ProjectionsResponse;
   businessSize?: number;
   isOnSiteDiningProject?: boolean;
+  showEnvBreakEven?: boolean;
 }) {
   return (
     <>
@@ -18,7 +20,7 @@ export function ProjectSummary({
       <div className='page-break' />
       <FinancialSummary data={data.financialResults} businessSize={businessSize} />
       <div className='page-break' />
-      <EnvironmentalSummary data={data.environmentalResults} />
+      <EnvironmentalSummary data={data.environmentalResults} showEnvBreakEven={showEnvBreakEven} />
     </>
   );
 }

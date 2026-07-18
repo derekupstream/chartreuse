@@ -26,9 +26,16 @@ type Props = {
   data: ProjectionsResponse['environmentalResults'];
   hideWaterUsage?: boolean;
   isEventProject?: boolean;
+  /** Environmental break-even card is a Chart-Reuse 2.0 feature in-app; defaults on so public share pages are unaffected. */
+  showEnvBreakEven?: boolean;
 };
 
-export const EnvironmentalSummary: React.FC<Props> = ({ data, hideWaterUsage, isEventProject }) => {
+export const EnvironmentalSummary: React.FC<Props> = ({
+  data,
+  hideWaterUsage,
+  isEventProject,
+  showEnvBreakEven = true
+}) => {
   const displayAsMetric = useMetricSystem();
   const [units, setUnits] = useState<'pounds' | 'tons'>('pounds');
   const onChangeResults = (event: RadioChangeEvent) => {
@@ -250,7 +257,8 @@ export const EnvironmentalSummary: React.FC<Props> = ({ data, hideWaterUsage, is
           </InspectTooltip>
         </StyledCol>
 
-        {data.envBreakEven &&
+        {showEnvBreakEven &&
+          data.envBreakEven &&
           (data.envBreakEven.co2BreakEvenMonths != null || data.envBreakEven.embodiedCO2Mtco2e > 0) && (
             <StyledCol xs={24} lg={12}>
               <InspectTooltip

@@ -39,6 +39,7 @@ import type { AllProjectsSummary, ProjectSummary } from 'lib/calculator/getProje
 import { formatToDollar } from 'lib/calculator/utils';
 import { requestDownload } from 'lib/files';
 import { useMetricSystem } from 'components/_app/MetricSystemProvider';
+import { useChartReuse2 } from 'hooks/useChartReuse2';
 import { valueInPounds, valueInGallons } from 'lib/number';
 import { SummaryCardWithGraph, SummaryCard, SummaryCardSingleUseBreakdown } from './components/SummaryCardWithGraph';
 import { useCurrency } from 'components/_app/CurrencyProvider';
@@ -337,6 +338,10 @@ export function AnalyticsPage({
   const router = useRouter();
   const { tags } = useTags(user.org.id);
   const displayAsMetric = useMetricSystem();
+  // Impact Projection timeline is Chart-Reuse 2.0 only in-app; public share pages
+  // (isReadOnly) keep it so existing share links don't lose content.
+  const { enabled: v2Enabled } = useChartReuse2();
+  const showProjectionTimeline = v2Enabled || isReadOnly;
   const { abbreviation: currencyAbbreviation } = useCurrency();
   const printRef = useRef(null);
   const { views: savedViews, saveView, deleteView } = useSavedViews(user.org.id);
@@ -884,7 +889,7 @@ export function AnalyticsPage({
       </div>
 
       {/* ── Projections timeline ─────────────────────────────────────────── */}
-      {activeTab === 'projections' && filteredProjects.length > 0 && (
+      {showProjectionTimeline && activeTab === 'projections' && filteredProjects.length > 0 && (
         <div style={{ marginTop: 16 }}>
           <ProjectionTimeline
             projects={filteredProjects}
