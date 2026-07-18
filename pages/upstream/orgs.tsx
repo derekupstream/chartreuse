@@ -5,6 +5,7 @@ import Organizations from 'components/upstream/orgs';
 import type { DashboardUser } from 'interfaces';
 import { DashboardLayout as Template } from 'layouts/DashboardLayout/DashboardLayout';
 import { checkIsUpstream, checkLogin } from 'lib/middleware';
+import { ACCESS_DENIED_REDIRECT } from 'lib/middleware/requireUpstream';
 import { serializeJSON } from 'lib/objects';
 import prisma from 'lib/prisma';
 import type { PageProps } from 'pages/_app';
@@ -23,9 +24,7 @@ export const getServerSideProps: GetServerSideProps<{ user: DashboardUser; orgs:
     const isUpstream = await checkIsUpstream(response.props.user.org.id);
 
     if (!isUpstream) {
-      return {
-        notFound: true
-      };
+      return ACCESS_DENIED_REDIRECT;
     }
 
     const orgs = await prisma.org.findMany({
@@ -46,9 +45,7 @@ export const getServerSideProps: GetServerSideProps<{ user: DashboardUser; orgs:
       })
     };
   } else {
-    return {
-      notFound: true
-    };
+    return ACCESS_DENIED_REDIRECT;
   }
 };
 

@@ -19,7 +19,7 @@ import type { DashboardUser } from 'interfaces';
 import { AdminLayout } from 'layouts/AdminLayout';
 import { scanCalculatorFunctions } from 'lib/admin/calculatorScan';
 import { getUserFromContext } from 'lib/middleware';
-import { checkIsUpstream } from 'lib/middleware/requireUpstream';
+import { ACCESS_DENIED_REDIRECT, checkIsUpstream } from 'lib/middleware/requireUpstream';
 import { serializeJSON } from 'lib/objects';
 import prisma from 'lib/prisma';
 import type { PageProps } from 'pages/_app';
@@ -459,9 +459,9 @@ DataSciencePage.getLayout = (page: React.ReactNode, pageProps: PageProps) => pag
 
 export const getServerSideProps: GetServerSideProps = async context => {
   const { user } = await getUserFromContext(context, { org: true });
-  if (!user?.org.isUpstream) return { notFound: true };
+  if (!user?.org.isUpstream) return ACCESS_DENIED_REDIRECT;
   const isUpstream = await checkIsUpstream(user.org.id);
-  if (!isUpstream) return { notFound: true };
+  if (!isUpstream) return ACCESS_DENIED_REDIRECT;
 
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 

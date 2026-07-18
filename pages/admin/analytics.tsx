@@ -8,6 +8,7 @@ import { getAllProjections } from 'lib/calculator/getProjections';
 import { getUserFromContext } from 'lib/middleware';
 import { serializeJSON } from 'lib/objects';
 import prisma from 'lib/prisma';
+import { ACCESS_DENIED_REDIRECT } from 'lib/middleware/requireUpstream';
 
 export const getServerSideProps: GetServerSideProps<PageProps> = async context => {
   const { user } = await getUserFromContext(context, { org: true });
@@ -16,7 +17,7 @@ export const getServerSideProps: GetServerSideProps<PageProps> = async context =
   const projectCategory = ProjectCategory[categoryRaw as keyof typeof ProjectCategory] || 'default';
 
   if (!user?.org.isUpstream) {
-    return { notFound: true };
+    return ACCESS_DENIED_REDIRECT;
   }
 
   const [projects, projectsInOtherCategory] = await Promise.all([

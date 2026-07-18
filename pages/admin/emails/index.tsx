@@ -7,7 +7,7 @@ import useSWR from 'swr';
 
 import { DashboardLayout as Template } from 'layouts/DashboardLayout/DashboardLayout';
 import { checkLogin } from 'lib/middleware';
-import { checkIsUpstream } from 'lib/middleware/requireUpstream';
+import { ACCESS_DENIED_REDIRECT, checkIsUpstream } from 'lib/middleware/requireUpstream';
 import type { PageProps } from 'pages/_app';
 import type { EmailEventListItem } from 'pages/api/admin/emails/index';
 
@@ -16,9 +16,9 @@ const fetcher = (url: string) => fetch(url).then(r => r.json());
 export const getServerSideProps: GetServerSideProps = async context => {
   const response = await checkLogin(context);
   if (response.redirect) return response;
-  if (!response.props.user?.org.isUpstream) return { notFound: true };
+  if (!response.props.user?.org.isUpstream) return ACCESS_DENIED_REDIRECT;
   const ok = await checkIsUpstream(response.props.user.org.id);
-  if (!ok) return { notFound: true };
+  if (!ok) return ACCESS_DENIED_REDIRECT;
   return response;
 };
 

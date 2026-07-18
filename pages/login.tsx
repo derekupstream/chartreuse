@@ -1,3 +1,4 @@
+import { message } from 'antd';
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
 
@@ -15,6 +16,14 @@ export default function Login() {
       router.push('/projects');
     }
   }, [firebaseUser]);
+
+  // Non-Upstream users hitting /admin land here with ?error=access_denied
+  // (see ACCESS_DENIED_REDIRECT in lib/middleware/requireUpstream.ts).
+  useEffect(() => {
+    if (router.isReady && router.query.error === 'access_denied') {
+      message.error('Access Denied: you do not have permission to view that page.', 5);
+    }
+  }, [router.isReady, router.query.error]);
 
   return (
     <>

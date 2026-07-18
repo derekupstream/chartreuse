@@ -9,6 +9,7 @@ import { AdminLayout } from 'layouts/AdminLayout';
 import { getUserFromContext } from 'lib/middleware';
 import { serializeJSON } from 'lib/objects';
 import prisma from 'lib/prisma';
+import { ACCESS_DENIED_REDIRECT } from 'lib/middleware/requireUpstream';
 
 const { Title, Text } = Typography;
 
@@ -248,7 +249,7 @@ export default function TestRunDetailPage({ user, run, ranByName }: Props) {
 
 export const getServerSideProps: GetServerSideProps = async context => {
   const { user } = await getUserFromContext(context, { org: true });
-  if (!user?.org.isUpstream) return { notFound: true };
+  if (!user?.org.isUpstream) return ACCESS_DENIED_REDIRECT;
 
   const { id } = context.params as { id: string };
 

@@ -4,6 +4,14 @@ import prisma from 'lib/prisma';
 
 import type { NextApiRequestWithUser } from './getUser';
 
+/**
+ * getServerSideProps return value for non-Upstream users hitting /admin pages.
+ * Sends them to the login screen, where the access_denied error pops a message.
+ */
+export const ACCESS_DENIED_REDIRECT = {
+  redirect: { permanent: false, destination: '/login?error=access_denied' }
+} as const;
+
 export async function checkIsUpstream(orgId: string) {
   return prisma.org
     .count({

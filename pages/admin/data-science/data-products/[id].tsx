@@ -10,7 +10,7 @@ import { AdminLayout } from 'layouts/AdminLayout';
 import { CALCULATOR_REGISTRY } from 'lib/admin/calculatorRegistry';
 import type { RegisteredFunction } from 'lib/admin/calculatorRegistry';
 import { getUserFromContext } from 'lib/middleware';
-import { checkIsUpstream } from 'lib/middleware/requireUpstream';
+import { ACCESS_DENIED_REDIRECT, checkIsUpstream } from 'lib/middleware/requireUpstream';
 import { serializeJSON } from 'lib/objects';
 import prisma from 'lib/prisma';
 import type { PageProps } from 'pages/_app';
@@ -432,9 +432,9 @@ DataProductEditorPage.getLayout = (page: React.ReactNode, pageProps: PageProps) 
 
 export const getServerSideProps: GetServerSideProps = async context => {
   const { user } = await getUserFromContext(context, { org: true });
-  if (!user?.org.isUpstream) return { notFound: true };
+  if (!user?.org.isUpstream) return ACCESS_DENIED_REDIRECT;
   const isUpstream = await checkIsUpstream(user.org.id);
-  if (!isUpstream) return { notFound: true };
+  if (!isUpstream) return ACCESS_DENIED_REDIRECT;
 
   const { id } = context.params as { id: string };
   const product = await prisma.dataProductDefinition.findUnique({ where: { id } });

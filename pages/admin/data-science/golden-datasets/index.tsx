@@ -30,7 +30,7 @@ import { useState } from 'react';
 import type { DashboardUser } from 'interfaces';
 import { AdminLayout } from 'layouts/AdminLayout';
 import { getUserFromContext } from 'lib/middleware';
-import { checkIsUpstream } from 'lib/middleware/requireUpstream';
+import { ACCESS_DENIED_REDIRECT, checkIsUpstream } from 'lib/middleware/requireUpstream';
 import { serializeJSON } from 'lib/objects';
 import prisma from 'lib/prisma';
 
@@ -259,9 +259,9 @@ export default function GoldenDatasetsPage({ user, datasets: initialDatasets, pr
 
 export const getServerSideProps: GetServerSideProps = async context => {
   const { user } = await getUserFromContext(context, { org: true });
-  if (!user?.org.isUpstream) return { notFound: true };
+  if (!user?.org.isUpstream) return ACCESS_DENIED_REDIRECT;
   const isUpstream = await checkIsUpstream(user.org.id);
-  if (!isUpstream) return { notFound: true };
+  if (!isUpstream) return ACCESS_DENIED_REDIRECT;
 
   const [rawDatasets, projects] = await Promise.all([
     prisma.goldenDataset.findMany({
