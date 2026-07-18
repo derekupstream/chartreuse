@@ -166,8 +166,8 @@ export const BaseLayout: React.FC<DashboardProps> = ({ user, selectedMenuItem, t
 
   const accountLinks: MenuProps['items'] = [
     {
-      key: 'members',
-      label: <Link href='/members'>Members</Link>
+      key: 'settings',
+      label: <Link href='/settings'>Settings</Link>
     },
     {
       key: 'help',
@@ -182,13 +182,6 @@ export const BaseLayout: React.FC<DashboardProps> = ({ user, selectedMenuItem, t
       label: <a onClick={handleLogout}>Logout</a>
     }
   ];
-
-  if (user.role === 'ORG_ADMIN') {
-    accountLinks.unshift({
-      key: 'settings',
-      label: <Link href='/settings'>Settings</Link>
-    });
-  }
 
   const isOnAdminPage = adminLinks.some(link => link?.key === selectedMenuItem);
 

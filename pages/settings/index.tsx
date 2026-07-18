@@ -4,6 +4,7 @@ import {
   CheckOutlined,
   CopyOutlined,
   SettingOutlined,
+  TeamOutlined,
   UserOutlined
 } from '@ant-design/icons';
 import {
@@ -114,6 +115,8 @@ export default function SettingsPage({ user, apiKeys: initialApiKeys }: Props) {
 
   const org = user.org;
   const isRsp = org.orgType === 'reuse-service-provider';
+  // Everyone can view settings; only org admins can edit (the org API rejects other roles).
+  const isOrgAdmin = user.role === 'ORG_ADMIN';
 
   const [profileForm] = Form.useForm();
   const [prefsForm] = Form.useForm();
@@ -261,6 +264,7 @@ export default function SettingsPage({ user, apiKeys: initialApiKeys }: Props) {
               <Form
                 form={profileForm}
                 layout='vertical'
+                disabled={!isOrgAdmin}
                 initialValues={{
                   name: org.name,
                   country: org.country,
@@ -305,12 +309,15 @@ export default function SettingsPage({ user, apiKeys: initialApiKeys }: Props) {
                   <Select placeholder='Select your primary challenge' options={PRIMARY_CHALLENGES} allowClear />
                 </Form.Item>
 
-                <Form.Item style={{ marginBottom: 0 }}>
-                  <Button type='primary' htmlType='submit' loading={saving}>
-                    Save Account Settings
-                  </Button>
-                </Form.Item>
+                {isOrgAdmin && (
+                  <Form.Item style={{ marginBottom: 0 }}>
+                    <Button type='primary' htmlType='submit' loading={saving}>
+                      Save Account Settings
+                    </Button>
+                  </Form.Item>
+                )}
               </Form>
+              {!isOrgAdmin && <Text type='secondary'>Only organization admins can edit these settings.</Text>}
             </Card>
           </>
         )}
@@ -326,6 +333,7 @@ export default function SettingsPage({ user, apiKeys: initialApiKeys }: Props) {
               <Form
                 form={prefsForm}
                 layout='vertical'
+                disabled={!isOrgAdmin}
                 initialValues={{
                   currency: org.currency,
                   useMetricSystem: org.useMetricSystem,
@@ -359,12 +367,37 @@ export default function SettingsPage({ user, apiKeys: initialApiKeys }: Props) {
                   </Radio.Group>
                 </Form.Item>
 
-                <Form.Item style={{ marginBottom: 0 }}>
-                  <Button type='primary' htmlType='submit' loading={saving}>
-                    Save Preferences
-                  </Button>
-                </Form.Item>
+                {isOrgAdmin && (
+                  <Form.Item style={{ marginBottom: 0 }}>
+                    <Button type='primary' htmlType='submit' loading={saving}>
+                      Save Preferences
+                    </Button>
+                  </Form.Item>
+                )}
               </Form>
+              {!isOrgAdmin && <Text type='secondary'>Only organization admins can edit these settings.</Text>}
+            </Card>
+
+            <Card style={{ marginTop: 24 }}>
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  flexWrap: 'wrap',
+                  gap: 12
+                }}
+              >
+                <div>
+                  <Title level={5} style={{ marginTop: 0, marginBottom: 4 }}>
+                    Members
+                  </Title>
+                  <Text type='secondary'>Invite teammates and manage who has access to your organization.</Text>
+                </div>
+                <Button icon={<TeamOutlined />} href='/members'>
+                  Manage Members
+                </Button>
+              </div>
             </Card>
           </>
         )}
