@@ -11,6 +11,12 @@ import type { PageProps } from 'pages/_app';
 // @ts-ignore TODO: rewrite checkLogin()
 export const getServerSideProps: GetServerSideProps<MembersProps> = async context => {
   const response = await checkLogin(context);
+
+  // Member management lives under Organizational Settings — org admins only.
+  if (response.props?.user && response.props.user.role !== 'ORG_ADMIN') {
+    return { redirect: { permanent: false, destination: '/projects' } };
+  }
+
   if (response.props.user?.orgId) {
     const users = await prisma.user.findMany({
       where: {

@@ -17,6 +17,11 @@ type Response = {
 };
 
 async function sendInvite(req: NextApiRequestWithUser, res: NextApiResponse<Response>) {
+  // Member management is org-admin only (matches /members page + Organizational Settings).
+  if (req.user.role !== 'ORG_ADMIN') {
+    return res.status(403).json({ message: 'Only organization admins can invite members' } as any);
+  }
+
   const { email, accountId } = req.body;
   const orgId = req.user.orgId;
   const userId = req.user.id;

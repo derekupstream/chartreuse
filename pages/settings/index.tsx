@@ -115,7 +115,7 @@ export default function SettingsPage({ user, apiKeys: initialApiKeys }: Props) {
 
   const org = user.org;
   const isRsp = org.orgType === 'reuse-service-provider';
-  // Everyone can view settings; only org admins can edit (the org API rejects other roles).
+  // Everyone gets the Settings page; Organizational Settings (incl. Members) is org-admin only.
   const isOrgAdmin = user.role === 'ORG_ADMIN';
 
   const [profileForm] = Form.useForm();
@@ -206,7 +206,7 @@ export default function SettingsPage({ user, apiKeys: initialApiKeys }: Props) {
     }
   ];
 
-  const visibleSections = isRsp ? SECTIONS : SECTIONS.filter(s => s.key !== 'api');
+  const visibleSections = SECTIONS.filter(s => (s.key !== 'api' || isRsp) && (s.key !== 'org' || isOrgAdmin));
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: '#f4f3f0' }}>
@@ -322,8 +322,8 @@ export default function SettingsPage({ user, apiKeys: initialApiKeys }: Props) {
           </>
         )}
 
-        {/* Organizational Settings */}
-        {section === 'org' && (
+        {/* Organizational Settings — org admins only */}
+        {section === 'org' && isOrgAdmin && (
           <>
             <Title level={3}>Organizational Settings</Title>
             <Text type='secondary' style={{ display: 'block', marginBottom: 24 }}>
@@ -333,7 +333,6 @@ export default function SettingsPage({ user, apiKeys: initialApiKeys }: Props) {
               <Form
                 form={prefsForm}
                 layout='vertical'
-                disabled={!isOrgAdmin}
                 initialValues={{
                   currency: org.currency,
                   useMetricSystem: org.useMetricSystem,
@@ -367,15 +366,12 @@ export default function SettingsPage({ user, apiKeys: initialApiKeys }: Props) {
                   </Radio.Group>
                 </Form.Item>
 
-                {isOrgAdmin && (
-                  <Form.Item style={{ marginBottom: 0 }}>
-                    <Button type='primary' htmlType='submit' loading={saving}>
-                      Save Preferences
-                    </Button>
-                  </Form.Item>
-                )}
+                <Form.Item style={{ marginBottom: 0 }}>
+                  <Button type='primary' htmlType='submit' loading={saving}>
+                    Save Preferences
+                  </Button>
+                </Form.Item>
               </Form>
-              {!isOrgAdmin && <Text type='secondary'>Only organization admins can edit these settings.</Text>}
             </Card>
 
             <Card style={{ marginTop: 24 }}>

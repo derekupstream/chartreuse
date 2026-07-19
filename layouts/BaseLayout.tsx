@@ -187,7 +187,7 @@ export const BaseLayout: React.FC<DashboardProps> = ({ user, selectedMenuItem, t
 
   const allMobileMenuItems: MenuProps['items'] = [
     ...(menuLinks ?? []),
-    ...(user.org.isUpstream ? [{ key: 'admin', label: 'Admin', children: adminDropdownItems }] : []),
+    ...(user.org.isUpstream ? [{ key: 'admin', label: 'Super Admin', children: adminDropdownItems }] : []),
     { type: 'divider' },
     ...(accountLinks ?? [])
   ];
@@ -239,7 +239,7 @@ export const BaseLayout: React.FC<DashboardProps> = ({ user, selectedMenuItem, t
                         fontSize: 14
                       }}
                     >
-                      Admin <DownOutlined style={{ fontSize: 10 }} />
+                      Super Admin <DownOutlined style={{ fontSize: 10 }} />
                     </Link>
                   </Dropdown>
                 </>
