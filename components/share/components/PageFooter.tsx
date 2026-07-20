@@ -10,7 +10,10 @@ export function PageFooter() {
         <Link style={{ textDecoration: 'underline', textUnderlineOffset: '2px' }} href='/signup'>
           Create a free account
         </Link>{' '}
-        and get started
+        and get started &middot;{' '}
+        <Link style={{ textDecoration: 'underline', textUnderlineOffset: '2px' }} href='/methodology'>
+          Our methodology &amp; assumptions
+        </Link>
       </em>
     </FooterContainer>
   );

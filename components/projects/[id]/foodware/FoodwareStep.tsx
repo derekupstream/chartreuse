@@ -7,7 +7,7 @@ import { useMemo, useState, useEffect } from 'react';
 
 import ContentLoader from 'components/common/ContentLoader';
 import { PRODUCT_CATEGORIES } from 'lib/calculator/constants/product-categories';
-import { useGetFoodwareOptions } from 'client/inventory';
+import { useGetFoodwareOptions, useGetReusableProducts, useGetSingleUseProducts } from 'client/inventory';
 import { EmptyState } from '../components/EmptyState';
 import { useFooterState } from '../components/Footer';
 import { CATEGORY_ICONS } from '../single-use/components/CategoryIcons';
@@ -23,6 +23,8 @@ export function FoodwareStep({ readOnly, project }: { readOnly: boolean; project
   const [formValues, setFormValues] = useState<FoodwareLineItemFormValues | null>(null);
   const { trigger: addOrUpdateFoodwareLineItem } = useAddOrUpdateFoodwareLineItem(project?.id);
   const { data: foodwareOptions, isLoading: isLoadingFoodwareOptions } = useGetFoodwareOptions();
+  const { data: reusableProducts } = useGetReusableProducts();
+  const { data: singleUseProducts } = useGetSingleUseProducts();
   const {
     data: lineItems,
     isLoading: isLoadingLineItems,
@@ -141,7 +143,13 @@ export function FoodwareStep({ readOnly, project }: { readOnly: boolean; project
             contentWrapperStyle={{ width: '600px' }}
             destroyOnClose={true}
           >
-            <FoodwareLineItemForm input={formValues} options={foodwareOptions || []} onSubmit={onSubmitItem} />
+            <FoodwareLineItemForm
+              input={formValues}
+              options={foodwareOptions || []}
+              reusableProducts={reusableProducts || []}
+              singleUseProducts={singleUseProducts || []}
+              onSubmit={onSubmitItem}
+            />
           </Drawer>
         </>
       )}

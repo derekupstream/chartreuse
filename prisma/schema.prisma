@@ -55,6 +55,9 @@ model Org {
   reuseJourneyStage    String?
   primaryChallenge     String?
   analyticsSlug        String?           @unique
+  // Curated product catalog: { reusableProductIds?: string[], singleUseProductIds?: string[] }.
+  // Null/empty lists = full catalog. Filters the product pickers via /api/inventory/*.
+  catalogSettings      Json?
   accounts             Account[]
   rspClientAccounts    Account[]         @relation("AccountRspOrg")
   invites              Invite[]

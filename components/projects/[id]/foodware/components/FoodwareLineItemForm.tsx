@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 
 import * as S from '../../styles';
 import type { FoodwareOption } from 'lib/inventory/assets/event-foodware/getFoodwareOptions';
+import type { ReusableProduct, SingleUseProduct } from 'lib/inventory/types/products';
 
 export type FoodwareLineItemFormValues = {
   id?: string;
@@ -10,65 +11,92 @@ export type FoodwareLineItemFormValues = {
   singleUseProductId: string;
 };
 
+const searchByLabel = (input: string, option?: { label?: string }) =>
+  (option?.label ?? '').toLowerCase().includes(input.toLowerCase());
+
 export function FoodwareLineItemForm({
   input,
   onSubmit,
-  options
+  options,
+  reusableProducts,
+  singleUseProducts
 }: {
   input?: FoodwareLineItemFormValues | null;
   onSubmit: (values: FoodwareLineItemFormValues) => void;
   options: FoodwareOption[];
+  reusableProducts: ReusableProduct[];
+  singleUseProducts: SingleUseProduct[];
 }) {
-  const [selectedOption, setOption] = useState<FoodwareOption | null>(null);
+  const [reusableProductId, setReusableProductId] = useState<string | undefined>(undefined);
+  const [singleUseProductId, setSingleUseProductId] = useState<string | undefined>(undefined);
 
   useEffect(() => {
-    // set the default values if we already have a product
-    if (input) {
-      const foodwareOption = options.find(
-        p => p.reusable.id === input.reusableProductId && p.singleuse.id === input.singleUseProductId
-      );
-      if (foodwareOption) {
-        setOption(foodwareOption);
-      }
-    }
-  }, [input, options, setOption]);
+    // set the default values if we already have a product — any pairing from the
+    // full catalogs is valid, not just the curated foodware options
+    setReusableProductId(input?.reusableProductId);
+    setSingleUseProductId(input?.singleUseProductId);
+  }, [input]);
+
+  const selectedPairing =
+    options.find(o => o.reusable.id === reusableProductId && o.singleuse.id === singleUseProductId) ?? null;
 
   function _onSubmit() {
-    if (selectedOption) {
+    if (reusableProductId && singleUseProductId) {
       onSubmit({
         id: input?.id,
-        reusableProductId: selectedOption.reusable.id,
-        singleUseProductId: selectedOption.singleuse.id
+        reusableProductId,
+        singleUseProductId
       });
     }
   }
 
   return (
     <Form layout='vertical'>
-      <Form.Item label='Select a product'>
+      <Form.Item label='Common pairings' help='Optional shortcut — picking one fills in both products below.'>
         <Select
-          placeholder='Select a product'
-          value={selectedOption ? `${selectedOption.reusable.id}-${selectedOption.singleuse.id}` : undefined}
+          placeholder='Select a common pairing'
+          value={selectedPairing ? `${selectedPairing.reusable.id}-${selectedPairing.singleuse.id}` : undefined}
           onChange={value => {
             const [reusableId, singleId] = value.split('-');
-            const option = options.find(o => o.reusable.id === reusableId && o.singleuse.id === singleId);
-            setOption(option || null);
+            setReusableProductId(reusableId);
+            setSingleUseProductId(singleId);
           }}
           style={{ width: '100%' }}
-        >
-          {options.map(option => (
-            <Select.Option
-              key={`${option.reusable.id}-${option.singleuse.id}`}
-              value={`${option.reusable.id}-${option.singleuse.id}`}
-            >
-              {option.title}
-            </Select.Option>
-          ))}
-        </Select>
+          options={options.map(option => ({
+            value: `${option.reusable.id}-${option.singleuse.id}`,
+            label: option.title
+          }))}
+        />
+      </Form.Item>
+      <Form.Item label='Reusable product' required>
+        <Select
+          placeholder='Search the reusable catalog'
+          showSearch
+          filterOption={searchByLabel}
+          value={reusableProductId}
+          onChange={setReusableProductId}
+          style={{ width: '100%' }}
+          options={[...reusableProducts]
+            .sort((a, b) => a.description.localeCompare(b.description))
+            .map(product => ({ value: product.id, label: product.description }))}
+        />
+      </Form.Item>
+      <Form.Item label='Single-use product being replaced' required>
+        <Select
+          placeholder='Search the single-use catalog'
+          showSearch
+          filterOption={searchByLabel}
+          value={singleUseProductId}
+          onChange={setSingleUseProductId}
+          style={{ width: '100%' }}
+          options={[...singleUseProducts]
+            .sort((a, b) => a.description.localeCompare(b.description))
+            .map(product => ({ value: product.id, label: product.description }))}
+        />
       </Form.Item>
       <S.BoxEnd>
         <div></div>
-        <Button size='large' type='primary' disabled={!selectedOption} onClick={_onSubmit}>
+        <Button size='large' type='primary' disabled={!reusableProductId || !singleUseProductId} onClick={_onSubmit}>
           {'Next'}
         </Button>
       </S.BoxEnd>

@@ -4,6 +4,7 @@ import { Button, Card, Col, Descriptions, Row, Statistic, Table, Tabs, Tag, Tool
 import type { GetServerSideProps } from 'next';
 import { useRouter } from 'next/router';
 
+import { CatalogCurationPanel } from 'components/settings/CatalogCurationPanel';
 import type { DashboardUser } from 'interfaces';
 import { AdminLayout } from 'layouts/AdminLayout';
 import { ACCESS_DENIED_REDIRECT, checkIsUpstream } from 'lib/middleware/requireUpstream';
@@ -227,6 +228,15 @@ function AdminOrgDetailPage({ user, org }: { user: DashboardUser; org: OrgDetail
             pagination={{ hideOnSinglePage: true }}
             size='small'
           />
+        </Card>
+      )
+    },
+    {
+      key: 'catalog',
+      label: 'Product Catalog',
+      children: (
+        <Card>
+          <CatalogCurationPanel endpoint={`/api/admin/orgs/${org.id}/catalog`} />
         </Card>
       )
     }
