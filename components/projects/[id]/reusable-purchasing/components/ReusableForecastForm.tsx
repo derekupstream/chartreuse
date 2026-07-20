@@ -13,9 +13,16 @@ const DEFAULT_RETURN_RATE = 95;
 type Props = {
   input: Partial<ReusableFormValues>;
   goBack: (form: Partial<ReusableFormValues>) => void;
-  onSubmit(values: { casesAnnually: number }): void;
+  onSubmit(values: { annualRepurchasePercentage: number }): void;
   productName?: string;
 };
+
+// The Return Rate is stored directly as annualRepurchasePercentage (1 - rate/100).
+// It must NOT round-trip through an integer case count: with small orders the
+// ceiling distorts it badly (95% return on 1 case purchased became 100% repurchase).
+function toRepurchasePercentage(returnRate: number | undefined): number {
+  return Math.max(0, Math.min(1, 1 - (returnRate ?? DEFAULT_RETURN_RATE) / 100));
+}
 
 const ReusablePurchasingSecondStepForm: FC<Props> = props => {
   const { input, goBack, onSubmit, productName } = props;
@@ -23,19 +30,13 @@ const ReusablePurchasingSecondStepForm: FC<Props> = props => {
   const [form] = Form.useForm<{ returnRate: number; casesPurchased: number }>();
 
   function _goBack() {
-    const returnRate = form.getFieldValue('returnRate') ?? DEFAULT_RETURN_RATE;
-    const casesPurchased = form.getFieldValue('casesPurchased') ?? input.casesPurchased ?? 0;
-    const annualRepurchasePercentage = Math.max(0, Math.min(1, 1 - returnRate / 100));
     goBack({
-      annualRepurchasePercentage
+      annualRepurchasePercentage: toRepurchasePercentage(form.getFieldValue('returnRate'))
     });
   }
 
   function handleFinish(values: { returnRate: number }) {
-    const casesPurchased = input.casesPurchased ?? 0;
-    const repurchasePct = Math.max(0, Math.min(1, 1 - (values.returnRate ?? DEFAULT_RETURN_RATE) / 100));
-    const casesAnnually = Math.ceil(repurchasePct * casesPurchased);
-    onSubmit({ casesAnnually });
+    onSubmit({ annualRepurchasePercentage: toRepurchasePercentage(values.returnRate) });
   }
 
   useEffect(() => {

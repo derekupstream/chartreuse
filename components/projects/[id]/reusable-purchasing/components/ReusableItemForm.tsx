@@ -45,10 +45,7 @@ export function ReusableItemForm({ lineItem, onSubmit, products, formStep, setFo
     setFormStep(3);
   }
 
-  function onSubmitForecast({ casesAnnually }: { casesAnnually: number }) {
-    const annualRepurchasePercentage = lineItemInput!.casesPurchased
-      ? casesAnnually / lineItemInput!.casesPurchased
-      : 0;
+  function onSubmitForecast({ annualRepurchasePercentage }: { annualRepurchasePercentage: number }) {
     const newFormValues = { ...lineItemInput!, annualRepurchasePercentage } as ReusableFormValues;
     setLineItemInput(newFormValues);
     onSubmit(newFormValues);
