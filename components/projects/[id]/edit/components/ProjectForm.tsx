@@ -33,7 +33,7 @@ import type { Store } from 'antd/lib/form/interface';
 import { useRef, useEffect, useState } from 'react';
 
 import type { DashboardUser } from 'interfaces';
-import { STATES } from 'lib/calculator/constants/utilities';
+import { STATES, isCanadianRegion } from 'lib/calculator/constants/utilities';
 import type { ProjectInput } from 'lib/chartreuseClient';
 
 import { useMetricSystem } from 'components/_app/MetricSystemProvider';
@@ -127,6 +127,9 @@ export function ProjectForm({ actionLabel, org, project, template, onComplete }:
   }
 
   const [showCustomUtilities, setShowCustomUtilities] = useState(project ? !project?.USState : false);
+  const [utilityCountry, setUtilityCountry] = useState<'US' | 'CA'>(
+    project?.USState && isCanadianRegion(project.USState) ? 'CA' : 'US'
+  );
   const { confirm } = Modal;
 
   const isUpstream = org.isUpstream || process.env.NODE_ENV === 'development';
@@ -178,8 +181,10 @@ export function ProjectForm({ actionLabel, org, project, template, onComplete }:
     });
     const USState = form.getFieldValue('USState');
     if (!USState && !showCustomUtilities) {
-      if (STATES.some(state => state.name === locationData.state)) {
-        form.setFieldValue('USState', locationData.state);
+      const matched = STATES.find(state => state.name === locationData.state);
+      if (matched) {
+        form.setFieldValue('USState', matched.name);
+        setUtilityCountry(isCanadianRegion(matched.name) ? 'CA' : 'US');
       }
     }
   };
@@ -517,15 +522,37 @@ export function ProjectForm({ actionLabel, org, project, template, onComplete }:
               <br />
               <br />
               {!showCustomUtilities && (
-                <Form.Item label='' name='USState'>
-                  <Select showSearch style={{ width: '100%' }} placeholder='Select a state or province'>
-                    {STATES.map(state => (
-                      <Select.Option key={state.name} value={state.name}>
-                        {state.name}
-                      </Select.Option>
-                    ))}
-                  </Select>
-                </Form.Item>
+                <>
+                  <Radio.Group
+                    style={{ marginBottom: 12 }}
+                    value={utilityCountry}
+                    onChange={e => {
+                      const country = e.target.value as 'US' | 'CA';
+                      setUtilityCountry(country);
+                      // Clear a selection that belongs to the other country
+                      const selected = form.getFieldValue('USState');
+                      if (selected && isCanadianRegion(selected) !== (country === 'CA')) {
+                        form.setFieldValue('USState', undefined);
+                      }
+                    }}
+                  >
+                    <Radio.Button value='US'>United States</Radio.Button>
+                    <Radio.Button value='CA'>Canada</Radio.Button>
+                  </Radio.Group>
+                  <Form.Item label='' name='USState'>
+                    <Select
+                      showSearch
+                      style={{ width: '100%' }}
+                      placeholder={utilityCountry === 'CA' ? 'Select a province or territory' : 'Select a state'}
+                    >
+                      {STATES.filter(state => isCanadianRegion(state.name) === (utilityCountry === 'CA')).map(state => (
+                        <Select.Option key={state.name} value={state.name}>
+                          {state.name}
+                        </Select.Option>
+                      ))}
+                    </Select>
+                  </Form.Item>
+                </>
               )}
               {showCustomUtilities && (
                 <>

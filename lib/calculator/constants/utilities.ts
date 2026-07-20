@@ -82,6 +82,28 @@ export const STATES = [
 
 export type USState = (typeof STATES)[number]['name'];
 
+// Names in STATES that are Canadian provinces/territories — used by pickers to
+// split the list by country.
+export const CANADIAN_REGIONS: readonly USState[] = [
+  'British Columbia',
+  'Alberta',
+  'Saskatchewan',
+  'Manitoba',
+  'Ontario',
+  'Quebec',
+  'New Brunswick',
+  'Nova Scotia',
+  'Prince Edward Island',
+  'Newfoundland and Labrador',
+  'Yukon',
+  'Northwest Territories',
+  'Nunavut'
+];
+
+export function isCanadianRegion(name: string): boolean {
+  return (CANADIAN_REGIONS as readonly string[]).includes(name);
+}
+
 export type UtilityRates = { gas: number; electric: number; water: number };
 
 function getUtilitiesByState(state: USState): UtilityRates {
