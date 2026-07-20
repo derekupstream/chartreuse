@@ -34,6 +34,7 @@ Jest requires the `--experimental-vm-modules` flag (the package is `"type": "mod
 - `prisma/schema.prisma` has `binaryTargets = ["native", "rhel-openssl-3.0.x"]` for Vercel Linux — don't remove it.
 - One-off scripts against production: `npx dotenv-cli -e .env.production -- npx tsx scripts/foo.ts`. A script that instantiates `PrismaClient` directly must append `?pgbouncer=true&sslmode=require` to `DATABASE_URL` itself (only `lib/prisma.ts` does this automatically) — otherwise the pooler fails with `prepared statement "s0" already exists`. Scripts must live inside the repo (not `/tmp`) so imports resolve, and top-level await doesn't work under `tsx` here — wrap in an async `main()`.
 - Useful diagnostics: `scripts/inspect-user-org.ts <email>` prints a user's DB record, org/account tree, and Supabase auth status.
+- **Schema-change deploys**: CI runs `migrate deploy` on push, but the Vercel deploy usually goes live first — new code reading a new column 500s until the migration lands. Apply the migration to production **before** pushing: `DATABASE_URL=<prod url with :5432> npx prisma migrate deploy`.
 
 ## Architecture
 
