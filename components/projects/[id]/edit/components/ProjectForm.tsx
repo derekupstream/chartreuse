@@ -510,7 +510,7 @@ export function ProjectForm({ actionLabel, org, project, template, onComplete }:
                 value={showCustomUtilities}
               >
                 <Radio style={{ width: '40%' }} value={false}>
-                  By US State
+                  By State / Province
                 </Radio>
                 <Radio value={true}>Custom</Radio>
               </Radio.Group>
@@ -518,7 +518,7 @@ export function ProjectForm({ actionLabel, org, project, template, onComplete }:
               <br />
               {!showCustomUtilities && (
                 <Form.Item label='' name='USState'>
-                  <Select showSearch style={{ width: '100%' }} placeholder='Select a state'>
+                  <Select showSearch style={{ width: '100%' }} placeholder='Select a state or province'>
                     {STATES.map(state => (
                       <Select.Option key={state.name} value={state.name}>
                         {state.name}

@@ -58,19 +58,23 @@ export const STATES = [
   { name: 'Wisconsin', electric: 0.11, gas: 0.92 },
   { name: 'Wyoming', electric: 0.09, gas: 0.92 },
   // ── Canadian provinces / territories ──
-  // Approx commercial electricity rates from BC Hydro, Hydro-Québec, Manitoba Hydro,
-  // Ontario IESO, etc. (USD-equivalent, 2025 public tariffs). Gas is left at the US
+  // Provincial rates from Hydro-Québec, "Comparison of Electricity Prices in Major
+  // North American Cities 2025" (rates in effect April 1, 2025, excluding taxes),
+  // small-power commercial profile: 40 kW demand / 10,000 kWh / 35% load factor.
+  // Values are C$/kWh (Canadian orgs run in CAD). Provinces with two surveyed
+  // cities use their average (Alberta: Calgary+Edmonton; Ontario: Ottawa+Toronto).
+  // Territories are not in the study — estimates retained. Gas is left at the US
   // placeholder until we wire region-specific gas pricing.
-  { name: 'British Columbia', electric: 0.13, gas: 0.92 },
-  { name: 'Alberta', electric: 0.16, gas: 0.92 },
-  { name: 'Saskatchewan', electric: 0.16, gas: 0.92 },
-  { name: 'Manitoba', electric: 0.1, gas: 0.92 },
-  { name: 'Ontario', electric: 0.13, gas: 0.92 },
-  { name: 'Quebec', electric: 0.07, gas: 0.92 },
-  { name: 'New Brunswick', electric: 0.12, gas: 0.92 },
-  { name: 'Nova Scotia', electric: 0.18, gas: 0.92 },
-  { name: 'Prince Edward Island', electric: 0.17, gas: 0.92 },
-  { name: 'Newfoundland and Labrador', electric: 0.12, gas: 0.92 },
+  { name: 'British Columbia', electric: 0.127, gas: 0.92 },
+  { name: 'Alberta', electric: 0.177, gas: 0.92 },
+  { name: 'Saskatchewan', electric: 0.154, gas: 0.92 },
+  { name: 'Manitoba', electric: 0.097, gas: 0.92 },
+  { name: 'Ontario', electric: 0.148, gas: 0.92 },
+  { name: 'Quebec', electric: 0.121, gas: 0.92 },
+  { name: 'New Brunswick', electric: 0.18, gas: 0.92 },
+  { name: 'Nova Scotia', electric: 0.192, gas: 0.92 },
+  { name: 'Prince Edward Island', electric: 0.204, gas: 0.92 },
+  { name: 'Newfoundland and Labrador', electric: 0.146, gas: 0.92 },
   { name: 'Yukon', electric: 0.14, gas: 0.92 },
   { name: 'Northwest Territories', electric: 0.3, gas: 0.92 },
   { name: 'Nunavut', electric: 0.29, gas: 0.92 }
