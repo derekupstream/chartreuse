@@ -72,8 +72,8 @@ export const ProjectImpacts: React.FC<Props> = ({ data, showTitle }) => {
               type: 'calculation',
               path: 'annualSummary.dollarCost.change',
               description: 'Baseline single-use cost minus forecast reusable cost (annual)',
-              calculatorFunction: 'getAnnualCostChanges()',
-              sourceFile: 'lib/calculator/calculations/costs/getAnnualCostChanges.ts'
+              calculatorFunction: 'getFinancialResults()',
+              sourceFile: 'lib/calculator/calculations/getFinancialResults.ts'
             }}
           >
             <Card

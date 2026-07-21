@@ -94,8 +94,8 @@ const FinancialSummary: React.FC<Props> = ({ data: financialResults, businessSiz
                   path: 'financialResults.summary.annualCost',
                   description:
                     'Total annual cost change: single-use savings minus new recurring costs (labor, utilities, restocking, waste hauling)',
-                  calculatorFunction: 'getAnnualCostChanges()',
-                  sourceFile: 'lib/calculator/calculations/costs/getAnnualCostChanges.ts'
+                  calculatorFunction: 'getFinancialResults()',
+                  sourceFile: 'lib/calculator/calculations/getFinancialResults.ts'
                 }}
               >
                 <Value color={financialResults.summary.annualCost < 0 ? 'green' : 'black'}>
@@ -120,8 +120,8 @@ const FinancialSummary: React.FC<Props> = ({ data: financialResults, businessSiz
                   type: 'calculation',
                   path: 'financialResults.summary.annualROIPercent',
                   description: 'Annual net savings / one-time startup costs × 100',
-                  calculatorFunction: 'getFinancialSummary()',
-                  sourceFile: 'lib/calculator/calculations/costs/getFinancialSummary.ts'
+                  calculatorFunction: 'getFinancialResults()',
+                  sourceFile: 'lib/calculator/calculations/getFinancialResults.ts'
                 }}
               >
                 <Value>{financialResults.summary.annualROIPercent}%</Value>
@@ -162,9 +162,10 @@ const FinancialSummary: React.FC<Props> = ({ data: financialResults, businessSiz
                   label: 'Waste Hauling Savings',
                   type: 'calculation',
                   path: 'financialResults.annualCostChanges.wasteHauling',
-                  description: 'Cost change in waste hauling based on reduced waste volume',
-                  calculatorFunction: 'getWasteHaulingCost()',
-                  sourceFile: 'lib/calculator/calculations/costs/getWasteHaulingCost.ts'
+                  description:
+                    'Difference between your current and forecasted monthly waste-hauling bills (as entered on the Additional Costs step), annualized (x12). Not derived from waste volume.',
+                  calculatorFunction: 'getFinancialResults()',
+                  sourceFile: 'lib/calculator/calculations/getFinancialResults.ts'
                 }}
               >
                 <FooterData
@@ -196,8 +197,8 @@ const FinancialSummary: React.FC<Props> = ({ data: financialResults, businessSiz
                   type: 'calculation',
                   path: 'financialResults.oneTimeCosts.total',
                   description: 'Reusable product costs + dishwasher + drying racks + bus tubs + installation',
-                  calculatorFunction: 'getOneTimeCosts()',
-                  sourceFile: 'lib/calculator/calculations/costs/getOneTimeCosts.ts'
+                  calculatorFunction: 'getFinancialResults()',
+                  sourceFile: 'lib/calculator/calculations/getFinancialResults.ts'
                 }}
               >
                 <Value color='black'>{formatToDollar(financialResults.oneTimeCosts.total, currencyAbbreviation)}</Value>
@@ -211,8 +212,8 @@ const FinancialSummary: React.FC<Props> = ({ data: financialResults, businessSiz
                   type: 'calculation',
                   path: 'financialResults.summary.paybackPeriodsMonths',
                   description: 'One-time costs / monthly net savings → months to recoup startup investment',
-                  calculatorFunction: 'getFinancialSummary()',
-                  sourceFile: 'lib/calculator/calculations/costs/getFinancialSummary.ts'
+                  calculatorFunction: 'getFinancialResults()',
+                  sourceFile: 'lib/calculator/calculations/getFinancialResults.ts'
                 }}
               >
                 <Value>
@@ -231,13 +232,17 @@ const FinancialSummary: React.FC<Props> = ({ data: financialResults, businessSiz
                   type: 'calculation',
                   path: 'financialResults.oneTimeCosts.reusableProductCosts',
                   description: 'One-time cost of all reusable items based on configured quantities and prices',
-                  calculatorFunction: 'getReusableResults()',
-                  sourceFile: 'lib/calculator/calculations/foodware/getReusableResults.ts'
+                  calculatorFunction: 'getFinancialResults()',
+                  sourceFile: 'lib/calculator/calculations/getFinancialResults.ts'
                 }}
               >
                 <FooterData
                   title='Reusables purchasing'
-                  icon={showTooltips && <InfoIcon maxWidth={400}>Accounts for a 98% return rate</InfoIcon>}
+                  icon={
+                    showTooltips && (
+                      <InfoIcon maxWidth={400}>Based on your initial purchase quantities and prices</InfoIcon>
+                    )
+                  }
                   value={formatToDollar(financialResults.oneTimeCosts.reusableProductCosts, currencyAbbreviation)}
                 />
               </InspectTooltip>
@@ -273,8 +278,8 @@ const FinancialSummary: React.FC<Props> = ({ data: financialResults, businessSiz
                   path: 'financialResults.annualCostChanges.change',
                   description:
                     'Annual recurring costs: restocking + labor + dishwashing utilities + waste hauling + other expenses',
-                  calculatorFunction: 'getAnnualCostChanges()',
-                  sourceFile: 'lib/calculator/calculations/costs/getAnnualCostChanges.ts'
+                  calculatorFunction: 'getFinancialResults()',
+                  sourceFile: 'lib/calculator/calculations/getFinancialResults.ts'
                 }}
               >
                 <Value color='black'>
@@ -296,15 +301,18 @@ const FinancialSummary: React.FC<Props> = ({ data: financialResults, businessSiz
                   label: 'Reusable Restocking Cost',
                   type: 'calculation',
                   path: 'financialResults.annualCostChanges.reusableProductCosts',
-                  description: 'Annual cost to replace lost/damaged reusables based on return rate',
-                  calculatorFunction: 'getReusableResults()',
-                  sourceFile: 'lib/calculator/calculations/foodware/getReusableResults.ts',
-                  factorName: 'Return rate (shrinkage)'
+                  description:
+                    "Annual cost to replace reusables that are not returned: each item's initial cost x its repurchase share (1 - the Return Rate you entered on the Reusables step)",
+                  calculatorFunction: 'getFinancialResults()',
+                  sourceFile: 'lib/calculator/calculations/getFinancialResults.ts',
+                  factorName: 'Return Rate (per item, user-entered)'
                 }}
               >
                 <FooterData
                   title='Reusables restocking'
-                  icon={showTooltips && <InfoIcon>Accounts for a 98% return rate</InfoIcon>}
+                  icon={
+                    showTooltips && <InfoIcon>Based on the Return Rate you entered for each reusable item</InfoIcon>
+                  }
                   value={formatToDollar(financialResults.annualCostChanges.reusableProductCosts, currencyAbbreviation)}
                 />
               </InspectTooltip>

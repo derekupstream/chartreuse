@@ -26,13 +26,20 @@ function mapRow(row: string[], headers: string[], mappings: ColumnMapping[]): Re
   return result;
 }
 
+// Spreadsheet cells are often currency-formatted ("$12.50", "1,250.00").
+// Strip everything but digits, dot, and minus before parsing — a raw
+// parseFloat("$12.50") is NaN and silently zeroed the imported costs.
+function cleanNumeric(v: string | undefined): string {
+  return (v ?? '').replace(/[^0-9.\-]/g, '');
+}
+
 function toInt(v: string | undefined): number {
-  const n = parseInt(v ?? '', 10);
+  const n = parseInt(cleanNumeric(v), 10);
   return isNaN(n) ? 0 : n;
 }
 
 function toFloat(v: string | undefined): number {
-  const n = parseFloat(v ?? '');
+  const n = parseFloat(cleanNumeric(v));
   return isNaN(n) ? 0 : n;
 }
 
@@ -62,7 +69,10 @@ export default handlerWithUser().post(async (req: NextApiRequestWithUser, res: N
             caseCost: toFloat(mapped.caseCost),
             casesPurchased: toInt(mapped.casesPurchased),
             newCaseCost: toFloat(mapped.newCaseCost || mapped.caseCost),
-            newCasesPurchased: toInt(mapped.newCasesPurchased || mapped.casesPurchased),
+            // No forecast column in the upload means "switching to reuse": default the
+            // year-2 repurchase to 0, not to a copy of the baseline (which modeled a
+            // business that keeps buying every disposable forever).
+            newCasesPurchased: toInt(mapped.newCasesPurchased),
             unitsPerCase: toInt(mapped.unitsPerCase) || 1,
             frequency: mapped.frequency || 'Annually'
           }

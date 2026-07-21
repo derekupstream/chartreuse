@@ -254,23 +254,43 @@ function getMaterialImpact(
         lineItem,
         isEventProject
       });
-      const gasEmissions = isCardboard ? shippingBoxGas : isSecondaryMaterial ? secondaryGas : primaryGas;
+      const materialGas = isSecondaryMaterial ? secondaryGas : primaryGas;
 
       const { secondaryWater, primaryWater, shippingBoxWater } = getLineItemWaterUsage({
         frequency: lineItem.frequency || 'Annually',
         lineItem,
         isEventProject
       });
-      const waterUsage = isCardboard ? shippingBoxWater : isSecondaryMaterial ? secondaryWater : primaryWater;
+      const materialWater = isSecondaryMaterial ? secondaryWater : primaryWater;
 
       const annualBoxWeight = lineItem.casesPurchased * lineItem.product.boxWeight * annualOccurrence;
       const forecastAnnualBoxWeight = lineItem.newCasesPurchased * lineItem.product.boxWeight * annualOccurrence;
 
+      // The Corrugated Cardboard row aggregates every item's shipping carton — but a
+      // product can also itself be made of cardboard (e.g. pizza boxes). Those items
+      // must contribute their own body mass/gas/water to the row IN ADDITION to their
+      // carton; previously the body contribution was discarded entirely.
+      const addSummaries = (a: ChangeSummary, b: ChangeSummary) =>
+        getChangeSummaryRow(a.baseline + b.baseline, a.forecast + b.forecast);
+
+      const gasEmissions = isCardboard
+        ? hasMaterial
+          ? addSummaries(shippingBoxGas, materialGas)
+          : shippingBoxGas
+        : materialGas;
+      const waterUsage = isCardboard
+        ? hasMaterial
+          ? addSummaries(shippingBoxWater, materialWater)
+          : shippingBoxWater
+        : materialWater;
+
       const detailedResult: LineItemResult = {
         annualCost,
-        annualWeight: isCardboard ? annualBoxWeight : annualWeight,
+        annualWeight: isCardboard ? annualBoxWeight + (hasMaterial ? annualWeight : 0) : annualWeight,
         forecastAnnualCost,
-        forecastAnnualWeight: isCardboard ? forecastAnnualBoxWeight : forecastAnnualWeight,
+        forecastAnnualWeight: isCardboard
+          ? forecastAnnualBoxWeight + (hasMaterial ? forecastAnnualWeight : 0)
+          : forecastAnnualWeight,
         gasEmissions,
         waterUsage
       };

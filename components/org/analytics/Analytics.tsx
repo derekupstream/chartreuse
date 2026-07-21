@@ -788,8 +788,8 @@ export function AnalyticsPage({
                   type: 'calculation',
                   path: 'annualSummary.dollarCost',
                   description: 'Aggregated annual cost savings across all filtered projects',
-                  calculatorFunction: 'getAnnualCostChanges()',
-                  sourceFile: 'lib/calculator/calculations/costs/getAnnualCostChanges.ts'
+                  calculatorFunction: 'getFinancialResults()',
+                  sourceFile: 'lib/calculator/calculations/getFinancialResults.ts'
                 }}
               />
             </StyledCol>
