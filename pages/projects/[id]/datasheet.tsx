@@ -1,5 +1,5 @@
 import { ArrowLeftOutlined, DownloadOutlined, FunctionOutlined } from '@ant-design/icons';
-import { Alert, Button, Table, Tag, Typography } from 'antd';
+import { Alert, Button, Table, Tabs, Tag, Typography } from 'antd';
 import type { GetServerSideProps } from 'next';
 import Link from 'next/link';
 import { useState } from 'react';
@@ -10,7 +10,7 @@ import { getUserFromContext } from 'lib/middleware';
 import { ACCESS_DENIED_REDIRECT, checkIsUpstream } from 'lib/middleware/requireUpstream';
 import { getProjectInventory } from 'lib/inventory/getProjectInventory';
 import { getProjectDatasheet } from 'lib/calculator/trace/getProjectDatasheet';
-import type { ProjectDatasheet, DatasheetRow } from 'lib/calculator/trace/getProjectDatasheet';
+import type { ProjectDatasheet, DatasheetRow, DishwasherRow, CostRow } from 'lib/calculator/trace/getProjectDatasheet';
 import { serializeJSON } from 'lib/objects';
 import prisma from 'lib/prisma';
 
@@ -116,6 +116,43 @@ const GROUPS: {
   { title: 'Cost', color: '#fafafa', cols: [{ key: 'annualCost', label: 'annual cost', decimals: 2 }] }
 ];
 
+const DISHWASHER_COLS: { key: keyof DishwasherRow; label: string; decimals?: number; group: string }[] = [
+  { key: 'type', label: 'type', group: 'Machine' },
+  { key: 'temperature', label: 'temperature', group: 'Machine' },
+  { key: 'energyStar', label: 'Energy Star', group: 'Machine' },
+  { key: 'buildingWaterHeater', label: 'water heater', group: 'Machine' },
+  { key: 'boosterWaterHeater', label: 'booster', group: 'Machine' },
+  { key: 'racksPerDay', label: 'racks/day', group: 'Use — baseline' },
+  { key: 'operatingDays', label: 'days/year', group: 'Use — baseline' },
+  { key: 'newRacksPerDay', label: 'racks/day', group: 'Use — forecast' },
+  { key: 'newOperatingDays', label: 'days/year', group: 'Use — forecast' },
+  { key: 'electricRate', label: 'electric $/kWh', decimals: 4, group: 'Rates' },
+  { key: 'gasRate', label: 'gas $/therm', decimals: 4, group: 'Rates' },
+  { key: 'waterRate', label: 'water $/gal', decimals: 6, group: 'Rates' },
+  { key: 'electricUsageBaseline', label: 'electric kWh', decimals: 0, group: 'Usage — baseline' },
+  { key: 'gasUsageBaseline', label: 'gas therms', decimals: 1, group: 'Usage — baseline' },
+  { key: 'waterUsageBaseline', label: 'water gal', decimals: 0, group: 'Usage — baseline' },
+  { key: 'electricUsageForecast', label: 'electric kWh', decimals: 0, group: 'Usage — forecast' },
+  { key: 'gasUsageForecast', label: 'gas therms', decimals: 1, group: 'Usage — forecast' },
+  { key: 'waterUsageForecast', label: 'water gal', decimals: 0, group: 'Usage — forecast' },
+  { key: 'electricCostBaseline', label: 'electric $', decimals: 2, group: 'Cost — baseline' },
+  { key: 'gasCostBaseline', label: 'gas $', decimals: 2, group: 'Cost — baseline' },
+  { key: 'waterCostBaseline', label: 'water $', decimals: 2, group: 'Cost — baseline' },
+  { key: 'electricCostForecast', label: 'electric $', decimals: 2, group: 'Cost — forecast' },
+  { key: 'gasCostForecast', label: 'gas $', decimals: 2, group: 'Cost — forecast' },
+  { key: 'waterCostForecast', label: 'water $', decimals: 2, group: 'Cost — forecast' },
+  { key: 'co2BaselineLb', label: 'CO2e lb baseline', decimals: 1, group: 'Emissions' },
+  { key: 'co2ForecastLb', label: 'CO2e lb forecast', decimals: 1, group: 'Emissions' }
+];
+
+const COST_COLS: { key: keyof CostRow; label: string; decimals?: number }[] = [
+  { key: 'frequency', label: 'frequency' },
+  { key: 'amount', label: 'amount each', decimals: 2 },
+  { key: 'annualOccurrence', label: 'times/year' },
+  { key: 'annualBaseline', label: 'annual baseline $', decimals: 2 },
+  { key: 'annualForecast', label: 'annual forecast $', decimals: 2 }
+];
+
 const fmt = (v: unknown, decimals?: number) =>
   typeof v === 'number' ? v.toLocaleString(undefined, { maximumFractionDigits: decimals ?? 0 }) : String(v ?? '');
 
@@ -136,12 +173,42 @@ function toCsv(datasheet: ProjectDatasheet): string {
 }
 
 export default function DatasheetPage({ user, projectName, projectId, datasheet }: Props) {
-  const [selected, setSelected] = useState<{ rowIndex: number; colKey: string } | null>(null);
+  const [tab, setTab] = useState('line-items');
+  const [selected, setSelected] = useState<{ table: string; rowIndex: number; colKey: string } | null>(null);
 
-  const selectedRow = selected ? datasheet.rows[selected.rowIndex] : null;
-  const selectedFormula = selected && selectedRow ? selectedRow.formulas[selected.colKey] : undefined;
-  const highlightedRefs = new Set(selectedFormula?.refs ?? []);
-  const labelFor = (key: string) => GROUPS.flatMap(g => g.cols).find(c => c.key === key)?.label ?? String(key);
+  const sourceRows: { formulas: Record<string, any>; description?: string; label?: string; productId?: string }[] =
+    selected?.table === 'dishwashers'
+      ? datasheet.dishwashers
+      : selected?.table === 'costs'
+        ? datasheet.costs
+        : datasheet.rows;
+  const selectedRow = selected ? (sourceRows[selected.rowIndex] as any) : null;
+  const selectedFormula = selected && selectedRow ? selectedRow.formulas?.[selected.colKey] : undefined;
+  const highlightedRefs = new Set<string>(selectedFormula?.refs ?? []);
+  const ALL_LABELS: Record<string, string> = {
+    ...Object.fromEntries(GROUPS.flatMap(g => g.cols).map(c => [String(c.key), c.label])),
+    ...Object.fromEntries(DISHWASHER_COLS.map(c => [String(c.key), c.label])),
+    ...Object.fromEntries(COST_COLS.map(c => [String(c.key), c.label]))
+  };
+  const labelFor = (key: string) => ALL_LABELS[key] ?? String(key);
+
+  /** Shared cell behaviour: click to show the formula, highlight the cells it reads. */
+  const cellProps =
+    (table: string, colKey: string, rows: any[], background?: string) => (_row: any, rowIndex?: number) => {
+      const isSelected = selected?.table === table && selected?.rowIndex === rowIndex && selected?.colKey === colKey;
+      const isRef = selected?.table === table && selected?.rowIndex === rowIndex && highlightedRefs.has(colKey);
+      const hasFormula = !!rows[rowIndex ?? -1]?.formulas?.[colKey];
+      return {
+        onClick: () => setSelected(isSelected ? null : { table, rowIndex: rowIndex ?? 0, colKey }),
+        style: {
+          background: isSelected ? '#bae0ff' : isRef ? '#fff1b8' : background,
+          outline: isSelected ? '2px solid #1677ff' : isRef ? '2px solid #faad14' : undefined,
+          outlineOffset: '-2px',
+          cursor: hasFormula ? 'cell' : 'default',
+          fontWeight: isSelected || isRef ? 600 : undefined
+        }
+      };
+    };
 
   const columns: any[] = [
     {
@@ -177,21 +244,7 @@ export default function DatasheetPage({ user, projectName, projectId, datasheet 
         dataIndex: col.key,
         width: 130,
         align: 'right' as const,
-        onCell: (_row: DatasheetRow, rowIndex?: number) => {
-          const isSelected = selected?.rowIndex === rowIndex && selected?.colKey === col.key;
-          const isRef = selected?.rowIndex === rowIndex && highlightedRefs.has(String(col.key));
-          const hasFormula = !!datasheet.rows[rowIndex ?? -1]?.formulas?.[String(col.key)];
-          return {
-            onClick: () => setSelected(isSelected ? null : { rowIndex: rowIndex ?? 0, colKey: String(col.key) }),
-            style: {
-              background: isSelected ? '#bae0ff' : isRef ? '#fff1b8' : group.color,
-              outline: isSelected ? '2px solid #1677ff' : isRef ? '2px solid #faad14' : undefined,
-              outlineOffset: '-2px',
-              cursor: hasFormula ? 'cell' : 'default',
-              fontWeight: isSelected || isRef ? 600 : undefined
-            }
-          };
-        },
+        onCell: cellProps('line-items', String(col.key), datasheet.rows, group.color),
         render: (v: unknown) => fmt(v, col.decimals)
       }))
     }))
@@ -266,7 +319,7 @@ export default function DatasheetPage({ user, projectName, projectId, datasheet 
           {selectedFormula && selectedRow ? (
             <div style={{ flex: 1 }}>
               <Typography.Text type='secondary' style={{ fontSize: 12 }}>
-                {selectedRow.description || selectedRow.productId} → {labelFor(selected!.colKey)}
+                {selectedRow.description || selectedRow.label || selectedRow.productId} → {labelFor(selected!.colKey)}
               </Typography.Text>
               <div style={{ fontFamily: 'monospace', fontSize: 14, marginTop: 2 }}>{selectedFormula.expression}</div>
               {selectedFormula.refs.length > 0 && (
@@ -290,14 +343,100 @@ export default function DatasheetPage({ user, projectName, projectId, datasheet 
           )}
         </div>
 
-        <Table
-          size='small'
-          bordered
-          rowKey={(r: DatasheetRow, i?: number) => `${r.kind}-${r.productId}-${i}`}
-          columns={columns}
-          dataSource={datasheet.rows}
-          pagination={false}
-          scroll={{ x: 'max-content' }}
+        <Tabs
+          activeKey={tab}
+          onChange={key => {
+            setTab(key);
+            setSelected(null);
+          }}
+          items={[
+            {
+              key: 'line-items',
+              label: `Single-use & reusables (${datasheet.rows.length})`,
+              children: (
+                <Table
+                  size='small'
+                  bordered
+                  sticky
+                  rowKey={(r: DatasheetRow, i?: number) => `${r.kind}-${r.productId}-${i}`}
+                  columns={columns}
+                  dataSource={datasheet.rows}
+                  pagination={{ pageSize: 10, showSizeChanger: true, pageSizeOptions: ['10', '25', '50', '100'] }}
+                  scroll={{ x: 'max-content' }}
+                />
+              )
+            },
+            {
+              key: 'dishwashers',
+              label: `Dishwashing (${datasheet.dishwashers.length})`,
+              children: datasheet.dishwashers.length ? (
+                <Table
+                  size='small'
+                  bordered
+                  sticky
+                  rowKey='label'
+                  dataSource={datasheet.dishwashers}
+                  pagination={{ pageSize: 10, hideOnSinglePage: true }}
+                  scroll={{ x: 'max-content' }}
+                  columns={[
+                    { title: 'Dishwasher', dataIndex: 'label', fixed: 'left' as const, width: 140 },
+                    ...Array.from(new Set(DISHWASHER_COLS.map(c => c.group))).map(groupName => ({
+                      title: groupName,
+                      children: DISHWASHER_COLS.filter(c => c.group === groupName).map(col => ({
+                        title: col.label,
+                        dataIndex: col.key,
+                        width: 130,
+                        align: 'right' as const,
+                        onCell: cellProps('dishwashers', String(col.key), datasheet.dishwashers),
+                        render: (v: unknown) => fmt(v, col.decimals)
+                      }))
+                    }))
+                  ]}
+                />
+              ) : (
+                <Typography.Text type='secondary'>This project has no dishwashers configured.</Typography.Text>
+              )
+            },
+            {
+              key: 'costs',
+              label: `Labor, expenses & hauling (${datasheet.costs.length})`,
+              children: datasheet.costs.length ? (
+                <Table
+                  size='small'
+                  bordered
+                  sticky
+                  rowKey={(r: CostRow, i?: number) => `${r.group}-${r.description}-${i}`}
+                  dataSource={datasheet.costs}
+                  pagination={{ pageSize: 10, showSizeChanger: true, pageSizeOptions: ['10', '25', '50'] }}
+                  scroll={{ x: 'max-content' }}
+                  columns={[
+                    {
+                      title: 'type',
+                      dataIndex: 'group',
+                      fixed: 'left' as const,
+                      width: 130,
+                      render: (v: string) => (
+                        <Tag color={v === 'Labor' ? 'blue' : v === 'Waste hauling' ? 'orange' : 'purple'}>{v}</Tag>
+                      )
+                    },
+                    { title: 'description', dataIndex: 'description', fixed: 'left' as const, width: 260 },
+                    ...COST_COLS.map(col => ({
+                      title: col.label,
+                      dataIndex: col.key,
+                      width: 150,
+                      align: 'right' as const,
+                      onCell: cellProps('costs', String(col.key), datasheet.costs),
+                      render: (v: unknown) => fmt(v, col.decimals)
+                    }))
+                  ]}
+                />
+              ) : (
+                <Typography.Text type='secondary'>
+                  This project has no labor, other expenses or waste-hauling entries.
+                </Typography.Text>
+              )
+            }
+          ]}
         />
 
         <Typography.Title level={4} style={{ marginTop: 32 }}>

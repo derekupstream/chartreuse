@@ -17,6 +17,7 @@ import { getProjectionsFromInventory } from '../getProjections';
 import { MATERIAL_MAP, CORRUGATED_CARDBOARD_GAS } from '../constants/materials';
 import { TRANSPORTATION_CO2_EMISSIONS_FACTOR } from '../constants/carbon-dioxide-emissions';
 import { getAnnualOccurrence } from '../constants/frequency';
+import { getDishwasherStats } from '../calculations/dishwashing/getDishwasherStats';
 import type { ProjectInventory } from 'lib/inventory/types/projects';
 
 export type DatasheetRow = {
@@ -89,8 +90,54 @@ export type CellFormula = {
 
 export type DatasheetReconciliation = { label: string; rowSum: number; engineTotal: number; matches: boolean };
 
+/** A dishwasher with its configuration and everything the engine derives from it. */
+export type DishwasherRow = {
+  label: string;
+  type: string;
+  temperature: string;
+  energyStar: string;
+  buildingWaterHeater: string;
+  boosterWaterHeater: string;
+  operatingDays: number;
+  racksPerDay: number;
+  newOperatingDays: number;
+  newRacksPerDay: number;
+  electricRate: number;
+  gasRate: number;
+  waterRate: number;
+  electricUsageBaseline: number;
+  electricUsageForecast: number;
+  gasUsageBaseline: number;
+  gasUsageForecast: number;
+  waterUsageBaseline: number;
+  waterUsageForecast: number;
+  electricCostBaseline: number;
+  electricCostForecast: number;
+  gasCostBaseline: number;
+  gasCostForecast: number;
+  waterCostBaseline: number;
+  waterCostForecast: number;
+  co2BaselineLb: number;
+  co2ForecastLb: number;
+  formulas: Record<string, CellFormula>;
+};
+
+/** Labor, other expenses and waste hauling — the recurring costs outside the line items. */
+export type CostRow = {
+  group: 'Labor' | 'Other expense' | 'Waste hauling';
+  description: string;
+  frequency: string;
+  amount: number;
+  annualOccurrence: number;
+  annualBaseline: number;
+  annualForecast: number;
+  formulas: Record<string, CellFormula>;
+};
+
 export type ProjectDatasheet = {
   rows: DatasheetRow[];
+  dishwashers: DishwasherRow[];
+  costs: CostRow[];
   notes: string[];
   reconciliation: DatasheetReconciliation[];
 };
@@ -304,6 +351,142 @@ function buildRow(kind: DatasheetRow['kind'], lineItem: any, inventory: ProjectI
   };
 }
 
+const fmtN = (v: number, d = 4) => v.toLocaleString(undefined, { maximumFractionDigits: d });
+
+/** Dishwashers, using the engine's own getDishwasherStats(). */
+function buildDishwasherRows(inventory: ProjectInventory): DishwasherRow[] {
+  const rates = inventory.utilityRates;
+  return inventory.dishwashers.map((d: any, i: number) => {
+    const stats = getDishwasherStats({
+      rates,
+      dishwasher: d,
+      racksUsed: inventory.racksUsedForEventProjects
+    });
+    const label = `${d.type ?? 'Dishwasher'} ${i + 1}`;
+    const formulas: Record<string, CellFormula> = {
+      electricUsageBaseline: {
+        expression: `${fmtN(d.racksPerDay ?? 0, 0)} racks/day x ${fmtN(d.operatingDays ?? 0, 0)} days, through the machine's water-use profile = ${fmtN(stats.electricUsage.baseline, 0)} kWh/yr`,
+        refs: ['racksPerDay', 'operatingDays']
+      },
+      electricUsageForecast: {
+        expression: `${fmtN(d.newRacksPerDay ?? 0, 0)} racks/day x ${fmtN(d.newOperatingDays ?? 0, 0)} days = ${fmtN(stats.electricUsage.forecast, 0)} kWh/yr`,
+        refs: ['newRacksPerDay', 'newOperatingDays']
+      },
+      electricCostBaseline: {
+        expression: `${fmtN(stats.electricUsage.baseline, 0)} kWh x $${fmtN(rates.electric, 4)}/kWh = $${fmtN(stats.electricCost.baseline, 2)}`,
+        refs: ['electricUsageBaseline', 'electricRate']
+      },
+      electricCostForecast: {
+        expression: `${fmtN(stats.electricUsage.forecast, 0)} kWh x $${fmtN(rates.electric, 4)}/kWh = $${fmtN(stats.electricCost.forecast, 2)}`,
+        refs: ['electricUsageForecast', 'electricRate']
+      },
+      gasCostBaseline: {
+        expression: `${fmtN(stats.gasUsage.baseline, 0)} therms x $${fmtN(rates.gas, 4)}/therm = $${fmtN(stats.gasCost.baseline, 2)}`,
+        refs: ['gasUsageBaseline', 'gasRate']
+      },
+      waterCostBaseline: {
+        expression: `${fmtN(stats.waterUsage.baseline, 0)} gal x $${fmtN(rates.water, 6)}/gal = $${fmtN(stats.waterCost.baseline, 2)}`,
+        refs: ['waterUsageBaseline', 'waterRate']
+      },
+      co2BaselineLb: {
+        expression: `electricity ${fmtN(stats.electricCO2Weight.baseline, 1)} lb + gas ${fmtN(stats.gasCO2Weight.baseline, 1)} lb = ${fmtN(stats.electricCO2Weight.baseline + stats.gasCO2Weight.baseline, 1)} lb CO2e`,
+        refs: ['electricUsageBaseline', 'gasUsageBaseline'],
+        note: 'Electricity currently uses one flat CO2 factor for every region; per-state/province grid factors are built and awaiting data-science sign-off.'
+      }
+    };
+    return {
+      label,
+      type: String(d.type ?? ''),
+      temperature: String(d.temperature ?? ''),
+      energyStar: d.energyStarCertified ? 'yes' : 'no',
+      buildingWaterHeater: String(d.buildingWaterHeaterFuelType ?? ''),
+      boosterWaterHeater: String(d.boosterWaterHeaterFuelType ?? ''),
+      operatingDays: d.operatingDays ?? 0,
+      racksPerDay: d.racksPerDay ?? 0,
+      newOperatingDays: d.newOperatingDays ?? 0,
+      newRacksPerDay: d.newRacksPerDay ?? 0,
+      electricRate: rates.electric,
+      gasRate: rates.gas,
+      waterRate: rates.water,
+      electricUsageBaseline: stats.electricUsage.baseline,
+      electricUsageForecast: stats.electricUsage.forecast,
+      gasUsageBaseline: stats.gasUsage.baseline,
+      gasUsageForecast: stats.gasUsage.forecast,
+      waterUsageBaseline: stats.waterUsage.baseline,
+      waterUsageForecast: stats.waterUsage.forecast,
+      electricCostBaseline: stats.electricCost.baseline,
+      electricCostForecast: stats.electricCost.forecast,
+      gasCostBaseline: stats.gasCost.baseline,
+      gasCostForecast: stats.gasCost.forecast,
+      waterCostBaseline: stats.waterCost.baseline,
+      waterCostForecast: stats.waterCost.forecast,
+      co2BaselineLb: stats.electricCO2Weight.baseline + stats.gasCO2Weight.baseline,
+      co2ForecastLb: stats.electricCO2Weight.forecast + stats.gasCO2Weight.forecast,
+      formulas
+    };
+  });
+}
+
+/** Labor, other expenses, waste hauling — mirrors calculateAnnualCostChanges(). */
+function buildCostRows(inventory: ProjectInventory): CostRow[] {
+  const rows: CostRow[] = [];
+
+  const recurring = (group: CostRow['group'], description: string, cost: number, frequency: string) => {
+    const isOneTime = frequency === 'One Time';
+    const occ = isOneTime ? 0 : getAnnualOccurrence(frequency as any);
+    const annual = isOneTime ? 0 : cost * occ;
+    rows.push({
+      group,
+      description,
+      frequency,
+      amount: cost,
+      annualOccurrence: occ,
+      annualBaseline: group === 'Waste hauling' ? annual : 0,
+      annualForecast: annual,
+      formulas: {
+        annualForecast: {
+          expression: isOneTime
+            ? 'One-time costs are excluded from the annual recurring total'
+            : `$${fmtN(cost, 2)} x ${occ} times/year = $${fmtN(annual, 2)}`,
+          refs: ['amount', 'annualOccurrence']
+        }
+      }
+    });
+  };
+
+  for (const item of inventory.laborCosts as any[]) {
+    recurring('Labor', item.description || item.categoryId || 'Labor', item.cost, item.frequency);
+  }
+  for (const item of inventory.otherExpenses as any[]) {
+    recurring('Other expense', item.description || item.categoryId || 'Other expense', item.cost, item.frequency);
+  }
+  for (const item of inventory.wasteHauling as any[]) {
+    const baseline = (item.monthlyCost ?? 0) * 12;
+    const forecast = (item.newMonthlyCost ?? 0) * 12;
+    rows.push({
+      group: 'Waste hauling',
+      description: item.description || item.wasteStream || 'Waste hauling',
+      frequency: 'Monthly',
+      amount: item.monthlyCost ?? 0,
+      annualOccurrence: 12,
+      annualBaseline: baseline,
+      annualForecast: forecast,
+      formulas: {
+        annualBaseline: {
+          expression: `$${fmtN(item.monthlyCost ?? 0, 2)}/month x 12 = $${fmtN(baseline, 2)}`,
+          refs: ['amount']
+        },
+        annualForecast: {
+          expression: `$${fmtN(item.newMonthlyCost ?? 0, 2)}/month (your forecasted bill) x 12 = $${fmtN(forecast, 2)}`,
+          refs: [],
+          note: 'Both figures are the monthly bills you entered. Neither is derived from waste volume.'
+        }
+      }
+    });
+  }
+  return rows;
+}
+
 export function getProjectDatasheet(inventory: ProjectInventory): ProjectDatasheet {
   const rows: DatasheetRow[] = [];
   for (const item of inventory.singleUseItems) {
@@ -358,5 +541,5 @@ export function getProjectDatasheet(inventory: ProjectInventory): ProjectDatashe
     }
   ].map(r => ({ ...r, matches: near(r.rowSum, r.engineTotal) }));
 
-  return { rows, notes, reconciliation };
+  return { rows, dishwashers: buildDishwasherRows(inventory), costs: buildCostRows(inventory), notes, reconciliation };
 }
