@@ -13,6 +13,7 @@ import styled from 'styled-components';
 
 import type { DashboardUser } from 'interfaces';
 import { AdminLayout } from 'layouts/AdminLayout';
+import { HowTo } from 'components/admin/HowTo';
 import { getUserFromContext } from 'lib/middleware';
 import { ACCESS_DENIED_REDIRECT, checkIsUpstream } from 'lib/middleware/requireUpstream';
 import { serializeJSON } from 'lib/objects';
@@ -319,6 +320,7 @@ export default function LineagePage({ user, factors }: Props) {
 
   return (
     <AdminLayout title='Data Lineage' selectedMenuItem='data-science/lineage' user={user}>
+      <HowTo tool='lineage' />
       <div style={{ padding: '24px' }}>
         <Title level={2} style={{ marginBottom: 4 }}>
           Data Lineage

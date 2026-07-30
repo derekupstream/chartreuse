@@ -17,6 +17,7 @@ import styled from 'styled-components';
 
 import type { DashboardUser } from 'interfaces';
 import { AdminLayout } from 'layouts/AdminLayout';
+import { HowTo } from 'components/admin/HowTo';
 import { scanCalculatorFunctions } from 'lib/admin/calculatorScan';
 import { getUserFromContext } from 'lib/middleware';
 import { ACCESS_DENIED_REDIRECT, checkIsUpstream } from 'lib/middleware/requireUpstream';
@@ -231,6 +232,7 @@ export default function DataSciencePage({ user, stats }: Props) {
 
   return (
     <AdminLayout title='Data Governance Admin' selectedMenuItem='data-science' user={user}>
+      <HowTo tool='overview' />
       <div style={{ padding: '24px' }}>
         <Title level={2} style={{ marginBottom: 4 }}>
           Data Governance Admin

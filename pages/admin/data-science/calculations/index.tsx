@@ -16,6 +16,7 @@ import { useEffect, useState } from 'react';
 
 import type { DashboardUser } from 'interfaces';
 import { AdminLayout } from 'layouts/AdminLayout';
+import { HowTo } from 'components/admin/HowTo';
 import { CALCULATOR_REGISTRY } from 'lib/admin/calculatorRegistry';
 import { scanCalculatorFunctions } from 'lib/admin/calculatorScan';
 import { LINEAGE_MAP } from 'lib/admin/lineageMap';
@@ -538,6 +539,7 @@ export default function CalculationsPage({ functions: initial, scannedAt: initia
 
 CalculationsPage.getLayout = (page: React.ReactNode, pageProps: PageProps) => (
   <AdminLayout {...(pageProps as any)} selectedMenuItem='data-science/calculations' title='Calculations Registry'>
+    <HowTo tool='calculations' />
     {page}
   </AdminLayout>
 );

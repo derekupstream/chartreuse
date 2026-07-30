@@ -24,6 +24,7 @@ import { useState } from 'react';
 
 import type { DashboardUser } from 'interfaces';
 import { AdminLayout } from 'layouts/AdminLayout';
+import { HowTo } from 'components/admin/HowTo';
 import { getUserFromContext } from 'lib/middleware';
 import { ACCESS_DENIED_REDIRECT, checkIsUpstream } from 'lib/middleware/requireUpstream';
 import { serializeJSON } from 'lib/objects';
@@ -216,6 +217,7 @@ export default function ChangeRequestsPage({ user, changeRequests: initial, fact
 
   return (
     <AdminLayout title='Change Requests' selectedMenuItem='data-science/change-requests' user={user}>
+      <HowTo tool='change-requests' />
       <div style={{ padding: '24px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
           <div>

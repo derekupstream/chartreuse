@@ -32,6 +32,7 @@ import { useState } from 'react';
 
 import type { DashboardUser } from 'interfaces';
 import { AdminLayout } from 'layouts/AdminLayout';
+import { HowTo } from 'components/admin/HowTo';
 import { getUserFromContext } from 'lib/middleware';
 import { ACCESS_DENIED_REDIRECT, checkIsUpstream } from 'lib/middleware/requireUpstream';
 import { serializeJSON } from 'lib/objects';
@@ -357,6 +358,7 @@ export default function SnapshotsPage({ user, snapshots: initialSnapshots, appro
 
 SnapshotsPage.getLayout = (page: React.ReactNode, pageProps: PageProps) => (
   <AdminLayout {...(pageProps as any)} selectedMenuItem='data-science/snapshots' title='Methodology Snapshots'>
+    <HowTo tool='snapshots' />
     {page}
   </AdminLayout>
 );

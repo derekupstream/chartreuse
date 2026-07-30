@@ -8,6 +8,7 @@ import { useCallback, useEffect, useState } from 'react';
 
 import type { DashboardUser } from 'interfaces';
 import { AdminLayout } from 'layouts/AdminLayout';
+import { HowTo } from 'components/admin/HowTo';
 import { getUserFromContext } from 'lib/middleware';
 import { ACCESS_DENIED_REDIRECT, checkIsUpstream } from 'lib/middleware/requireUpstream';
 import { serializeJSON } from 'lib/objects';
@@ -158,6 +159,7 @@ export default function DataInputsPage({ user }: Props) {
 
   return (
     <AdminLayout title='Data Inputs' selectedMenuItem='data-science/inputs' user={user}>
+      <HowTo tool='inputs' />
       <div style={{ padding: '24px' }}>
         {/* Header */}
         <div

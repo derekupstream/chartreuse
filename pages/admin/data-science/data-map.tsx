@@ -13,6 +13,7 @@ import { SystemGraph } from 'components/admin/data-map/SystemGraph';
 import { TraceGraph } from 'components/admin/data-map/TraceGraph';
 import type { DashboardUser } from 'interfaces';
 import { AdminLayout } from 'layouts/AdminLayout';
+import { HowTo } from 'components/admin/HowTo';
 import { getUserFromContext } from 'lib/middleware';
 import { ACCESS_DENIED_REDIRECT, checkIsUpstream } from 'lib/middleware/requireUpstream';
 import { serializeJSON } from 'lib/objects';
@@ -76,6 +77,7 @@ export default function DataMapPage({ user, projects }: Props) {
 
   return (
     <AdminLayout title='Data Map' selectedMenuItem='data-science/data-map' user={user}>
+      <HowTo tool='data-map' />
       <div style={{ padding: '8px 16px', borderBottom: '1px solid #f0f0f0' }}>
         <Segmented
           value={mode}

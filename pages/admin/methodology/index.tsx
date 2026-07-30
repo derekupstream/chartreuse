@@ -14,6 +14,7 @@ import { useState } from 'react';
 
 import type { DashboardUser } from 'interfaces';
 import { AdminLayout } from 'layouts/AdminLayout';
+import { HowTo } from 'components/admin/HowTo';
 import { ACCESS_DENIED_REDIRECT, checkIsUpstream } from 'lib/middleware/requireUpstream';
 import { getUserFromContext } from 'lib/middleware';
 import { serializeJSON } from 'lib/objects';
@@ -207,6 +208,7 @@ function AdminMethodologyPage({ sections: initial }: { user: DashboardUser; sect
 
 AdminMethodologyPage.getLayout = (page: React.ReactNode, pageProps: PageProps) => (
   <AdminLayout {...(pageProps as any)} selectedMenuItem='admin/methodology' title='Methodology'>
+    <HowTo tool='methodology' />
     {page}
   </AdminLayout>
 );

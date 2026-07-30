@@ -30,6 +30,7 @@ import { useEffect, useState } from 'react';
 import styled from 'styled-components';
 
 import { AdminLayout } from 'layouts/AdminLayout';
+import { HowTo } from 'components/admin/HowTo';
 import { getUserFromContext } from 'lib/middleware';
 import { ACCESS_DENIED_REDIRECT, checkIsUpstream } from 'lib/middleware/requireUpstream';
 import { serializeJSON } from 'lib/objects';
@@ -229,6 +230,7 @@ export default function ConstantsPage({ user, factors, categories, sources }: Pr
 
   return (
     <AdminLayout title='Factors' selectedMenuItem='data-science/constants' user={user}>
+      <HowTo tool='factors' />
       <div style={{ padding: '24px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
           <div>

@@ -8,6 +8,7 @@ import useSWR from 'swr';
 
 import type { DashboardUser } from 'interfaces';
 import { AdminLayout } from 'layouts/AdminLayout';
+import { HowTo } from 'components/admin/HowTo';
 import { getUserFromContext } from 'lib/middleware';
 import { ACCESS_DENIED_REDIRECT, checkIsUpstream } from 'lib/middleware/requireUpstream';
 import { serializeJSON } from 'lib/objects';
@@ -271,6 +272,7 @@ export default function RunHistoryPage({ user }: Props) {
 
 RunHistoryPage.getLayout = (page: React.ReactNode, pageProps: PageProps) => (
   <AdminLayout {...(pageProps as any)} selectedMenuItem='data-science/runs' title='Run History'>
+    <HowTo tool='runs' />
     {page}
   </AdminLayout>
 );
