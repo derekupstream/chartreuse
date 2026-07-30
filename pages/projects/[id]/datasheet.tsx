@@ -209,7 +209,7 @@ export default function DatasheetPage({ user, projectName, projectId, datasheet 
 
   return (
     <BaseLayout user={user} selectedMenuItem='admin/projects' title={`${projectName} — Datasheet`}>
-      <div style={{ padding: '24px 32px' }}>
+      <div style={{ padding: '24px 32px 96px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16 }}>
           <div>
             <Link href={`/projects/${projectId}/projections`}>
@@ -247,18 +247,19 @@ export default function DatasheetPage({ user, projectName, projectId, datasheet 
 
         <div
           style={{
-            position: 'sticky',
-            top: 0,
-            zIndex: 5,
+            position: 'fixed',
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 1000,
             display: 'flex',
             alignItems: 'flex-start',
             gap: 12,
-            padding: '10px 14px',
-            marginBottom: 8,
-            border: '1px solid #d9d9d9',
-            borderRadius: 6,
-            background: selectedFormula ? '#f0f8ff' : '#fafafa',
-            minHeight: 58
+            padding: '12px 24px',
+            borderTop: '2px solid #1677ff',
+            boxShadow: '0 -2px 12px rgba(0,0,0,0.12)',
+            background: selectedFormula ? '#f0f8ff' : '#ffffff',
+            minHeight: 62
           }}
         >
           <FunctionOutlined style={{ fontSize: 18, color: '#1677ff', marginTop: 2 }} />

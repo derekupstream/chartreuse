@@ -253,13 +253,10 @@ const SummaryRow = ({ lineItems }: { lineItems: ReusableLineItem[] }) => {
     },
     { products: 0, units: 0, cost: 0, costForecast: 0, unitsForecast: 0 }
   );
-  const averageRepurchaseRate = Math.round(
-    (lineItems.reduce((total, item) => {
-      return total + item.annualRepurchasePercentage;
-    }, 0) /
-      lineItems.length) *
-      100
-  );
+  // Weight by quantity: total units repurchased / total units initially purchased.
+  // Averaging each item's percentage instead treats a 12-unit case the same as a
+  // 40,000-unit order, which overstates the rate (reported by data science).
+  const averageRepurchaseRate = totals.units > 0 ? Math.round((totals.unitsForecast / totals.units) * 100) : 0;
   return (
     <S.InfoCard style={{ boxShadow: 'none' }}>
       <Row>

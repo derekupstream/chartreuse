@@ -96,7 +96,9 @@ export default handlerWithUser().post(async (req: NextApiRequestWithUser, res: N
             caseCost: toFloat(mapped.caseCost),
             casesPurchased: toInt(mapped.casesPurchased),
             unitsPerCase: toInt(mapped.unitsPerCase) || 1,
-            annualRepurchasePercentage: toFloat(mapped.annualRepurchasePercentage) || 0.1
+            // Match the app's default Return Rate of 95% (i.e. repurchase 5%) when the
+            // upload doesn't specify one, rather than the old unexplained 10%.
+            annualRepurchasePercentage: toFloat(mapped.annualRepurchasePercentage) || 0.05
           }
         });
         created++;
