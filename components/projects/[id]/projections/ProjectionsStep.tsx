@@ -1,4 +1,4 @@
-import { PlusOutlined } from '@ant-design/icons';
+import { PlusOutlined, TableOutlined } from '@ant-design/icons';
 import { Button, Col, Row, Menu, Popconfirm, Typography, message } from 'antd';
 import { useEffect, useRef, useState } from 'react';
 import styled from 'styled-components';
@@ -222,6 +222,16 @@ export const ProjectionsStep = ({ project, readOnly }: { project: ProjectContext
         </Typography.Title>
         <div style={{ display: 'flex', gap: 16, alignItems: 'center', flexShrink: 0 }}>
           <PrintButton printRef={printRef} pdfTitle={`${project.name} - Chart-Reuse`} />
+          {project.org.isUpstream && (
+            <Button
+              className='dont-print-me'
+              icon={<TableOutlined />}
+              href={`/projects/${project.id}/datasheet`}
+              title='See every input, catalog value, factor and intermediate as a spreadsheet'
+            >
+              View as Datasheet
+            </Button>
+          )}
           {!project.isTemplate && <ShareButton projectId={project.id} publicSlug={project.publicSlug} />}
           {!project.isTemplate && !readOnly && (
             <SaveSnapshotButton
