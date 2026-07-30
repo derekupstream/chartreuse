@@ -51,8 +51,11 @@ export type DatasheetRow = {
   freightGhgFactor: number;
   primaryWaterFactor: number;
   secondaryWaterFactor: number;
+  cardboardWaterFactor: number;
 
   // intermediates
+  primaryMassLb: number;
+  secondaryMassLb: number;
   productMassLb: number;
   boxMassLb: number;
   boxMassLbPerItemMethod: number; // alternative under review (DATA-REVIEW-AGENDA 3b)
@@ -71,6 +74,17 @@ export type DatasheetRow = {
   waterPrimaryBaseline: number;
   waterSecondaryBaseline: number;
   waterShippingBoxBaseline: number;
+
+  /** Per-column working: the expression with real numbers substituted, and which columns it reads. */
+  formulas: Record<string, CellFormula>;
+};
+
+export type CellFormula = {
+  /** e.g. "6,430 x 0.000915 + 6,430 x 0.00040467" */
+  expression: string;
+  /** column keys this cell reads, for highlighting */
+  refs: string[];
+  note?: string;
 };
 
 export type DatasheetReconciliation = { label: string; rowSum: number; engineTotal: number; matches: boolean };
@@ -116,6 +130,20 @@ function buildRow(kind: DatasheetRow['kind'], lineItem: any, inventory: ProjectI
     frequency: frequency as any
   });
 
+  const cardboardWaterFactor = MATERIAL_MAP[1]?.waterUsageGalPerLb ?? 0;
+  const primaryMassLb = annualLineItemWeight(
+    isReusable ? 0 : lineItem.casesPurchased,
+    annualOccurrence,
+    lineItem.unitsPerCase,
+    product.primaryMaterialWeightPerUnit
+  );
+  const secondaryMassLb = annualLineItemWeight(
+    isReusable ? 0 : lineItem.casesPurchased,
+    annualOccurrence,
+    lineItem.unitsPerCase,
+    product.secondaryMaterialWeightPerUnit || 0
+  );
+
   // Waste uses the product's total item weight (not primary + secondary).
   const productMassLb = annualLineItemWeight(
     lineItem.casesPurchased,
@@ -136,11 +164,103 @@ function buildRow(kind: DatasheetRow['kind'], lineItem: any, inventory: ProjectI
   if (isReusable) notes.push('reusable: excluded from baseline by the engine');
   if (isWaterStation(lineItem)) notes.push('water station: excluded from water totals');
 
+  const num = (v: number, d = 6) => v.toLocaleString(undefined, { maximumFractionDigits: d });
+  const zeroedNote = isReusable ? 'Reusables are excluded from the baseline, so cases count as 0 here.' : undefined;
+  const casesTerm = isReusable ? '0 (reusable)' : num(lineItem.casesPurchased, 0);
+  const occ = annualOccurrence;
+
+  const formulas: Record<string, CellFormula> = {
+    annualItems: {
+      expression: `${num(lineItem.casesPurchased, 0)} cases x ${num(lineItem.unitsPerCase, 0)} units/case x ${occ} = ${num(annualItems, 0)}`,
+      refs: ['casesPurchased', 'unitsPerCase', 'annualOccurrence']
+    },
+    forecastItems: {
+      expression: `${num(lineItem.newCasesPurchased ?? 0, 0)} forecast cases x ${num(lineItem.unitsPerCase, 0)} x ${occ} = ${num(forecastItems, 0)}`,
+      refs: ['forecastCases', 'unitsPerCase', 'annualOccurrence']
+    },
+    annualCost: {
+      expression: `$${num(lineItem.caseCost, 2)} x ${num(lineItem.casesPurchased, 0)} cases x ${occ} = $${num(annualCost, 2)}`,
+      refs: ['caseCost', 'casesPurchased', 'annualOccurrence']
+    },
+    primaryMassLb: {
+      expression: `${num(product.primaryMaterialWeightPerUnit)} lb/item x ${casesTerm === '0 (reusable)' ? '0 items' : num(annualItems, 0) + ' items'} = ${num(primaryMassLb, 1)} lb`,
+      refs: ['primaryLbPerItem', 'annualItems'],
+      note: zeroedNote
+    },
+    secondaryMassLb: {
+      expression: `${num(product.secondaryMaterialWeightPerUnit || 0)} lb/item x ${casesTerm === '0 (reusable)' ? '0 items' : num(annualItems, 0) + ' items'} = ${num(secondaryMassLb, 1)} lb`,
+      refs: ['secondaryLbPerItem', 'annualItems'],
+      note: zeroedNote
+    },
+    productMassLb: {
+      expression: `${num(product.itemWeight)} lb/item x ${num(annualItems, 0)} items = ${num(productMassLb, 1)} lb`,
+      refs: ['itemWeightLb', 'annualItems']
+    },
+    boxMassLb: {
+      expression: `${num(product.boxWeight)} lb/case x ${num(lineItem.casesPurchased, 0)} cases x ${occ} = ${num(boxMassLb, 1)} lb`,
+      refs: ['boxLbPerCase', 'casesPurchased', 'annualOccurrence'],
+      note: 'Units-per-case is NOT part of this formula — see the per-item column beside it (agenda 3b).'
+    },
+    boxMassLbPerItemMethod: {
+      expression: `${num(product.boxWeightPerItem ?? 0)} lb/item x ${num(annualItems, 0)} items = ${num((product.boxWeightPerItem ?? 0) * annualItems, 1)} lb`,
+      refs: ['boxLbPerItem', 'annualItems'],
+      note: 'The alternative method under review. Not currently used by the calculator.'
+    },
+    massBaselineLb: {
+      expression: isReusable
+        ? '0 — reusables contribute nothing to the baseline'
+        : `${num(productMassLb, 1)} product + ${num(boxMassLb, 1)} box = ${num(productMassLb + boxMassLb, 1)} lb`,
+      refs: isReusable ? [] : ['productMassLb', 'boxMassLb']
+    },
+    massForecastLb: {
+      expression: `${num(product.itemWeight)} x ${num(forecastItems, 0)} items + ${num(product.boxWeight)} x ${num(lineItem.newCasesPurchased ?? 0, 0)} cases = ${num(forecastProductMass + forecastBoxMass, 1)} lb`,
+      refs: ['itemWeightLb', 'forecastItems', 'boxLbPerCase', 'forecastCases']
+    },
+    ghgPrimaryBaseline: {
+      expression: `${num(primaryMassLb, 1)} lb x (${num(primMat?.mtco2ePerLb ?? 0)} material + ${num(TRANSPORTATION_CO2_EMISSIONS_FACTOR, 8)} freight) = ${num(gas.primaryGas.baseline, 4)}`,
+      refs: ['primaryMassLb', 'primaryGhgFactor', 'freightGhgFactor'],
+      note: zeroedNote
+    },
+    ghgSecondaryBaseline: {
+      expression: `${num(secondaryMassLb, 1)} lb x (${num(secMat?.mtco2ePerLb ?? 0)} material + ${num(TRANSPORTATION_CO2_EMISSIONS_FACTOR, 8)} freight) = ${num(gas.secondaryGas.baseline, 4)}`,
+      refs: ['secondaryMassLb', 'secondaryGhgFactor', 'freightGhgFactor'],
+      note: zeroedNote
+    },
+    ghgShippingBoxBaseline: {
+      expression: `${num(boxMassLb, 1)} lb x (${num(CORRUGATED_CARDBOARD_GAS)} cardboard + ${num(TRANSPORTATION_CO2_EMISSIONS_FACTOR, 8)} freight) = ${num(gas.shippingBoxGas.baseline, 4)}`,
+      refs: ['boxMassLb', 'cardboardGhgFactor', 'freightGhgFactor'],
+      note: 'Ocean freight is applied here AND to product mass — under review (agenda 3c).'
+    },
+    ghgBaseline: {
+      expression: `${num(gas.primaryGas.baseline, 4)} primary + ${num(gas.secondaryGas.baseline, 4)} secondary + ${num(gas.shippingBoxGas.baseline, 4)} box = ${num(gas.total.baseline, 4)}`,
+      refs: ['ghgPrimaryBaseline', 'ghgSecondaryBaseline', 'ghgShippingBoxBaseline']
+    },
+    waterPrimaryBaseline: {
+      expression: `${num(primaryMassLb, 1)} lb x ${num(primMat?.waterUsageGalPerLb ?? 0, 4)} gal/lb = ${num(water.primaryWater.baseline, 0)} gal`,
+      refs: ['primaryMassLb', 'primaryWaterFactor'],
+      note: zeroedNote
+    },
+    waterSecondaryBaseline: {
+      expression: `${num(secondaryMassLb, 1)} lb x ${num(secMat?.waterUsageGalPerLb ?? 0, 4)} gal/lb = ${num(water.secondaryWater.baseline, 0)} gal`,
+      refs: ['secondaryMassLb', 'secondaryWaterFactor'],
+      note: zeroedNote
+    },
+    waterShippingBoxBaseline: {
+      expression: `${num(boxMassLb, 1)} lb x ${num(cardboardWaterFactor, 4)} gal/lb = ${num(water.shippingBoxWater.baseline, 0)} gal`,
+      refs: ['boxMassLb', 'cardboardWaterFactor']
+    },
+    waterBaseline: {
+      expression: `${num(water.primaryWater.baseline, 0)} primary + ${num(water.secondaryWater.baseline, 0)} secondary + ${num(water.shippingBoxWater.baseline, 0)} box = ${num(water.total.baseline, 0)} gal`,
+      refs: ['waterPrimaryBaseline', 'waterSecondaryBaseline', 'waterShippingBoxBaseline']
+    }
+  };
+
   return {
     kind,
     productId: String(product.id),
     description: (product.description || '').trim(),
     note: notes.join('; '),
+    formulas,
     unitsPerCase: lineItem.unitsPerCase,
     casesPurchased: lineItem.casesPurchased,
     caseCost: lineItem.caseCost,
@@ -162,6 +282,9 @@ function buildRow(kind: DatasheetRow['kind'], lineItem: any, inventory: ProjectI
     freightGhgFactor: TRANSPORTATION_CO2_EMISSIONS_FACTOR,
     primaryWaterFactor: primMat?.waterUsageGalPerLb ?? 0,
     secondaryWaterFactor: secMat?.waterUsageGalPerLb ?? 0,
+    cardboardWaterFactor,
+    primaryMassLb,
+    secondaryMassLb,
     productMassLb,
     boxMassLb,
     boxMassLbPerItemMethod: (product.boxWeightPerItem ?? 0) * annualItems,

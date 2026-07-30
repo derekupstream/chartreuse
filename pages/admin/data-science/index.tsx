@@ -10,14 +10,13 @@ import {
   UploadOutlined,
   WarningOutlined
 } from '@ant-design/icons';
-import { Card, Col, Collapse, Row, Steps, Typography } from 'antd';
+import { Card, Col, Collapse, Row, Steps, Tooltip, Typography } from 'antd';
 import type { GetServerSideProps } from 'next';
 import Link from 'next/link';
 import styled from 'styled-components';
 
 import type { DashboardUser } from 'interfaces';
 import { AdminLayout } from 'layouts/AdminLayout';
-import { HowTo } from 'components/admin/HowTo';
 import { scanCalculatorFunctions } from 'lib/admin/calculatorScan';
 import { getUserFromContext } from 'lib/middleware';
 import { ACCESS_DENIED_REDIRECT, checkIsUpstream } from 'lib/middleware/requireUpstream';
@@ -131,6 +130,7 @@ function KpiCardBlock({
   subtext,
   href,
   icon,
+  help,
   alertOverride
 }: {
   title: string;
@@ -138,6 +138,8 @@ function KpiCardBlock({
   subtext: string;
   href: string;
   icon: React.ReactNode;
+  /** What this metric means and what a healthy value looks like. */
+  help: React.ReactNode;
   alertOverride?: boolean;
 }) {
   const isZero = value === 0 && alertOverride !== true;
@@ -145,6 +147,9 @@ function KpiCardBlock({
     <KpiCard $alert={!isZero} hoverable>
       <KpiTitle>
         {icon} {title}
+        <Tooltip title={help} overlayStyle={{ maxWidth: 340 }}>
+          <QuestionCircleOutlined style={{ marginLeft: 6, color: 'rgba(0,0,0,0.35)', cursor: 'help', fontSize: 13 }} />
+        </Tooltip>
       </KpiTitle>
       <KpiNumber $zero={isZero}>
         {isZero ? <CheckCircleOutlined /> : value === 0 ? <CheckCircleOutlined /> : value}
@@ -232,7 +237,6 @@ export default function DataSciencePage({ user, stats }: Props) {
 
   return (
     <AdminLayout title='Data Governance Admin' selectedMenuItem='data-science' user={user}>
-      <HowTo tool='overview' />
       <div style={{ padding: '24px' }}>
         <Title level={2} style={{ marginBottom: 4 }}>
           Data Governance Admin
@@ -251,6 +255,16 @@ export default function DataSciencePage({ user, stats }: Props) {
               subtext='open data quality issues'
               href='/admin/data-science/inputs'
               icon={<UploadOutlined />}
+              help={
+                <>
+                  <strong>What it counts:</strong> real projects with broken or implausible inputs — no state selected,
+                  no line items, units-per-case of zero, or a repurchase rate above 100%.
+                  <br />
+                  <br />
+                  <strong>What you want:</strong> zero. Anything above zero means someone&apos;s project is producing
+                  wrong or empty results right now. Bad inputs explain more strange numbers than bad math does.
+                </>
+              }
             />
           </Col>
           <Col xs={24} sm={12} lg={6}>
@@ -260,6 +274,16 @@ export default function DataSciencePage({ user, stats }: Props) {
               subtext='pending review'
               href='/admin/data-science/change-requests'
               icon={<ExclamationCircleOutlined />}
+              help={
+                <>
+                  <strong>What it counts:</strong> proposed changes to factors (emission factors, material weights,
+                  utility rates) waiting for someone to approve or decline.
+                  <br />
+                  <br />
+                  <strong>What you want:</strong> a short queue. These are blocking someone — each one is a colleague
+                  waiting on a decision about an assumption.
+                </>
+              }
             />
           </Col>
           <Col xs={24} sm={12} lg={6}>
@@ -269,6 +293,16 @@ export default function DataSciencePage({ user, stats }: Props) {
               subtext='last 7 days'
               href='/admin/data-science/runs'
               icon={<WarningOutlined />}
+              help={
+                <>
+                  <strong>What it counts:</strong> calculations the app tried to run in the last 7 days and failed —
+                  projections, scenarios, and partner data ingests.
+                  <br />
+                  <br />
+                  <strong>What you want:</strong> zero. Failures usually mean a project has data the calculator
+                  can&apos;t handle, or a partner sent something unexpected. Open a run to see the error.
+                </>
+              }
             />
           </Col>
           <Col xs={24} sm={12} lg={6}>
@@ -279,6 +313,16 @@ export default function DataSciencePage({ user, stats }: Props) {
               href='/admin/data-science/test-runs'
               icon={<BarChartOutlined />}
               alertOverride={isStale}
+              help={
+                <>
+                  <strong>What it counts:</strong> metrics in the most recent regression test run whose result
+                  didn&apos;t match the expected answer in a golden dataset.
+                  <br />
+                  <br />
+                  <strong>What you want:</strong> zero failures, and a recent run date. If factors changed since the
+                  last run, this card asks you to re-run — an old pass proves nothing about today&apos;s code.
+                </>
+              }
             />
           </Col>
         </Row>

@@ -1,7 +1,8 @@
-import { ArrowLeftOutlined, DownloadOutlined } from '@ant-design/icons';
+import { ArrowLeftOutlined, DownloadOutlined, FunctionOutlined } from '@ant-design/icons';
 import { Alert, Button, Table, Tag, Typography } from 'antd';
 import type { GetServerSideProps } from 'next';
 import Link from 'next/link';
+import { useState } from 'react';
 
 import { BaseLayout } from 'layouts/BaseLayout';
 import type { DashboardUser } from 'interfaces';
@@ -135,6 +136,13 @@ function toCsv(datasheet: ProjectDatasheet): string {
 }
 
 export default function DatasheetPage({ user, projectName, projectId, datasheet }: Props) {
+  const [selected, setSelected] = useState<{ rowIndex: number; colKey: string } | null>(null);
+
+  const selectedRow = selected ? datasheet.rows[selected.rowIndex] : null;
+  const selectedFormula = selected && selectedRow ? selectedRow.formulas[selected.colKey] : undefined;
+  const highlightedRefs = new Set(selectedFormula?.refs ?? []);
+  const labelFor = (key: string) => GROUPS.flatMap(g => g.cols).find(c => c.key === key)?.label ?? String(key);
+
   const columns: any[] = [
     {
       title: 'Line item',
@@ -169,7 +177,21 @@ export default function DatasheetPage({ user, projectName, projectId, datasheet 
         dataIndex: col.key,
         width: 130,
         align: 'right' as const,
-        onCell: () => ({ style: { background: group.color } }),
+        onCell: (_row: DatasheetRow, rowIndex?: number) => {
+          const isSelected = selected?.rowIndex === rowIndex && selected?.colKey === col.key;
+          const isRef = selected?.rowIndex === rowIndex && highlightedRefs.has(String(col.key));
+          const hasFormula = !!datasheet.rows[rowIndex ?? -1]?.formulas?.[String(col.key)];
+          return {
+            onClick: () => setSelected(isSelected ? null : { rowIndex: rowIndex ?? 0, colKey: String(col.key) }),
+            style: {
+              background: isSelected ? '#bae0ff' : isRef ? '#fff1b8' : group.color,
+              outline: isSelected ? '2px solid #1677ff' : isRef ? '2px solid #faad14' : undefined,
+              outlineOffset: '-2px',
+              cursor: hasFormula ? 'cell' : 'default',
+              fontWeight: isSelected || isRef ? 600 : undefined
+            }
+          };
+        },
         render: (v: unknown) => fmt(v, col.decimals)
       }))
     }))
@@ -222,6 +244,50 @@ export default function DatasheetPage({ user, projectName, projectId, datasheet 
             </>
           }
         />
+
+        <div
+          style={{
+            position: 'sticky',
+            top: 0,
+            zIndex: 5,
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: 12,
+            padding: '10px 14px',
+            marginBottom: 8,
+            border: '1px solid #d9d9d9',
+            borderRadius: 6,
+            background: selectedFormula ? '#f0f8ff' : '#fafafa',
+            minHeight: 58
+          }}
+        >
+          <FunctionOutlined style={{ fontSize: 18, color: '#1677ff', marginTop: 2 }} />
+          {selectedFormula && selectedRow ? (
+            <div style={{ flex: 1 }}>
+              <Typography.Text type='secondary' style={{ fontSize: 12 }}>
+                {selectedRow.description || selectedRow.productId} → {labelFor(selected!.colKey)}
+              </Typography.Text>
+              <div style={{ fontFamily: 'monospace', fontSize: 14, marginTop: 2 }}>{selectedFormula.expression}</div>
+              {selectedFormula.refs.length > 0 && (
+                <Typography.Text type='secondary' style={{ fontSize: 12 }}>
+                  reads: {selectedFormula.refs.map(labelFor).join(', ')} — highlighted in amber
+                </Typography.Text>
+              )}
+              {selectedFormula.note && (
+                <div style={{ fontSize: 12, color: '#d46b08', marginTop: 2 }}>⚠ {selectedFormula.note}</div>
+              )}
+            </div>
+          ) : (
+            <Typography.Text type='secondary' style={{ paddingTop: 4 }}>
+              Click any calculated cell to see the formula with real numbers, and highlight the cells it reads.
+            </Typography.Text>
+          )}
+          {selectedFormula && (
+            <Button size='small' onClick={() => setSelected(null)}>
+              Clear
+            </Button>
+          )}
+        </div>
 
         <Table
           size='small'
