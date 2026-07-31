@@ -6,6 +6,8 @@ Built with [Next.js](https://nextjs.org/) (pages router), [Prisma](https://prism
 
 **📖 Full architecture reference: [docs/ROADMAP.md](docs/ROADMAP.md)** — the source-of-truth doc for the data model, calculator engine, auth, API surface, and operations.
 
+**📋 Open work: [docs/BACKLOG.md](docs/BACKLOG.md)** — every known bug, request and planned feature, with what's blocked on whom.
+
 ## Setup
 
 1. Get the `.env` file from another developer (or pull env vars from the Vercel dashboard). Key vars: `DATABASE_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`.
