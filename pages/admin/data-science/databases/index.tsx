@@ -1,5 +1,19 @@
 import { DatabaseOutlined, DeleteOutlined, DownloadOutlined, UploadOutlined } from '@ant-design/icons';
-import { Alert, Button, Card, Input, Modal, Popconfirm, Select, Table, Tag, Typography, Upload, message } from 'antd';
+import {
+  Alert,
+  Button,
+  Card,
+  Checkbox,
+  Input,
+  Modal,
+  Popconfirm,
+  Select,
+  Table,
+  Tag,
+  Typography,
+  Upload,
+  message
+} from 'antd';
 import type { GetServerSideProps } from 'next';
 import Papa from 'papaparse';
 import { useEffect, useMemo, useState } from 'react';
@@ -12,6 +26,8 @@ import { ACCESS_DENIED_REDIRECT, checkIsUpstream } from 'lib/middleware/requireU
 import { serializeJSON } from 'lib/objects';
 import type { DatabaseColumn, FactorDatabaseSummary } from 'pages/api/admin/factor-databases/index';
 import type { FactorDatabaseDetail } from 'pages/api/admin/factor-databases/[id]';
+import { extractMaterialFactors, guessFactorColumns } from 'lib/admin/extractMaterialFactors';
+import type { ExtractionResult } from 'lib/admin/extractMaterialFactors';
 
 const { Text, Title } = Typography;
 
@@ -36,6 +52,12 @@ export default function FactorDatabasesPage({ user }: { user: DashboardUser }) {
   const [parsed, setParsed] = useState<{ columns: DatabaseColumn[]; rows: Record<string, string>[] } | null>(null);
   const [form, setForm] = useState({ name: '', description: '', sourceName: '', keyColumn: '' });
   const [saving, setSaving] = useState(false);
+  // factors carried on product rows
+  const [factorCols, setFactorCols] = useState<{ materialColumn?: string; ghgColumn?: string; waterColumn?: string }>(
+    {}
+  );
+  const [applyFactors, setApplyFactors] = useState(false);
+  const [factorTarget, setFactorTarget] = useState('Single-Use Material Factors');
 
   async function load() {
     const res = await fetch('/api/admin/factor-databases');
@@ -81,6 +103,9 @@ export default function FactorDatabasesPage({ user }: { user: DashboardUser }) {
           sourceName: f.sourceName || file.name,
           keyColumn: f.keyColumn || headers[0]
         }));
+        const guessed = guessFactorColumns(headers);
+        setFactorCols(guessed);
+        setApplyFactors(!!(guessed.materialColumn && (guessed.ghgColumn || guessed.waterColumn)));
       },
       error: () => message.error('Could not read that file')
     });
@@ -112,6 +137,47 @@ export default function FactorDatabasesPage({ user }: { user: DashboardUser }) {
       if (!res.ok) throw new Error((await res.json()).error || 'Upload failed');
       const result = await res.json();
       message.success(`${result.replaced ? 'Replaced' : 'Created'} "${result.name}" — ${result.rowCount} rows`);
+
+      // Optionally write the material factors carried on the product rows into
+      // their own table. Only materials whose rows agreed are written.
+      if (applyFactors && extraction) {
+        const usable = extraction.materials.filter(m => !m.hasConflict && (m.ghg !== null || m.water !== null));
+        if (usable.length) {
+          const factorRes = await fetch('/api/admin/factor-databases', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              name: factorTarget,
+              description: `Material factors extracted from "${form.name}".`,
+              sourceName: form.sourceName || form.name,
+              keyColumn: 'name',
+              replaceExisting: true,
+              columns: [
+                { key: 'name', label: 'Material', type: 'text' },
+                { key: 'mtco2ePerLb', label: 'GHG (MTCO2e/lb)', type: 'number' },
+                { key: 'waterUsageGalPerLb', label: 'Water (gal/lb)', type: 'number' },
+                { key: 'productRows', label: 'Product rows referencing it', type: 'number' }
+              ],
+              rows: usable.map(m => ({
+                name: m.material,
+                mtco2ePerLb: m.ghg,
+                waterUsageGalPerLb: m.water,
+                productRows: m.rowCount
+              }))
+            })
+          });
+          if (factorRes.ok) {
+            message.success(`Updated "${factorTarget}" with ${usable.length} materials`);
+          } else {
+            message.warning('The product table saved, but the material factors could not be updated');
+          }
+        }
+        if (extraction.conflictCount > 0) {
+          message.warning(
+            `${extraction.conflictCount} material${extraction.conflictCount === 1 ? '' : 's'} had conflicting factor values and were left out — resolve them in the source file`
+          );
+        }
+      }
       setUploadOpen(false);
       setParsed(null);
       setForm({ name: '', description: '', sourceName: '', keyColumn: '' });
@@ -146,6 +212,16 @@ export default function FactorDatabasesPage({ user }: { user: DashboardUser }) {
     a.click();
     URL.revokeObjectURL(url);
   }
+
+  const extraction: ExtractionResult | null = useMemo(() => {
+    if (!parsed || !factorCols.materialColumn) return null;
+    if (!factorCols.ghgColumn && !factorCols.waterColumn) return null;
+    return extractMaterialFactors(parsed.rows, {
+      materialColumn: factorCols.materialColumn,
+      ghgColumn: factorCols.ghgColumn,
+      waterColumn: factorCols.waterColumn
+    });
+  }, [parsed, factorCols]);
 
   const filteredRows = useMemo(() => {
     if (!detail) return [];
@@ -370,6 +446,125 @@ export default function FactorDatabasesPage({ user }: { user: DashboardUser }) {
               style={{ width: '100%' }}
               options={parsed.columns.map(c => ({ value: c.key, label: c.label }))}
             />
+          </Card>
+        )}
+
+        {parsed && (
+          <Card size='small' style={{ marginTop: 16 }} title='Material factors on these rows'>
+            <Text type='secondary' style={{ display: 'block', marginBottom: 12 }}>
+              Product tables often repeat each material&apos;s factors on every row. Point at those columns and the
+              factors can be pulled out into their own table — grouped by material, with any disagreement flagged rather
+              than guessed at.
+            </Text>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
+              <Select
+                allowClear
+                placeholder='Material name column'
+                value={factorCols.materialColumn}
+                onChange={v => setFactorCols({ ...factorCols, materialColumn: v })}
+                style={{ minWidth: 200, flex: 1 }}
+                options={parsed.columns.map(c => ({ value: c.key, label: c.label }))}
+              />
+              <Select
+                allowClear
+                placeholder='GHG factor column'
+                value={factorCols.ghgColumn}
+                onChange={v => setFactorCols({ ...factorCols, ghgColumn: v })}
+                style={{ minWidth: 180, flex: 1 }}
+                options={parsed.columns.map(c => ({ value: c.key, label: c.label }))}
+              />
+              <Select
+                allowClear
+                placeholder='Water factor column'
+                value={factorCols.waterColumn}
+                onChange={v => setFactorCols({ ...factorCols, waterColumn: v })}
+                style={{ minWidth: 180, flex: 1 }}
+                options={parsed.columns.map(c => ({ value: c.key, label: c.label }))}
+              />
+            </div>
+
+            {!extraction && (
+              <Text type='secondary'>
+                Pick a material column plus a GHG or water column to see what would be extracted.
+              </Text>
+            )}
+
+            {extraction && (
+              <>
+                {extraction.conflictCount > 0 && (
+                  <Alert
+                    type='warning'
+                    showIcon
+                    style={{ marginBottom: 12 }}
+                    message={`${extraction.conflictCount} material${extraction.conflictCount === 1 ? '' : 's'} disagree between rows`}
+                    description='Rows for the same material carry different factor values, so one of them is wrong. Those materials are listed but will not be written — fix them in the source file and re-upload.'
+                  />
+                )}
+                <Table
+                  size='small'
+                  bordered
+                  rowKey='material'
+                  dataSource={extraction.materials}
+                  pagination={{ pageSize: 5, hideOnSinglePage: true }}
+                  columns={[
+                    { title: 'Material', dataIndex: 'material' },
+                    {
+                      title: 'GHG (MTCO2e/lb)',
+                      dataIndex: 'ghg',
+                      align: 'right' as const,
+                      render: (v: number | null, row) =>
+                        row.ghgConflicts.length ? (
+                          <Text type='danger'>{row.ghgConflicts.join('  vs  ')}</Text>
+                        ) : v === null ? (
+                          <Text type='secondary'>—</Text>
+                        ) : (
+                          v
+                        )
+                    },
+                    {
+                      title: 'Water (gal/lb)',
+                      dataIndex: 'water',
+                      align: 'right' as const,
+                      render: (v: number | null, row) =>
+                        row.waterConflicts.length ? (
+                          <Text type='danger'>{row.waterConflicts.join('  vs  ')}</Text>
+                        ) : v === null ? (
+                          <Text type='secondary'>—</Text>
+                        ) : (
+                          v
+                        )
+                    },
+                    { title: 'Rows', dataIndex: 'rowCount', align: 'right' as const, width: 70 },
+                    {
+                      title: '',
+                      key: 'status',
+                      width: 90,
+                      render: (_: unknown, row) =>
+                        row.hasConflict ? <Tag color='red'>conflict</Tag> : <Tag color='green'>agrees</Tag>
+                    }
+                  ]}
+                />
+                <div style={{ marginTop: 12, display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+                  <Checkbox checked={applyFactors} onChange={e => setApplyFactors(e.target.checked)}>
+                    Also update a material factors table
+                  </Checkbox>
+                  <Select
+                    value={factorTarget}
+                    onChange={setFactorTarget}
+                    disabled={!applyFactors}
+                    style={{ minWidth: 260 }}
+                    options={[
+                      { value: 'Single-Use Material Factors', label: 'Single-Use Material Factors' },
+                      { value: 'Reusable Material Factors', label: 'Reusable Material Factors' }
+                    ]}
+                  />
+                  <Text type='secondary' style={{ fontSize: 12 }}>
+                    {extraction.materials.filter(m => !m.hasConflict).length} of {extraction.materials.length} materials
+                    would be written
+                  </Text>
+                </div>
+              </>
+            )}
           </Card>
         )}
       </Modal>
