@@ -95,12 +95,20 @@ const siderMenuItems = [
       { key: 'data-science/constants', label: <Link href='/admin/data-science/constants'>Factors</Link> },
       { key: 'data-science/databases', label: <Link href='/admin/data-science/databases'>Databases</Link> },
       {
-        key: 'data-science/calculations',
-        label: <Link href='/admin/data-science/calculations'>Calculations</Link>
+        key: 'data-science/smart-fields',
+        label: <Link href='/admin/data-science/smart-fields'>Calculations</Link>
+      },
+      {
+        key: 'data-science/designer-v2',
+        label: <Link href='/admin/data-science/data-product-designer-v2'>Data Product Designer</Link>
       },
       {
         key: 'data-science/data-products',
         label: <Link href='/admin/data-science/data-products'>Data Products</Link>
+      },
+      {
+        key: 'data-science/calculations',
+        label: <Link href='/admin/data-science/calculations'>Functions (legacy)</Link>
       },
       { key: 'data-science/test-runs', label: <Link href='/admin/data-science/test-runs'>Test Runs</Link> },
       { key: 'admin/methodology', label: <Link href='/admin/methodology'>Methodology</Link> },
