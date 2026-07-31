@@ -25,6 +25,7 @@ import Card from './components/common/Card';
 import { Divider, SectionHeader, SectionContainer } from './components/common/styles';
 import { isEugeneOrg } from 'lib/featureFlags';
 import { useChartReuse2 } from 'hooks/useChartReuse2';
+import { CalculationInspectorProvider } from 'components/common/CalculationInspector';
 import type { InfoPage } from 'lib/infoPages';
 import { parseInfoPages, serializeInfoPages, EMPTY_SLATE } from 'lib/infoPages';
 
@@ -198,177 +199,186 @@ export const ProjectionsStep = ({ project, readOnly }: { project: ProjectContext
   }
 
   return (
-    <Wrapper ref={printRef}>
-      <PrintHeader accountName={project.account.name} orgName={project.org.name} projectName={project.name} />
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'flex-start',
-          marginBottom: '1.5em',
-          flexWrap: 'wrap',
-          gap: 12
-        }}
-      >
-        <Typography.Title
-          level={1}
-          style={{ fontSize: 'clamp(32px, 6vw, 56px)', marginBottom: 0, lineHeight: 1.1 }}
-          editable={{
-            triggerType: readOnly ? [] : ['icon'],
-            onChange: handleProjectionsTitleChange
+    <CalculationInspectorProvider projectId={project.id} enabled={!!project.org.isUpstream}>
+      <Wrapper ref={printRef}>
+        <PrintHeader accountName={project.account.name} orgName={project.org.name} projectName={project.name} />
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'flex-start',
+            marginBottom: '1.5em',
+            flexWrap: 'wrap',
+            gap: 12
           }}
         >
-          {projectionsTitle || project.name}
-        </Typography.Title>
-        <div style={{ display: 'flex', gap: 16, alignItems: 'center', flexShrink: 0 }}>
-          <PrintButton printRef={printRef} pdfTitle={`${project.name} - Chart-Reuse`} />
-          {project.org.isUpstream && (
-            <Button
-              className='dont-print-me'
-              icon={<TableOutlined />}
-              href={`/projects/${project.id}/datasheet`}
-              title='See every input, catalog value, factor and intermediate as a spreadsheet'
-            >
-              View as Datasheet
-            </Button>
-          )}
-          {!project.isTemplate && <ShareButton projectId={project.id} publicSlug={project.publicSlug} />}
-          {!project.isTemplate && !readOnly && (
-            <SaveSnapshotButton
-              projectId={project.id}
-              isActuals={project.dataType === 'actual' || project.category === 'event'}
-            />
-          )}
-        </div>
-      </div>
-      <Typography.Paragraph
-        style={{ marginTop: 0, marginBottom: 12, fontSize: 13, color: 'rgba(0,0,0,0.55)' }}
-        editable={{
-          triggerType: readOnly ? [] : ['icon'],
-          onChange: handleProjectionsDescriptionChange
-        }}
-      >
-        {projectionsDescription || defaultProjectionsDescription}
-      </Typography.Paragraph>
-      <MobileViewTabBar>
-        {[...sidebarMenuItems, ...infoPageMenuItems].map(item => (
-          <MobileViewTab key={item.key} $active={view === item.key} onClick={() => setView(item.key)}>
-            {item.label}
-          </MobileViewTab>
-        ))}
-      </MobileViewTabBar>
-
-      <Row gutter={24}>
-        <Col xs={0} md={5} className='dont-print-me'>
-          <Menu
-            style={{ width: '100%', marginBottom: 24 }}
-            selectedKeys={[view]}
-            onSelect={onSelect}
-            mode={'vertical'}
-            items={sidebarMenuItems}
-          />
-          <Menu
-            style={{ width: '100%' }}
-            selectedKeys={[view]}
-            onSelect={onSelect}
-            mode={'vertical'}
-            items={infoPageMenuItems}
-          />
-          {!readOnly && (
-            <Button type='dashed' icon={<PlusOutlined />} style={{ width: '100%', marginTop: 8 }} onClick={addInfoPage}>
-              Add info page
-            </Button>
-          )}
-        </Col>
-        <StyledCol xs={24} md={19}>
-          <span className={view === 'summary' ? '' : 'print-only'}>
-            {project.category === 'event' ? (
-              <EventProjectSummary
-                data={data}
-                useShrinkageRate={project.org.useShrinkageRate}
-                showEnvBreakEven={v2Enabled}
-              />
-            ) : (
-              <ProjectSummary data={data} showEnvBreakEven={v2Enabled} />
+          <Typography.Title
+            level={1}
+            style={{ fontSize: 'clamp(32px, 6vw, 56px)', marginBottom: 0, lineHeight: 1.1 }}
+            editable={{
+              triggerType: readOnly ? [] : ['icon'],
+              onChange: handleProjectionsTitleChange
+            }}
+          >
+            {projectionsTitle || project.name}
+          </Typography.Title>
+          <div style={{ display: 'flex', gap: 16, alignItems: 'center', flexShrink: 0 }}>
+            <PrintButton printRef={printRef} pdfTitle={`${project.name} - Chart-Reuse`} />
+            {project.org.isUpstream && (
+              <Button
+                className='dont-print-me'
+                icon={<TableOutlined />}
+                href={`/projects/${project.id}/datasheet`}
+                title='See every input, catalog value, factor and intermediate as a spreadsheet'
+              >
+                View as Datasheet
+              </Button>
             )}
-          </span>
-          {v2Enabled && view === 'timeline' && <ProjectTimeline projectId={project.id} data={data} />}
+            {!project.isTemplate && <ShareButton projectId={project.id} publicSlug={project.publicSlug} />}
+            {!project.isTemplate && !readOnly && (
+              <SaveSnapshotButton
+                projectId={project.id}
+                isActuals={project.dataType === 'actual' || project.category === 'event'}
+              />
+            )}
+          </div>
+        </div>
+        <Typography.Paragraph
+          style={{ marginTop: 0, marginBottom: 12, fontSize: 13, color: 'rgba(0,0,0,0.55)' }}
+          editable={{
+            triggerType: readOnly ? [] : ['icon'],
+            onChange: handleProjectionsDescriptionChange
+          }}
+        >
+          {projectionsDescription || defaultProjectionsDescription}
+        </Typography.Paragraph>
+        <MobileViewTabBar>
+          {[...sidebarMenuItems, ...infoPageMenuItems].map(item => (
+            <MobileViewTab key={item.key} $active={view === item.key} onClick={() => setView(item.key)}>
+              {item.label}
+            </MobileViewTab>
+          ))}
+        </MobileViewTabBar>
 
-          {!hideSingleAndReusableDetailsForEugeneOrg && (
-            <>
-              <div className='page-break' />
-              <span className={view === 'single_use_details' ? '' : 'print-only'}>
-                <LineItemSummary
-                  showTitle
-                  variant='single_use'
-                  projectCategory={project.category}
-                  lineItemSummary={data.singleUseResults}
+        <Row gutter={24}>
+          <Col xs={0} md={5} className='dont-print-me'>
+            <Menu
+              style={{ width: '100%', marginBottom: 24 }}
+              selectedKeys={[view]}
+              onSelect={onSelect}
+              mode={'vertical'}
+              items={sidebarMenuItems}
+            />
+            <Menu
+              style={{ width: '100%' }}
+              selectedKeys={[view]}
+              onSelect={onSelect}
+              mode={'vertical'}
+              items={infoPageMenuItems}
+            />
+            {!readOnly && (
+              <Button
+                type='dashed'
+                icon={<PlusOutlined />}
+                style={{ width: '100%', marginTop: 8 }}
+                onClick={addInfoPage}
+              >
+                Add info page
+              </Button>
+            )}
+          </Col>
+          <StyledCol xs={24} md={19}>
+            <span className={view === 'summary' ? '' : 'print-only'}>
+              {project.category === 'event' ? (
+                <EventProjectSummary
+                  data={data}
+                  useShrinkageRate={project.org.useShrinkageRate}
+                  showEnvBreakEven={v2Enabled}
                 />
-              </span>
-              <span className={view === 'reusable_details' ? '' : 'print-only'}>
-                <LineItemSummary
-                  showTitle
-                  variant='reusable'
-                  projectCategory={project.category}
-                  lineItemSummary={data.reusableResults}
-                />
-              </span>
-            </>
-          )}
-          {activeInfoPage && (
-            <SectionContainer>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                <Typography.Title
-                  level={3}
-                  style={{ margin: 0 }}
-                  editable={
-                    readOnly
-                      ? false
-                      : {
-                          triggerType: ['text', 'icon'],
-                          onChange: newTitle => updatePageTitle(activeInfoPage.id, newTitle)
-                        }
-                  }
+              ) : (
+                <ProjectSummary data={data} showEnvBreakEven={v2Enabled} />
+              )}
+            </span>
+            {v2Enabled && view === 'timeline' && <ProjectTimeline projectId={project.id} data={data} />}
+
+            {!hideSingleAndReusableDetailsForEugeneOrg && (
+              <>
+                <div className='page-break' />
+                <span className={view === 'single_use_details' ? '' : 'print-only'}>
+                  <LineItemSummary
+                    showTitle
+                    variant='single_use'
+                    projectCategory={project.category}
+                    lineItemSummary={data.singleUseResults}
+                  />
+                </span>
+                <span className={view === 'reusable_details' ? '' : 'print-only'}>
+                  <LineItemSummary
+                    showTitle
+                    variant='reusable'
+                    projectCategory={project.category}
+                    lineItemSummary={data.reusableResults}
+                  />
+                </span>
+              </>
+            )}
+            {activeInfoPage && (
+              <SectionContainer>
+                <div
+                  style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}
                 >
-                  {activeInfoPage.title || 'Untitled page'}
-                </Typography.Title>
-                {!readOnly && (
-                  <Popconfirm
-                    title='Delete this page?'
-                    onConfirm={() => deleteInfoPage(activeInfoPage.id)}
-                    okText='Delete'
-                    okButtonProps={{ danger: true }}
-                    cancelText='Cancel'
+                  <Typography.Title
+                    level={3}
+                    style={{ margin: 0 }}
+                    editable={
+                      readOnly
+                        ? false
+                        : {
+                            triggerType: ['text', 'icon'],
+                            onChange: newTitle => updatePageTitle(activeInfoPage.id, newTitle)
+                          }
+                    }
                   >
-                    <Button danger size='small'>
-                      Delete
-                    </Button>
-                  </Popconfirm>
-                )}
-              </div>
-              <Divider />
-              <Card>
-                {!readOnly && (
-                  <div style={{ marginBottom: -24, display: 'flex', justifyContent: 'flex-end' }}>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <Switch
-                        checked={activeInfoPage.showOnShared}
-                        onChange={checked => updatePageShowOnShared(activeInfoPage.id, checked)}
-                      />
-                      <span>Show on shared page</span>
-                    </span>
-                  </div>
-                )}
-                <SlateEditor
-                  value={activeInfoPage.content}
-                  onChange={content => updatePageContent(activeInfoPage.id, content)}
-                  readOnly={readOnly}
-                />
-              </Card>
-            </SectionContainer>
-          )}
-        </StyledCol>
-      </Row>
-    </Wrapper>
+                    {activeInfoPage.title || 'Untitled page'}
+                  </Typography.Title>
+                  {!readOnly && (
+                    <Popconfirm
+                      title='Delete this page?'
+                      onConfirm={() => deleteInfoPage(activeInfoPage.id)}
+                      okText='Delete'
+                      okButtonProps={{ danger: true }}
+                      cancelText='Cancel'
+                    >
+                      <Button danger size='small'>
+                        Delete
+                      </Button>
+                    </Popconfirm>
+                  )}
+                </div>
+                <Divider />
+                <Card>
+                  {!readOnly && (
+                    <div style={{ marginBottom: -24, display: 'flex', justifyContent: 'flex-end' }}>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <Switch
+                          checked={activeInfoPage.showOnShared}
+                          onChange={checked => updatePageShowOnShared(activeInfoPage.id, checked)}
+                        />
+                        <span>Show on shared page</span>
+                      </span>
+                    </div>
+                  )}
+                  <SlateEditor
+                    value={activeInfoPage.content}
+                    onChange={content => updatePageContent(activeInfoPage.id, content)}
+                    readOnly={readOnly}
+                  />
+                </Card>
+              </SectionContainer>
+            )}
+          </StyledCol>
+        </Row>
+      </Wrapper>
+    </CalculationInspectorProvider>
   );
 };

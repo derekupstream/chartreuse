@@ -108,7 +108,7 @@ const siderMenuItems = [
       },
       {
         key: 'data-science/calculations',
-        label: <Link href='/admin/data-science/calculations'>Functions (legacy)</Link>
+        label: <Link href='/admin/data-science/calculations'>Functions</Link>
       },
       { key: 'data-science/test-runs', label: <Link href='/admin/data-science/test-runs'>Test Runs</Link> },
       { key: 'admin/methodology', label: <Link href='/admin/methodology'>Methodology</Link> },

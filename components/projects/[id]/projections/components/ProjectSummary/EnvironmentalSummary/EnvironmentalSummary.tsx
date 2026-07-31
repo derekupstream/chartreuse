@@ -5,6 +5,7 @@ import { useState } from 'react';
 import styled from 'styled-components';
 
 import { InspectTooltip } from 'components/common/InspectMode';
+import { CalculationIcon } from 'components/common/CalculationInspector';
 import { poundsToTons } from 'lib/calculator/constants/conversions';
 import type { ProjectionsResponse } from 'lib/calculator/getProjections';
 import { changeValue, valueInGallons, valueInPounds, changeValueInGallons, changeValueInPounds } from 'lib/number';
@@ -175,7 +176,12 @@ export const EnvironmentalSummary: React.FC<Props> = ({
           >
             <KPICard
               style={{ height: '100%' }}
-              title={isEventProject ? 'Waste to landfill prevented' : `Annual waste changes`}
+              title={
+                <span>
+                  {isEventProject ? 'Waste to landfill prevented' : 'Annual waste changes'}
+                  <CalculationIcon outputKey='wasteWeight' label='waste avoided' />
+                </span>
+              }
               changePercent={
                 isEventProject
                   ? data.eventProjectWaste.summary.changePercent * -1
@@ -218,6 +224,7 @@ export const EnvironmentalSummary: React.FC<Props> = ({
                     <Tooltip title='This metric covers water used specifically for foodware: the manufacturing of single-use items or the washing of reusables.'>
                       <InfoCircleOutlined style={{ fontSize: '14px', color: '#8c8c8c', cursor: 'help' }} />
                     </Tooltip>
+                    <CalculationIcon outputKey='waterTotal' label='water avoided' />
                   </span>
                 }
                 changePercent={data.annualWaterUsageChanges.total.changePercent * -1}
@@ -247,7 +254,12 @@ export const EnvironmentalSummary: React.FC<Props> = ({
           >
             <KPICard
               style={{ height: '100%' }}
-              title={isEventProject ? 'GHG Emissions' : `Annual GHG changes`}
+              title={
+                <span>
+                  {isEventProject ? 'GHG Emissions' : 'Annual GHG changes'}
+                  <CalculationIcon outputKey='ghgTotal' label='GHG avoided' />
+                </span>
+              }
               changePercent={data.annualGasEmissionChanges.total.changePercent * -1}
               changeStr={`${changeValue(data.annualGasEmissionChanges.total.change)} MTCO2e`}
             >

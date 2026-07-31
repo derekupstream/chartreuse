@@ -13,6 +13,7 @@ export type SmartFieldRecord = {
   name: string;
   description: string | null;
   unit: string | null;
+  category: string;
   equation: EquationToken[];
   testInputs: Record<string, number>;
   isPublished: boolean;
@@ -24,16 +25,29 @@ export type SaveSmartFieldRequest = {
   name: string;
   description?: string;
   unit?: string;
+  category?: string;
   equation: EquationToken[];
   testInputs?: Record<string, number>;
   isPublished?: boolean;
 };
+
+/** A reasonable default so a new field lands in the right group without extra thought. */
+export function categoryFromUnit(unit?: string | null): string {
+  const u = (unit ?? '').toLowerCase();
+  if (u.includes('co2') || u.includes('ghg')) return 'GHG';
+  if (u.includes('gal') || u.includes('water') || u.includes('liter')) return 'Water';
+  if (u.includes('lb') || u.includes('kg') || u.includes('ton') || u.includes('waste')) return 'Waste';
+  if (u.includes('$') || u.includes('cost') || u.includes('%') || u.includes('month')) return 'Cost';
+  if (u) return 'Operational';
+  return 'Other';
+}
 
 const toRecord = (f: any): SmartFieldRecord => ({
   id: f.id,
   name: f.name,
   description: f.description,
   unit: f.unit,
+  category: f.category ?? 'Other',
   equation: (f.equation as EquationToken[]) ?? [],
   testInputs: (f.testInputs as Record<string, number>) ?? {},
   isPublished: f.isPublished,
@@ -53,6 +67,7 @@ handler.post(async (req: NextApiRequestWithUser, res: NextApiResponse) => {
     name: body.name.trim(),
     description: body.description || null,
     unit: body.unit || null,
+    category: body.category || categoryFromUnit(body.unit),
     equation: (body.equation ?? []) as unknown as object,
     testInputs: (body.testInputs ?? {}) as unknown as object,
     isPublished: body.isPublished ?? false,

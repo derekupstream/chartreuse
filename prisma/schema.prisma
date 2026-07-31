@@ -414,6 +414,8 @@ model SmartField {
   name        String   @unique
   description String?
   unit        String?
+  /// GHG | Water | Waste | Cost | Operational | Other — used to group and filter
+  category    String   @default("Other")
   /// Ordered equation tokens: [{ kind: 'variable'|'number'|'operator'|'paren', ... }]
   equation    Json
   /// Test values for input variables, so the preview can compute something

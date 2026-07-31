@@ -35,6 +35,7 @@ type Seed = {
   name: string;
   description: string;
   unit: string;
+  category?: string;
   equation: EquationToken[];
   testInputs?: Record<string, number>;
   publish?: boolean;
@@ -76,6 +77,7 @@ async function main() {
     // ── lineItemUtils.annualLineItemCaseCount / annualLineItemWeight
     {
       name: 'Annual Items',
+      category: 'Operational',
       description:
         'How many single-use items an operation gets through in a year. Every waste, emissions and water figure builds on this.',
       unit: 'items/year',
@@ -86,6 +88,7 @@ async function main() {
     // ── lineItemUtils.annualLineItemCost
     {
       name: 'Annual Purchasing Cost',
+      category: 'Cost',
       description: 'What the operation spends on a single-use item each year. The baseline side of the savings case.',
       unit: '$/year',
       equation: [v('caseCost'), op('*'), v('casesPurchased')],
@@ -95,6 +98,7 @@ async function main() {
     // ── getSingleUseResults: baseline minus forecast
     {
       name: 'Single-Use Items Avoided',
+      category: 'Operational',
       description: 'Items no longer bought after switching to reuse: baseline items minus the forecast.',
       unit: 'items/year',
       equation: [
@@ -112,6 +116,7 @@ async function main() {
     // ── ReusableForecastForm: repurchase = 1 - returnRate/100
     {
       name: 'Repurchase Rate',
+      category: 'Operational',
       description:
         'The share of a reusable fleet that has to be replaced each year — whatever does not come back. Complement of the return rate.',
       unit: 'fraction',
@@ -122,6 +127,7 @@ async function main() {
     // ── getFinancialResults: oneTimeCost * annualRepurchasePercentage
     {
       name: 'Reusable Restocking Cost',
+      category: 'Cost',
       description: 'Annual cost of replacing reusables that are lost or broken, driven by the return rate.',
       unit: '$/year',
       equation: [
@@ -143,6 +149,7 @@ async function main() {
     // ── getDishwasherUtilityUsage: racksUsed = racksPerDay * operatingDays
     {
       name: 'Dishwasher Racks Per Year',
+      category: 'Operational',
       description: 'Total racks washed annually. Drives dishwashing water, energy and their costs.',
       unit: 'racks/year',
       equation: [v('racksPerDay'), op('*'), v('operatingDays')],
@@ -152,6 +159,7 @@ async function main() {
     // ── getAnnualWasteChanges: itemWeight * items
     {
       name: 'Annual Product Weight',
+      category: 'Waste',
       description:
         'Weight of the products themselves over a year. Requires choosing a product, whose item weight comes from the product catalog.',
       unit: 'lb/year',
@@ -161,6 +169,7 @@ async function main() {
     // ── getLineItemGasEmissions: annualBoxWeight * CORRUGATED_CARDBOARD_GAS
     {
       name: 'Shipping Box Emissions',
+      category: 'GHG',
       description:
         'Emissions from the corrugated cartons products ship in. Uses the cardboard factor from the material factor database.',
       unit: 'MTCO2e/year',
@@ -170,6 +179,7 @@ async function main() {
     // ── getAnnualWaterUsageChanges: box weight * cardboard water factor
     {
       name: 'Shipping Box Water',
+      category: 'Water',
       description: 'Water embodied in the shipping cartons, using the cardboard water factor.',
       unit: 'gal/year',
       equation: [v('annualBoxWeight'), op('*'), v(cardboardWater)],
@@ -178,6 +188,7 @@ async function main() {
     // ── getEnvBreakEven: embodied CO2 / annual CO2 savings, in months
     {
       name: 'Ceramic Mug Embodied Carbon',
+      category: 'GHG',
       description:
         'Manufacturing carbon for a ceramic reusable order — the debt that has to be paid back before reuse is a net win. Uses the ceramic factor.',
       unit: 'MTCO2e',
@@ -187,6 +198,7 @@ async function main() {
     // ── getFinancialResults.summary.annualROIPercent
     {
       name: 'Annual Program ROI',
+      category: 'Cost',
       description: 'Annual net savings as a percentage of what it cost to start. Needs both figures as inputs.',
       unit: '%',
       equation: [v('annualNetSavings'), op('/'), v('oneTimeCosts'), op('*'), n(100)],
@@ -195,6 +207,7 @@ async function main() {
     // ── getFinancialResults.summary.paybackPeriodsMonths
     {
       name: 'Payback Period',
+      category: 'Cost',
       description: 'How many months of savings it takes to recover the start-up cost.',
       unit: 'months',
       equation: [v('oneTimeCosts'), op('/'), open(), v('annualNetSavings'), op('/'), n(12), close()],
@@ -209,6 +222,7 @@ async function main() {
       name: seed.name,
       description: seed.description,
       unit: seed.unit,
+      category: seed.category ?? 'Other',
       equation: seed.equation as unknown as object,
       testInputs: (seed.testInputs ?? {}) as unknown as object,
       isPublished: seed.publish ?? false

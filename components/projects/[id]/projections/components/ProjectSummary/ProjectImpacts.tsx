@@ -4,6 +4,7 @@ import styled from 'styled-components';
 
 import { useMetricSystem } from 'components/_app/MetricSystemProvider';
 import { InspectTooltip } from 'components/common/InspectMode';
+import { CalculationIcon } from 'components/common/CalculationInspector';
 import type { ProjectionsResponse } from 'lib/calculator/getProjections';
 import { changeValue, formattedValueInPounds, valueInPounds, changeValueInPounds } from 'lib/number';
 
@@ -77,7 +78,12 @@ export const ProjectImpacts: React.FC<Props> = ({ data, showTitle }) => {
             }}
           >
             <Card
-              title='Your estimated annual savings'
+              title={
+                <span>
+                  Your estimated annual savings
+                  <CalculationIcon outputKey='annualCostChange' label='annual savings' />
+                </span>
+              }
               changePercent={data.dollarCost.changePercent * -1}
               changeStr={`${changeValue(data.dollarCost.change * -1, { preUnit: currencySymbol }).toLocaleString()}`}
             >
@@ -105,7 +111,12 @@ export const ProjectImpacts: React.FC<Props> = ({ data, showTitle }) => {
             }}
           >
             <Card
-              title='Your reduction in single-use purchasing'
+              title={
+                <span>
+                  Your reduction in single-use purchasing
+                  <CalculationIcon outputKey='singleUseUnits' label='items avoided' />
+                </span>
+              }
               changePercent={data.singleUseProductCount.changePercent * -1}
               changeStr={changeValue(data.singleUseProductCount.change * -1) + ' units'}
             >
@@ -131,7 +142,12 @@ export const ProjectImpacts: React.FC<Props> = ({ data, showTitle }) => {
             }}
           >
             <Card
-              title='Your waste reductions'
+              title={
+                <span>
+                  Your waste reductions
+                  <CalculationIcon outputKey='wasteWeight' label='waste avoided' />
+                </span>
+              }
               changePercent={data.wasteWeight.changePercent * -1}
               changeStr={changeValueInPounds(data.wasteWeight.change * -1, { displayAsMetric, displayAsTons: false })}
             >

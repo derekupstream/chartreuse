@@ -58,11 +58,23 @@ const CATEGORY_COLOR: Record<VariableCategory, string> = {
   Outputs: '#52c41a'
 };
 
+const FIELD_CATEGORIES = ['All', 'GHG', 'Water', 'Waste', 'Cost', 'Operational', 'Other'] as const;
+
+const CATEGORY_TAG: Record<string, string> = {
+  GHG: 'red',
+  Water: 'cyan',
+  Waste: 'purple',
+  Cost: 'green',
+  Operational: 'orange',
+  Other: 'default'
+};
+
 const EMPTY_FIELD = {
   id: undefined as string | undefined,
   name: '',
   description: '',
   unit: '',
+  category: 'Other',
   equation: [] as EquationToken[],
   testInputs: {} as Record<string, number>
 };
@@ -75,6 +87,9 @@ export default function SmartFieldsPage({ user }: { user: DashboardUser }) {
   const [preview, setPreview] = useState<SourcePreview | null>(null);
   const [category, setCategory] = useState<VariableCategory>('Factors');
   const [search, setSearch] = useState('');
+  // library filtering
+  const [fieldSearch, setFieldSearch] = useState('');
+  const [fieldCategory, setFieldCategory] = useState<string>('All');
   const [saving, setSaving] = useState(false);
 
   const variableMap = useMemo(() => new Map(variables.map(v => [v.key, v])), [variables]);
@@ -167,7 +182,20 @@ export default function SmartFieldsPage({ user }: { user: DashboardUser }) {
   }
 
   const selectedVariable = selectedVariableKey ? variableMap.get(selectedVariableKey) : null;
-  const list = fields ?? [];
+  const allFields = fields ?? [];
+  const list = allFields
+    .filter(f => fieldCategory === 'All' || (f.category ?? 'Other') === fieldCategory)
+    .filter(f => {
+      const q = fieldSearch.trim().toLowerCase();
+      if (!q) return true;
+      return (
+        f.name.toLowerCase().includes(q) ||
+        (f.description ?? '').toLowerCase().includes(q) ||
+        (f.unit ?? '').toLowerCase().includes(q)
+      );
+    });
+  const countFor = (c: string) =>
+    c === 'All' ? allFields.length : allFields.filter(f => (f.category ?? 'Other') === c).length;
 
   return (
     <AdminLayout title='Smart Fields' selectedMenuItem='data-science/smart-fields' user={user}>
@@ -196,7 +224,32 @@ export default function SmartFieldsPage({ user }: { user: DashboardUser }) {
         {/* ── the library of smart fields ───────────────────────────── */}
         <Col xs={24} lg={5}>
           <Card size='small' title='Smart fields' styles={{ body: { maxHeight: '72vh', overflowY: 'auto' } }}>
+            <Input.Search
+              size='small'
+              allowClear
+              placeholder='Search smart fields…'
+              value={fieldSearch}
+              onChange={e => setFieldSearch(e.target.value)}
+              style={{ marginBottom: 8 }}
+            />
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 10 }}>
+              {FIELD_CATEGORIES.filter(c => c === 'All' || countFor(c) > 0).map(c => (
+                <Tag.CheckableTag
+                  key={c}
+                  checked={fieldCategory === c}
+                  onChange={() => setFieldCategory(c)}
+                  style={{ fontSize: 11, border: '1px solid #f0f0f0' }}
+                >
+                  {c} {countFor(c)}
+                </Tag.CheckableTag>
+              ))}
+            </div>
             {fields === null && <Spin />}
+            {fields !== null && !list.length && (
+              <Text type='secondary' style={{ fontSize: 12 }}>
+                Nothing matches that filter.
+              </Text>
+            )}
             {list.map(field => {
               const isOpen = draft.id === field.id;
               return (
@@ -211,6 +264,7 @@ export default function SmartFieldsPage({ user }: { user: DashboardUser }) {
                       name: field.name,
                       description: field.description ?? '',
                       unit: field.unit ?? '',
+                      category: field.category ?? 'Other',
                       equation: field.equation,
                       testInputs: field.testInputs
                     })
@@ -231,10 +285,13 @@ export default function SmartFieldsPage({ user }: { user: DashboardUser }) {
                       }}
                     />
                   </div>
-                  <Text type='secondary' style={{ fontSize: 11 }}>
+                  <Text type='secondary' style={{ fontSize: 11, display: 'block' }}>
                     {field.equation.length} token{field.equation.length === 1 ? '' : 's'}
                     {field.unit ? ` · ${field.unit}` : ''}
                   </Text>
+                  <Tag color={CATEGORY_TAG[field.category ?? 'Other']} style={{ marginTop: 4, fontSize: 10 }}>
+                    {field.category ?? 'Other'}
+                  </Tag>
                   {field.isPublished && (
                     <Tag color='green' style={{ marginTop: 4 }}>
                       published
@@ -275,13 +332,22 @@ export default function SmartFieldsPage({ user }: { user: DashboardUser }) {
               />
             }
             extra={
-              <Input
-                size='small'
-                placeholder='unit'
-                value={draft.unit}
-                onChange={e => setDraft({ ...draft, unit: e.target.value })}
-                style={{ width: 130 }}
-              />
+              <div style={{ display: 'flex', gap: 6 }}>
+                <Select
+                  size='small'
+                  value={draft.category}
+                  onChange={v => setDraft({ ...draft, category: v })}
+                  style={{ width: 130 }}
+                  options={FIELD_CATEGORIES.filter(c => c !== 'All').map(c => ({ value: c, label: c }))}
+                />
+                <Input
+                  size='small'
+                  placeholder='unit'
+                  value={draft.unit}
+                  onChange={e => setDraft({ ...draft, unit: e.target.value })}
+                  style={{ width: 120 }}
+                />
+              </div>
             }
           >
             {/* preview */}

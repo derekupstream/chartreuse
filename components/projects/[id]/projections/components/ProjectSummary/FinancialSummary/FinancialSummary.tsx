@@ -3,6 +3,7 @@ import styled from 'styled-components';
 
 import { InfoIcon } from 'components/common/InfoIcon';
 import { InspectTooltip } from 'components/common/InspectMode';
+import { CalculationIcon } from 'components/common/CalculationInspector';
 import type { ProjectionsResponse } from 'lib/calculator/getProjections';
 import { formatToDollar } from 'lib/calculator/utils';
 
@@ -85,7 +86,10 @@ const FinancialSummary: React.FC<Props> = ({ data: financialResults, businessSiz
           <Col xs={24} md={8}>
             <MobileCard>
               <Text strong>Savings</Text>
-              <Title>Annual total</Title>
+              <Title>
+                Annual total
+                <CalculationIcon outputKey='annualCostChange' label='annual savings' />
+              </Title>
               <InspectTooltip
                 meta={{
                   id: 'fin-annual-savings',
@@ -204,7 +208,10 @@ const FinancialSummary: React.FC<Props> = ({ data: financialResults, businessSiz
                 <Value color='black'>{formatToDollar(financialResults.oneTimeCosts.total, currencyAbbreviation)}</Value>
               </InspectTooltip>
 
-              <Title>Payback Period</Title>
+              <Title>
+                Payback Period
+                <CalculationIcon outputKey='paybackMonths' label='the payback period' />
+              </Title>
               <InspectTooltip
                 meta={{
                   id: 'fin-payback-period',
