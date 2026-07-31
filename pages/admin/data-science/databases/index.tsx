@@ -17,6 +17,7 @@ import {
 } from 'antd';
 import type { GetServerSideProps } from 'next';
 import Papa from 'papaparse';
+import { useRouter } from 'next/router';
 import { useEffect, useMemo, useState } from 'react';
 
 import { HowTo } from 'components/admin/HowTo';
@@ -43,8 +44,11 @@ const isNumericish = (v: unknown) =>
   typeof v === 'string' && v.trim() !== '' && !isNaN(Number(v.replace(/[$,%]/g, '')));
 
 export default function FactorDatabasesPage({ user }: { user: DashboardUser }) {
+  const router = useRouter();
   const [databases, setDatabases] = useState<FactorDatabaseSummary[] | null>(null);
   const [openId, setOpenId] = useState<string | null>(null);
+  /** Row and column to highlight when arriving from a "view source" link */
+  const [focus, setFocus] = useState<{ rowIndex: number; columnKey: string } | null>(null);
   const [detail, setDetail] = useState<FactorDatabaseDetail | null>(null);
   const [search, setSearch] = useState('');
 
@@ -70,6 +74,16 @@ export default function FactorDatabasesPage({ user }: { user: DashboardUser }) {
   useEffect(() => {
     load();
   }, []);
+
+  // Deep link: /admin/data-science/databases?open=<id>&row=<n>&col=<key>
+  useEffect(() => {
+    if (!router.isReady) return;
+    const { open, row, col } = router.query as Record<string, string>;
+    if (open) {
+      setOpenId(open);
+      setFocus(row !== undefined ? { rowIndex: Number(row), columnKey: col ?? '' } : null);
+    }
+  }, [router.isReady, router.query]);
 
   useEffect(() => {
     if (!openId) {
@@ -363,7 +377,10 @@ export default function FactorDatabasesPage({ user }: { user: DashboardUser }) {
       {/* ── view one database as a table ─────────────────────────────── */}
       <Modal
         open={!!openId}
-        onCancel={() => setOpenId(null)}
+        onCancel={() => {
+          setOpenId(null);
+          setFocus(null);
+        }}
         width='95vw'
         style={{ top: 20 }}
         footer={null}
@@ -398,13 +415,31 @@ export default function FactorDatabasesPage({ user }: { user: DashboardUser }) {
               sticky
               rowKey={(_r, i) => String(i)}
               dataSource={filteredRows}
-              pagination={{ pageSize: 10, showSizeChanger: true, pageSizeOptions: ['10', '25', '50', '100'] }}
+              pagination={{
+                pageSize: 10,
+                showSizeChanger: true,
+                pageSizeOptions: ['10', '25', '50', '100'],
+                // land on the page containing the row we were sent to
+                defaultCurrent: focus ? Math.floor(focus.rowIndex / 10) + 1 : 1
+              }}
               scroll={{ x: 'max-content' }}
+              onRow={(_r, index) => ({
+                style:
+                  focus && index === focus.rowIndex % 10 && Math.floor(focus.rowIndex / 10) >= 0
+                    ? { background: '#f9f0ff' }
+                    : undefined
+              })}
               columns={detail.columns.map(col => ({
                 title: col.label,
                 dataIndex: col.key,
                 width: 150,
                 align: col.type === 'number' ? ('right' as const) : ('left' as const),
+                onCell: (_r: unknown, index?: number) => ({
+                  style:
+                    focus && col.key === focus.columnKey && index === focus.rowIndex % 10
+                      ? { border: '2px solid #722ed1', fontWeight: 600 }
+                      : undefined
+                }),
                 render: (v: unknown) => (v === null || v === '' ? <Text type='secondary'>—</Text> : String(v))
               }))}
             />

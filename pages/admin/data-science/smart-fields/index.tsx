@@ -450,16 +450,18 @@ export default function SmartFieldsPage({ user }: { user: DashboardUser }) {
                     )}
                     {requirement.kind === 'input' && `Required user input: ${requirement.label}`}
                     {requirement.kind === 'factor' && `Required factor: ${requirement.label}`}
+                    {requirement.kind === 'product' && `Requires a product selection: ${requirement.label}`}
+                    {requirement.kind === 'intermediate' && `Computed by the calculator: ${requirement.label}`}
                     {requirement.kind === 'missing' && `Missing factor: ${requirement.label}`}
                   </div>
                 ))}
-                {requirements.some(r => r.kind === 'input' && !r.met) && (
+                {requirements.some(r => r.kind !== 'factor' && r.kind !== 'missing' && !r.met) && (
                   <>
                     <Text type='secondary' style={{ fontSize: 12, display: 'block', margin: '8px 0 4px' }}>
                       Supply test values to preview the result:
                     </Text>
                     {requirements
-                      .filter(r => r.kind === 'input')
+                      .filter(r => r.kind === 'input' || r.kind === 'product' || r.kind === 'intermediate')
                       .map(r => (
                         <div key={r.key} style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 4 }}>
                           <Text style={{ fontSize: 12, minWidth: 150 }}>{r.label}</Text>
@@ -571,7 +573,16 @@ export default function SmartFieldsPage({ user }: { user: DashboardUser }) {
                     <Text strong style={{ fontSize: 13 }}>
                       <DatabaseOutlined /> Source data preview
                     </Text>
-                    <Link href='/admin/data-science/databases'>
+                    <Link
+                      href={{
+                        pathname: '/admin/data-science/databases',
+                        query: {
+                          open: preview.databaseId,
+                          row: preview.highlightRowIndex,
+                          col: preview.highlightColumnKey
+                        }
+                      }}
+                    >
                       <Text style={{ fontSize: 12 }}>
                         Open in database <ExportOutlined />
                       </Text>

@@ -48,7 +48,7 @@ export type EquationToken =
   | { kind: 'paren'; value: '(' | ')' };
 
 export type Requirement = {
-  kind: 'input' | 'factor' | 'missing';
+  kind: 'input' | 'factor' | 'product' | 'intermediate' | 'missing';
   key: string;
   label: string;
   /** True when this is satisfied */
@@ -111,7 +111,21 @@ export const KNOWN_INPUTS: SmartVariable[] = [
   },
   { key: 'racksPerDay', label: 'Dishwasher racks per day', category: 'Inputs', unit: 'racks/day' },
   { key: 'operatingDays', label: 'Operating days per year', category: 'Inputs', unit: 'days' },
-  { key: 'guestCount', label: 'Guests or customers', category: 'Inputs', unit: 'people' }
+  { key: 'guestCount', label: 'Guests or customers', category: 'Inputs', unit: 'people' },
+  {
+    key: 'annualNetSavings',
+    label: 'Annual net savings',
+    category: 'Inputs',
+    unit: '$',
+    description: 'Net annual saving after all recurring costs'
+  },
+  {
+    key: 'oneTimeCosts',
+    label: 'One-time start-up costs',
+    category: 'Inputs',
+    unit: '$',
+    description: 'Reusables, equipment and installation'
+  }
 ];
 
 /** Quantities the engine derives, usable as building blocks. */
@@ -202,6 +216,24 @@ export function detectRequirements(
     if (variable.category === 'Inputs') {
       requirements.push({
         kind: 'input',
+        key: token.key,
+        label: variable.label,
+        met: testInputs[token.key] !== undefined
+      });
+    } else if (variable.category === 'Intermediates') {
+      // Derived by the calculator upstream of this field, so it needs a test value here
+      // to preview — it is not a missing factor.
+      requirements.push({
+        kind: 'intermediate',
+        key: token.key,
+        label: variable.label,
+        met: testInputs[token.key] !== undefined
+      });
+    } else if (variable.category === 'Products') {
+      // A product column only has a value once a specific product is chosen on the
+      // calculator — that is a pending selection, not a missing factor.
+      requirements.push({
+        kind: 'product',
         key: token.key,
         label: variable.label,
         met: testInputs[token.key] !== undefined
