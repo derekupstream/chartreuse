@@ -81,8 +81,23 @@ export const HOW_TO: Record<string, HowToContent> = {
     notThis:
       'Editing a Factor here does not yet change project results. Material emission and water factors ARE live via the Databases area — see Databases.'
   },
-  calculations: {
+  'calculations-v2': {
     title: 'Calculations',
+    purpose:
+      'A calculator seen the way it actually works: the inputs a user fills in on the left, the numbers it produces on the right, and — when you click any number — what produced it. Every output can name the line items that drove it, the factors it used, and which database each factor came from.',
+    whenToUse:
+      'When checking whether a number is right, or explaining to someone why it is what it is. Also when changing an assumption and wanting to see the effect immediately.',
+    steps: [
+      "Choose a calculator from the dropdown. It loads that project's real data.",
+      'Edit any input on the left — the outputs re-run through the real engine as you type. Nothing is saved.',
+      'Click an output card to open it: the formula, the biggest contributors, every factor with its source, and any caveat worth knowing.',
+      'A green database icon on a card means at least one factor behind it came from an uploaded database rather than from code.'
+    ],
+    notThis:
+      'This runs the real engine on real project data, so it shows what the app would produce. To review a project row by row instead, open the project and choose View as Datasheet.'
+  },
+  calculations: {
+    title: 'Calculations (functions)',
     purpose:
       'A list of every calculation function in the engine, with its actual source code viewable and editable in the browser.',
     whenToUse: 'When you want to read the real formula rather than a description of it.',

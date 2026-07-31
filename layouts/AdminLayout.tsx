@@ -47,6 +47,7 @@ const DATA_SCIENCE_KEYS = [
   'data-science/constants',
   'data-science/change-requests',
   'data-science/calculations',
+  'data-science/calculations-v2',
   'data-science/import',
   'data-science/data-products',
   'data-science/pipeline',
