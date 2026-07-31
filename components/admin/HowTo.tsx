@@ -53,6 +53,21 @@ export const HOW_TO: Record<string, HowToContent> = {
     notThis:
       'It shows structure, not arithmetic. To see the numbers behind one project, open that project and choose View as Datasheet.'
   },
+  databases: {
+    title: 'Databases',
+    purpose:
+      'Reference tables kept whole, in their own column structure — the product catalogs, material emission and water factors, utility rates. A Factor holds one number; a Database holds an entire table the way it is organised outside the app.',
+    whenToUse:
+      'When you want to load or review a whole dataset rather than a single value — for example the single-use product table with its materials and masses, or a new emission-factor set.',
+    steps: [
+      'Click "Upload a database" and drop in a CSV. The first row becomes the column headers and the columns keep their names and order.',
+      'Name it, say where it came from, and pick which column identifies a row.',
+      'Open any database to browse and search it, or download it back out as CSV.',
+      "Uploading a file with an existing database name offers to replace that table's rows."
+    ],
+    notThis:
+      'These tables are for review and record-keeping right now — the calculator still reads its values from code. Wiring the two together is the next step, and is why the source and key column are worth filling in.'
+  },
   factors: {
     title: 'Factors',
     purpose:

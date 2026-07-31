@@ -404,6 +404,39 @@ model FactorCategory {
   factors     Factor[]
 }
 
+/// A "database": a named, versioned TABLE of reference data, kept in its native
+/// column structure (single-use products, reusable products, emission factors,
+/// water factors...). Distinct from Factor, which holds a single scalar value.
+model FactorDatabase {
+  id          String               @id @default(uuid()) @db.Uuid
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+  name        String               @unique
+  description String?
+  /// Where this table came from, e.g. "EPA WARM 15" or a Drive filename
+  sourceName  String?
+  sourceUrl   String?
+  version     String               @default("1")
+  /// Ordered column definitions: [{ key, label, type: 'text'|'number' }]
+  columns     Json
+  /// Which column identifies a row (e.g. "Product ID")
+  keyColumn   String?
+  isActive    Boolean              @default(true)
+  uploadedBy  String?              @db.Uuid
+  rows        FactorDatabaseRow[]
+}
+
+model FactorDatabaseRow {
+  id         String         @id @default(uuid()) @db.Uuid
+  databaseId String         @db.Uuid
+  rowIndex   Int
+  /// The row keyed by column key
+  data       Json
+  database   FactorDatabase @relation(fields: [databaseId], references: [id], onDelete: Cascade)
+
+  @@index([databaseId, rowIndex])
+}
+
 model FactorSource {
   id          String   @id @default(uuid()) @db.Uuid
   name        String   @unique

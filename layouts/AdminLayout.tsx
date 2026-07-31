@@ -40,6 +40,7 @@ const AdminContent = styled(Layout)`
 
 const DATA_SCIENCE_KEYS = [
   'data-science',
+  'data-science/databases',
   'admin/methodology',
   'data-science/golden-datasets',
   'data-science/test-runs',
@@ -90,6 +91,7 @@ const siderMenuItems = [
       { key: 'data-science/inputs', label: <Link href='/admin/data-science/inputs'>Inputs</Link> },
       { key: 'data-science/data-map', label: <Link href='/admin/data-science/data-map'>Data Map</Link> },
       { key: 'data-science/constants', label: <Link href='/admin/data-science/constants'>Factors</Link> },
+      { key: 'data-science/databases', label: <Link href='/admin/data-science/databases'>Databases</Link> },
       {
         key: 'data-science/calculations',
         label: <Link href='/admin/data-science/calculations'>Calculations</Link>

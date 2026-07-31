@@ -77,6 +77,7 @@ const adminLinks: MenuProps['items'] = [
   { key: 'data-science/golden-datasets', label: <Link href='/admin/data-science/golden-datasets'>Golden Datasets</Link> },
   { key: 'data-science/test-runs', label: <Link href='/admin/data-science/test-runs'>Test Runs</Link> },
   { key: 'data-science/constants', label: <Link href='/admin/data-science/constants'>Constants</Link> },
+  { key: 'data-science/databases', label: <Link href='/admin/data-science/databases'>Databases</Link> },
   {
     key: 'data-science/change-requests',
     label: <Link href='/admin/data-science/change-requests'>Change Requests</Link>
