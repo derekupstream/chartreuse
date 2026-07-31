@@ -6,7 +6,7 @@ import type {
 } from 'lib/inventory/types/projects';
 import type { Frequency } from '../../constants/frequency';
 import { getAnnualOccurrence } from '../../constants/frequency';
-import { ALL_MATERIALS, MATERIAL_MAP, NO_MATERIAL_ID } from '../../constants/materials';
+import { getAllMaterials, MATERIAL_MAP, NO_MATERIAL_ID } from '../../constants/materials';
 import { CORRUGATED_CARDBOARD_NAME } from '../../constants/materials';
 import type { ChangeSummary } from '../../utils';
 import { getChangeSummaryRow, getChangeSummaryRowRounded, round } from '../../utils';
@@ -204,7 +204,9 @@ function calculateMaterialWater(
 }
 
 function calculateCardboardWater(baselineWeight: number, forecastWeight: number): ChangeSummary {
-  const cardboardWaterUsagePerLb = ALL_MATERIALS.find(m => m.name === CORRUGATED_CARDBOARD_NAME)?.waterUsageGalPerLb;
+  const cardboardWaterUsagePerLb = getAllMaterials().find(
+    m => m.name === CORRUGATED_CARDBOARD_NAME
+  )?.waterUsageGalPerLb;
   if (!cardboardWaterUsagePerLb) {
     throw new Error('Could not find EPA Warm assumption for cardboard');
   }

@@ -66,7 +66,7 @@ export const HOW_TO: Record<string, HowToContent> = {
       "Uploading a file with an existing database name offers to replace that table's rows."
     ],
     notThis:
-      'These tables are for review and record-keeping right now — the calculator still reads its values from code. Wiring the two together is the next step, and is why the source and key column are worth filling in.'
+      'Material factor tables are LIVE: any table named "... Material Factors" feeds the calculator, matched on material name, so editing a value here changes project results. Product tables and utility rates are still reference only — the calculator reads those from code for now.'
   },
   factors: {
     title: 'Factors',
@@ -79,7 +79,7 @@ export const HOW_TO: Record<string, HowToContent> = {
       'Edit to create a new version; the old value is kept for the record.'
     ],
     notThis:
-      'Editing a factor here does not yet change project results — most calculators still read values compiled into the code. Connecting the two is planned work.'
+      'Editing a Factor here does not yet change project results. Material emission and water factors ARE live via the Databases area — see Databases.'
   },
   calculations: {
     title: 'Calculations',

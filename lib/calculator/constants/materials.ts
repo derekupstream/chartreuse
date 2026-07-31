@@ -1,3 +1,5 @@
+import { applyOverride } from '../factors/materialFactorOverrides';
+
 /**
  * Values taken from sheet "Hidden: EPA WARM Model Assumptions"
  * provided by the EPA WARM Model
@@ -129,12 +131,41 @@ export const UPSTREAM_ONLY_MATERIALS = ['Recycled Stainless Steel', 'Recycled Al
 
 // export type ReusableMaterial = (typeof MATERIALS)[number];
 
-export const ALL_MATERIALS = [...MATERIALS, ...REUSABLE_MATERIALS] as const;
+const COMPILED_ALL_MATERIALS = [...MATERIALS, ...REUSABLE_MATERIALS] as const;
 
-export const MATERIAL_MAP = ALL_MATERIALS.reduce(
+type MaterialLike = { id: number; name: string; mtco2ePerLb: number; waterUsageGalPerLb?: number };
+
+/**
+ * Every material, with any value supplied by the Databases area applied on top of the
+ * compiled defaults. Call this rather than capturing the array once, so an override
+ * loaded later in the request is honoured.
+ */
+export function getAllMaterials(): MaterialLike[] {
+  return COMPILED_ALL_MATERIALS.map(m => applyOverride(m as MaterialLike));
+}
+
+/**
+ * Kept as a named export for readability at call sites that only need the compiled list
+ * (e.g. building product catalogs, where the factor values are irrelevant).
+ */
+export const ALL_MATERIALS = COMPILED_ALL_MATERIALS;
+
+const COMPILED_MATERIAL_MAP = COMPILED_ALL_MATERIALS.reduce(
   (acc, material) => {
-    acc[material.id] = material;
+    acc[material.id] = material as MaterialLike;
     return acc;
   },
-  {} as Record<number, { name: string; mtco2ePerLb: number; waterUsageGalPerLb?: number }>
+  {} as Record<number, MaterialLike>
 );
+
+/**
+ * Material lookup by id. Reads go through the override registry first, so the values the
+ * calculator uses can come from an uploaded database without changing any call site.
+ * With nothing loaded this behaves exactly like the compiled constants.
+ */
+export const MATERIAL_MAP: Record<number, MaterialLike> = new Proxy(COMPILED_MATERIAL_MAP, {
+  get(target, prop) {
+    const material = target[prop as unknown as number];
+    return material ? applyOverride(material) : material;
+  }
+});

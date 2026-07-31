@@ -20,6 +20,7 @@ import { getProjectUtilities } from '../calculator/constants/utilities';
 
 import { getReusableProductsWithBottleStation } from './assets/reusables/getReusableProducts';
 import { getSingleUseProducts } from './getSingleUseProducts';
+import { loadMaterialFactorOverrides } from '../calculator/factors/loadMaterialFactorOverrides';
 import type { FoodwareSelection, ReusableProduct, SingleUseProduct } from './types/products';
 import type {
   DishWasher,
@@ -33,6 +34,10 @@ const gallonsUsedPerBottleStation = 27.15;
 const gallonsPerBottle = 0.132;
 
 export async function getProjectInventory(projectId: string): Promise<ProjectInventory> {
+  // Refresh material factors from the Databases area before anything is computed, so the
+  // calculator uses the uploaded values. Falls back to compiled defaults if unavailable.
+  await loadMaterialFactorOverrides();
+
   const project = await prisma.project.findFirst({
     where: {
       id: projectId
