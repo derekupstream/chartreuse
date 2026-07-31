@@ -7,6 +7,7 @@ import {
   Input,
   Modal,
   Popconfirm,
+  Radio,
   Select,
   Table,
   Tag,
@@ -58,6 +59,9 @@ export default function FactorDatabasesPage({ user }: { user: DashboardUser }) {
   );
   const [applyFactors, setApplyFactors] = useState(false);
   const [factorTarget, setFactorTarget] = useState('Single-Use Material Factors');
+  // what to write from this upload
+  const [mergeMode, setMergeMode] = useState<'replace' | 'update' | 'add' | 'upsert'>('upsert');
+  const [mergeColumns, setMergeColumns] = useState<string[]>([]);
 
   async function load() {
     const res = await fetch('/api/admin/factor-databases');
@@ -103,6 +107,7 @@ export default function FactorDatabasesPage({ user }: { user: DashboardUser }) {
           sourceName: f.sourceName || file.name,
           keyColumn: f.keyColumn || headers[0]
         }));
+        setMergeColumns([]);
         const guessed = guessFactorColumns(headers);
         setFactorCols(guessed);
         setApplyFactors(!!(guessed.materialColumn && (guessed.ghgColumn || guessed.waterColumn)));
@@ -122,9 +127,16 @@ export default function FactorDatabasesPage({ user }: { user: DashboardUser }) {
       const res = await fetch('/api/admin/factor-databases', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...form, columns: parsed.columns, rows: parsed.rows, replaceExisting })
+        body: JSON.stringify({
+          ...form,
+          columns: parsed.columns,
+          rows: parsed.rows,
+          replaceExisting,
+          mergeMode,
+          mergeColumns
+        })
       });
-      if (res.status === 409) {
+      if (res.status === 409 && mergeMode === 'replace') {
         setSaving(false);
         Modal.confirm({
           title: 'That database already exists',
@@ -136,7 +148,17 @@ export default function FactorDatabasesPage({ user }: { user: DashboardUser }) {
       }
       if (!res.ok) throw new Error((await res.json()).error || 'Upload failed');
       const result = await res.json();
-      message.success(`${result.replaced ? 'Replaced' : 'Created'} "${result.name}" — ${result.rowCount} rows`);
+      if (result.mergeMode === 'replace') {
+        message.success(`${result.replaced ? 'Replaced' : 'Created'} "${result.name}" — ${result.rowCount} rows`);
+      } else {
+        const parts = [
+          result.updated ? `${result.updated} updated` : null,
+          result.added ? `${result.added} added` : null,
+          result.untouched ? `${result.untouched} left alone` : null,
+          result.unmatched ? `${result.unmatched} matched nothing` : null
+        ].filter(Boolean);
+        message.success(`"${result.name}" — ${parts.join(', ') || 'no changes'}`);
+      }
 
       // Optionally write the material factors carried on the product rows into
       // their own table. Only materials whose rows agreed are written.
@@ -446,6 +468,58 @@ export default function FactorDatabasesPage({ user }: { user: DashboardUser }) {
               style={{ width: '100%' }}
               options={parsed.columns.map(c => ({ value: c.key, label: c.label }))}
             />
+          </Card>
+        )}
+
+        {parsed && (
+          <Card size='small' style={{ marginTop: 16 }} title='What should this upload change?'>
+            <Text type='secondary' style={{ display: 'block', marginBottom: 12 }}>
+              A refresh usually touches part of a table. Rows are matched on{' '}
+              <strong>{form.keyColumn || 'the key column'}</strong>; anything the file doesn&apos;t mention is left as
+              it is.
+            </Text>
+            <Radio.Group
+              value={mergeMode}
+              onChange={e => setMergeMode(e.target.value)}
+              style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 16 }}
+            >
+              <Radio value='upsert'>
+                <strong>Update and add</strong> — change rows that exist, create ones that don&apos;t
+              </Radio>
+              <Radio value='update'>
+                <strong>Update only</strong> — change existing rows, ignore anything new in the file
+              </Radio>
+              <Radio value='add'>
+                <strong>Add only</strong> — create new rows, never touch existing ones
+              </Radio>
+              <Radio value='replace'>
+                <strong>Replace everything</strong> — discard the current table and take this file wholesale
+              </Radio>
+            </Radio.Group>
+
+            {mergeMode !== 'replace' && (
+              <>
+                <Text strong style={{ display: 'block', marginBottom: 4 }}>
+                  Which columns should it write?
+                </Text>
+                <Select
+                  mode='multiple'
+                  allowClear
+                  placeholder={`All ${parsed.columns.length} columns in the file`}
+                  value={mergeColumns}
+                  onChange={setMergeColumns}
+                  style={{ width: '100%' }}
+                  options={parsed.columns
+                    .filter(c => c.key !== form.keyColumn)
+                    .map(c => ({ value: c.key, label: c.label }))}
+                />
+                <Text type='secondary' style={{ fontSize: 12 }}>
+                  {mergeColumns.length
+                    ? `Only ${mergeColumns.length} column${mergeColumns.length === 1 ? '' : 's'} will be written; every other column keeps its current value.`
+                    : 'Leave empty to write every column the file contains. Blank cells are treated as "no opinion" and never clear an existing value.'}
+                </Text>
+              </>
+            )}
           </Card>
         )}
 

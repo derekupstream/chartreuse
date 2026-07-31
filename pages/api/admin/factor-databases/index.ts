@@ -3,6 +3,8 @@ import type { NextApiResponse } from 'next';
 import type { NextApiRequestWithUser } from 'lib/middleware';
 import { handlerWithUser, requireUpstream } from 'lib/middleware';
 import prisma from 'lib/prisma';
+import { mergeDatabaseRows } from 'lib/admin/mergeDatabaseRows';
+import type { MergeMode } from 'lib/admin/mergeDatabaseRows';
 
 const handler = handlerWithUser();
 handler.use(requireUpstream);
@@ -34,6 +36,16 @@ export type CreateDatabaseRequest = {
   rows: Record<string, string | number | null>[];
   /** Replace the rows of an existing database of the same name instead of failing */
   replaceExisting?: boolean;
+  /**
+   * How to fold the upload into an existing table:
+   *  replace = take the upload wholesale (the old behaviour)
+   *  update  = only change rows that already exist
+   *  add     = only create rows that don't exist yet
+   *  upsert  = both
+   */
+  mergeMode?: MergeMode;
+  /** Restrict writing to these columns; others keep their current values */
+  mergeColumns?: string[];
 };
 
 async function list(req: NextApiRequestWithUser, res: NextApiResponse) {
@@ -63,9 +75,16 @@ async function create(req: NextApiRequestWithUser, res: NextApiResponse) {
     return res.status(400).json({ error: 'columns are required' });
   if (!Array.isArray(body.rows)) return res.status(400).json({ error: 'rows are required' });
 
-  const existing = await prisma.factorDatabase.findUnique({ where: { name: body.name.trim() } });
-  if (existing && !body.replaceExisting) {
+  const mergeMode: MergeMode = body.mergeMode ?? 'replace';
+  const existing = await prisma.factorDatabase.findUnique({
+    where: { name: body.name.trim() },
+    include: mergeMode === 'replace' ? undefined : { rows: { orderBy: { rowIndex: 'asc' } } }
+  });
+  if (existing && !body.replaceExisting && mergeMode === 'replace') {
     return res.status(409).json({ error: 'A database with that name already exists', databaseId: existing.id });
+  }
+  if (!existing && mergeMode === 'update') {
+    return res.status(400).json({ error: 'Nothing to update — no database of that name exists yet' });
   }
 
   const data = {
@@ -78,10 +97,26 @@ async function create(req: NextApiRequestWithUser, res: NextApiResponse) {
     columns: body.columns as unknown as object,
     uploadedBy: req.user.id
   };
+  // A partial upload must not shrink the table's column definitions.
+  if (existing && mergeMode !== 'replace') {
+    const existingColumns = (existing.columns as unknown as { key: string }[]) ?? [];
+    const merged = [...existingColumns];
+    for (const col of body.columns) if (!merged.some(c => c.key === col.key)) merged.push(col);
+    data.columns = merged as unknown as object;
+  }
 
   const database = existing
     ? await prisma.factorDatabase.update({ where: { id: existing.id }, data })
     : await prisma.factorDatabase.create({ data });
+
+  // Work out the final row set. For anything but a wholesale replace this folds the
+  // upload into what's already there, scoped by row match and by selected columns.
+  const existingRows = ((existing as any)?.rows ?? []).map((r: any) => r.data as Record<string, unknown>);
+  const merge = mergeDatabaseRows(existingRows, body.rows as Record<string, unknown>[], {
+    mode: mergeMode,
+    keyColumn: body.keyColumn || (body.columns[0]?.key ?? ''),
+    columns: body.mergeColumns
+  });
 
   if (existing) {
     await prisma.factorDatabaseRow.deleteMany({ where: { databaseId: database.id } });
@@ -89,9 +124,9 @@ async function create(req: NextApiRequestWithUser, res: NextApiResponse) {
 
   // Chunk the insert — reference tables can be hundreds of rows wide and long.
   const CHUNK = 200;
-  for (let i = 0; i < body.rows.length; i += CHUNK) {
+  for (let i = 0; i < merge.rows.length; i += CHUNK) {
     await prisma.factorDatabaseRow.createMany({
-      data: body.rows.slice(i, i + CHUNK).map((row, j) => ({
+      data: merge.rows.slice(i, i + CHUNK).map((row, j) => ({
         databaseId: database.id,
         rowIndex: i + j,
         data: row as unknown as object
@@ -99,7 +134,18 @@ async function create(req: NextApiRequestWithUser, res: NextApiResponse) {
     });
   }
 
-  res.json({ id: database.id, name: database.name, rowCount: body.rows.length, replaced: !!existing });
+  res.json({
+    id: database.id,
+    name: database.name,
+    rowCount: merge.rows.length,
+    replaced: !!existing && mergeMode === 'replace',
+    mergeMode,
+    updated: merge.updated,
+    added: merge.added,
+    unmatched: merge.unmatched,
+    untouched: merge.untouched,
+    columnsWritten: merge.columnsWritten
+  });
 }
 
 handler.get(list).post(create);
