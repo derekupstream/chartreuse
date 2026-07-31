@@ -81,8 +81,24 @@ export const HOW_TO: Record<string, HowToContent> = {
     notThis:
       'Editing a Factor here does not yet change project results. Material emission and water factors ARE live via the Databases area — see Databases.'
   },
-  'calculations-v2': {
-    title: 'Calculations',
+  'smart-fields': {
+    title: 'the Smart Field Builder',
+    purpose:
+      'Where a single metric is designed. A smart field is one piece of reusable logic — an equation built from variables that resolve to factors in your databases, values a user enters, or other smart fields. Dashboards are then assembled from published smart fields.',
+    whenToUse:
+      'When creating a new metric, changing how one is calculated, or checking exactly which database cell a number comes from.',
+    steps: [
+      'Pick a smart field from the left, or click "New smart field".',
+      'Build the equation: choose variables from the Inputs / Factors / Products tabs, and add numbers and operators.',
+      'Click any variable in the equation to see its source — the database, table, cell and version, with the surrounding rows shown and the exact cell highlighted.',
+      'Read "Detected requirements": which user inputs a calculator will have to collect, which factors it depends on, and anything missing.',
+      'Save while you work; publish when it is ready to be used in dashboards and inside other smart fields.'
+    ],
+    notThis:
+      'This designs one metric. To see a whole calculator running on real project data, use the Data Product Designer.'
+  },
+  'designer-v2': {
+    title: 'Data Product Designer',
     purpose:
       'A calculator seen the way it actually works: the inputs a user fills in on the left, the numbers it produces on the right, and — when you click any number — what produced it. Every output can name the line items that drove it, the factors it used, and which database each factor came from.',
     whenToUse:

@@ -45,7 +45,13 @@ const groupColor: Record<OutputExplanation['group'], string> = {
   Operational: '#f9f0ff'
 };
 
-export default function CalculationsV2Page({ user, projects }: { user: DashboardUser; projects: ProjectOption[] }) {
+export default function DataProductDesignerV2Page({
+  user,
+  projects
+}: {
+  user: DashboardUser;
+  projects: ProjectOption[];
+}) {
   const [projectId, setProjectId] = useState<string | undefined>(projects[0]?.id);
   const [data, setData] = useState<ExplainResponse | null>(null);
   const [loading, setLoading] = useState(false);
@@ -90,13 +96,13 @@ export default function CalculationsV2Page({ user, projects }: { user: Dashboard
   const selected = useMemo(() => data?.outputs.find(o => o.key === selectedOutput) ?? null, [data, selectedOutput]);
 
   return (
-    <AdminLayout title='Calculations' selectedMenuItem='data-science/calculations-v2' user={user}>
-      <HowTo tool='calculations-v2' />
+    <AdminLayout title='Data Product Designer' selectedMenuItem='data-science/designer-v2' user={user}>
+      <HowTo tool='designer-v2' />
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
         <div>
           <Title level={2} style={{ margin: 0 }}>
-            <ExperimentOutlined /> Calculations
+            <ExperimentOutlined /> Data Product Designer
           </Title>
           <Text type='secondary'>
             A calculator is inputs and factors producing outputs. Change an input, watch the outputs move, then open any
