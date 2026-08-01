@@ -155,31 +155,33 @@ export const ProjectImpacts: React.FC<Props> = ({ data, showTitle }) => {
           </CalculationCard>
         </StyledCol>
         <StyledCol xs={24} lg={12}>
-          <InspectTooltip
-            meta={{
-              id: 'impact-ghg-reduction',
-              label: 'GHG Reductions',
-              type: 'calculation',
-              path: 'annualSummary.greenhouseGasEmissions.total.change',
-              description:
-                'Total annual greenhouse gas emission change across landfill waste, shipping, and dishwashing',
-              calculatorFunction: 'getAnnualGasEmissionChanges()',
-              sourceFile: 'lib/calculator/calculations/ghg/getAnnualGasEmissionChanges.ts'
-            }}
-          >
-            <Card
-              title='Your GHG reductions'
-              changePercent={data.greenhouseGasEmissions.total.changePercent * -1}
-              changeStr={changeValue(data.greenhouseGasEmissions.total.change * -1) + ' MTC02e'}
+          <CalculationCard outputKey='ghgTotal' label='GHG avoided'>
+            <InspectTooltip
+              meta={{
+                id: 'impact-ghg-reduction',
+                label: 'GHG Reductions',
+                type: 'calculation',
+                path: 'annualSummary.greenhouseGasEmissions.total.change',
+                description:
+                  'Total annual greenhouse gas emission change across landfill waste, shipping, and dishwashing',
+                calculatorFunction: 'getAnnualGasEmissionChanges()',
+                sourceFile: 'lib/calculator/calculations/ghg/getAnnualGasEmissionChanges.ts'
+              }}
             >
-              <br />
-              <BarChart
-                data={ghgData}
-                formatter={(text, data) => `${data.label}: ${data.value.toLocaleString()} MTC02e`}
-                seriesField='label'
-              />
-            </Card>
-          </InspectTooltip>
+              <Card
+                title='Your GHG reductions'
+                changePercent={data.greenhouseGasEmissions.total.changePercent * -1}
+                changeStr={changeValue(data.greenhouseGasEmissions.total.change * -1) + ' MTC02e'}
+              >
+                <br />
+                <BarChart
+                  data={ghgData}
+                  formatter={(text, data) => `${data.label}: ${data.value.toLocaleString()} MTC02e`}
+                  seriesField='label'
+                />
+              </Card>
+            </InspectTooltip>
+          </CalculationCard>
         </StyledCol>
       </Row>
     </SectionContainer>

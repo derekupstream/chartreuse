@@ -381,7 +381,12 @@ export default function SmartFieldsPage({ user }: { user: DashboardUser }) {
             </Card>
 
             {/* equation */}
-            <Text strong>Equation</Text>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+              <Text strong>Equation</Text>
+              <Text type='secondary' style={{ fontSize: 12 }}>
+                Click a variable to see where its value comes from
+              </Text>
+            </div>
             <div
               style={{
                 minHeight: 54,
@@ -404,18 +409,26 @@ export default function SmartFieldsPage({ user }: { user: DashboardUser }) {
                 if (token.kind === 'variable') {
                   const variable = variableMap.get(token.key);
                   const color = variable ? CATEGORY_COLOR[variable.category] : '#ff4d4f';
+                  const isSelected = selectedVariableKey === token.key;
                   return (
                     <Tag
                       key={i}
-                      color={selectedVariableKey === token.key ? 'purple' : undefined}
-                      style={{ cursor: 'pointer', borderColor: color, color, margin: 0 }}
+                      color={isSelected ? 'purple' : undefined}
+                      style={{
+                        cursor: 'pointer',
+                        borderColor: color,
+                        color: isSelected ? undefined : color,
+                        margin: 0,
+                        boxShadow: isSelected ? '0 0 0 2px rgba(114,46,209,0.2)' : undefined
+                      }}
                       closable
                       onClose={e => {
                         e.preventDefault();
                         removeTokenAt(i);
                       }}
-                      onClick={() => setSelectedVariableKey(token.key === selectedVariableKey ? null : token.key)}
+                      onClick={() => setSelectedVariableKey(isSelected ? null : token.key)}
                     >
+                      {variable?.source && <DatabaseOutlined style={{ marginRight: 4, fontSize: 10 }} />}
                       {variable?.label ?? `${token.key} (missing)`}
                     </Tag>
                   );
@@ -627,8 +640,12 @@ export default function SmartFieldsPage({ user }: { user: DashboardUser }) {
                   showIcon
                   message={
                     selectedVariable.category === 'Inputs'
-                      ? 'This value is collected from the user on a calculator, so it has no database source.'
-                      : 'This variable resolves at run time and has no fixed source cell.'
+                      ? 'Collected from the user on a calculator, so there is no database cell behind it.'
+                      : selectedVariable.category === 'Products'
+                        ? 'Read from the product catalog once a specific product is chosen, so the cell depends on that product.'
+                        : selectedVariable.category === 'Outputs'
+                          ? 'Produced by another smart field rather than read from a database.'
+                          : 'Computed by the calculator upstream of this field.'
                   }
                 />
               )}

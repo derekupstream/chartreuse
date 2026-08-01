@@ -84,6 +84,9 @@ export function CalculationInspectorProvider({
             {explanation.contributors.length > 0 && (
               <>
                 <Text strong>What contributes most</Text>
+                <Text type='secondary' style={{ display: 'block', fontSize: 12, marginBottom: 4 }}>
+                  Each line&apos;s size relative to the others listed here.
+                </Text>
                 <Table
                   size='small'
                   style={{ marginTop: 6, marginBottom: 16 }}
@@ -99,7 +102,7 @@ export function CalculationInspectorProvider({
                       render: (v: number) => v.toLocaleString(undefined, { maximumFractionDigits: 2 })
                     },
                     {
-                      title: 'share',
+                      title: '% of total',
                       dataIndex: 'share',
                       align: 'right' as const,
                       width: 70,

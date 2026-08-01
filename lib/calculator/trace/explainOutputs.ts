@@ -32,9 +32,15 @@ export type Contributor = {
   label: string;
   detail: string;
   value: number;
-  /** Share of the output this line accounts for, 0-1 */
+  /** This line's magnitude as a share of all lines listed, 0-1 */
   share: number;
 };
+
+/** Fills in each line's share of the listed total. */
+function withShares(lines: Omit<Contributor, 'share'>[]): Contributor[] {
+  const total = lines.reduce((sum, line) => sum + Math.abs(line.value), 0);
+  return lines.map(line => ({ ...line, share: total === 0 ? 0 : Math.abs(line.value) / total }));
+}
 
 export type OutputExplanation = {
   key: string;
