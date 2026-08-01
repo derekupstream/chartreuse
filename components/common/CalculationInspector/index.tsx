@@ -10,9 +10,9 @@ const { Text, Paragraph } = Typography;
 /**
  * Lets any number on a project dashboard be opened up to show the equation behind it.
  *
- * A provider sits at the top of the projections page; individual metric components drop a
- * <CalculationIcon /> beside their number naming which output it is. The icon only renders
- * for Upstream staff, so customers see the dashboard unchanged.
+ * A provider sits at the top of the projections page; each metric card wraps itself in a
+ * <CalculationCard /> naming which output it shows. Cards are only interactive for Upstream
+ * staff — for everyone else the wrapper renders its children untouched.
  */
 type InspectorContext = {
   projectId: string;
@@ -155,21 +155,63 @@ export function CalculationInspectorProvider({
   );
 }
 
-/** A small calculator button that opens the breakdown for one dashboard number. */
-export function CalculationIcon({ outputKey, label }: { outputKey: string; label?: string }) {
+/**
+ * Wraps a dashboard card so staff can click it to see the equation behind its number.
+ * For everyone else it renders its children untouched, with no wrapper and no styling.
+ */
+export function CalculationCard({
+  outputKey,
+  label,
+  children
+}: {
+  outputKey: string;
+  label?: string;
+  children: React.ReactNode;
+}) {
   const context = useContext(Context);
-  if (!context?.enabled) return null;
+  const [hovered, setHovered] = useState(false);
+
+  if (!context?.enabled) return <>{children}</>;
 
   return (
-    <Tooltip title={`See the equation behind ${label ?? 'this number'}`}>
-      <CalculatorOutlined
-        className='dont-print-me'
-        onClick={e => {
-          e.stopPropagation();
-          context.open(outputKey);
+    <Tooltip title={`See how ${label ?? 'this'} is calculated`} mouseEnterDelay={0.4}>
+      <div
+        onClick={() => context.open(outputKey)}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+        style={{
+          position: 'relative',
+          height: '100%',
+          cursor: 'pointer',
+          borderRadius: 10,
+          outline: hovered ? '2px solid #1677ff' : '2px solid transparent',
+          outlineOffset: 2,
+          transition: 'outline-color 0.15s ease'
         }}
-        style={{ marginLeft: 8, color: '#1677ff', cursor: 'pointer', fontSize: 14 }}
-      />
+      >
+        {children}
+        {hovered && (
+          <div
+            className='dont-print-me'
+            style={{
+              position: 'absolute',
+              top: 8,
+              right: 10,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 4,
+              background: '#1677ff',
+              color: '#fff',
+              borderRadius: 12,
+              padding: '2px 8px',
+              fontSize: 11,
+              pointerEvents: 'none'
+            }}
+          >
+            <CalculatorOutlined /> View calculation
+          </div>
+        )}
+      </div>
     </Tooltip>
   );
 }

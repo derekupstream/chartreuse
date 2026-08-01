@@ -5,7 +5,7 @@ import { useState } from 'react';
 import styled from 'styled-components';
 
 import { InspectTooltip } from 'components/common/InspectMode';
-import { CalculationIcon } from 'components/common/CalculationInspector';
+import { CalculationCard } from 'components/common/CalculationInspector';
 import { poundsToTons } from 'lib/calculator/constants/conversions';
 import type { ProjectionsResponse } from 'lib/calculator/getProjections';
 import { changeValue, valueInGallons, valueInPounds, changeValueInGallons, changeValueInPounds } from 'lib/number';
@@ -163,110 +163,105 @@ export const EnvironmentalSummary: React.FC<Props> = ({
 
       <Row gutter={[30, 24]}>
         <StyledCol xs={24} lg={12}>
-          <InspectTooltip
-            meta={{
-              id: 'env-annual-waste',
-              label: 'Annual Waste Changes',
-              type: 'calculation',
-              path: 'environmentalResults.annualWasteChanges.summary.change',
-              description: 'Sum of landfill product weight + shipping box weight, baseline vs forecast',
-              calculatorFunction: 'getAnnualWasteChanges()',
-              sourceFile: 'lib/calculator/calculations/waste/getAnnualWasteChanges.ts'
-            }}
-          >
-            <KPICard
-              style={{ height: '100%' }}
-              title={
-                <span>
-                  {isEventProject ? 'Waste to landfill prevented' : 'Annual waste changes'}
-                  <CalculationIcon outputKey='wasteWeight' label='waste avoided' />
-                </span>
-              }
-              changePercent={
-                isEventProject
-                  ? data.eventProjectWaste.summary.changePercent * -1
-                  : data.annualWasteChanges.summary.changePercent * -1
-              }
-              changeStr={`${changeValueInPounds(isEventProject ? data.eventProjectWaste.summary.change * -1 : data.annualWasteChanges.summary.change, options)}`}
-            >
-              <br />
-              <Chart data={annualWasteData} seriesField='wasteType' />
-              <ViewResultsWrapper>
-                <Typography.Text style={{ marginRight: '20px' }}>View results in:</Typography.Text>
-                <Radio.Group onChange={onChangeResults} defaultValue={units}>
-                  <Radio.Button value='pounds'>{displayAsMetric ? 'kilograms' : 'pounds'}</Radio.Button>
-                  <Radio.Button value='tons'>tons</Radio.Button>
-                </Radio.Group>
-              </ViewResultsWrapper>
-            </KPICard>
-          </InspectTooltip>
-        </StyledCol>
-        {!hideWaterUsage && (
-          <StyledCol xs={24} lg={12}>
+          <CalculationCard outputKey='wasteWeight' label='waste avoided'>
             <InspectTooltip
               meta={{
-                id: 'env-annual-water',
-                label: 'Annual Water Usage Changes',
+                id: 'env-annual-waste',
+                label: 'Annual Waste Changes',
                 type: 'calculation',
-                path: 'environmentalResults.annualWaterUsageChanges.total.change',
-                description:
-                  'Water used in manufacturing single-use items vs washing reusables (material water + dishwashing water)',
-                calculatorFunction: 'getAnnualWaterUsageChanges()',
-                sourceFile: 'lib/calculator/calculations/water/getAnnualWaterUsageChanges.ts',
-                factorName: 'MATERIALS[*].waterUsageGalPerLb'
+                path: 'environmentalResults.annualWasteChanges.summary.change',
+                description: 'Sum of landfill product weight + shipping box weight, baseline vs forecast',
+                calculatorFunction: 'getAnnualWasteChanges()',
+                sourceFile: 'lib/calculator/calculations/waste/getAnnualWasteChanges.ts'
               }}
             >
               <KPICard
                 style={{ height: '100%' }}
-                title={
-                  <span>
-                    {isEventProject ? 'Water Usage' : 'Annual water usage changes'}{' '}
-                    <Tooltip title='This metric covers water used specifically for foodware: the manufacturing of single-use items or the washing of reusables.'>
-                      <InfoCircleOutlined style={{ fontSize: '14px', color: '#8c8c8c', cursor: 'help' }} />
-                    </Tooltip>
-                    <CalculationIcon outputKey='waterTotal' label='water avoided' />
-                  </span>
+                title={isEventProject ? 'Waste to landfill prevented' : `Annual waste changes`}
+                changePercent={
+                  isEventProject
+                    ? data.eventProjectWaste.summary.changePercent * -1
+                    : data.annualWasteChanges.summary.changePercent * -1
                 }
-                changePercent={data.annualWaterUsageChanges.total.changePercent * -1}
-                changeStr={`${changeValueInGallons(data.annualWaterUsageChanges.total.change, {
-                  displayAsMetric
-                })}`}
+                changeStr={`${changeValueInPounds(isEventProject ? data.eventProjectWaste.summary.change * -1 : data.annualWasteChanges.summary.change, options)}`}
               >
                 <br />
-                <Chart data={waterData} seriesField='wasteType' />
+                <Chart data={annualWasteData} seriesField='wasteType' />
+                <ViewResultsWrapper>
+                  <Typography.Text style={{ marginRight: '20px' }}>View results in:</Typography.Text>
+                  <Radio.Group onChange={onChangeResults} defaultValue={units}>
+                    <Radio.Button value='pounds'>{displayAsMetric ? 'kilograms' : 'pounds'}</Radio.Button>
+                    <Radio.Button value='tons'>tons</Radio.Button>
+                  </Radio.Group>
+                </ViewResultsWrapper>
               </KPICard>
             </InspectTooltip>
+          </CalculationCard>
+        </StyledCol>
+        {!hideWaterUsage && (
+          <StyledCol xs={24} lg={12}>
+            <CalculationCard outputKey='waterTotal' label='water avoided'>
+              <InspectTooltip
+                meta={{
+                  id: 'env-annual-water',
+                  label: 'Annual Water Usage Changes',
+                  type: 'calculation',
+                  path: 'environmentalResults.annualWaterUsageChanges.total.change',
+                  description:
+                    'Water used in manufacturing single-use items vs washing reusables (material water + dishwashing water)',
+                  calculatorFunction: 'getAnnualWaterUsageChanges()',
+                  sourceFile: 'lib/calculator/calculations/water/getAnnualWaterUsageChanges.ts',
+                  factorName: 'MATERIALS[*].waterUsageGalPerLb'
+                }}
+              >
+                <KPICard
+                  style={{ height: '100%' }}
+                  title={
+                    <span>
+                      {isEventProject ? 'Water Usage' : 'Annual water usage changes'}{' '}
+                      <Tooltip title='This metric covers water used specifically for foodware: the manufacturing of single-use items or the washing of reusables.'>
+                        <InfoCircleOutlined style={{ fontSize: '14px', color: '#8c8c8c', cursor: 'help' }} />
+                      </Tooltip>
+                    </span>
+                  }
+                  changePercent={data.annualWaterUsageChanges.total.changePercent * -1}
+                  changeStr={`${changeValueInGallons(data.annualWaterUsageChanges.total.change, {
+                    displayAsMetric
+                  })}`}
+                >
+                  <br />
+                  <Chart data={waterData} seriesField='wasteType' />
+                </KPICard>
+              </InspectTooltip>
+            </CalculationCard>
           </StyledCol>
         )}
 
         <StyledCol xs={24} lg={hideWaterUsage ? 12 : 24}>
-          <InspectTooltip
-            meta={{
-              id: 'env-annual-ghg',
-              label: 'Annual GHG Emission Changes',
-              type: 'calculation',
-              path: 'environmentalResults.annualGasEmissionChanges.total.change',
-              description: 'Total MTCO2e change: landfill waste + shipping box + dishwashing emissions',
-              calculatorFunction: 'getAnnualGasEmissionChanges()',
-              sourceFile: 'lib/calculator/calculations/ghg/getAnnualGasEmissionChanges.ts',
-              factorName: 'MATERIALS[*].mtco2ePerLb, ELECTRIC_CO2_EMISSIONS_FACTOR, NATURAL_GAS_CO2_EMISSIONS_FACTOR'
-            }}
-          >
-            <KPICard
-              style={{ height: '100%' }}
-              title={
-                <span>
-                  {isEventProject ? 'GHG Emissions' : 'Annual GHG changes'}
-                  <CalculationIcon outputKey='ghgTotal' label='GHG avoided' />
-                </span>
-              }
-              changePercent={data.annualGasEmissionChanges.total.changePercent * -1}
-              changeStr={`${changeValue(data.annualGasEmissionChanges.total.change)} MTCO2e`}
+          <CalculationCard outputKey='ghgTotal' label='GHG avoided'>
+            <InspectTooltip
+              meta={{
+                id: 'env-annual-ghg',
+                label: 'Annual GHG Emission Changes',
+                type: 'calculation',
+                path: 'environmentalResults.annualGasEmissionChanges.total.change',
+                description: 'Total MTCO2e change: landfill waste + shipping box + dishwashing emissions',
+                calculatorFunction: 'getAnnualGasEmissionChanges()',
+                sourceFile: 'lib/calculator/calculations/ghg/getAnnualGasEmissionChanges.ts',
+                factorName: 'MATERIALS[*].mtco2ePerLb, ELECTRIC_CO2_EMISSIONS_FACTOR, NATURAL_GAS_CO2_EMISSIONS_FACTOR'
+              }}
             >
-              <br />
-              <Chart data={ghgData} seriesField='wasteType' />
-            </KPICard>
-          </InspectTooltip>
+              <KPICard
+                style={{ height: '100%' }}
+                title={isEventProject ? 'GHG Emissions' : `Annual GHG changes`}
+                changePercent={data.annualGasEmissionChanges.total.changePercent * -1}
+                changeStr={`${changeValue(data.annualGasEmissionChanges.total.change)} MTCO2e`}
+              >
+                <br />
+                <Chart data={ghgData} seriesField='wasteType' />
+              </KPICard>
+            </InspectTooltip>
+          </CalculationCard>
         </StyledCol>
 
         {showEnvBreakEven &&

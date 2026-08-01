@@ -4,7 +4,7 @@ import styled from 'styled-components';
 
 import { useMetricSystem } from 'components/_app/MetricSystemProvider';
 import { InspectTooltip } from 'components/common/InspectMode';
-import { CalculationIcon } from 'components/common/CalculationInspector';
+import { CalculationCard } from 'components/common/CalculationInspector';
 import type { ProjectionsResponse } from 'lib/calculator/getProjections';
 import { changeValue, formattedValueInPounds, valueInPounds, changeValueInPounds } from 'lib/number';
 
@@ -66,101 +66,93 @@ export const ProjectImpacts: React.FC<Props> = ({ data, showTitle }) => {
       )}
       <Row gutter={[30, 24]}>
         <StyledCol xs={24} lg={12}>
-          <InspectTooltip
-            meta={{
-              id: 'impact-annual-savings',
-              label: 'Estimated Annual Savings',
-              type: 'calculation',
-              path: 'annualSummary.dollarCost.change',
-              description: 'Baseline single-use cost minus forecast reusable cost (annual)',
-              calculatorFunction: 'getFinancialResults()',
-              sourceFile: 'lib/calculator/calculations/getFinancialResults.ts'
-            }}
-          >
-            <Card
-              title={
-                <span>
-                  Your estimated annual savings
-                  <CalculationIcon outputKey='annualCostChange' label='annual savings' />
-                </span>
-              }
-              changePercent={data.dollarCost.changePercent * -1}
-              changeStr={`${changeValue(data.dollarCost.change * -1, { preUnit: currencySymbol }).toLocaleString()}`}
+          <CalculationCard outputKey='annualCostChange' label='annual savings'>
+            <InspectTooltip
+              meta={{
+                id: 'impact-annual-savings',
+                label: 'Estimated Annual Savings',
+                type: 'calculation',
+                path: 'annualSummary.dollarCost.change',
+                description: 'Baseline single-use cost minus forecast reusable cost (annual)',
+                calculatorFunction: 'getFinancialResults()',
+                sourceFile: 'lib/calculator/calculations/getFinancialResults.ts'
+              }}
             >
-              <br />
-              <BarChart
-                data={savingsData}
-                formatter={(text, data) => {
-                  return `${data.label}: ${currencySymbol}${data.value.toLocaleString()}`;
-                }}
-                seriesField='label'
-              />
-            </Card>
-          </InspectTooltip>
+              <Card
+                title='Your estimated annual savings'
+                changePercent={data.dollarCost.changePercent * -1}
+                changeStr={`${changeValue(data.dollarCost.change * -1, { preUnit: currencySymbol }).toLocaleString()}`}
+              >
+                <br />
+                <BarChart
+                  data={savingsData}
+                  formatter={(text, data) => {
+                    return `${data.label}: ${currencySymbol}${data.value.toLocaleString()}`;
+                  }}
+                  seriesField='label'
+                />
+              </Card>
+            </InspectTooltip>
+          </CalculationCard>
         </StyledCol>
         <StyledCol xs={24} lg={12}>
-          <InspectTooltip
-            meta={{
-              id: 'impact-single-use-reduction',
-              label: 'Single-Use Purchasing Reduction',
-              type: 'calculation',
-              path: 'annualSummary.singleUseProductCount.change',
-              description: 'Baseline single-use unit count minus forecast unit count',
-              calculatorFunction: 'getSingleUseResults()',
-              sourceFile: 'lib/calculator/calculations/foodware/getSingleUseResults.ts'
-            }}
-          >
-            <Card
-              title={
-                <span>
-                  Your reduction in single-use purchasing
-                  <CalculationIcon outputKey='singleUseUnits' label='items avoided' />
-                </span>
-              }
-              changePercent={data.singleUseProductCount.changePercent * -1}
-              changeStr={changeValue(data.singleUseProductCount.change * -1) + ' units'}
+          <CalculationCard outputKey='singleUseUnits' label='items avoided'>
+            <InspectTooltip
+              meta={{
+                id: 'impact-single-use-reduction',
+                label: 'Single-Use Purchasing Reduction',
+                type: 'calculation',
+                path: 'annualSummary.singleUseProductCount.change',
+                description: 'Baseline single-use unit count minus forecast unit count',
+                calculatorFunction: 'getSingleUseResults()',
+                sourceFile: 'lib/calculator/calculations/foodware/getSingleUseResults.ts'
+              }}
             >
-              <br />
-              <BarChart
-                data={singleUseData}
-                formatter={(text, data) => `${data.label}: ${data.value.toLocaleString()} pieces`}
-                seriesField='label'
-              />
-            </Card>
-          </InspectTooltip>
+              <Card
+                title='Your reduction in single-use purchasing'
+                changePercent={data.singleUseProductCount.changePercent * -1}
+                changeStr={changeValue(data.singleUseProductCount.change * -1) + ' units'}
+              >
+                <br />
+                <BarChart
+                  data={singleUseData}
+                  formatter={(text, data) => `${data.label}: ${data.value.toLocaleString()} pieces`}
+                  seriesField='label'
+                />
+              </Card>
+            </InspectTooltip>
+          </CalculationCard>
         </StyledCol>
         <StyledCol xs={24} lg={12}>
-          <InspectTooltip
-            meta={{
-              id: 'impact-waste-reduction',
-              label: 'Waste Reductions',
-              type: 'calculation',
-              path: 'annualSummary.wasteWeight.change',
-              description: 'Total landfill waste weight change: baseline product + shipping box weight minus forecast',
-              calculatorFunction: 'getAnnualWasteChanges()',
-              sourceFile: 'lib/calculator/calculations/waste/getAnnualWasteChanges.ts'
-            }}
-          >
-            <Card
-              title={
-                <span>
-                  Your waste reductions
-                  <CalculationIcon outputKey='wasteWeight' label='waste avoided' />
-                </span>
-              }
-              changePercent={data.wasteWeight.changePercent * -1}
-              changeStr={changeValueInPounds(data.wasteWeight.change * -1, { displayAsMetric, displayAsTons: false })}
+          <CalculationCard outputKey='wasteWeight' label='waste avoided'>
+            <InspectTooltip
+              meta={{
+                id: 'impact-waste-reduction',
+                label: 'Waste Reductions',
+                type: 'calculation',
+                path: 'annualSummary.wasteWeight.change',
+                description:
+                  'Total landfill waste weight change: baseline product + shipping box weight minus forecast',
+                calculatorFunction: 'getAnnualWasteChanges()',
+                sourceFile: 'lib/calculator/calculations/waste/getAnnualWasteChanges.ts'
+              }}
             >
-              <br />
-              <BarChart
-                data={wasteData}
-                formatter={(text, data) =>
-                  `${data.label}: ${formattedValueInPounds(data.value, { displayAsMetric, displayAsTons: false })}`
-                }
-                seriesField='label'
-              />
-            </Card>
-          </InspectTooltip>
+              <Card
+                title='Your waste reductions'
+                changePercent={data.wasteWeight.changePercent * -1}
+                changeStr={changeValueInPounds(data.wasteWeight.change * -1, { displayAsMetric, displayAsTons: false })}
+              >
+                <br />
+                <BarChart
+                  data={wasteData}
+                  formatter={(text, data) =>
+                    `${data.label}: ${formattedValueInPounds(data.value, { displayAsMetric, displayAsTons: false })}`
+                  }
+                  seriesField='label'
+                />
+              </Card>
+            </InspectTooltip>
+          </CalculationCard>
         </StyledCol>
         <StyledCol xs={24} lg={12}>
           <InspectTooltip
