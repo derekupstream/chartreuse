@@ -70,6 +70,7 @@ Full detail in `docs/DATA-REVIEW-AGENDA.md` §3. A golden dataset from Madhavi's
 | 28 | Bulk factor "database" import | Madhavi wants to load whole datasets grouped as they are in Drive. **open** |
 | 29 | Schools calculator as a data product | Her initiative; mostly support and unblock. **open** |
 | 30 | Datasheet: event foodware rows | Covers single-use, reusables, dishwashing and costs; event foodware items aren't shown yet. **open** |
+| 30a | **RSP impact factors are placeholders** | `RSP_IMPACT_FACTORS` in `lib/rsp/impactFactors.ts` is ten hardcoded per-item values with no provenance, unconnected to the Factor Library or the main engine — so every number the intake API returns to a partner, and everything downstream on their customers' dashboards, is provisional. Needs real factors and a source. Blocking before RSP results are shown to a funder. **open** |
 
 ## P3 — Admin tool consolidation
 
@@ -83,6 +84,7 @@ Detail in `docs/DATA-SCIENCE-TOOLS-PLAN.md`.
 | 34 | Fix or remove the Impact Simulator | It computes nothing today — it echoes your percentage change back. Rebuild on the real engine or delete. **open** |
 | 35 | Rename Run History → Calculation Log | Removes the collision with Test Runs. **open** |
 | 36 | Data Products Designer as the general "see the code" surface | Needs a calculator-function node kind, engine instrumentation, and to keep the substituted-expression string the evaluator already builds and discards. **open** |
+| 37 | **Finish the Data Product Designer / Calculations (Smart Fields) page** | Shipped but not right yet — parked 2026-08-05. What exists: smart-field library with search + category chips, equation pills with click-to-source, variable picker, detected requirements, and dashboard cards that open the equation behind a number. What still feels wrong is the overall shape — the split between Calculations (smart fields), Data Product Designer, and Functions is three surfaces for one job, and the builder doesn't yet let you go from an equation to a saved, engine-backed output. Revisit as a whole rather than patching pieces. **open** |
 
 ## P3 — Cleanup
 

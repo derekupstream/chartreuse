@@ -57,6 +57,11 @@ const OUTCOME_CONFIG: Record<string, { color: string; label: string; icon: React
     color: 'default',
     label: 'Method Not Allowed',
     icon: <CloseCircleFilled style={{ color: '#bfbfbf' }} />
+  },
+  dry_run: {
+    color: 'blue',
+    label: 'Dry Run',
+    icon: <ExclamationCircleFilled style={{ color: '#1677ff' }} />
   }
 };
 

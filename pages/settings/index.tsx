@@ -28,6 +28,7 @@ import type { GetServerSideProps } from 'next';
 import { useState } from 'react';
 
 import { CatalogCurationPanel } from 'components/settings/CatalogCurationPanel';
+import { RspApiQuickStart } from 'components/settings/RspApiQuickStart';
 import type { DashboardUser } from 'interfaces';
 import { BaseLayout } from 'layouts/BaseLayout';
 import { checkLogin } from 'lib/middleware/checkLogin';
@@ -443,6 +444,8 @@ export default function SettingsPage({ user, apiKeys: initialApiKeys }: Props) {
                 size='small'
               />
             </Card>
+
+            <RspApiQuickStart />
 
             {/* Generate key modal */}
             <Modal

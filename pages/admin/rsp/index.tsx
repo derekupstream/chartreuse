@@ -18,8 +18,9 @@ import {
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import type { GetServerSideProps } from 'next';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 
+import { ClientLinksPanel } from 'components/admin/rsp/ClientLinksPanel';
 import type { DashboardUser } from 'interfaces';
 import { AdminLayout } from 'layouts/AdminLayout';
 import { getUserFromContext } from 'lib/middleware';
@@ -55,6 +56,15 @@ export default function RspDashboard({ user, rsps: initialRsps, allOrgs }: Props
   const [selectedOrgId, setSelectedOrgId] = useState<string | undefined>();
   const [drawerRsp, setDrawerRsp] = useState<RspRow | null>(null);
 
+  /** Re-reads the list, keeping the open drawer's counts in step with any change made inside it. */
+  const refreshRsps = useCallback(async () => {
+    const res = await fetch('/api/admin/rsp/orgs');
+    if (!res.ok) return;
+    const newList: RspRow[] = await res.json();
+    setRsps(newList);
+    setDrawerRsp(current => (current ? (newList.find(r => r.id === current.id) ?? current) : current));
+  }, []);
+
   async function handleRegister() {
     if (!selectedOrgId) {
       message.warning('Please select an organization');
@@ -69,10 +79,7 @@ export default function RspDashboard({ user, rsps: initialRsps, allOrgs }: Props
       });
       if (!res.ok) throw new Error('Failed to register RSP');
       const updated = await res.json();
-      // Refresh list
-      const refreshRes = await fetch('/api/admin/rsp/orgs');
-      const newList = await refreshRes.json();
-      setRsps(newList);
+      await refreshRsps();
       message.success(`${updated.name} is now a Reuse Service Provider`);
       setRegisterOpen(false);
       setSelectedOrgId(undefined);
@@ -223,7 +230,7 @@ export default function RspDashboard({ user, rsps: initialRsps, allOrgs }: Props
       </Modal>
 
       {/* RSP detail drawer */}
-      <Drawer title={drawerRsp?.name} open={!!drawerRsp} onClose={() => setDrawerRsp(null)} width={480}>
+      <Drawer title={drawerRsp?.name} open={!!drawerRsp} onClose={() => setDrawerRsp(null)} width={640}>
         {drawerRsp && (
           <Space direction='vertical' size={16} style={{ width: '100%' }}>
             <Card size='small' title='Summary'>
@@ -251,6 +258,9 @@ export default function RspDashboard({ user, rsps: initialRsps, allOrgs }: Props
                   </strong>
                 </Col>
               </Row>
+            </Card>
+            <Card size='small' title='Client links'>
+              <ClientLinksPanel rspOrgId={drawerRsp.id} rspName={drawerRsp.name} onChanged={refreshRsps} />
             </Card>
             <div style={{ textAlign: 'center' }}>
               <CheckCircleOutlined style={{ color: '#52c41a', fontSize: 20 }} />

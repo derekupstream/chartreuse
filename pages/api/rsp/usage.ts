@@ -3,13 +3,17 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import prisma from 'lib/prisma';
 import { logRspActivity } from 'lib/rsp/activityLogger';
 import { validateApiKey } from 'lib/rsp/apiKeyAuth';
+import { calcImpact } from 'lib/rsp/impactFactors';
 import { ingestUsagePeriod } from 'lib/rsp/ingestUsagePeriod';
+import { collectPayloadWarnings } from 'lib/rsp/payloadWarnings';
 
 type UsageBody = {
   client_id: string;
   date_min: string;
   date_max: string;
   events: { reusable_type: string; in_warehouse_events: number; out_warehouse_events: number }[];
+  /** When true, validate and price the payload but store nothing. For integration testing. */
+  dry_run?: boolean;
 };
 
 const ENDPOINT = 'POST /api/rsp/usage';
@@ -53,7 +57,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   // 2. Validate body
-  const { client_id, date_min, date_max, events } = req.body as UsageBody;
+  const { client_id, date_min, date_max, events, dry_run } = req.body as UsageBody;
+  const dryRun = dry_run === true || req.query.dry_run === 'true';
 
   const fail = async (msg: string, code: string) => {
     await logRspActivity({
@@ -85,11 +90,64 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return fail('date_min must be before date_max', 'inverted_date_range');
   }
 
+  // Each event must be shaped correctly — otherwise pricing it throws a 500 rather than
+  // telling the partner which entry is wrong.
+  for (let i = 0; i < events.length; i += 1) {
+    const event = events[i];
+    if (!event || typeof event.reusable_type !== 'string' || event.reusable_type.trim() === '') {
+      return fail(`events[${i}].reusable_type must be a non-empty string`, 'invalid_event_type');
+    }
+    if (!Number.isFinite(event.in_warehouse_events) || !Number.isFinite(event.out_warehouse_events)) {
+      return fail(
+        `events[${i}] must have numeric in_warehouse_events and out_warehouse_events`,
+        'invalid_event_counts'
+      );
+    }
+    if (event.in_warehouse_events < 0 || event.out_warehouse_events < 0) {
+      return fail(`events[${i}] event counts cannot be negative`, 'negative_event_counts');
+    }
+  }
+
   // 3. Resolve account by RSP client_id linkage
   const account = await prisma.account.findFirst({
     where: { rspOrgId: apiKey.orgId, rspClientId: client_id },
     select: { id: true }
   });
+
+  // Problems worth reporting back but not worth rejecting the payload over.
+  const warnings = collectPayloadWarnings({ clientId: client_id, events, accountId: account?.id ?? null });
+
+  // A dry run prices the payload exactly as ingestion would, but writes nothing — it lets a
+  // partner prove their integration works before any real data lands.
+  if (dryRun) {
+    const priced = events.map(event => calcImpact(event.reusable_type, event.out_warehouse_events));
+    const dryRunBody = {
+      status: 'validated' as const,
+      dry_run: true,
+      period: { date_min, date_max, account_linked: !!account },
+      metrics: {
+        co2_avoided_kg: Math.round(priced.reduce((sum, p) => sum + p.co2AvoidedKg, 0) * 1000) / 1000,
+        water_saved_gallons: Math.round(priced.reduce((sum, p) => sum + p.waterSavedGallons, 0) * 100) / 100,
+        waste_diverted_lbs: Math.round(priced.reduce((sum, p) => sum + p.wasteDivertedLbs, 0) * 1000) / 1000,
+        single_use_equivalents: events.reduce((sum, event) => sum + event.out_warehouse_events, 0)
+      },
+      warnings
+    };
+
+    await logRspActivity({
+      apiKeyId: apiKey.id,
+      orgId: apiKey.orgId,
+      endpoint: ENDPOINT,
+      httpStatus: 200,
+      outcome: 'dry_run',
+      latencyMs: Date.now() - startedAt,
+      requestSummary: { client_id, date_min, date_max, eventCount: events.length, dryRun: true },
+      responseSummary: { metrics: dryRunBody.metrics, warnings: warnings.map(w => w.code) },
+      clientIp: ip
+    });
+
+    return res.status(200).json(dryRunBody);
+  }
 
   // 4–7. Delegate pipeline to lib function
   try {
@@ -118,7 +176,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         water_saved_gallons: Math.round(result.metrics.waterSavedGallons * 100) / 100,
         waste_diverted_lbs: Math.round(result.metrics.wasteDivertedLbs * 1000) / 1000,
         single_use_equivalents: result.metrics.totalUnits
-      }
+      },
+      warnings
     };
 
     await logRspActivity({
@@ -132,7 +191,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       responseSummary: {
         newPeriodId: result.newPeriodId,
         supersededCount: result.overlappingCount,
-        metrics: responseBody.metrics
+        metrics: responseBody.metrics,
+        warnings: warnings.map(w => w.code)
       },
       clientIp: ip
     });

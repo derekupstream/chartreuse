@@ -72,7 +72,12 @@ Data-science tooling: Factor Library (`constants/`, versioned factors with `calc
 
 ### RSP API
 
-Reuse Service Providers (`org.orgType = 'reuse-service-provider'`) push usage data to the public endpoint `POST /api/rsp/usage` (Bearer token, format `cr_rsp_{64hex}` stored as SHA-256 in `RspApiKey.keyHash`). Key utilities: `lib/rsp/apiKeyAuth.ts`.
+Reuse Service Providers (`org.orgType = 'reuse-service-provider'`) push usage data to the public endpoint `POST /api/rsp/usage` (Bearer token, format `cr_rsp_{64hex}` stored as SHA-256 in `RspApiKey.keyHash`). Key utilities: `lib/rsp/apiKeyAuth.ts`. Partner-facing contract: `docs/RSP-API.md`.
+
+- The endpoint resolves `client_id` against `(Account.rspOrgId, Account.rspClientId)` and **accepts the payload either way** — an unlinked `client_id` ingests attached to no account and never reaches a dashboard. `lib/rsp/payloadWarnings.ts` reports that (and unknown `reusable_type`, duplicate types, all-zero outbound) in the response's `warnings[]` so a partner can't integrate successfully-but-wrong. Links are managed in Super Admin → RSP Hub → *(org)* → Client links (`/api/admin/rsp/client-links`).
+- `dry_run: true` in the body (or `?dry_run=true`) validates and prices a payload without storing anything — how a partner tests before go-live. Logged with `outcome: 'dry_run'`.
+- End-to-end check against a running dev server: `npx tsx scripts/verify-rsp-intake.ts` (creates and cleans up a throwaway RSP; `--keep` leaves it behind).
+- `RSP_IMPACT_FACTORS` in `lib/rsp/impactFactors.ts` is hardcoded placeholder values, **not** sourced from the Factor Library — RSP metrics are provisional.
 
 ### Feature flags
 

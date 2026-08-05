@@ -6,7 +6,9 @@ export type ActivityOutcome =
   | 'validation_failed'
   | 'server_error'
   | 'dedup_conflict'
-  | 'method_not_allowed';
+  | 'method_not_allowed'
+  /** A validate-only request: priced and checked, but nothing stored */
+  | 'dry_run';
 
 type LogParams = {
   apiKeyId?: string | null;
