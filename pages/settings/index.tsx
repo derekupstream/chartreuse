@@ -29,6 +29,7 @@ import { useState } from 'react';
 
 import { CatalogCurationPanel } from 'components/settings/CatalogCurationPanel';
 import { RspApiQuickStart } from 'components/settings/RspApiQuickStart';
+import { RspActivityPanel, RspClientsPanel } from 'components/settings/RspPortalPanels';
 import type { DashboardUser } from 'interfaces';
 import { BaseLayout } from 'layouts/BaseLayout';
 import { checkLogin } from 'lib/middleware/checkLogin';
@@ -445,6 +446,8 @@ export default function SettingsPage({ user, apiKeys: initialApiKeys }: Props) {
               />
             </Card>
 
+            <RspClientsPanel />
+            <RspActivityPanel />
             <RspApiQuickStart />
 
             {/* Generate key modal */}

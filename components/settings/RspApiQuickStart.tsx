@@ -18,7 +18,12 @@ const WARNING_MEANINGS: { code: string; meaning: string }[] = [
   {
     code: 'unlinked_client_id',
     meaning:
-      'No Chart-Reuse account carries this client_id. The data is stored but will not appear on the customer dashboard — ask Upstream to link it.'
+      'Dry runs only: this client_id resolves to no account yet, so a real submission will create one. If the customer already uses Chart-Reuse, ask Upstream to link first.'
+  },
+  {
+    code: 'client_account_created',
+    meaning:
+      'This submission created a new account for a first-time client_id. Expected when onboarding a customer; on a typo it means a duplicate to merge.'
   },
   {
     code: 'unknown_reusable_type',

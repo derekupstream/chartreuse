@@ -17,11 +17,12 @@ three before you start, because a submission can succeed while step 3 is missing
 2. **You have an API key.** Either you generate it yourself in Chart-Reuse under
    **Settings → API Integration**, or Upstream generates it for you. The key is shown once and
    never again.
-3. **Each of your customers is linked to a Chart-Reuse account.** You send a `client_id` for each
-   customer; Upstream maps that string to an account in Super Admin → RSP Hub → _(your org)_ →
-   Client links. **If a `client_id` is not mapped, your submission is still accepted and stored,
-   but the data never reaches that customer's dashboard.** The response tells you when this
-   happens — see [Warnings](#warnings).
+3. **Each of your customers resolves to a Chart-Reuse account.** You send a `client_id` for each
+   customer. The first real submission for a new `client_id` **creates that customer's account
+   automatically** (pass `client_name` to control its display name), and every later submission
+   with the same `client_id` routes to it. If a customer already has a Chart-Reuse account from
+   before your integration, ask Upstream to link your `client_id` to it **before** your first
+   submission — otherwise you'll end up with a duplicate account that has to be merged.
 
 ---
 
@@ -40,7 +41,8 @@ never in a query string.
 
 | Field                           | Type    | Required | Notes                                                                                                                 |
 | ------------------------------- | ------- | -------- | --------------------------------------------------------------------------------------------------------------------- |
-| `client_id`                     | string  | yes      | Your identifier for the customer. Case-sensitive; must exactly match what Upstream mapped.                            |
+| `client_id`                     | string  | yes      | Your identifier for the customer. Case-sensitive and stable — a new value creates a new account.                      |
+| `client_name`                   | string  | no       | Display name used if this submission creates the customer's account. Ignored when the account exists.                 |
 | `date_min`                      | string  | yes      | First day of the reporting period, `YYYY-MM-DD`.                                                                      |
 | `date_max`                      | string  | yes      | Last day of the reporting period, `YYYY-MM-DD`. Must be on or after `date_min`.                                       |
 | `events`                        | array   | yes      | At least one entry. One entry per reusable type.                                                                      |
@@ -118,12 +120,13 @@ are probably overlapping in a way you didn't intend.
 An empty array means a clean submission. Treat a non-empty `warnings` array as a failed
 integration test, not a success.
 
-| `code`                    | What it means                                                                                                                                          |
-| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `unlinked_client_id`      | No Chart-Reuse account carries this `client_id`. Stored, but invisible to the customer. Ask Upstream to link it.                                       |
-| `unknown_reusable_type`   | One or more types were priced with fallback factors. `details.supportedTypes` lists the recognised values.                                             |
-| `duplicate_reusable_type` | The same type appeared more than once in `events[]`. Combine them into one entry.                                                                      |
-| `no_outbound_events`      | Every `out_warehouse_events` was zero, so all impact metrics are zero. Usually means outbound and inbound were swapped, or the wrong field was mapped. |
+| `code`                    | What it means                                                                                                                                                                       |
+| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `unlinked_client_id`      | (Dry runs only.) This `client_id` resolves to no account yet — a real submission will create one. If the customer already uses Chart-Reuse, ask Upstream to link first.             |
+| `client_account_created`  | (Real submissions only.) This submission created a new account for a first-time `client_id`. Expected on genuine onboarding; on a typo'd `client_id` it means a duplicate to merge. |
+| `unknown_reusable_type`   | One or more types were priced with fallback factors. `details.supportedTypes` lists the recognised values.                                                                          |
+| `duplicate_reusable_type` | The same type appeared more than once in `events[]`. Combine them into one entry.                                                                                                   |
+| `no_outbound_events`      | Every `out_warehouse_events` was zero, so all impact metrics are zero. Usually means outbound and inbound were swapped, or the wrong field was mapped.                              |
 
 ## Errors
 
@@ -166,16 +169,18 @@ curl -X POST https://chartreuse-bay.vercel.app/api/rsp/usage \
 ```
 
 A dry run responds with `"status": "validated"`, `"dry_run": true`, and
-`period.account_linked` — a boolean confirming your `client_id` resolved to an account. It has no
-`period.id`, because no period was created.
+`period.account_linked` — a boolean telling you whether this `client_id` already routes to an
+account (`false` means the first real submission will create one). It has no `period.id`, because
+no period was created. Dry runs never create accounts.
 
 ### Recommended go-live sequence
 
-1. Dry-run one period. Confirm `warnings` is empty and `account_linked` is `true`.
+1. Dry-run one period. Confirm the only warning, if any, is `unlinked_client_id` for a genuinely
+   new customer.
 2. Dry-run your full set of reusable types. Confirm no `unknown_reusable_type`.
-3. Send one real period. Check `metrics` against your own figures.
-4. Ask Upstream to confirm the period appears on the customer's dashboard.
-5. Backfill history, then move to your regular cadence.
+3. Send one real period. Check `metrics` against your own figures, and confirm the new client
+   appears under **Settings → API Integration → Your clients**.
+4. Backfill history, then move to your regular cadence.
 
 ## Operational notes
 

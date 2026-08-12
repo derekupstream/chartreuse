@@ -235,6 +235,67 @@ async function main() {
     console.log(`  FAIL  expected 2 periods attached to the account, found ${attached}`);
   }
 
+  console.log('\nAuto-created client accounts');
+  const created = await run({
+    name: 'a first-time client_id creates its account',
+    key: rawKey,
+    expectStatus: 200,
+    expectWarnings: ['client_account_created'],
+    body: {
+      client_id: 'brand-new-client',
+      client_name: 'Brand New Cafe',
+      ...period,
+      events: cleanEvents
+    }
+  });
+  if (created.period?.account_created === true) {
+    passed += 1;
+    console.log('  PASS  response reports account_created: true');
+  } else {
+    failed += 1;
+    console.log(`  FAIL  expected period.account_created true, got ${JSON.stringify(created.period)}`);
+  }
+
+  const newAccount = await prisma.account.findFirst({
+    where: { rspOrgId: orgId, rspClientId: 'brand-new-client' },
+    select: { id: true, name: true }
+  });
+  if (newAccount?.name === 'Brand New Cafe') {
+    passed += 1;
+    console.log(`  PASS  account exists with the client_name as its display name`);
+  } else {
+    failed += 1;
+    console.log(`  FAIL  expected an account named "Brand New Cafe", found ${JSON.stringify(newAccount)}`);
+  }
+
+  const followUp = await run({
+    name: 'the next submission routes to the created account instead of making another',
+    key: rawKey,
+    expectStatus: 200,
+    expectWarnings: [],
+    body: {
+      client_id: 'brand-new-client',
+      date_min: '2026-08-01',
+      date_max: '2026-08-31',
+      events: cleanEvents
+    }
+  });
+  if (followUp.period?.account_created === false) {
+    passed += 1;
+    console.log('  PASS  follow-up reports account_created: false');
+  } else {
+    failed += 1;
+    console.log(`  FAIL  expected account_created false on the follow-up, got ${JSON.stringify(followUp.period)}`);
+  }
+  const accountCount = await prisma.account.count({ where: { rspOrgId: orgId, rspClientId: 'brand-new-client' } });
+  if (accountCount === 1) {
+    passed += 1;
+    console.log('  PASS  still exactly one account for that client_id');
+  } else {
+    failed += 1;
+    console.log(`  FAIL  expected 1 account for brand-new-client, found ${accountCount}`);
+  }
+
   console.log(`\n${passed} passed, ${failed} failed`);
 
   if (keep) {

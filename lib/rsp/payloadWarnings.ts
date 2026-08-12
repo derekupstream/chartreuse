@@ -2,11 +2,12 @@
  * Things wrong with an RSP usage payload that don't justify rejecting it, but that the
  * partner must be told about.
  *
- * The intake endpoint accepts a payload whose `client_id` matches no account and whose
- * `reusable_type` values match no impact factors — it stores the period and returns 200.
- * Without these warnings an integration can look finished while every row lands orphaned
- * or priced off default factors, and only Upstream staff would ever see the problem
- * (as a DataHealthIssue nobody outside the admin area reads).
+ * The intake endpoint accepts a payload whose `reusable_type` values match no impact factors
+ * and stores the period anyway; a first-time `client_id` creates a new account rather than
+ * being rejected. Without these warnings an integration can look finished while rows are
+ * priced off default factors or a typo'd client_id quietly spawns a second account, and only
+ * Upstream staff would ever see the problem (as a DataHealthIssue nobody outside the admin
+ * area reads).
  *
  * Returned in the API response so a partner sees them during integration, and echoed into
  * the activity log so support can see what a partner was told.
@@ -14,7 +15,12 @@
 import { RSP_IMPACT_FACTORS, type ImpactFactors } from 'lib/rsp/impactFactors';
 
 export type PayloadWarning = {
-  code: 'unlinked_client_id' | 'unknown_reusable_type' | 'no_outbound_events' | 'duplicate_reusable_type';
+  code:
+    | 'unlinked_client_id'
+    | 'unknown_reusable_type'
+    | 'no_outbound_events'
+    | 'duplicate_reusable_type'
+    | 'client_account_created';
   message: string;
   details?: Record<string, unknown>;
 };
@@ -49,8 +55,9 @@ export function collectPayloadWarnings({ clientId, events, accountId }: WarningI
     warnings.push({
       code: 'unlinked_client_id',
       message:
-        `client_id "${clientId}" is not linked to a Chart-Reuse account, so this data was stored but will not ` +
-        `appear on any customer dashboard. Ask Upstream to link it before sending more.`,
+        `client_id "${clientId}" is not linked to a Chart-Reuse account yet. A real submission will create ` +
+        `a new account for it automatically (pass client_name to control its display name). If this customer ` +
+        `already has a Chart-Reuse account, ask Upstream to link it first so the data lands there instead.`,
       details: { clientId }
     });
   }

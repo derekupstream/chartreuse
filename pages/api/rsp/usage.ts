@@ -9,6 +9,8 @@ import { collectPayloadWarnings } from 'lib/rsp/payloadWarnings';
 
 type UsageBody = {
   client_id: string;
+  /** Human-readable customer name, used when a first submission creates the client's account */
+  client_name?: string;
   date_min: string;
   date_max: string;
   events: { reusable_type: string; in_warehouse_events: number; out_warehouse_events: number }[];
@@ -57,7 +59,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   // 2. Validate body
-  const { client_id, date_min, date_max, events, dry_run } = req.body as UsageBody;
+  const { client_id, client_name, date_min, date_max, events, dry_run } = req.body as UsageBody;
   const dryRun = dry_run === true || req.query.dry_run === 'true';
 
   const fail = async (msg: string, code: string) => {
@@ -109,7 +111,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   // 3. Resolve account by RSP client_id linkage
-  const account = await prisma.account.findFirst({
+  let account = await prisma.account.findFirst({
     where: { rspOrgId: apiKey.orgId, rspClientId: client_id },
     select: { id: true }
   });
@@ -149,6 +151,34 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(200).json(dryRunBody);
   }
 
+  // A first-time client_id creates the customer's account, so an RSP onboards clients through
+  // the API itself instead of waiting on a manual linking step. The account lives under the
+  // RSP's own org until the customer claims it; only this RSP's submissions route to it.
+  let accountCreated = false;
+  if (!account) {
+    account = await prisma.account.create({
+      data: {
+        orgId: apiKey.orgId,
+        name: client_name?.trim() || client_id,
+        accountContactEmail: '',
+        rspOrgId: apiKey.orgId,
+        rspClientId: client_id
+      },
+      select: { id: true }
+    });
+    accountCreated = true;
+    // The unlinked warning no longer applies — the data now has somewhere to land.
+    const unlinkedIndex = warnings.findIndex(w => w.code === 'unlinked_client_id');
+    if (unlinkedIndex !== -1) warnings.splice(unlinkedIndex, 1);
+    warnings.push({
+      code: 'client_account_created',
+      message:
+        `A new account "${client_name?.trim() || client_id}" was created for client_id "${client_id}". ` +
+        `If this customer already exists in Chart-Reuse, ask Upstream to merge or re-link it.`,
+      details: { clientId: client_id, accountId: account.id }
+    });
+  }
+
   // 4–7. Delegate pipeline to lib function
   try {
     const result = await ingestUsagePeriod({
@@ -169,7 +199,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         id: result.newPeriodId,
         date_min,
         date_max,
-        superseded_count: result.overlappingCount
+        superseded_count: result.overlappingCount,
+        account_created: accountCreated
       },
       metrics: {
         co2_avoided_kg: Math.round(result.metrics.co2AvoidedKg * 1000) / 1000,
