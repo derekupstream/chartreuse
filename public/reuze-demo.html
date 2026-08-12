@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ReUze — Reusables as a Service (Demo)</title>
+<style>
+  :root {
+    --green: #1f7a4d;
+    --green-dark: #14532d;
+    --cream: #faf7f0;
+    --ink: #1c2422;
+    --muted: #5f6f68;
+    --card: #ffffff;
+    --amber: #b45309;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body { font-family: 'Avenir Next', 'Segoe UI', system-ui, sans-serif; background: var(--cream); color: var(--ink); }
+  .banner { background: var(--amber); color: #fff; text-align: center; padding: 6px 16px; font-size: 13px; }
+  header { background: var(--green-dark); color: #fff; padding: 48px 24px 56px; text-align: center; }
+  header h1 { font-size: 44px; letter-spacing: -1px; }
+  header h1 span { color: #86efac; }
+  header p { margin-top: 10px; font-size: 18px; color: #d1e7dc; }
+  main { max-width: 960px; margin: 0 auto; padding: 24px; }
+  h2 { font-size: 22px; margin-bottom: 4px; }
+  .sub { color: var(--muted); font-size: 14px; margin-bottom: 16px; }
+  section { margin-top: 40px; }
+
+  /* Impact widget — the part that would live on ReUze's real site */
+  .impact { background: var(--card); border-radius: 16px; padding: 28px; box-shadow: 0 2px 12px rgba(20,60,40,.08); margin-top: -44px; }
+  .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-top: 16px; }
+  .metric { background: #f0f7f3; border-radius: 12px; padding: 18px; text-align: center; }
+  .metric .value { font-size: 32px; font-weight: 700; color: var(--green); }
+  .metric .label { font-size: 13px; color: var(--muted); margin-top: 4px; }
+  .impact-footer { margin-top: 14px; font-size: 12px; color: var(--muted); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+  .clients { margin-top: 18px; display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+  .client { border: 1px solid #e2ece6; border-radius: 10px; padding: 14px; font-size: 13px; background: #fff; }
+  .client b { font-size: 14px; }
+  .client .row { display: flex; justify-content: space-between; margin-top: 6px; color: var(--muted); }
+  .client .row span:last-child { color: var(--ink); font-weight: 600; }
+
+  /* Back office — simulates ReUze's own system sending data */
+  .office { background: var(--card); border-radius: 16px; padding: 24px; box-shadow: 0 2px 12px rgba(20,60,40,.08); }
+  label { font-size: 13px; color: var(--muted); display: block; margin-bottom: 4px; }
+  input, select { padding: 9px 12px; border: 1px solid #cfdcd4; border-radius: 8px; font-size: 14px; width: 100%; }
+  .controls { display: grid; grid-template-columns: 2fr 1fr auto auto; gap: 12px; align-items: end; }
+  button { background: var(--green); color: #fff; border: 0; border-radius: 8px; padding: 10px 18px; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+  button:hover { background: var(--green-dark); }
+  button.secondary { background: #eef4f0; color: var(--green-dark); }
+  button:disabled { opacity: .5; cursor: wait; }
+  .status { margin-top: 12px; font-size: 13px; min-height: 18px; }
+  .status.ok { color: var(--green); } .status.err { color: #b91c1c; } .status.warn { color: var(--amber); }
+  pre.log { background: #101613; color: #b7e3c8; border-radius: 10px; padding: 16px; font-size: 12px; margin-top: 16px; max-height: 320px; overflow: auto; white-space: pre-wrap; }
+  .note { background: #fff8e6; border: 1px solid #f0dfa8; border-radius: 10px; padding: 12px 16px; font-size: 13px; color: #6b5310; margin-top: 16px; }
+  footer { text-align: center; color: var(--muted); font-size: 12px; padding: 32px; }
+</style>
+</head>
+<body>
+
+<div class="banner">Demo site — ReUze is a fictional reuse service provider used to test the Chart-Reuse API round trip</div>
+
+<header>
+  <h1>Re<span>Uze</span></h1>
+  <p>Reusable foodware as a service. Real containers, real routes, real impact.</p>
+</header>
+
+<main>
+  <!-- The widget a real partner would embed on their site, fed by GET /api/rsp/impact -->
+  <div class="impact">
+    <h2>Our impact so far</h2>
+    <div class="sub">Independently calculated by <b>Chart-Reuse</b> from our operational data.</div>
+    <div class="metrics">
+      <div class="metric"><div class="value" id="m-waste">—</div><div class="label">lbs of waste avoided</div></div>
+      <div class="metric"><div class="value" id="m-water">—</div><div class="label">gallons of water saved</div></div>
+      <div class="metric"><div class="value" id="m-ghg">—</div><div class="label">kg CO₂e emissions reduced</div></div>
+      <div class="metric"><div class="value" id="m-items">—</div><div class="label">single-use items displaced</div></div>
+    </div>
+    <div class="clients" id="client-cards"></div>
+    <div class="impact-footer">
+      <span id="coverage">No data shared yet.</span>
+      <span>Source: Chart-Reuse <code>GET /api/rsp/impact</code></span>
+    </div>
+  </div>
+
+  <section>
+    <div class="office">
+      <h2>ReUze back office</h2>
+      <div class="sub">
+        Simulates the job ReUze's engineers would run when a reporting period closes: one
+        <code>POST /api/rsp/usage</code> per customer, then a refresh of the widget above.
+      </div>
+      <div class="controls">
+        <div>
+          <label for="key">Chart-Reuse API key (from <code>scripts/setup-reuze-demo.ts</code>)</label>
+          <input id="key" type="password" placeholder="cr_rsp_…" />
+        </div>
+        <div>
+          <label for="month">Reporting month</label>
+          <select id="month"></select>
+        </div>
+        <button id="send">Send this month’s data</button>
+        <button id="refresh" class="secondary">Refresh impact</button>
+      </div>
+      <div class="status" id="status"></div>
+      <pre class="log" id="log">API traffic will appear here…</pre>
+      <div class="note">
+        <b>For the real integration:</b> these calls belong on ReUze's server, not in browser
+        JavaScript — the API key also grants write access. This page keeps everything client-side
+        only so the whole round trip is visible in one place.
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>ReUze is fictional. This page exists to exercise the Chart-Reuse RSP API end to end.</footer>
+
+<script>
+  // ReUze's two customers. Accounts are created in Chart-Reuse automatically on first submission.
+  const CLIENTS = [
+    { client_id: 'reuze-riverfront-cafe', client_name: 'Riverfront Cafe', types: ['cup', 'bowl', 'utensils'] },
+    { client_id: 'reuze-cascade-high', client_name: 'Cascade High School', types: ['tray', 'plate', 'cup'] }
+  ];
+
+  const $ = id => document.getElementById(id);
+  const keyInput = $('key'), monthSelect = $('month'), statusEl = $('status'), logEl = $('log');
+
+  keyInput.value = localStorage.getItem('reuze_demo_key') || '';
+  keyInput.addEventListener('change', () => localStorage.setItem('reuze_demo_key', keyInput.value.trim()));
+
+  // Last six full months, newest first.
+  (function fillMonths() {
+    const now = new Date();
+    for (let i = 1; i <= 6; i++) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const opt = document.createElement('option');
+      opt.value = d.toISOString().slice(0, 7);
+      opt.textContent = d.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+      monthSelect.appendChild(opt);
+    }
+  })();
+
+  function log(direction, payload) {
+    logEl.textContent = `${direction} ${new Date().toLocaleTimeString()}\n` +
+      JSON.stringify(payload, null, 2) + '\n\n' + logEl.textContent;
+  }
+  function setStatus(message, kind) { statusEl.textContent = message; statusEl.className = 'status ' + (kind || ''); }
+
+  // Deterministic per client+month so re-sending a month supersedes with identical numbers.
+  function seededCounts(clientIndex, monthKey, typeIndex) {
+    let hash = 0;
+    const seed = `${clientIndex}-${monthKey}-${typeIndex}`;
+    for (const ch of seed) hash = (hash * 31 + ch.charCodeAt(0)) >>> 0;
+    const out = 2000 + (hash % 9000);
+    const returned = Math.round(out * (0.9 + (hash % 80) / 1000)); // 90–98% return rate
+    return { out, returned: Math.min(returned, out) };
+  }
+
+  async function api(path, options) {
+    const key = keyInput.value.trim();
+    if (!key) throw new Error('Paste the API key first.');
+    const response = await fetch(path, {
+      ...options,
+      headers: { Authorization: 'Bearer ' + key, 'Content-Type': 'application/json', ...(options?.headers || {}) }
+    });
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(body.error || ('HTTP ' + response.status));
+    return body;
+  }
+
+  $('send').addEventListener('click', async () => {
+    const monthKey = monthSelect.value;
+    const [year, month] = monthKey.split('-').map(Number);
+    const lastDay = new Date(year, month, 0).getDate();
+    $('send').disabled = true;
+    try {
+      const warnings = [];
+      for (let i = 0; i < CLIENTS.length; i++) {
+        const client = CLIENTS[i];
+        const payload = {
+          client_id: client.client_id,
+          client_name: client.client_name,
+          date_min: `${monthKey}-01`,
+          date_max: `${monthKey}-${String(lastDay).padStart(2, '0')}`,
+          events: client.types.map((type, t) => {
+            const counts = seededCounts(i, monthKey, t);
+            return { reusable_type: type, out_warehouse_events: counts.out, in_warehouse_events: counts.returned };
+          })
+        };
+        log(`→ POST /api/rsp/usage (${client.client_name})`, payload);
+        const result = await api('/api/rsp/usage', { method: 'POST', body: JSON.stringify(payload) });
+        log(`← ${result.status} (${client.client_name})`, result);
+        (result.warnings || []).forEach(w => warnings.push(w.code));
+      }
+      const unusual = warnings.filter(w => w !== 'client_account_created');
+      setStatus(
+        unusual.length
+          ? `Sent, but with warnings: ${unusual.join(', ')} — see the log.`
+          : `Sent ${monthSelect.selectedOptions[0].textContent} for ${CLIENTS.length} clients.` +
+            (warnings.length ? ' New client accounts were created in Chart-Reuse.' : ''),
+        unusual.length ? 'warn' : 'ok'
+      );
+      await refreshImpact();
+    } catch (err) {
+      setStatus(err.message, 'err');
+    } finally {
+      $('send').disabled = false;
+    }
+  });
+
+  async function refreshImpact() {
+    const data = await api('/api/rsp/impact');
+    log('← GET /api/rsp/impact', data);
+    const fmt = n => n.toLocaleString(undefined, { maximumFractionDigits: 1 });
+    $('m-waste').textContent = fmt(data.totals.waste_diverted_lbs);
+    $('m-water').textContent = fmt(data.totals.water_saved_gallons);
+    $('m-ghg').textContent = fmt(data.totals.co2_avoided_kg);
+    $('m-items').textContent = data.totals.single_use_equivalents.toLocaleString();
+    $('coverage').textContent = data.totals.period_count
+      ? `${data.totals.period_count} reporting period(s) across ${data.totals.client_count} client(s).`
+      : 'No data shared yet.';
+    $('client-cards').innerHTML = data.clients.map(c => `
+      <div class="client">
+        <b>${c.client_name}</b>
+        <div class="row"><span>Waste avoided</span><span>${fmt(c.waste_diverted_lbs)} lbs</span></div>
+        <div class="row"><span>Water saved</span><span>${fmt(c.water_saved_gallons)} gal</span></div>
+        <div class="row"><span>GHG reduced</span><span>${fmt(c.co2_avoided_kg)} kg CO₂e</span></div>
+        <div class="row"><span>Data coverage</span><span>${c.coverage_start ?? '—'} → ${c.coverage_end ?? '—'}</span></div>
+      </div>`).join('');
+  }
+
+  $('refresh').addEventListener('click', () => refreshImpact().then(
+    () => setStatus('Impact refreshed.', 'ok'),
+    err => setStatus(err.message, 'err')
+  ));
+
+  if (keyInput.value) refreshImpact().catch(() => {});
+</script>
+</body>
+</html>

@@ -42,6 +42,11 @@ this against local dev or be prepared to clean up afterward.
 7. **The customer's side.** Explain: each client account can have users invited to it, and they
    see only their own account's data. (See "honest answers" below before promising specifics
    about what the customer's dashboard shows today.)
+8. **The partner's website (optional showstopper).** Open `http://localhost:3000/reuze-demo.html`
+   — a fake RSP site ("ReUze"). Paste a key from `scripts/setup-reuze-demo.ts`, press "Send this
+   month's data", and watch the site's own impact widget fill in with lbs waste avoided, gallons
+   water saved, and kg CO2e reduced, pulled live from `GET /api/rsp/impact`. This is the "your
+   customers' impact on your own marketing site" story, running end to end.
 
 ### Demo curl — dry run
 
@@ -123,9 +128,12 @@ customer-side equivalent lands before beta.
 **"Who else is integrating?"** Sharewares and 99Bridges are committed to the October beta. (Only
 name them if that's public/agreed — check before the meeting.)
 
-**"Can we get our data back out?"** The response to every submission returns the computed
-metrics, and their Settings view shows totals. A read API (querying historical periods
-programmatically) doesn't exist yet — if they need it, that's a fair ask to take away.
+**"Can we get our data back out?"** Yes. `GET /api/rsp/impact` returns their current totals —
+org-wide and per client — with the same key, so they can render impact numbers on their own
+website. The live demo of exactly that: `scripts/setup-reuze-demo.ts` +
+`http://localhost:3000/reuze-demo.html`, a fake RSP site that sends monthly data and displays
+the returned lbs waste / gallons water / kg CO2e. One caveat to volunteer: the key grants write
+access too, so the call belongs on their server, never in their site's browser JavaScript.
 
 **"What happens if we stop?"** Their keys deactivate, submissions stop, and existing data stays
 with their customers' accounts unless removal is agreed. (Data-deletion terms belong in the

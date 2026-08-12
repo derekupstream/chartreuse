@@ -182,6 +182,49 @@ no period was created. Dry runs never create accounts.
    appears under **Settings → API Integration → Your clients**.
 4. Backfill history, then move to your regular cadence.
 
+## Getting your data back out
+
+`GET /api/rsp/impact` returns the current impact totals computed from everything you've shared —
+org-wide and per client — so you can display them on your own website or reports. Same Bearer
+authentication. Superseded periods are excluded, so totals never double-count a re-send.
+
+```bash
+curl https://chartreuse-bay.vercel.app/api/rsp/impact \
+  -H "Authorization: Bearer cr_rsp_YOUR_KEY"
+```
+
+```json
+{
+  "totals": {
+    "co2_avoided_kg": 991.7,
+    "water_saved_gallons": 31861.3,
+    "waste_diverted_lbs": 2602.4,
+    "single_use_equivalents": 67476,
+    "period_count": 4,
+    "client_count": 2
+  },
+  "clients": [
+    {
+      "client_id": "reuze-riverfront-cafe",
+      "client_name": "Riverfront Cafe",
+      "period_count": 2,
+      "coverage_start": "2026-06-01",
+      "coverage_end": "2026-07-31",
+      "co2_avoided_kg": 282.2,
+      "water_saved_gallons": 9104.6,
+      "waste_diverted_lbs": 728.4,
+      "single_use_equivalents": 23520
+    }
+  ]
+}
+```
+
+Add `?client_id=...` to get a single client (404 if the id is unknown).
+
+**Keep this call on your server.** The key grants write access to the intake endpoint too, so it
+must never ship in browser JavaScript or a mobile app. Fetch the totals server-side and render
+them into your page, or cache them on your side.
+
 ## Operational notes
 
 - **Cadence.** Monthly is typical. Any period length works; overlapping periods supersede.
