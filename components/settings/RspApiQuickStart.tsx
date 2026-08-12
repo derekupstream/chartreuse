@@ -10,10 +10,9 @@ import { CheckOutlined, CopyOutlined } from '@ant-design/icons';
 import { Alert, Button, Card, Collapse, Space, Table, Tag, Typography } from 'antd';
 import { useState } from 'react';
 
-import { IngestionModelDiagram } from 'components/rsp/IngestionModelDiagram';
 import { knownReusableTypes } from 'lib/rsp/payloadWarnings';
 
-const { Paragraph, Title } = Typography;
+const { Paragraph, Text, Title } = Typography;
 
 const WARNING_MEANINGS: { code: string; meaning: string }[] = [
   {
@@ -102,32 +101,169 @@ const RESPONSE_EXAMPLE = `{
   "warnings": []
 }`;
 
-/** The ingestion model, embedded where the keys live, with the shareable public link. */
-export function RspIngestionModelCard() {
-  const [copied, setCopied] = useState(false);
-  const url = typeof window !== 'undefined' ? `${window.location.origin}/rsp/ingestion-model` : '/rsp/ingestion-model';
+const PIPELINE = `Your system
+    │
+    ▼
+POST /api/rsp/usage ─────────── HTTPS · Bearer key (SHA-256 hashed at rest)
+    │
+    ▼
+Schema validation ───────────── 400 names the failing field, e.g. events[2].reusable_type
+    │
+    ▼
+Normalization ───────────────── reusable_type lowercased; unknown types priced with
+    │                           fallback factors + unknown_reusable_type warning
+    ▼
+Record matching ─────────────── client_id → client account (unique per provider);
+    │                           first-time client_id creates the account
+    ▼
+Impact calculation ──────────── out_warehouse_events × per-type factors
+    │                           → kg CO2e · gal water · lbs waste · items displaced
+    ▼
+Period stored ───────────────── overlapping date ranges SUPERSEDE the older record;
+    │                           superseded versions retained for audit, never counted
+    ▼
+Available immediately ───────── API response · customer dashboard ·
+                                your Settings totals · GET /api/rsp/impact`;
 
-  function copyLink() {
-    navigator.clipboard.writeText(url);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+const SCHEMA_ROWS = [
+  {
+    field: 'client_id',
+    type: 'string',
+    req: 'required',
+    notes:
+      'Your stable ID for the customer. Case-sensitive. Unique per provider — this is the matching key; a new value creates a new client account.'
+  },
+  {
+    field: 'client_name',
+    type: 'string',
+    req: 'optional',
+    notes: 'Display name used only if this submission creates the account.'
+  },
+  {
+    field: 'date_min',
+    type: 'string (YYYY-MM-DD)',
+    req: 'required',
+    notes: 'First day of the reporting period. Plain date, no timezone.'
+  },
+  { field: 'date_max', type: 'string (YYYY-MM-DD)', req: 'required', notes: 'Last day. Must be on or after date_min.' },
+  {
+    field: 'events[]',
+    type: 'array',
+    req: 'required',
+    notes: 'One entry per product type per period. Repeats are stored as separate rows and warned about.'
+  },
+  {
+    field: 'events[].reusable_type',
+    type: 'string',
+    req: 'required',
+    notes: 'Product type. Case-insensitive. See supported types below.'
+  },
+  {
+    field: 'events[].out_warehouse_events',
+    type: 'integer ≥ 0',
+    req: 'required',
+    notes: 'Items sent out. This drives all impact metrics.'
+  },
+  {
+    field: 'events[].in_warehouse_events',
+    type: 'integer ≥ 0',
+    req: 'required',
+    notes: 'Items returned. Stored for return-rate reporting; does not drive impact.'
+  },
+  {
+    field: 'dry_run',
+    type: 'boolean',
+    req: 'optional',
+    notes: 'true = validate and price, store nothing. Never creates accounts.'
   }
+];
 
+const BEHAVIOR_ROWS = [
+  { q: 'Mechanism', a: 'REST over HTTPS, JSON body. No SDK, no file uploads, no webhooks.' },
+  { q: 'Single vs bulk', a: 'One customer per request. A batch is a loop of requests — each is independent.' },
+  {
+    q: 'Create vs update',
+    a: 'Submissions only add. To correct a period, re-send the same date range: the new record supersedes the old (superseded_count in the response tells you how many).'
+  },
+  {
+    q: 'Duplicate handling',
+    a: 'No duplicate rejection. Overlapping periods supersede; identical re-sends are safe and idempotent in effect.'
+  },
+  {
+    q: 'Processing model',
+    a: 'Synchronous. Metrics are computed and returned in the response — there is no ingestion queue; data is on dashboards immediately.'
+  },
+  {
+    q: 'Versioning / history',
+    a: 'Superseded periods are retained with a superseded status and excluded from every total. Nothing is silently overwritten.'
+  },
+  {
+    q: 'Partial failure',
+    a: 'A request is atomic: it is either stored whole (200) or rejected whole (4xx). Warnings accompany a 200 and mean "stored, but fix this".'
+  }
+];
+
+/**
+ * The data ingestion model, in the code-first shape an integrating engineer expects:
+ * pipeline, schema, wire examples, and ingestion semantics (matching, supersession,
+ * processing model). A partner asked for exactly this on a call — keep it current
+ * with pages/api/rsp/usage.ts.
+ */
+export function RspIngestionModelCard() {
   return (
-    <Card
-      style={{ marginTop: 24 }}
-      title='Data ingestion model'
-      extra={
-        <Button size='small' icon={copied ? <CheckOutlined /> : <CopyOutlined />} onClick={copyLink}>
-          {copied ? 'Link copied' : 'Copy shareable link'}
-        </Button>
-      }
-    >
+    <Card style={{ marginTop: 24 }} title='Data ingestion model'>
       <Paragraph type='secondary' style={{ marginBottom: 16 }}>
-        How your data flows through Chart-Reuse, what is stored, and what is never collected. This page is public —
-        share the link with your engineers or your customers; no account needed.
+        What you can send, in what structure, through what mechanism, and what happens to it after you send it.
       </Paragraph>
-      <IngestionModelDiagram />
+
+      <Title level={5}>Pipeline</Title>
+      <CodeBlock code={PIPELINE} />
+
+      <Title level={5} style={{ marginTop: 20 }}>
+        Schema — <code>POST /api/rsp/usage</code>
+      </Title>
+      <Table
+        size='small'
+        pagination={false}
+        rowKey='field'
+        dataSource={SCHEMA_ROWS}
+        columns={[
+          { title: 'Field', dataIndex: 'field', width: 230, render: (v: string) => <code>{v}</code> },
+          {
+            title: 'Type',
+            dataIndex: 'type',
+            width: 150,
+            render: (v: string) => <Text style={{ fontSize: 12 }}>{v}</Text>
+          },
+          {
+            title: '',
+            dataIndex: 'req',
+            width: 80,
+            render: (v: string) => <Tag color={v === 'required' ? 'blue' : 'default'}>{v}</Tag>
+          },
+          { title: 'Notes', dataIndex: 'notes' }
+        ]}
+      />
+
+      <Title level={5} style={{ marginTop: 20 }}>
+        Ingestion semantics
+      </Title>
+      <Table
+        size='small'
+        pagination={false}
+        rowKey='q'
+        showHeader={false}
+        dataSource={BEHAVIOR_ROWS}
+        columns={[
+          { title: '', dataIndex: 'q', width: 170, render: (v: string) => <Text strong>{v}</Text> },
+          { title: '', dataIndex: 'a' }
+        ]}
+      />
+
+      <Paragraph type='secondary' style={{ fontSize: 12, marginTop: 16, marginBottom: 0 }}>
+        The stored record is: your client_id, the period dates, and the per-type counts — plus the metrics we compute
+        from them. There is no mechanism in this API for sending pricing, contracts, routes, or personal data.
+      </Paragraph>
     </Card>
   );
 }

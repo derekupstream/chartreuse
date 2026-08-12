@@ -117,5 +117,5 @@ export const AuthProvider: React.FC<{ children: any }> = ({ children }) => {
 };
 
 function isPublicUrl(url: string) {
-  return ['login', 'share', 'auth/callback', 'rsp/ingestion-model'].some(path => url.includes(path));
+  return ['login', 'share', 'auth/callback'].some(path => url.includes(path));
 }
