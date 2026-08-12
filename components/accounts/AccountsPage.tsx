@@ -3,6 +3,7 @@ import { Button, Space, Table, Tag, Tooltip, Typography, Popconfirm, message, In
 import { useRouter } from 'next/router';
 import { useCallback, useState } from 'react';
 import { useMutation } from 'react-query';
+import styled from 'styled-components';
 
 import * as http from 'lib/http';
 import type { LoggedinProps } from 'lib/middleware';
@@ -38,6 +39,21 @@ function formatDate(iso: string | null): string {
 }
 
 const num = (n: number, digits = 0) => n.toLocaleString(undefined, { maximumFractionDigits: digits });
+
+// The RSP view carries a lot of columns; without tighter type the header row alone forces a
+// horizontal scrollbar and hides Actions off-screen.
+const CompactTable = styled.div`
+  .ant-table-thead > tr > th {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 10px 8px;
+    white-space: nowrap;
+  }
+  .ant-table-tbody > tr > td {
+    padding: 10px 8px;
+    font-size: 13px;
+  }
+`;
 
 /** Months of RSP data coverage, rounded to whole months with a floor of one. */
 function serviceMonths(stats?: AccountStats): number {
@@ -154,9 +170,15 @@ export function AccountsPage({
     title: 'Contact',
     dataIndex: 'contact',
     key: 'contact',
+    width: 150,
+    ellipsis: true,
     render: (text: string, record: AccountRow) => (
       <Space size='small'>
-        {text}
+        {text && (
+          <Typography.Text ellipsis style={{ maxWidth: 90, fontSize: 12 }}>
+            {text}
+          </Typography.Text>
+        )}
         {record.invitingPending ? <Tag color='orange'>Pending</Tag> : <Tag color='blue'>Active</Tag>}
       </Space>
     )
@@ -165,9 +187,11 @@ export function AccountsPage({
   const createdColumn = {
     title: 'Created',
     key: 'created',
-    width: 110,
+    width: 105,
     render: (_: any, record: AccountRow) => (
-      <Typography.Text type='secondary'>{formatDate(record.stats?.createdAt ?? null)}</Typography.Text>
+      <Typography.Text type='secondary' style={{ whiteSpace: 'nowrap', fontSize: 12 }}>
+        {formatDate(record.stats?.createdAt ?? null)}
+      </Typography.Text>
     ),
     sorter: (a: AccountRow, b: AccountRow) =>
       (a.stats?.createdAt ? new Date(a.stats.createdAt).getTime() : 0) -
@@ -175,13 +199,17 @@ export function AccountsPage({
   };
 
   const lastActivityColumn = {
-    title: 'Last activity',
+    title: 'Activity',
     key: 'lastActivity',
-    width: 120,
+    width: 105,
     render: (_: any, record: AccountRow) => {
       const iso = record.stats?.lastActivity ?? null;
       if (!iso) return '—';
-      return <Tooltip title={formatRelative(iso)}>{formatDate(iso)}</Tooltip>;
+      return (
+        <Tooltip title={formatRelative(iso)}>
+          <span style={{ whiteSpace: 'nowrap' }}>{formatDate(iso)}</span>
+        </Tooltip>
+      );
     },
     defaultSortOrder: 'descend' as const,
     sorter: (a: AccountRow, b: AccountRow) =>
@@ -206,53 +234,51 @@ export function AccountsPage({
       }
     },
     {
-      title: 'Items out',
-      key: 'outEvents',
+      title: <Tooltip title='Items sent out / items returned, from RSP data'>Out / in</Tooltip>,
+      key: 'flows',
       align: 'right' as const,
-      width: 100,
-      render: (_: any, record: AccountRow) => num(record.stats?.totals.outEvents ?? 0),
+      width: 120,
+      render: (_: any, record: AccountRow) => (
+        <Tooltip
+          title={`${num(record.stats?.totals.outEvents ?? 0)} sent out · ${num(record.stats?.totals.inEvents ?? 0)} returned`}
+        >
+          {num(record.stats?.totals.outEvents ?? 0)} / {num(record.stats?.totals.inEvents ?? 0)}
+        </Tooltip>
+      ),
       sorter: (a: AccountRow, b: AccountRow) => (a.stats?.totals.outEvents ?? 0) - (b.stats?.totals.outEvents ?? 0)
     },
     {
-      title: 'Items in',
-      key: 'inEvents',
-      align: 'right' as const,
-      width: 100,
-      render: (_: any, record: AccountRow) => num(record.stats?.totals.inEvents ?? 0),
-      sorter: (a: AccountRow, b: AccountRow) => (a.stats?.totals.inEvents ?? 0) - (b.stats?.totals.inEvents ?? 0)
-    },
-    {
-      title: 'Waste (lbs)',
+      title: <Tooltip title='Landfill waste avoided, lbs'>Waste</Tooltip>,
       key: 'waste',
       align: 'right' as const,
-      width: 110,
+      width: 80,
       render: (_: any, record: AccountRow) => num(record.stats?.totals.wasteDivertedLbs ?? 0),
       sorter: (a: AccountRow, b: AccountRow) =>
         (a.stats?.totals.wasteDivertedLbs ?? 0) - (b.stats?.totals.wasteDivertedLbs ?? 0)
     },
     {
-      title: 'Water (gal)',
+      title: <Tooltip title='Water saved, gallons'>Water</Tooltip>,
       key: 'water',
       align: 'right' as const,
-      width: 110,
+      width: 80,
       render: (_: any, record: AccountRow) => num(record.stats?.totals.waterSavedGallons ?? 0),
       sorter: (a: AccountRow, b: AccountRow) =>
         (a.stats?.totals.waterSavedGallons ?? 0) - (b.stats?.totals.waterSavedGallons ?? 0)
     },
     {
-      title: 'GHG (kg)',
+      title: <Tooltip title='Greenhouse gas avoided, kg CO₂e'>GHG</Tooltip>,
       key: 'ghg',
       align: 'right' as const,
-      width: 100,
+      width: 75,
       render: (_: any, record: AccountRow) => num(record.stats?.totals.co2AvoidedKg ?? 0, 1),
       sorter: (a: AccountRow, b: AccountRow) =>
         (a.stats?.totals.co2AvoidedKg ?? 0) - (b.stats?.totals.co2AvoidedKg ?? 0)
     },
     {
-      title: 'Service',
+      title: <Tooltip title='Length of service — span of RSP data coverage'>Service</Tooltip>,
       key: 'service',
       align: 'right' as const,
-      width: 90,
+      width: 75,
       render: (_: any, record: AccountRow) => {
         const months = serviceMonths(record.stats);
         if (!months) return <Typography.Text type='secondary'>—</Typography.Text>;
@@ -275,13 +301,16 @@ export function AccountsPage({
     createdColumn,
     lastActivityColumn,
     {
-      title: 'Actions',
+      title: '',
       key: 'actions',
+      width: 88,
+      // Pinned so it can never be pushed off-screen by the RSP columns.
+      fixed: 'right' as const,
       // eslint-disable-next-line react/display-name
       render: (_: any, record: AccountRow) => {
         return (
-          <Space size='middle'>
-            <Button onClick={() => router.push(`/accounts/edit/${record.key}`)} icon={<EditOutlined />} />
+          <Space size='small'>
+            <Button size='small' onClick={() => router.push(`/accounts/edit/${record.key}`)} icon={<EditOutlined />} />
             <Popconfirm
               title={
                 <Space direction='vertical' size='small'>
@@ -296,7 +325,7 @@ export function AccountsPage({
               }
               onConfirm={() => handleAccountDeletion(record.key)}
             >
-              <Button icon={<DeleteOutlined />} />
+              <Button size='small' icon={<DeleteOutlined />} />
             </Popconfirm>
           </Space>
         );
@@ -361,7 +390,11 @@ export function AccountsPage({
           </Button>
         )}
       </S.HeaderRow>
-      {data.length > 0 && <Table columns={columns} dataSource={data} pagination={false} />}
+      {data.length > 0 && (
+        <CompactTable>
+          <Table columns={columns} dataSource={data} pagination={false} scroll={{ x: 980 }} />
+        </CompactTable>
+      )}
       {data.length === 0 && (
         <Typography.Text>
           You have no active accounts in your organization. Click ‘+ Add account’ above to get started.
