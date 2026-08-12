@@ -28,7 +28,7 @@ import type { GetServerSideProps } from 'next';
 import { useState } from 'react';
 
 import { CatalogCurationPanel } from 'components/settings/CatalogCurationPanel';
-import { RspApiQuickStart } from 'components/settings/RspApiQuickStart';
+import { RspApiQuickStart, RspIngestionModelCard } from 'components/settings/RspApiQuickStart';
 import { RspActivityPanel, RspClientsPanel } from 'components/settings/RspPortalPanels';
 import type { DashboardUser } from 'interfaces';
 import { BaseLayout } from 'layouts/BaseLayout';
@@ -448,6 +448,7 @@ export default function SettingsPage({ user, apiKeys: initialApiKeys }: Props) {
 
             <RspClientsPanel />
             <RspActivityPanel />
+            <RspIngestionModelCard />
             <RspApiQuickStart />
 
             {/* Generate key modal */}

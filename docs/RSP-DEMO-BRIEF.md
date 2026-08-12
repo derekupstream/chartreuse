@@ -69,6 +69,11 @@ curl -X POST http://localhost:3000/api/rsp/usage \
 
 Remove the `dry_run` line for the real submission (step 3).
 
+**"Can you share your data ingestion model?"** Yes — it's a public page:
+`https://chartreuse-bay.vercel.app/rsp/ingestion-model`. Seven-step pipeline diagram, what's
+stored vs never collected, and the data-use commitments. Also embedded in Settings → API
+Integration with a copy-link button. No account needed to view it.
+
 ## What they share — and what we never see
 
 They send, per customer per period: a customer identifier they choose, a date range, and counts

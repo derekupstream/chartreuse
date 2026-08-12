@@ -10,6 +10,7 @@ import { CheckOutlined, CopyOutlined } from '@ant-design/icons';
 import { Alert, Button, Card, Collapse, Space, Table, Tag, Typography } from 'antd';
 import { useState } from 'react';
 
+import { IngestionModelDiagram } from 'components/rsp/IngestionModelDiagram';
 import { knownReusableTypes } from 'lib/rsp/payloadWarnings';
 
 const { Paragraph, Title } = Typography;
@@ -100,6 +101,36 @@ const RESPONSE_EXAMPLE = `{
   },
   "warnings": []
 }`;
+
+/** The ingestion model, embedded where the keys live, with the shareable public link. */
+export function RspIngestionModelCard() {
+  const [copied, setCopied] = useState(false);
+  const url = typeof window !== 'undefined' ? `${window.location.origin}/rsp/ingestion-model` : '/rsp/ingestion-model';
+
+  function copyLink() {
+    navigator.clipboard.writeText(url);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
+
+  return (
+    <Card
+      style={{ marginTop: 24 }}
+      title='Data ingestion model'
+      extra={
+        <Button size='small' icon={copied ? <CheckOutlined /> : <CopyOutlined />} onClick={copyLink}>
+          {copied ? 'Link copied' : 'Copy shareable link'}
+        </Button>
+      }
+    >
+      <Paragraph type='secondary' style={{ marginBottom: 16 }}>
+        How your data flows through Chart-Reuse, what is stored, and what is never collected. This page is public —
+        share the link with your engineers or your customers; no account needed.
+      </Paragraph>
+      <IngestionModelDiagram />
+    </Card>
+  );
+}
 
 export function RspApiQuickStart() {
   return (
