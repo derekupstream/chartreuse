@@ -242,6 +242,32 @@ async function main() {
     if (gone.count) console.log(`removed  ${name}`);
   }
 
+  // The release itself becomes a methodology snapshot: the citable record of exactly which
+  // table versions constitute "Data Release 2.0".
+  // createdBy is a UUID column; legacy users carry Firebase-style ids, so pick a UUID-shaped one.
+  const upstreamUsers = await prisma.user.findMany({ where: { org: { isUpstream: true } }, select: { id: true } });
+  const upstreamAdmin = upstreamUsers.find(u => /^[0-9a-f-]{36}$/i.test(u.id));
+  if (upstreamAdmin) {
+    const allDatabases = await prisma.factorDatabase.findMany({
+      select: { name: true, version: true, kind: true },
+      orderBy: { name: 'asc' }
+    });
+    const existing = await prisma.methodologySnapshot.findFirst({ where: { name: `Data Release ${RELEASE_VERSION}` } });
+    if (!existing) {
+      await prisma.methodologySnapshot.create({
+        data: {
+          createdBy: upstreamAdmin.id,
+          name: `Data Release ${RELEASE_VERSION}`,
+          notes: SOURCE_NOTE,
+          status: 'published',
+          publishedAt: new Date(),
+          databaseVersionsJson: allDatabases as unknown as object
+        }
+      });
+      console.log(`snapshot  Data Release ${RELEASE_VERSION} (methodology snapshot cut)`);
+    }
+  }
+
   console.log('\nData Release 2.0 loaded — one database per workbook tab.');
 }
 

@@ -190,6 +190,26 @@ async function create(req: NextApiRequestWithUser, res: NextApiResponse) {
     }
   });
 
+  // A change to factors data changes what calculations produce, so it automatically cuts
+  // a methodology snapshot — the durable record of every database version at that moment.
+  // Snapshots are the "branches" a project can be pinned to or back-versioned onto.
+  if (kind === 'factors' && versionAfter !== versionBefore) {
+    const allDatabases = await prisma.factorDatabase.findMany({
+      select: { name: true, version: true, kind: true },
+      orderBy: { name: 'asc' }
+    });
+    await prisma.methodologySnapshot.create({
+      data: {
+        createdBy: req.user.id,
+        name: `Data Release ${versionAfter} — ${database.name}`,
+        notes: `Auto-captured: "${database.name}" ${versionBefore ?? 'created'} → ${versionAfter}${body.sourceName ? ` (source: ${body.sourceName})` : ''}`,
+        status: 'published',
+        publishedAt: new Date(),
+        databaseVersionsJson: allDatabases as unknown as object
+      }
+    });
+  }
+
   res.json({
     id: database.id,
     name: database.name,

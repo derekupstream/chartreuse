@@ -1,3 +1,4 @@
+import { MethodologyStamp } from 'components/common/MethodologyStamp';
 import type { GetServerSideProps } from 'next';
 
 import { SharedPage } from 'components/share/SharedPage';
@@ -39,6 +40,7 @@ function ProjectionsPage({ projects, org }: ServerSideProps) {
         projections={projects.filter(isTruthy)}
         isProjectTemplate
       />
+      <MethodologyStamp />
     </SharedPageLayout>
   );
 }

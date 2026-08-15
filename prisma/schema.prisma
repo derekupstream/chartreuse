@@ -133,6 +133,9 @@ model Project {
   dateType                     String?
   endDate                      DateTime?                 @db.Date
   startDate                    DateTime?                 @db.Date
+  /// Which methodology this project's numbers were computed under. Stays put until the
+  /// owner (or Upstream) upgrades it — cited numbers never move silently.
+  methodologyVersion           String                    @default("1.0")
   dishwashers                  Dishwasher[]
   dishwashersSimple            DishwasherSimple[]
   eventFoodwareItems           EventFoodwareLineItem[]
@@ -687,6 +690,10 @@ model MethodologySnapshot {
   createdBy      String                      @db.Uuid
   name           String
   notes          String?
+  /// The reference-database versions at snapshot time: [{ name, version, kind }].
+  /// Auto-captured whenever a factors-kind table changes — snapshots are the "branches"
+  /// a project can be pinned to or back-versioned onto.
+  databaseVersionsJson Json?
   status         String                      @default("draft") // draft | published | deprecated
   publishedAt    DateTime?
   factorVersions MethodologySnapshotFactor[]

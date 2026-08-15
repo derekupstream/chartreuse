@@ -26,6 +26,7 @@ import { Divider, SectionHeader, SectionContainer } from './components/common/st
 import { isEugeneOrg } from 'lib/featureFlags';
 import { useChartReuse2 } from 'hooks/useChartReuse2';
 import { CalculationInspectorProvider } from 'components/common/CalculationInspector';
+import { MethodologyStamp } from 'components/common/MethodologyStamp';
 import type { InfoPage } from 'lib/infoPages';
 import { parseInfoPages, serializeInfoPages, EMPTY_SLATE } from 'lib/infoPages';
 
@@ -378,6 +379,7 @@ export const ProjectionsStep = ({ project, readOnly }: { project: ProjectContext
             )}
           </StyledCol>
         </Row>
+        <MethodologyStamp version={(project as { methodologyVersion?: string }).methodologyVersion} />
       </Wrapper>
     </CalculationInspectorProvider>
   );
