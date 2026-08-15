@@ -55,7 +55,7 @@ export default function FactorDatabasesPage({ user }: { user: DashboardUser }) {
   // upload state
   const [uploadOpen, setUploadOpen] = useState(false);
   const [parsed, setParsed] = useState<{ columns: DatabaseColumn[]; rows: Record<string, string>[] } | null>(null);
-  const [form, setForm] = useState({ name: '', description: '', sourceName: '', keyColumn: '' });
+  const [form, setForm] = useState({ name: '', description: '', sourceName: '', keyColumn: '', version: '' });
   const [saving, setSaving] = useState(false);
   // factors carried on product rows
   const [factorCols, setFactorCols] = useState<{ materialColumn?: string; ghgColumn?: string; waterColumn?: string }>(
@@ -225,7 +225,7 @@ export default function FactorDatabasesPage({ user }: { user: DashboardUser }) {
       }
       setUploadOpen(false);
       setParsed(null);
-      setForm({ name: '', description: '', sourceName: '', keyColumn: '' });
+      setForm({ name: '', description: '', sourceName: '', keyColumn: '', version: '' });
       load();
     } catch (e: any) {
       message.error(e.message);
@@ -562,6 +562,12 @@ export default function FactorDatabasesPage({ user }: { user: DashboardUser }) {
               placeholder='Source (e.g. EPA WARM 15, or the Drive filename)'
               value={form.sourceName}
               onChange={e => setForm({ ...form, sourceName: e.target.value })}
+              style={{ marginBottom: 8 }}
+            />
+            <Input
+              placeholder='Version label (optional — e.g. 2.0). Leave blank to auto-bump on changes.'
+              value={form.version}
+              onChange={e => setForm({ ...form, version: e.target.value })}
               style={{ marginBottom: 8 }}
             />
             <Select
