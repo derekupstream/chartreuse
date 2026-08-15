@@ -69,6 +69,17 @@ const KpiTitle = styled.div`
   margin-bottom: 4px;
 `;
 
+/** Row-3 cards keep one height regardless of content; long lists scroll inside. The
+ * header link on each card is its "view more". */
+const EqualCard = styled(Card)`
+  height: 100%;
+  .ant-card-body {
+    height: 290px;
+    overflow-y: auto;
+    padding-top: 8px;
+  }
+`;
+
 const ActionTile = styled(Card)`
   height: 100%;
   .ant-card-body {
@@ -452,7 +463,7 @@ export default function CommandCenter({
       {/* Row 3 — health · change alerts · AI queue */}
       <Row gutter={[12, 12]} style={{ marginTop: 24 }}>
         <Col xs={24} lg={8}>
-          <Card
+          <EqualCard
             size='small'
             title={
               <>
@@ -478,10 +489,10 @@ export default function CommandCenter({
                 )}
               />
             )}
-          </Card>
+          </EqualCard>
         </Col>
         <Col xs={24} lg={8}>
-          <Card
+          <EqualCard
             size='small'
             title={
               <>
@@ -505,10 +516,10 @@ export default function CommandCenter({
                 )}
               />
             )}
-          </Card>
+          </EqualCard>
         </Col>
         <Col xs={24} lg={8}>
-          <Card
+          <EqualCard
             size='small'
             title={
               <>
@@ -533,7 +544,7 @@ export default function CommandCenter({
                 )}
               />
             )}
-          </Card>
+          </EqualCard>
         </Col>
       </Row>
 
