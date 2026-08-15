@@ -48,7 +48,10 @@ methodology before any project moves onto it.
 ## Current state
 
 - **Methodology 1.0** — the running engine, compiled factors. All existing projects are
-  pinned here.
+  pinned here, and it is a real branch: the "Methodology 1.0 — legacy engine" snapshot
+  captures its 24 material factor sets, engine constants, and known characteristics verbatim
+  (cut by `scripts/snapshot-methodology-1.ts`), so 1.0 is reconstructible without git
+  archaeology.
 - **Data Release 2.0** — Madhavi's Combined Model tables, loaded and snapshotted; the 2.0
   calculation model implemented and verified against her workbook exactly. Awaiting: her
   fixes (box-water scoping, directory gaps), the labor/hauling definition, and the v2 engine
