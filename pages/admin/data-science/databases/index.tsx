@@ -319,6 +319,9 @@ export default function FactorDatabasesPage({ user }: { user: DashboardUser }) {
           </Text>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
+          <Button type='primary' ghost href='/admin/data-science/databases/workbook-upload'>
+            Upload workbook (multi-sheet)
+          </Button>
           <Button href='/admin/data-science/import'>AI Data Uploader</Button>
           <Button type='primary' icon={<UploadOutlined />} onClick={() => setUploadOpen(true)}>
             Upload a database

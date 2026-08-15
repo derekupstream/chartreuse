@@ -32,10 +32,20 @@ export type MergeResult = {
   columnsWritten: string[];
 };
 
-const matchKey = (v: unknown) =>
+const normPart = (v: unknown) =>
   String(v ?? '')
     .trim()
     .toLowerCase();
+
+/**
+ * A key column may be composite: "application_scope,material" matches on both parts, which
+ * is what scoped factor tables need — the same material legitimately appears once per scope,
+ * and a single-column key would collapse them.
+ */
+const rowKey = (row: Record<string, unknown>, keyColumn: string) => {
+  const parts = keyColumn.split(',').map(c => normPart(row[c.trim()]));
+  return parts.every(p => p === '') ? '' : parts.join('|');
+};
 
 export function mergeDatabaseRows(
   existingRows: Record<string, unknown>[],
@@ -60,7 +70,7 @@ export function mergeDatabaseRows(
   // Index existing rows by key, keeping their original order.
   const indexByKey = new Map<string, number>();
   const rows = existingRows.map((row, i) => {
-    const k = matchKey(row[keyColumn]);
+    const k = rowKey(row, keyColumn);
     if (k && !indexByKey.has(k)) indexByKey.set(k, i);
     return { ...row };
   });
@@ -71,7 +81,7 @@ export function mergeDatabaseRows(
   let unmatched = 0;
 
   for (const uploaded of uploadedRows) {
-    const k = matchKey(uploaded[keyColumn]);
+    const k = rowKey(uploaded, keyColumn);
     if (!k) continue;
 
     const existingIndex = indexByKey.get(k);

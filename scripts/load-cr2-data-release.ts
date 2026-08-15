@@ -93,7 +93,7 @@ const TABLES: TableSpec[] = [
     kind: 'factors',
     description:
       'Material GHG factors, scoped Single-Use vs Reusable, MTCO2e/lb (workbook tab: GHG_Factors). Not yet wired to the live v1 engine.',
-    keyColumn: 'material'
+    keyColumn: 'scope,material'
   },
   {
     payloadKey: 'water_factors',
@@ -101,7 +101,7 @@ const TABLES: TableSpec[] = [
     kind: 'factors',
     description:
       'Material water factors, CTGT boundary, scoped Single-Use vs Reusable, gal/lb (workbook tab: Water_Factors). Not yet wired to the live v1 engine.',
-    keyColumn: 'material'
+    keyColumn: 'application_scope,material'
   },
   {
     payloadKey: 'transport_factors',
@@ -144,14 +144,29 @@ function columnsFrom(rows: Row[]): { key: string; label: string; type: 'text' | 
   }));
 }
 
-/** Provinces from the legacy rates table, reshaped to the workbook's Utility_Rates columns. */
+const PROVINCE_SOURCE_STATUS =
+  'Hydro-Québec 2025 comparison (electric, C$/kWh); gas and water are US placeholders pending a 2.0 Canadian set';
+
+/**
+ * Canadian provinces for Utility Rates, recovered from whichever source still has them, so
+ * re-running the loader can never lose them: 1) the current Utility Rates table, 2) the
+ * legacy pre-2.0 table, 3) the compiled constants the Hydro-Québec work shipped in.
+ */
 async function provinceRows(): Promise<Row[]> {
+  const current = await prisma.factorDatabase.findUnique({
+    where: { name: 'Utility Rates' },
+    include: { rows: { orderBy: { rowIndex: 'asc' } } }
+  });
+  const fromCurrent = (current?.rows ?? [])
+    .map(r => r.data as Record<string, unknown>)
+    .filter(row => PROVINCES.includes(String(row.state)));
+  if (fromCurrent.length) return fromCurrent as Row[];
+
   const legacy = await prisma.factorDatabase.findUnique({
     where: { name: 'State & Province Utility Rates' },
     include: { rows: { orderBy: { rowIndex: 'asc' } } }
   });
-  if (!legacy) return [];
-  return legacy.rows
+  const fromLegacy = (legacy?.rows ?? [])
     .map(r => r.data as Record<string, unknown>)
     .filter(row => PROVINCES.includes(String(row.name)))
     .map(row => ({
@@ -159,8 +174,19 @@ async function provinceRows(): Promise<Row[]> {
       electric_rate_usd_per_kwh: Number(row.electric),
       gas_rate_usd_per_therm: Number(row.gas),
       water_rate_usd_per_1000_gal: 11.0,
-      source_status:
-        'Hydro-Québec 2025 comparison (electric, C$/kWh); gas and water are US placeholders pending a 2.0 Canadian set'
+      source_status: PROVINCE_SOURCE_STATUS
+    }));
+  if (fromLegacy.length) return fromLegacy;
+
+  const { STATES } = await import('lib/calculator/constants/utilities');
+  return (STATES as { name: string; electric: number; gas: number }[])
+    .filter(s => PROVINCES.includes(s.name))
+    .map(s => ({
+      state: s.name,
+      electric_rate_usd_per_kwh: s.electric,
+      gas_rate_usd_per_therm: s.gas,
+      water_rate_usd_per_1000_gal: 11.0,
+      source_status: PROVINCE_SOURCE_STATUS
     }));
 }
 
