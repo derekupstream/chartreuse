@@ -3,7 +3,7 @@ import { Button, Card, Col, Form, Input, Row, Select, Typography, message } from
 import type { GetServerSideProps } from 'next';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import type { DashboardUser } from 'interfaces';
 import { AdminLayout } from 'layouts/AdminLayout';
@@ -22,6 +22,14 @@ export default function NewDataProductPage({}: Props) {
   const router = useRouter();
   const [form] = Form.useForm();
   const [saving, setSaving] = useState(false);
+
+  // Quick actions on the Command Center arrive as /new?type=calculator|dashboard|scenario.
+  useEffect(() => {
+    const type = router.query.type;
+    if (typeof type === 'string' && ['calculator', 'dashboard', 'scenario', 'report'].includes(type)) {
+      form.setFieldValue('productType', type);
+    }
+  }, [router.query.type, form]);
 
   async function handleSubmit(values: Record<string, string>) {
     setSaving(true);

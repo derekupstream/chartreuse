@@ -787,6 +787,9 @@ model DataProductDefinition {
   isPublic              Boolean  @default(false)
   createdByUserId       String
   updatedByUserId       String?
+  /// Every product links a golden dataset: its test case, validation case, demo case and
+  /// regression check (see docs/CR2-PRODUCT-STUDIO-SPEC.md).
+  goldenDatasetId       String?  @db.Uuid
 }
 
 enum ProjectCategory {

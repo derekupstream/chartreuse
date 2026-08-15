@@ -1,12 +1,24 @@
 /**
- * The Data Science landing page IS the platform architecture: five layers from raw data to
- * products, each with live counts and links into its tools, governance running down the side.
+ * The Data Science Command Center — the operations home (docs/CR2-PRODUCT-STUDIO-SPEC.md §1).
  *
- * The mental model (see docs/CR2-ADMIN-PLAN.md): fragmented reuse data → standardized reuse
- * data → trusted calculations → comparable performance → industry intelligence.
+ * Health and action first: system cards, the most-used functions as one-click actions, a
+ * three-column health / change-alerts / AI-queue band, products grouped by type with their
+ * golden datasets, and an activity feed. Every number is live.
  */
-import { ArrowDownOutlined, SafetyCertificateOutlined, WarningOutlined } from '@ant-design/icons';
-import { Alert, Card, Col, Row, Statistic, Tag, Typography } from 'antd';
+import {
+  AlertOutlined,
+  ApartmentOutlined,
+  CheckCircleFilled,
+  DashboardOutlined,
+  DatabaseOutlined,
+  ExperimentOutlined,
+  FileSearchOutlined,
+  PlusOutlined,
+  RobotOutlined,
+  UploadOutlined,
+  WarningFilled
+} from '@ant-design/icons';
+import { Alert, Badge, Button, Card, Col, Empty, List, Row, Statistic, Tabs, Tag, Typography } from 'antd';
 import type { GetServerSideProps } from 'next';
 import Link from 'next/link';
 
@@ -20,20 +32,36 @@ import type { PageProps } from 'pages/_app';
 
 const { Title, Text, Paragraph } = Typography;
 
-type LayerStat = { label: string; value: number; href: string };
+type ProductCard = {
+  id: string;
+  name: string;
+  slug: string;
+  productType: string;
+  status: string;
+  updatedAt: string;
+  goldenDatasetName: string | null;
+};
+
+type ActivityItem = { at: string; text: string; kind: 'data' | 'snapshot' | 'test' | 'upload' | 'product' };
 
 type Props = {
   user: DashboardUser;
-  openIssues: number;
-  failedRuns7d: number;
-  lastTestRunFailed: number | null;
-  layers: {
-    data: LayerStat[];
-    standardization: LayerStat[];
-    intelligence: LayerStat[];
-    derived: LayerStat[];
-    products: LayerStat[];
+  cards: {
+    productsLive: number;
+    productsTotal: number;
+    goldenTotal: number;
+    goldenLinkedProducts: number;
+    openIssues: number;
+    uploadsPending: number;
+    dataChanges7d: number;
+    pendingChangeRequests: number;
   };
+  healthIssues: { issueType: string; severity: string; count: number }[];
+  changeAlerts: { at: string; text: string }[];
+  uploadQueue: { at: string; fileName: string; status: string; dataType: string }[];
+  products: ProductCard[];
+  activity: ActivityItem[];
+  lastTestRun: { passed: number; failed: number; at: string } | null;
 };
 
 export const getServerSideProps: GetServerSideProps = async context => {
@@ -44,203 +72,445 @@ export const getServerSideProps: GetServerSideProps = async context => {
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
   const [
-    databaseCount,
-    databaseRowCount,
-    databaseChangeCount,
-    rspLinkedAccounts,
-    factorCount,
-    pendingChangeRequests,
-    snapshotCount,
-    smartFieldCount,
-    metricResultCount,
-    computeRuns7d,
-    failedRuns7d,
-    dataProductCount,
-    projectCount,
-    rspOrgCount,
+    productsTotal,
+    productsLive,
+    goldenTotal,
+    goldenLinkedProducts,
     openIssues,
-    lastTestRun
+    issueGroups,
+    uploadsPendingList,
+    changes7d,
+    pendingChangeRequests,
+    recentChanges,
+    recentSnapshots,
+    recentTests,
+    recentUploads,
+    productRows,
+    goldenRows,
+    lastTest
   ] = await Promise.all([
-    prisma.factorDatabase.count(),
-    prisma.factorDatabaseRow.count(),
-    prisma.factorDatabaseChange.count(),
-    prisma.account.count({ where: { rspOrgId: { not: null } } }),
-    prisma.factor.count(),
-    prisma.changeRequest.count({ where: { status: 'pending' } }),
-    prisma.methodologySnapshot.count(),
-    prisma.smartField.count(),
-    prisma.metricResult.count(),
-    prisma.computeRun.count({ where: { createdAt: { gte: sevenDaysAgo } } }),
-    prisma.computeRun.count({ where: { status: 'failed', createdAt: { gte: sevenDaysAgo } } }),
     prisma.dataProductDefinition.count(),
-    prisma.project.count(),
-    prisma.org.count({ where: { orgType: 'reuse-service-provider' } }),
+    prisma.dataProductDefinition.count({ where: { status: 'published' } }),
+    prisma.goldenDataset.count({ where: { isActive: true } }),
+    prisma.dataProductDefinition.count({ where: { goldenDatasetId: { not: null } } }),
     prisma.dataHealthIssue.count({ where: { status: 'open' } }),
-    prisma.testRun.findFirst({ orderBy: { createdAt: 'desc' }, select: { failed: true } })
+    prisma.dataHealthIssue.groupBy({
+      by: ['issueType', 'severity'],
+      where: { status: 'open' },
+      _count: { _all: true },
+      orderBy: { _count: { issueType: 'desc' } },
+      take: 6
+    }),
+    prisma.importSession.findMany({
+      where: { status: { notIn: ['applied', 'discarded'] } },
+      orderBy: { createdAt: 'desc' },
+      take: 6,
+      select: { createdAt: true, fileName: true, status: true, dataType: true }
+    }),
+    prisma.factorDatabaseChange.count({ where: { createdAt: { gte: sevenDaysAgo } } }),
+    prisma.changeRequest.count({ where: { status: 'pending' } }),
+    prisma.factorDatabaseChange.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: 6,
+      include: { database: { select: { name: true } } }
+    }),
+    prisma.methodologySnapshot.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: 3,
+      select: { createdAt: true, name: true }
+    }),
+    prisma.testRun.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: 3,
+      select: { createdAt: true, passed: true, failed: true }
+    }),
+    prisma.importSession.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: 3,
+      select: { createdAt: true, fileName: true, status: true }
+    }),
+    prisma.dataProductDefinition.findMany({
+      orderBy: { updatedAt: 'desc' },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        productType: true,
+        status: true,
+        updatedAt: true,
+        goldenDatasetId: true
+      }
+    }),
+    prisma.goldenDataset.findMany({ select: { id: true, name: true } }),
+    prisma.testRun.findFirst({
+      orderBy: { createdAt: 'desc' },
+      select: { passed: true, failed: true, createdAt: true }
+    })
   ]);
+
+  const goldenById = new Map(goldenRows.map(g => [g.id, g.name]));
+
+  const changeAlerts = recentChanges.map(change => ({
+    at: change.createdAt.toISOString(),
+    text: `${change.database.name}: ${change.action} ${
+      change.versionBefore && change.versionBefore !== change.versionAfter
+        ? `${change.versionBefore} → ${change.versionAfter}`
+        : `v${change.versionAfter}`
+    } (+${change.rowsAdded}/${change.rowsUpdated}u)${change.sourceNote ? ` — ${change.sourceNote}` : ''}`
+  }));
+
+  const activity: ActivityItem[] = [
+    ...changeAlerts.map(a => ({ at: a.at, text: a.text, kind: 'data' as const })),
+    ...recentSnapshots.map(s => ({
+      at: s.createdAt.toISOString(),
+      text: `Snapshot cut: ${s.name}`,
+      kind: 'snapshot' as const
+    })),
+    ...recentTests.map(t => ({
+      at: t.createdAt.toISOString(),
+      text: `Test run: ${t.passed} passed, ${t.failed} failed`,
+      kind: 'test' as const
+    })),
+    ...recentUploads.map(u => ({
+      at: u.createdAt.toISOString(),
+      text: `AI upload: ${u.fileName} (${u.status})`,
+      kind: 'upload' as const
+    }))
+  ]
+    .sort((a, b) => b.at.localeCompare(a.at))
+    .slice(0, 12);
 
   const props: Props = {
     user: user as unknown as DashboardUser,
-    openIssues,
-    failedRuns7d,
-    lastTestRunFailed: lastTestRun?.failed ?? null,
-    layers: {
-      data: [
-        { label: 'Reference databases', value: databaseCount, href: '/admin/data-science/databases' },
-        { label: 'Rows', value: databaseRowCount, href: '/admin/data-science/databases' },
-        { label: 'Version changes logged', value: databaseChangeCount, href: '/admin/data-science/databases' }
-      ],
-      standardization: [
-        { label: 'RSP-linked client accounts', value: rspLinkedAccounts, href: '/admin/rsp' },
-        { label: 'Projects contributing data', value: projectCount, href: '/admin/projects' }
-      ],
-      intelligence: [
-        { label: 'Factors under governance', value: factorCount, href: '/admin/data-science/constants' },
-        { label: 'Pending change requests', value: pendingChangeRequests, href: '/admin/data-science/change-requests' },
-        { label: 'Methodology snapshots', value: snapshotCount, href: '/admin/data-science/snapshots' },
-        { label: 'Smart fields', value: smartFieldCount, href: '/admin/data-science/smart-fields' }
-      ],
-      derived: [
-        { label: 'Metric results stored', value: metricResultCount, href: '/admin/data-science/runs' },
-        { label: 'Compute runs (7d)', value: computeRuns7d, href: '/admin/data-science/runs' }
-      ],
-      products: [
-        { label: 'Data products', value: dataProductCount, href: '/admin/data-science/data-products' },
-        { label: 'RSP integrations', value: rspOrgCount, href: '/admin/rsp' }
-      ]
-    }
+    cards: {
+      productsLive,
+      productsTotal,
+      goldenTotal,
+      goldenLinkedProducts,
+      openIssues,
+      uploadsPending: uploadsPendingList.length,
+      dataChanges7d: changes7d,
+      pendingChangeRequests
+    },
+    healthIssues: issueGroups.map(g => ({ issueType: g.issueType, severity: g.severity, count: g._count._all })),
+    changeAlerts,
+    uploadQueue: uploadsPendingList.map(u => ({
+      at: u.createdAt.toISOString(),
+      fileName: u.fileName,
+      status: u.status,
+      dataType: u.dataType
+    })),
+    products: productRows.map(p => ({
+      id: p.id,
+      name: p.name,
+      slug: p.slug,
+      productType: p.productType,
+      status: p.status,
+      updatedAt: p.updatedAt.toISOString(),
+      goldenDatasetName: p.goldenDatasetId ? (goldenById.get(p.goldenDatasetId) ?? null) : null
+    })),
+    activity,
+    lastTestRun: lastTest
+      ? { passed: lastTest.passed, failed: lastTest.failed, at: lastTest.createdAt.toISOString() }
+      : null
   };
-
   return { props: serializeJSON(props) };
 };
 
-function Layer({
-  step,
-  title,
-  summary,
-  href,
-  stats,
-  last
-}: {
-  step: string;
-  title: string;
-  summary: string;
-  href: string;
-  stats: LayerStat[];
-  last?: boolean;
-}) {
+const QUICK_ACTIONS = [
+  {
+    label: 'Upload workbook',
+    href: '/admin/data-science/databases/workbook-upload',
+    icon: <UploadOutlined />,
+    primary: true
+  },
+  { label: 'AI Data Uploader', href: '/admin/data-science/import', icon: <RobotOutlined /> },
+  { label: 'Create Calculator', href: '/admin/data-science/data-products/new?type=calculator', icon: <PlusOutlined /> },
+  {
+    label: 'Create Dashboard',
+    href: '/admin/data-science/data-products/new?type=dashboard',
+    icon: <DashboardOutlined />
+  },
+  {
+    label: 'Create Scenario',
+    href: '/admin/data-science/data-products/new?type=scenario',
+    icon: <ApartmentOutlined />
+  },
+  { label: 'Product Designer', href: '/admin/data-science/data-products', icon: <ExperimentOutlined /> },
+  { label: 'Validate Golden Datasets', href: '/admin/data-science/test-runs', icon: <CheckCircleFilled /> },
+  { label: 'Data Map / Traceability', href: '/admin/data-science/data-map', icon: <FileSearchOutlined /> }
+];
+
+function productHref(product: ProductCard) {
+  return product.slug === 'annual-projections-2-0'
+    ? '/admin/data-science/data-products/annual-projections-2'
+    : `/admin/data-science/data-products/${product.id}`;
+}
+
+function ProductGrid({ products }: { products: ProductCard[] }) {
+  if (!products.length) return <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description='None yet' />;
   return (
-    <>
-      <Card hoverable styles={{ body: { padding: '16px 20px' } }} onClick={() => (window.location.href = href)}>
-        <Row align='middle' gutter={[16, 8]}>
-          <Col xs={24} md={9}>
-            <Text type='secondary' style={{ fontSize: 11, letterSpacing: 1 }}>
-              {step}
-            </Text>
-            <Title level={4} style={{ margin: 0 }}>
-              {title}
-            </Title>
-            <Text type='secondary' style={{ fontSize: 12 }}>
-              {summary}
-            </Text>
-          </Col>
-          {stats.map(stat => (
-            <Col key={stat.label} xs={12} md={5}>
-              <Link href={stat.href} onClick={e => e.stopPropagation()}>
-                <Statistic title={stat.label} value={stat.value} valueStyle={{ fontSize: 20 }} />
-              </Link>
-            </Col>
-          ))}
-        </Row>
-      </Card>
-      {!last && (
-        <div style={{ textAlign: 'center', padding: '2px 0', color: '#1f7a4d' }}>
-          <ArrowDownOutlined />
-        </div>
-      )}
-    </>
+    <Row gutter={[12, 12]}>
+      {products.map(product => (
+        <Col xs={24} sm={12} lg={8} key={product.id}>
+          <Link href={productHref(product)}>
+            <Card hoverable size='small' styles={{ body: { padding: 12 } }}>
+              <Text strong>{product.name}</Text>
+              <div style={{ marginTop: 6 }}>
+                <Tag color={product.status === 'published' ? 'green' : 'default'}>{product.status}</Tag>
+                {product.goldenDatasetName ? (
+                  <Tag color='gold'>golden ✓</Tag>
+                ) : (
+                  <Tag color='red' icon={<WarningFilled />}>
+                    no golden dataset
+                  </Tag>
+                )}
+              </div>
+              <Text type='secondary' style={{ fontSize: 11 }}>
+                {product.goldenDatasetName ?? 'link a golden dataset to validate this product'} · updated{' '}
+                {new Date(product.updatedAt).toLocaleDateString()}
+              </Text>
+            </Card>
+          </Link>
+        </Col>
+      ))}
+    </Row>
   );
 }
 
-export default function DataScienceOverview({ openIssues, failedRuns7d, lastTestRunFailed, layers }: Props) {
-  const governanceProblems = openIssues + failedRuns7d + (lastTestRunFailed ?? 0);
+export default function CommandCenter({
+  cards,
+  healthIssues,
+  changeAlerts,
+  uploadQueue,
+  products,
+  activity,
+  lastTestRun
+}: Props) {
+  const byType = (type: string) => products.filter(p => p.productType === type);
+  const testsGreen = lastTestRun && lastTestRun.failed === 0;
 
   return (
     <>
       <Title level={2} style={{ marginBottom: 0 }}>
         Data Science
       </Title>
-      <Paragraph type='secondary' style={{ maxWidth: 760 }}>
-        Fragmented reuse data → standardized reuse data → trusted calculations → comparable performance → industry
-        intelligence. Each layer below is a link; the numbers are live.
+      <Paragraph type='secondary'>
+        Monitor the health of datasets, calculations, and products. Create and manage calculators, dashboards, and
+        scenarios.
       </Paragraph>
 
-      {governanceProblems > 0 ? (
+      {/* Row 1 — system cards */}
+      <Row gutter={[12, 12]}>
+        <Col xs={12} md={4}>
+          <Card size='small'>
+            <Statistic title='Products live' value={cards.productsLive} suffix={`/ ${cards.productsTotal}`} />
+          </Card>
+        </Col>
+        <Col xs={12} md={4}>
+          <Card size='small'>
+            <Statistic
+              title='Products with golden'
+              value={cards.goldenLinkedProducts}
+              suffix={`/ ${cards.productsTotal}`}
+              valueStyle={cards.goldenLinkedProducts < cards.productsTotal ? { color: '#cf1322' } : undefined}
+            />
+          </Card>
+        </Col>
+        <Col xs={12} md={4}>
+          <Card size='small'>
+            <Statistic
+              title='Alerts to review'
+              value={cards.openIssues}
+              valueStyle={cards.openIssues > 0 ? { color: '#cf1322' } : { color: '#3f8600' }}
+            />
+          </Card>
+        </Col>
+        <Col xs={12} md={4}>
+          <Card size='small'>
+            <Statistic title='AI uploads pending' value={cards.uploadsPending} />
+          </Card>
+        </Col>
+        <Col xs={12} md={4}>
+          <Card size='small'>
+            <Statistic title='Data changes (7d)' value={cards.dataChanges7d} />
+          </Card>
+        </Col>
+        <Col xs={12} md={4}>
+          <Card size='small'>
+            <Statistic title='Change requests' value={cards.pendingChangeRequests} />
+          </Card>
+        </Col>
+      </Row>
+
+      {lastTestRun && (
         <Alert
-          type='warning'
+          style={{ marginTop: 12 }}
+          type={testsGreen ? 'success' : 'error'}
           showIcon
-          icon={<WarningOutlined />}
-          style={{ marginBottom: 16 }}
           message={
-            <>
-              Governance needs attention: {openIssues > 0 && <Tag color='orange'>{openIssues} open data issues</Tag>}
-              {failedRuns7d > 0 && <Tag color='red'>{failedRuns7d} failed runs this week</Tag>}
-              {(lastTestRunFailed ?? 0) > 0 && <Tag color='red'>{lastTestRunFailed} failing test cases</Tag>}
-              <Link href='/admin/data-science/quality'>Open Quality →</Link>
-            </>
+            testsGreen
+              ? `Last golden validation: all ${lastTestRun.passed} checks passed (${new Date(lastTestRun.at).toLocaleDateString()}).`
+              : `Last golden validation: ${lastTestRun.failed} FAILING (${new Date(lastTestRun.at).toLocaleDateString()}) — a failing golden dataset is a review artifact, look before re-running.`
           }
-        />
-      ) : (
-        <Alert
-          type='success'
-          showIcon
-          icon={<SafetyCertificateOutlined />}
-          style={{ marginBottom: 16 }}
-          message='Governance clean: no open data issues, no failed runs this week, last test run green.'
         />
       )}
 
-      <Layer
-        step='LAYER 1 · DATA'
-        title='Databases'
-        summary='Reference tables — products, factors, rates — versioned like software builds, every change logged.'
-        href='/admin/data-science/databases'
-        stats={layers.data}
-      />
-      <Layer
-        step='LAYER 2 · STANDARDIZATION'
-        title='Common Data Model'
-        summary='Provider and project data mapped into one language, provenance preserved. RSP intake, project inputs, data dictionary.'
-        href='/admin/rsp'
-        stats={layers.standardization}
-      />
-      <Layer
-        step='LAYER 3 · INTELLIGENCE'
-        title='Methodology & Calculations'
-        summary='Factors, models, and methods — Upstream IP. Changes are proposed, reviewed, versioned, and snapshotted.'
-        href='/admin/data-science/methodology-hub'
-        stats={layers.intelligence}
-      />
-      <Layer
-        step='LAYER 4 · DERIVED DATA'
-        title='Computed Results'
-        summary='What the engine produces: impacts, costs, return rates — each run recorded. The future benchmark substrate.'
-        href='/admin/data-science/runs'
-        stats={layers.derived}
-      />
-      <Layer
-        step='LAYER 5 · PRODUCTS'
-        title='Calculators, Dashboards & API'
-        summary='The experiences on top: projections, actuals dashboards, the RSP API, public calculators.'
-        href='/admin/data-science/data-products-hub'
-        stats={layers.products}
-        last
-      />
+      {/* Row 2 — quick actions */}
+      <Card size='small' style={{ marginTop: 16 }} title='Quick actions'>
+        <Row gutter={[8, 8]}>
+          {QUICK_ACTIONS.map(action => (
+            <Col key={action.label} xs={12} md={6} lg={3}>
+              <Link href={action.href}>
+                <Button block type={action.primary ? 'primary' : 'default'} icon={action.icon} style={{ height: 44 }}>
+                  <span style={{ fontSize: 12 }}>{action.label}</span>
+                </Button>
+              </Link>
+            </Col>
+          ))}
+        </Row>
+      </Card>
+
+      {/* Row 3 — health · change alerts · AI queue */}
+      <Row gutter={[12, 12]} style={{ marginTop: 16 }}>
+        <Col xs={24} lg={8}>
+          <Card
+            size='small'
+            title={
+              <>
+                <AlertOutlined /> Data health
+              </>
+            }
+            extra={<Link href='/admin/data-science/data-map'>inspect</Link>}
+          >
+            {healthIssues.length === 0 ? (
+              <Text type='secondary'>No open issues.</Text>
+            ) : (
+              <List
+                size='small'
+                dataSource={healthIssues}
+                renderItem={issue => (
+                  <List.Item style={{ padding: '6px 0' }}>
+                    <Badge
+                      color={issue.severity === 'error' ? 'red' : 'orange'}
+                      text={<code>{issue.issueType}</code>}
+                    />
+                    <Tag>{issue.count}</Tag>
+                  </List.Item>
+                )}
+              />
+            )}
+          </Card>
+        </Col>
+        <Col xs={24} lg={8}>
+          <Card
+            size='small'
+            title={
+              <>
+                <DatabaseOutlined /> Change alerts
+              </>
+            }
+            extra={<Link href='/admin/data-science/databases'>databases</Link>}
+          >
+            {changeAlerts.length === 0 ? (
+              <Text type='secondary'>No recent data changes.</Text>
+            ) : (
+              <List
+                size='small'
+                dataSource={changeAlerts}
+                renderItem={alert => (
+                  <List.Item style={{ padding: '6px 0' }}>
+                    <Text style={{ fontSize: 12 }}>
+                      <Text type='secondary'>{new Date(alert.at).toLocaleDateString()}</Text> {alert.text}
+                    </Text>
+                  </List.Item>
+                )}
+              />
+            )}
+          </Card>
+        </Col>
+        <Col xs={24} lg={8}>
+          <Card
+            size='small'
+            title={
+              <>
+                <RobotOutlined /> AI upload queue
+              </>
+            }
+            extra={<Link href='/admin/data-science/import'>open uploader</Link>}
+          >
+            {uploadQueue.length === 0 ? (
+              <Text type='secondary'>Queue empty.</Text>
+            ) : (
+              <List
+                size='small'
+                dataSource={uploadQueue}
+                renderItem={upload => (
+                  <List.Item style={{ padding: '6px 0' }}>
+                    <Text style={{ fontSize: 12 }} ellipsis>
+                      {upload.fileName}
+                    </Text>
+                    <Tag>{upload.status}</Tag>
+                  </List.Item>
+                )}
+              />
+            )}
+          </Card>
+        </Col>
+      </Row>
+
+      {/* Row 4 — products by type */}
+      <Card
+        size='small'
+        style={{ marginTop: 16 }}
+        title='Products'
+        extra={<Link href='/admin/data-science/data-products'>all products</Link>}
+      >
+        <Tabs
+          items={[
+            {
+              key: 'calculator',
+              label: `Calculators (${byType('calculator').length})`,
+              children: <ProductGrid products={byType('calculator')} />
+            },
+            {
+              key: 'dashboard',
+              label: `Dashboards (${byType('dashboard').length})`,
+              children: <ProductGrid products={byType('dashboard')} />
+            },
+            {
+              key: 'scenario',
+              label: `Scenarios (${byType('scenario').length})`,
+              children: <ProductGrid products={byType('scenario')} />
+            }
+          ]}
+        />
+      </Card>
+
+      {/* Row 5 — activity feed */}
+      <Card size='small' style={{ marginTop: 16 }} title='Recent activity'>
+        {activity.length === 0 ? (
+          <Text type='secondary'>Nothing yet.</Text>
+        ) : (
+          <List
+            size='small'
+            dataSource={activity}
+            renderItem={item => (
+              <List.Item style={{ padding: '6px 0' }}>
+                <Text style={{ fontSize: 12 }}>
+                  <Tag style={{ marginRight: 8 }}>{item.kind}</Tag>
+                  <Text type='secondary'>{new Date(item.at).toLocaleString()}</Text> — {item.text}
+                </Text>
+              </List.Item>
+            )}
+          />
+        )}
+      </Card>
     </>
   );
 }
 
-DataScienceOverview.getLayout = (page: React.ReactNode, pageProps: PageProps) => (
+CommandCenter.getLayout = (page: React.ReactNode, pageProps: PageProps) => (
   <AdminLayout {...(pageProps as any)} selectedMenuItem='data-science' title='Data Science'>
     {page}
   </AdminLayout>
