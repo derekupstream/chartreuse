@@ -84,49 +84,24 @@ const siderMenuItems = [
     icon: <BarChartOutlined />,
     label: <Link href='/admin/analytics'>Analytics</Link>
   },
+  // The 2.0 structure mirrors the platform's layers: data → standardization/methodology →
+  // products, with quality/lineage as the governance that runs through all of them.
+  // De-listed tools (Inputs, Lineage, AI Uploader, Snapshots, …) stay routable and are
+  // linked from their layer's hub page. See docs/CR2-ADMIN-PLAN.md for the full mapping.
   {
     key: 'data-science-group',
     icon: <ExperimentOutlined />,
     label: <Link href='/admin/data-science'>Data Science</Link>,
     children: [
       { key: 'data-science', label: <Link href='/admin/data-science'>Overview</Link> },
-      { key: 'data-science/inputs', label: <Link href='/admin/data-science/inputs'>Inputs</Link> },
-      { key: 'data-science/data-map', label: <Link href='/admin/data-science/data-map'>Data Map</Link> },
-      { key: 'data-science/constants', label: <Link href='/admin/data-science/constants'>Factors</Link> },
       { key: 'data-science/databases', label: <Link href='/admin/data-science/databases'>Databases</Link> },
+      { key: 'data-science/methodology-hub', label: <Link href='/admin/data-science/methodology-hub'>Methodology</Link> },
       {
-        key: 'data-science/smart-fields',
-        label: <Link href='/admin/data-science/smart-fields'>Calculations</Link>
+        key: 'data-science/data-products-hub',
+        label: <Link href='/admin/data-science/data-products-hub'>Data Products</Link>
       },
-      {
-        key: 'data-science/designer-v2',
-        label: <Link href='/admin/data-science/data-product-designer-v2'>Data Product Designer</Link>
-      },
-      {
-        key: 'data-science/data-products',
-        label: <Link href='/admin/data-science/data-products'>Data Products</Link>
-      },
-      {
-        key: 'data-science/calculations',
-        label: <Link href='/admin/data-science/calculations'>Functions</Link>
-      },
-      { key: 'data-science/test-runs', label: <Link href='/admin/data-science/test-runs'>Test Runs</Link> },
-      { key: 'admin/methodology', label: <Link href='/admin/methodology'>Methodology</Link> },
-      {
-        key: 'data-science/change-requests',
-        label: <Link href='/admin/data-science/change-requests'>Change Requests</Link>
-      },
-      { key: 'data-science/import', label: <Link href='/admin/data-science/import'>AI Data Uploader</Link> },
-      {
-        key: 'data-science-advanced',
-        label: 'Advanced',
-        children: [
-          { key: 'data-science/lineage', label: <Link href='/admin/data-science/lineage'>Lineage</Link> },
-          { key: 'data-science/snapshots', label: <Link href='/admin/data-science/snapshots'>Snapshots</Link> },
-          { key: 'data-science/runs', label: <Link href='/admin/data-science/runs'>Run History</Link> },
-          { key: 'data-science/impact', label: <Link href='/admin/data-science/impact'>Impact Simulator</Link> }
-        ]
-      }
+      { key: 'data-science/quality', label: <Link href='/admin/data-science/quality'>Quality</Link> },
+      { key: 'data-science/data-map', label: <Link href='/admin/data-science/data-map'>Data Map</Link> }
     ]
   },
   {

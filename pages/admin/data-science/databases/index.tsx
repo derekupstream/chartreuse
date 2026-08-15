@@ -285,9 +285,12 @@ export default function FactorDatabasesPage({ user }: { user: DashboardUser }) {
             Reference tables kept in their own column structure — product catalogs, material factors, utility rates.
           </Text>
         </div>
-        <Button type='primary' icon={<UploadOutlined />} onClick={() => setUploadOpen(true)}>
-          Upload a database
-        </Button>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <Button href='/admin/data-science/import'>AI Data Uploader</Button>
+          <Button type='primary' icon={<UploadOutlined />} onClick={() => setUploadOpen(true)}>
+            Upload a database
+          </Button>
+        </div>
       </div>
 
       <Alert
@@ -407,7 +410,63 @@ export default function FactorDatabasesPage({ user }: { user: DashboardUser }) {
               <Text type='secondary' style={{ display: 'block', marginBottom: 8, fontSize: 12 }}>
                 Source: {detail.sourceName}
                 {detail.keyColumn ? ` · key column: ${detail.keyColumn}` : ''}
+                {` · version ${detail.version}`}
               </Text>
+            )}
+            {detail.changes.length > 0 && (
+              <details style={{ marginBottom: 12 }}>
+                <summary style={{ cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>
+                  Version history ({detail.changes.length})
+                </summary>
+                <Table
+                  size='small'
+                  style={{ marginTop: 8 }}
+                  rowKey='id'
+                  pagination={detail.changes.length > 8 ? { pageSize: 8 } : false}
+                  dataSource={detail.changes}
+                  columns={[
+                    {
+                      title: 'When',
+                      dataIndex: 'createdAt',
+                      width: 170,
+                      render: (v: string) => new Date(v).toLocaleString()
+                    },
+                    {
+                      title: 'Version',
+                      width: 130,
+                      render: (_: unknown, c) => (
+                        <Text code>{c.versionBefore ? `${c.versionBefore} → ${c.versionAfter}` : c.versionAfter}</Text>
+                      )
+                    },
+                    { title: 'Action', dataIndex: 'action', width: 90 },
+                    {
+                      title: 'Changes',
+                      render: (_: unknown, c) => {
+                        const parts = [];
+                        if (c.rowsAdded) parts.push(`+${c.rowsAdded} rows`);
+                        if (c.rowsUpdated) parts.push(`${c.rowsUpdated} updated`);
+                        if (c.rowsRemoved) parts.push(`−${c.rowsRemoved} removed`);
+                        parts.push(`${c.rowCountAfter} after`);
+                        return parts.join(' · ');
+                      }
+                    },
+                    {
+                      title: 'Columns',
+                      render: (_: unknown, c) =>
+                        c.columnsTouched.length > 6
+                          ? `${c.columnsTouched.slice(0, 6).join(', ')} +${c.columnsTouched.length - 6}`
+                          : c.columnsTouched.join(', ') || '—'
+                    },
+                    {
+                      title: 'Source',
+                      dataIndex: 'sourceNote',
+                      width: 160,
+                      ellipsis: true,
+                      render: (v: string | null) => v ?? '—'
+                    }
+                  ]}
+                />
+              </details>
             )}
             <Table
               size='small'

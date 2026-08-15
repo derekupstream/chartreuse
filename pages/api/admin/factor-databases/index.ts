@@ -9,6 +9,24 @@ import type { MergeMode } from 'lib/admin/mergeDatabaseRows';
 const handler = handlerWithUser();
 handler.use(requireUpstream);
 
+/**
+ * Data gets versions like software gets builds. "3" → "4"; "2026.08" → "2026.08.1".
+ * An explicit version in the upload always wins — that's how a named release is cut.
+ */
+export function bumpVersion(current: string): string {
+  if (/^\d+$/.test(current)) return String(parseInt(current, 10) + 1);
+  const segments = current.split('.');
+  const allNumeric = segments.every(segment => /^\d+$/.test(segment));
+  // "2026.08" is a calendar release name — a change to it starts a patch series
+  // ("2026.08.1"), it does not increment the month. Only a third-or-later segment
+  // is ever incremented ("2026.08.1" → "2026.08.2").
+  if (allNumeric && segments.length >= 3) {
+    const last = segments[segments.length - 1];
+    return [...segments.slice(0, -1), String(parseInt(last, 10) + 1)].join('.');
+  }
+  return `${current}.1`;
+}
+
 export type DatabaseColumn = { key: string; label: string; type: 'text' | 'number' };
 
 export type FactorDatabaseSummary = {
@@ -87,12 +105,21 @@ async function create(req: NextApiRequestWithUser, res: NextApiResponse) {
     return res.status(400).json({ error: 'Nothing to update — no database of that name exists yet' });
   }
 
+  // Version policy: an explicit version in the upload wins (cutting a named release);
+  // otherwise any change to an existing table auto-bumps. New tables start at '1'.
+  const versionBefore = existing?.version ?? null;
+  const versionAfter = existing
+    ? body.version && body.version !== existing.version
+      ? body.version
+      : bumpVersion(existing.version)
+    : body.version || '1';
+
   const data = {
     name: body.name.trim(),
     description: body.description || null,
     sourceName: body.sourceName || null,
     sourceUrl: body.sourceUrl || null,
-    version: body.version || '1',
+    version: versionAfter,
     keyColumn: body.keyColumn || null,
     columns: body.columns as unknown as object,
     uploadedBy: req.user.id
@@ -134,9 +161,29 @@ async function create(req: NextApiRequestWithUser, res: NextApiResponse) {
     });
   }
 
+  // The changelog row is what makes this version citable later: what changed, from what,
+  // by whom. Append-only — corrections are new uploads, not edits to history.
+  await prisma.factorDatabaseChange.create({
+    data: {
+      databaseId: database.id,
+      changedBy: req.user.id,
+      action: existing ? mergeMode : 'create',
+      versionBefore,
+      versionAfter,
+      rowsAdded: merge.added,
+      rowsUpdated: merge.updated,
+      rowsRemoved: existing && mergeMode === 'replace' ? existingRows.length : 0,
+      rowCountAfter: merge.rows.length,
+      columnsTouched: merge.columnsWritten as unknown as object,
+      sourceNote: body.sourceName || null
+    }
+  });
+
   res.json({
     id: database.id,
     name: database.name,
+    version: versionAfter,
+    versionBefore,
     rowCount: merge.rows.length,
     replaced: !!existing && mergeMode === 'replace',
     mergeMode,

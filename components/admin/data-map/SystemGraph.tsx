@@ -519,10 +519,9 @@ function DrawerContent({ node, stats }: { node: Node; stats: SystemStatsResponse
           )}
           <ActionLinks
             links={[
-              { label: 'View Run History', href: '/admin/data-science/runs' },
+              { label: 'View Calculation Log', href: '/admin/data-science/runs' },
               { label: 'Open Lineage', href: '/admin/data-science/lineage' },
-              { label: 'View Calculations', href: '/admin/data-science/calculations' },
-              { label: 'View Impact Dashboard', href: '/admin/data-science/impact' }
+              { label: 'View Functions', href: '/admin/data-science/calculations' }
             ]}
           />
         </>

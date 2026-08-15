@@ -444,6 +444,32 @@ model FactorDatabase {
   isActive    Boolean              @default(true)
   uploadedBy  String?              @db.Uuid
   rows        FactorDatabaseRow[]
+  changes     FactorDatabaseChange[]
+}
+
+/// Append-only changelog for a reference database — the "release notes" that make a data
+/// version citable. One row per upload/merge; never updated, never deleted (except with
+/// the database itself).
+model FactorDatabaseChange {
+  id             String         @id @default(uuid()) @db.Uuid
+  createdAt      DateTime       @default(now())
+  databaseId     String         @db.Uuid
+  changedBy      String?        @db.Uuid
+  /// create | replace | update | add | upsert
+  action         String
+  versionBefore  String?
+  versionAfter   String
+  rowsAdded      Int            @default(0)
+  rowsUpdated    Int            @default(0)
+  rowsRemoved    Int            @default(0)
+  rowCountAfter  Int            @default(0)
+  /// Column keys written by this change
+  columnsTouched Json?
+  /// Where the data came from, e.g. an upload filename or "Combined Model 2.0 workbook"
+  sourceNote     String?
+  database       FactorDatabase @relation(fields: [databaseId], references: [id], onDelete: Cascade)
+
+  @@index([databaseId, createdAt])
 }
 
 model FactorDatabaseRow {

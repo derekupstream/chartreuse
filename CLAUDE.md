@@ -20,7 +20,13 @@ node --experimental-vm-modules node_modules/.bin/jest path/to/file.test.ts   # s
 
 yarn prisma:validate        # validate schema
 yarn prisma:status          # check migration status (safe-prisma-operations.sh)
-yarn prisma:sync            # safe migrate + generate after schema changes
+# DO NOT run `yarn prisma:sync` after editing schema.prisma — its "connection check" runs
+# `prisma db pull --force`, which OVERWRITES the hand-written schema with an introspected copy
+# (git checkout to recover). Also, `prisma migrate dev`/`deploy` fail locally: the local DB's
+# _prisma_migrations table has a stale failed record and missing rows (tables were synced by
+# other means). For schema changes: edit schema.prisma, hand-write the migration SQL in
+# prisma/migrations/<timestamp>_<name>/migration.sql, apply locally with psql -f, then
+# `npx prisma generate`. Production deploys cleanly via `migrate deploy` (its table is intact).
 npx tsx scripts/seed.ts     # seed local DB (run one-off scripts with npx tsx)
 ```
 
