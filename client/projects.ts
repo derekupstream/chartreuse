@@ -10,6 +10,7 @@ import { ModifyFoodwareLineItemRequest } from 'pages/api/projects/[id]/foodware-
 import { UpdateProjectUsageRequest } from 'pages/api/projects/[id]/usage';
 import { ProjectShareRequest } from 'pages/api/projects/[id]/share';
 import type { ProjectionsResponse } from 'lib/calculator/getProjections';
+import type { ProjectionsV2Response } from 'pages/api/projects/[id]/projections-v2';
 import type { ShareSettings } from 'pages/api/projects/[id]/share-settings';
 
 type MaybeString = string | undefined;
@@ -36,6 +37,11 @@ export function useUpdateProjectUsage(projectId: MaybeString) {
 
 export function useGetProjections(projectId?: string) {
   return useGET<ProjectionsResponse>(projectId ? '/api/projects/' + projectId + '/projections' : null);
+}
+
+/** Methodology 2.0 results; fetched only while Chart-Reuse 2.0 mode is active. */
+export function useGetProjectionsV2(projectId?: string) {
+  return useGET<ProjectionsV2Response>(projectId ? '/api/projects/' + projectId + '/projections-v2' : null);
 }
 
 export function useGetFoodwareLineItems(projectId: MaybeString) {

@@ -1,6 +1,6 @@
 import { PlusOutlined, TableOutlined } from '@ant-design/icons';
-import { Button, Col, Row, Menu, Popconfirm, Typography, message } from 'antd';
-import { useEffect, useRef, useState } from 'react';
+import { Alert, Button, Col, Row, Menu, Popconfirm, Typography, message } from 'antd';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import styled from 'styled-components';
 
 import ContentLoader from 'components/common/ContentLoader';
@@ -9,7 +9,8 @@ import { PrintButton } from 'components/common/print/PrintButton';
 import { ShareButton } from './components/ShareButton';
 import { SaveSnapshotButton } from './components/SaveSnapshotButton';
 import { PrintHeader } from 'components/common/print/PrintHeader';
-import { useGetProjections, useUpdateProjections } from 'client/projects';
+import { useGetProjections, useGetProjectionsV2, useUpdateProjections } from 'client/projects';
+import { applyV2Overrides } from 'lib/calculator/v2/adaptToProjections';
 import type { ProjectContext } from 'lib/middleware/getProjectContext';
 
 import { useFooterState } from '../components/Footer';
@@ -79,7 +80,17 @@ const defaultProjectionsDescription = `These graphs - showing the financial and 
 
 export const ProjectionsStep = ({ project, readOnly }: { project: ProjectContext['project']; readOnly: boolean }) => {
   const [view, setView] = useState<string>('summary');
-  const { data, error, isLoading } = useGetProjections(project.id);
+  const { data: v1Data, error, isLoading } = useGetProjections(project.id);
+  const { enabled: chartReuse2 } = useChartReuse2();
+  const { data: v2Response } = useGetProjectionsV2(chartReuse2 ? project.id : undefined);
+  // Chart-Reuse 2.0 shows Methodology 2.0 numbers; legacy shows 1.0. The overlay only
+  // touches the headline aggregates — detail views stay 1.0-derived until the v2 engine
+  // grows its own, and the banner says so.
+  const v2Active = chartReuse2 && !!v2Response?.available;
+  const data = useMemo(
+    () => (v1Data && v2Response?.available && chartReuse2 ? applyV2Overrides(v1Data, v2Response.outputs) : v1Data),
+    [v1Data, v2Response, chartReuse2]
+  );
   const { trigger: updateProjections } = useUpdateProjections(project.id);
   const [projectionsDescription, setProjectionsDescription] = useState(project.projectionsDescription);
   const [projectionsTitle, setProjectionsTitle] = useState(project.projectionsTitle);
@@ -167,7 +178,7 @@ export const ProjectionsStep = ({ project, readOnly }: { project: ProjectContext
 
   const hideSingleAndReusableDetailsForEugeneOrg = isEugeneOrg({ id: project.orgId });
   // Timeline (milestone history) is a Chart-Reuse 2.0 feature — hidden on legacy.
-  const { enabled: v2Enabled } = useChartReuse2();
+  const v2Enabled = chartReuse2;
   const timelineMenuItem = v2Enabled ? [{ key: 'timeline', label: 'Timeline' }] : [];
 
   const sidebarMenuItems = hideSingleAndReusableDetailsForEugeneOrg
@@ -289,6 +300,24 @@ export const ProjectionsStep = ({ project, readOnly }: { project: ProjectContext
             )}
           </Col>
           <StyledCol xs={24} md={19}>
+            {v2Active && v2Response?.available && (
+              <Alert
+                type='info'
+                showIcon
+                closable
+                style={{ marginBottom: 12 }}
+                message='Methodology 2.0 (beta)'
+                description={`Headline totals are computed under the 2.0 Combined Model. Detail breakdowns below still use Methodology 1.0 while 2.0's detail views are built.${
+                  v2Response.excluded.length
+                    ? ` Not yet defined in 2.0 and excluded from these totals: ${v2Response.excluded.join(', ')}.`
+                    : ''
+                }${
+                  v2Response.unmatchedSingleUse + v2Response.unmatchedReusables > 0
+                    ? ` ${v2Response.unmatchedSingleUse + v2Response.unmatchedReusables} line item(s) reference products not yet in the 2.0 directory and are excluded.`
+                    : ''
+                }`}
+              />
+            )}
             <span className={view === 'summary' ? '' : 'print-only'}>
               {project.category === 'event' ? (
                 <EventProjectSummary
@@ -379,7 +408,9 @@ export const ProjectionsStep = ({ project, readOnly }: { project: ProjectContext
             )}
           </StyledCol>
         </Row>
-        <MethodologyStamp version={(project as { methodologyVersion?: string }).methodologyVersion} />
+        <MethodologyStamp
+          version={v2Active ? '2.0' : (project as { methodologyVersion?: string }).methodologyVersion}
+        />
       </Wrapper>
     </CalculationInspectorProvider>
   );
