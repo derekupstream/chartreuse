@@ -441,6 +441,9 @@ model FactorDatabase {
   columns     Json
   /// Which column identifies a row (e.g. "Product ID")
   keyColumn   String?
+  /// 'factors' = core methodology data whose changes bump the version;
+  /// 'reference' = directories that grow without a version change (products, rates context)
+  kind        String               @default("reference")
   isActive    Boolean              @default(true)
   uploadedBy  String?              @db.Uuid
   rows        FactorDatabaseRow[]

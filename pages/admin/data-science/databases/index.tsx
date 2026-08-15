@@ -55,7 +55,14 @@ export default function FactorDatabasesPage({ user }: { user: DashboardUser }) {
   // upload state
   const [uploadOpen, setUploadOpen] = useState(false);
   const [parsed, setParsed] = useState<{ columns: DatabaseColumn[]; rows: Record<string, string>[] } | null>(null);
-  const [form, setForm] = useState({ name: '', description: '', sourceName: '', keyColumn: '', version: '' });
+  const [form, setForm] = useState({
+    name: '',
+    description: '',
+    sourceName: '',
+    keyColumn: '',
+    version: '',
+    kind: 'reference' as 'reference' | 'factors'
+  });
   const [saving, setSaving] = useState(false);
   // factors carried on product rows
   const [factorCols, setFactorCols] = useState<{ materialColumn?: string; ghgColumn?: string; waterColumn?: string }>(
@@ -66,6 +73,14 @@ export default function FactorDatabasesPage({ user }: { user: DashboardUser }) {
   // what to write from this upload
   const [mergeMode, setMergeMode] = useState<'replace' | 'update' | 'add' | 'upsert'>('upsert');
   const [mergeColumns, setMergeColumns] = useState<string[]>([]);
+
+  // The release the methodology currently stands at: the version shared by the factor tables.
+  const dataRelease = (() => {
+    const factorVersions = (databases ?? []).filter(d => d.kind === 'factors').map(d => d.version);
+    if (!factorVersions.length) return null;
+    const first = factorVersions[0];
+    return factorVersions.every(v => v === first) ? first : `${first} (mixed)`;
+  })();
 
   async function load() {
     const res = await fetch('/api/admin/factor-databases');
@@ -225,7 +240,7 @@ export default function FactorDatabasesPage({ user }: { user: DashboardUser }) {
       }
       setUploadOpen(false);
       setParsed(null);
-      setForm({ name: '', description: '', sourceName: '', keyColumn: '', version: '' });
+      setForm({ name: '', description: '', sourceName: '', keyColumn: '', version: '', kind: 'reference' });
       load();
     } catch (e: any) {
       message.error(e.message);
@@ -291,7 +306,16 @@ export default function FactorDatabasesPage({ user }: { user: DashboardUser }) {
             <DatabaseOutlined /> Databases
           </Title>
           <Text type='secondary'>
-            Reference tables kept in their own column structure — product catalogs, material factors, utility rates.
+            One database per source tab — product directories, factors, rates. Factor tables carry the data version;
+            product directories grow without changing it.
+            {dataRelease && (
+              <>
+                {' '}
+                <Tag color='green' style={{ marginLeft: 4 }}>
+                  Data Release {dataRelease}
+                </Tag>
+              </>
+            )}
           </Text>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
@@ -367,7 +391,20 @@ export default function FactorDatabasesPage({ user }: { user: DashboardUser }) {
                 <Tag>not recorded</Tag>
               )
           },
-          { title: 'Version', dataIndex: 'version', width: 90 },
+          {
+            title: 'Kind',
+            dataIndex: 'kind',
+            width: 105,
+            render: (v: string) =>
+              v === 'factors' ? <Tag color='green'>factors</Tag> : <Tag color='default'>reference</Tag>
+          },
+          {
+            title: 'Version',
+            dataIndex: 'version',
+            width: 90,
+            render: (v: string, row: FactorDatabaseSummary) =>
+              row.kind === 'factors' ? <Text strong>{v}</Text> : <Text type='secondary'>{v}</Text>
+          },
           {
             title: '',
             key: 'actions',
@@ -565,11 +602,18 @@ export default function FactorDatabasesPage({ user }: { user: DashboardUser }) {
               style={{ marginBottom: 8 }}
             />
             <Input
-              placeholder='Version label (optional — e.g. 2.0). Leave blank to auto-bump on changes.'
+              placeholder='Version label (optional — e.g. 2.0). Blank keeps the current version.'
               value={form.version}
               onChange={e => setForm({ ...form, version: e.target.value })}
               style={{ marginBottom: 8 }}
             />
+            <Checkbox
+              checked={form.kind === 'factors'}
+              onChange={e => setForm({ ...form, kind: e.target.checked ? 'factors' : 'reference' })}
+              style={{ marginBottom: 8 }}
+            >
+              Core factors table — value changes here alter calculations and bump the data version
+            </Checkbox>
             <Select
               placeholder='Which column identifies a row?'
               value={form.keyColumn || undefined}

@@ -32,6 +32,7 @@ export type DatabaseColumn = { key: string; label: string; type: 'text' | 'numbe
 export type FactorDatabaseSummary = {
   id: string;
   name: string;
+  kind: string;
   description: string | null;
   sourceName: string | null;
   sourceUrl: string | null;
@@ -64,6 +65,8 @@ export type CreateDatabaseRequest = {
   mergeMode?: MergeMode;
   /** Restrict writing to these columns; others keep their current values */
   mergeColumns?: string[];
+  /** 'factors' = core methodology data (changes bump the version); 'reference' = grows without a bump */
+  kind?: 'factors' | 'reference';
 };
 
 async function list(req: NextApiRequestWithUser, res: NextApiResponse) {
@@ -78,6 +81,7 @@ async function list(req: NextApiRequestWithUser, res: NextApiResponse) {
     sourceName: d.sourceName,
     sourceUrl: d.sourceUrl,
     version: d.version,
+    kind: d.kind,
     keyColumn: d.keyColumn,
     columnCount: Array.isArray(d.columns) ? (d.columns as unknown[]).length : 0,
     rowCount: d._count.rows,
@@ -105,13 +109,19 @@ async function create(req: NextApiRequestWithUser, res: NextApiResponse) {
     return res.status(400).json({ error: 'Nothing to update — no database of that name exists yet' });
   }
 
-  // Version policy: an explicit version in the upload wins (cutting a named release);
-  // otherwise any change to an existing table auto-bumps. New tables start at '1'.
+  // Version policy: the version is a methodology marker, not an upload counter.
+  // - An explicit version in the upload always wins (cutting a named release).
+  // - 'factors' tables auto-bump on change: their values alter what calculations produce.
+  // - 'reference' tables (product directories) grow without a bump; the changelog still
+  //   records every upload.
+  const kind = body.kind ?? existing?.kind ?? 'reference';
   const versionBefore = existing?.version ?? null;
   const versionAfter = existing
     ? body.version && body.version !== existing.version
       ? body.version
-      : bumpVersion(existing.version)
+      : kind === 'factors'
+        ? bumpVersion(existing.version)
+        : existing.version
     : body.version || '1';
 
   const data = {
@@ -120,6 +130,7 @@ async function create(req: NextApiRequestWithUser, res: NextApiResponse) {
     sourceName: body.sourceName || null,
     sourceUrl: body.sourceUrl || null,
     version: versionAfter,
+    kind,
     keyColumn: body.keyColumn || null,
     columns: body.columns as unknown as object,
     uploadedBy: req.user.id
