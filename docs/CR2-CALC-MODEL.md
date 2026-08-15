@@ -108,7 +108,14 @@ Structural differences from today's engine worth naming:
 5. **Stray artifacts:** `Water_Factors` has a dangling `CTGT` cell (row 28) inside the lookup
    range, and the reusable cardboard row is lowercase ("Corrugated cardboard") — harmless once
    #1 is fixed, but worth tidying since these tables become database uploads.
-6. **Scope statement.** Not in the workbook (fine, but should be said in the methodology doc):
+6. **GHG_Factors header row is mislabeled.** The headers read `material | scope` but the data
+   columns are `scope | material` (column A holds "Single-Use"/"Reusable"; her own SUMIFS
+   treat A as the scope). Water_Factors has it right. Cosmetic in the workbook, but it bit
+   the transfer: an export trusting the headers swaps the keys. Swap the two header cells.
+7. **Products in live use are missing from the directory.** Real projects reference single-use
+   ids 120–142 and custom reusables with no id. Extend the directory or define the intake
+   path for custom products (this blocks migrating those projects to 2.0).
+8. **Scope statement.** Not in the workbook (fine, but should be said in the methodology doc):
    bottle stations, event/actuals projects, per-location multipliers, environmental break-even.
    Break-even is derivable from the Initial vs Recurring columns, so no change needed — just
    naming what 2.0's first cut covers.
@@ -130,6 +137,32 @@ Door, High, Energy Star, electric/electric, 365 days × 80 racks). Expected outp
 
 These become the 2.0 golden dataset the moment the engine exists. (Note: the water figures
 inherit bug #1 above — regenerate them from the corrected workbook before freezing the fixture.)
+
+## Verification results (2026-08-15)
+
+The workbook's formulas are implemented in `lib/calculator/v2/combinedModel.ts`, and the
+golden spec (`lib/calculator/v2/__tests__/combinedModel.golden.spec.ts`) reproduces her
+Dashboard tab **exactly — all metrics to 8+ significant figures** — when replicating the
+unscoped box-water lookup, and pins the corrected behaviour's delta (precisely one duplicate
+cardboard factor on recurring box mass).
+
+Real projects through both engines (`scripts/compare-v2-projects.ts`):
+
+- **Input mapping is faithful.** On projects with no dishwasher/labor (Total GCSR foodware),
+  annual savings and SU units match v1 to 0.0% — the stored line items translate cleanly
+  into the 2.0 input shape.
+- **Environmental deltas match the documented changes.** GHG avoided drops ~5–17% (the
+  freight double-application removed), water shifts with the CTGT factors, waste moves
+  because 2.0 counts boxes and reusable mass.
+- **Dishwasher and labor projects swing hard** (savings +418% to −96%): the 2.0 model has no
+  labor/other-expense terms yet (feedback #3) and its dishwashing method (heater-only, $/1000
+  gal water) differs from v1's. Expected, but it means financial comparisons are only
+  apples-to-apples once feedback #3 is resolved.
+- **NEW GAP — the 2.0 product directory is missing products in live use.** Real projects
+  reference SU product ids 120–142 (the range beyond her 118-row directory: Taco Bell/custom
+  products) and free-text custom reusables with no product_id at all. Those lines drop out of
+  the 2.0 model entirely. She needs to either extend the directory or define how custom
+  products enter it. Raised as feedback #8.
 
 ## Transfer plan
 

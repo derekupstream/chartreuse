@@ -1,155 +1,155 @@
 {
  "ghg_factors": [
   {
-   "material": "Single-Use",
-   "scope": "Paper",
+   "material": "Paper",
+   "scope": "Single-Use",
    "ghg_factor_mtco2e_per_lb": 0.004685,
    "source": "chart-reuse-directory",
    "unit": "MTCO\u2082e/lb"
   },
   {
-   "material": "Single-Use",
-   "scope": "Corrugated Cardboard",
+   "material": "Corrugated Cardboard",
+   "scope": "Single-Use",
    "ghg_factor_mtco2e_per_lb": 0.002885,
    "source": "chart-reuse-directory",
    "unit": "MTCO\u2082e/lb"
   },
   {
-   "material": "Single-Use",
-   "scope": "Molded Fiber (Paper)",
+   "material": "Molded Fiber (Paper)",
+   "scope": "Single-Use",
    "ghg_factor_mtco2e_per_lb": 0.004545,
    "source": "chart-reuse-directory",
    "unit": "MTCO\u2082e/lb"
   },
   {
-   "material": "Single-Use",
-   "scope": "Molded Fiber (Plant)",
+   "material": "Molded Fiber (Plant)",
+   "scope": "Single-Use",
    "ghg_factor_mtco2e_per_lb": 0.004685,
    "source": "chart-reuse-directory",
    "unit": "MTCO\u2082e/lb"
   },
   {
-   "material": "Single-Use",
-   "scope": "Wood",
+   "material": "Wood",
+   "scope": "Single-Use",
    "ghg_factor_mtco2e_per_lb": 0.0005949999999999999,
    "source": "chart-reuse-directory",
    "unit": "MTCO\u2082e/lb"
   },
   {
-   "material": "Single-Use",
-   "scope": "Plastic (#1 PET)",
+   "material": "Plastic (#1 PET)",
+   "scope": "Single-Use",
    "ghg_factor_mtco2e_per_lb": 0.0011,
    "source": "chart-reuse-directory",
    "unit": "MTCO\u2082e/lb"
   },
   {
-   "material": "Single-Use",
-   "scope": "Plastic (#5 PP)",
+   "material": "Plastic (#5 PP)",
+   "scope": "Single-Use",
    "ghg_factor_mtco2e_per_lb": 0.0007750000000000001,
    "source": "chart-reuse-directory",
    "unit": "MTCO\u2082e/lb"
   },
   {
-   "material": "Single-Use",
-   "scope": "Plastic (#6 PS)",
+   "material": "Plastic (#6 PS)",
+   "scope": "Single-Use",
    "ghg_factor_mtco2e_per_lb": 0.001265,
    "source": "chart-reuse-directory",
    "unit": "MTCO\u2082e/lb"
   },
   {
-   "material": "Single-Use",
-   "scope": "Plastic (LDPE)",
+   "material": "Plastic (LDPE)",
+   "scope": "Single-Use",
    "ghg_factor_mtco2e_per_lb": 0.000915,
    "source": "chart-reuse-directory",
    "unit": "MTCO\u2082e/lb"
   },
   {
-   "material": "Single-Use",
-   "scope": "Compostable Plastic (PLA)",
+   "material": "Compostable Plastic (PLA)",
+   "scope": "Single-Use",
    "ghg_factor_mtco2e_per_lb": 0.0004100000000000002,
    "source": "chart-reuse-directory",
    "unit": "MTCO\u2082e/lb"
   },
   {
-   "material": "Single-Use",
-   "scope": "EPS Foam",
+   "material": "EPS Foam",
+   "scope": "Single-Use",
    "ghg_factor_mtco2e_per_lb": 0.001265,
    "source": "chart-reuse-directory",
    "unit": "MTCO\u2082e/lb"
   },
   {
-   "material": "Single-Use",
-   "scope": "Aluminum",
+   "material": "Aluminum",
+   "scope": "Single-Use",
    "ghg_factor_mtco2e_per_lb": 0.003755,
    "source": "chart-reuse-directory",
    "unit": "MTCO\u2082e/lb"
   },
   {
-   "material": "Reusable",
-   "scope": "Glass",
+   "material": "Glass",
+   "scope": "Reusable",
    "ghg_factor_mtco2e_per_lb": 0.00028,
    "source": "chart-reuse-directory",
    "unit": "MTCO\u2082e/lb"
   },
   {
-   "material": "Reusable",
-   "scope": "Stainless Steel",
+   "material": "Stainless Steel",
+   "scope": "Reusable",
    "ghg_factor_mtco2e_per_lb": 0.00119,
    "source": "chart-reuse-directory",
    "unit": "MTCO\u2082e/lb"
   },
   {
-   "material": "Reusable",
-   "scope": "Aluminum",
+   "material": "Aluminum",
+   "scope": "Reusable",
    "ghg_factor_mtco2e_per_lb": 0.003085,
    "source": "chart-reuse-directory",
    "unit": "MTCO\u2082e/lb"
   },
   {
-   "material": "Reusable",
-   "scope": "Plastic (#5 PP)",
+   "material": "Plastic (#5 PP)",
+   "scope": "Reusable",
    "ghg_factor_mtco2e_per_lb": 0.000775,
    "source": "chart-reuse-directory",
    "unit": "MTCO\u2082e/lb"
   },
   {
-   "material": "Reusable",
-   "scope": "HDPE",
+   "material": "HDPE",
+   "scope": "Reusable",
    "ghg_factor_mtco2e_per_lb": 0.000725,
    "source": "chart-reuse-directory",
    "unit": "MTCO\u2082e/lb"
   },
   {
-   "material": "Reusable",
-   "scope": "SAN Plastic",
+   "material": "SAN Plastic",
+   "scope": "Reusable",
    "ghg_factor_mtco2e_per_lb": 0.00098,
    "source": "chart-reuse-directory",
    "unit": "MTCO\u2082e/lb"
   },
   {
-   "material": "Reusable",
-   "scope": "Melamine",
+   "material": "Melamine",
+   "scope": "Reusable",
    "ghg_factor_mtco2e_per_lb": 0.000965,
    "source": "chart-reuse-directory",
    "unit": "MTCO\u2082e/lb"
   },
   {
-   "material": "Reusable",
-   "scope": "Ceramic",
+   "material": "Ceramic",
+   "scope": "Reusable",
    "ghg_factor_mtco2e_per_lb": 0.00080723,
    "source": "chart-reuse-directory",
    "unit": "MTCO\u2082e/lb"
   },
   {
-   "material": "Reusable",
-   "scope": "Polycarbonate",
+   "material": "Polycarbonate",
+   "scope": "Reusable",
    "ghg_factor_mtco2e_per_lb": 0.00075,
    "source": "chart-reuse-directory",
    "unit": "MTCO\u2082e/lb"
   },
   {
-   "material": "Reusable",
-   "scope": "Recycled Stainless Steel",
+   "material": "Recycled Stainless Steel",
+   "scope": "Reusable",
    "ghg_factor_mtco2e_per_lb": 0.00097,
    "source": "chart-reuse-directory",
    "unit": "MTCO\u2082e/lb"
