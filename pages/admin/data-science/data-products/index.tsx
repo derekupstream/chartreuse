@@ -84,7 +84,15 @@ export default function DataProductsListPage({ products: initial }: Props) {
       title: 'Name',
       key: 'name',
       render: (_, r) => (
-        <Link href={`/admin/data-science/data-products/${r.id}`} style={{ fontWeight: 600 }}>
+        // Products with a dedicated bench page open it directly; everything else opens the designer.
+        <Link
+          href={
+            r.slug === 'annual-projections-2-0'
+              ? '/admin/data-science/data-products/annual-projections-2'
+              : `/admin/data-science/data-products/${r.id}`
+          }
+          style={{ fontWeight: 600 }}
+        >
           {r.name}
         </Link>
       )
