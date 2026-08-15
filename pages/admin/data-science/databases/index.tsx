@@ -93,9 +93,18 @@ export default function FactorDatabasesPage({ user }: { user: DashboardUser }) {
     setDetail(null);
     setSearch('');
     fetch(`/api/admin/factor-databases/${openId}`)
-      .then(r => r.json())
-      .then(setDetail)
-      .catch(() => message.error('Could not load that database'));
+      .then(async r => {
+        const body = await r.json();
+        // An error body must never be rendered as a database — that crashes the page.
+        if (!r.ok || !Array.isArray(body.columns)) {
+          throw new Error(body.error || `Could not load that database (HTTP ${r.status})`);
+        }
+        setDetail({ ...body, changes: Array.isArray(body.changes) ? body.changes : [] });
+      })
+      .catch(err => {
+        message.error((err as Error).message);
+        setOpenId(null);
+      });
   }, [openId]);
 
   function handleFile(file: File) {
