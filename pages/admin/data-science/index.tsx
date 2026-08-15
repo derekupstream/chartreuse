@@ -1,26 +1,30 @@
 /**
  * The Data Science Command Center — the operations home (docs/CR2-PRODUCT-STUDIO-SPEC.md §1).
  *
- * Health and action first: system cards, the most-used functions as one-click actions, a
- * three-column health / change-alerts / AI-queue band, products grouped by type with their
- * golden datasets, and an activity feed. Every number is live.
+ * Top half keeps the original Data Governance Admin design language: KPI cards with a big
+ * red count or a green all-clear check, a one-line meaning, and a View → action. Below:
+ * quick-action tiles, the health / change-alerts / AI-queue band, products by type with
+ * golden-dataset badges, and the activity feed. Every number is live.
  */
 import {
   AlertOutlined,
   ApartmentOutlined,
-  CheckCircleFilled,
+  CheckCircleOutlined,
   DashboardOutlined,
   DatabaseOutlined,
   ExperimentOutlined,
   FileSearchOutlined,
   PlusOutlined,
+  QuestionCircleOutlined,
   RobotOutlined,
+  SafetyCertificateOutlined,
   UploadOutlined,
   WarningFilled
 } from '@ant-design/icons';
-import { Alert, Badge, Button, Card, Col, Empty, List, Row, Statistic, Tabs, Tag, Typography } from 'antd';
+import { Badge, Card, Col, Empty, List, Row, Tabs, Tag, Tooltip, Typography } from 'antd';
 import type { GetServerSideProps } from 'next';
 import Link from 'next/link';
+import styled from 'styled-components';
 
 import type { DashboardUser } from 'interfaces';
 import { AdminLayout } from 'layouts/AdminLayout';
@@ -32,6 +36,99 @@ import type { PageProps } from 'pages/_app';
 
 const { Title, Text, Paragraph } = Typography;
 
+/* ── the original governance-admin card language ─────────────────────────────────────── */
+
+const KpiCard = styled(Card)<{ $alert?: boolean }>`
+  height: 100%;
+  border-color: ${p => (p.$alert ? '#ff4d4f22' : undefined)};
+  .ant-card-body {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+`;
+
+const KpiNumber = styled.div<{ $zero: boolean }>`
+  font-size: 40px;
+  font-weight: 700;
+  line-height: 1;
+  color: ${p => (p.$zero ? '#3f8600' : '#cf1322')};
+`;
+
+const KpiLabel = styled.div`
+  font-size: 13px;
+  color: rgba(0, 0, 0, 0.45);
+  font-weight: 400;
+`;
+
+const KpiTitle = styled.div`
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.65);
+  margin-bottom: 4px;
+`;
+
+const ActionTile = styled(Card)`
+  height: 100%;
+  .ant-card-body {
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+`;
+
+function KpiCardBlock({
+  title,
+  value,
+  subtext,
+  href,
+  icon,
+  help,
+  alertOverride,
+  overrideLabel
+}: {
+  title: string;
+  value: number;
+  subtext: string;
+  href: string;
+  icon: React.ReactNode;
+  /** What this metric means and what a healthy value looks like. */
+  help: React.ReactNode;
+  /** Force alert styling even at zero (e.g. tests stale after data changed) */
+  alertOverride?: boolean;
+  overrideLabel?: string;
+}) {
+  const isZero = value === 0 && alertOverride !== true;
+  return (
+    <KpiCard $alert={!isZero} hoverable>
+      <KpiTitle>
+        {icon} {title}
+        <Tooltip title={help} overlayStyle={{ maxWidth: 340 }}>
+          <QuestionCircleOutlined style={{ marginLeft: 6, color: 'rgba(0,0,0,0.35)', cursor: 'help', fontSize: 13 }} />
+        </Tooltip>
+      </KpiTitle>
+      <KpiNumber $zero={isZero}>{isZero || value === 0 ? <CheckCircleOutlined /> : value}</KpiNumber>
+      <KpiLabel>
+        {isZero
+          ? 'No issues detected'
+          : value === 0 && alertOverride
+            ? (overrideLabel ?? 'Needs attention')
+            : `${value} item${value !== 1 ? 's' : ''} to review`}
+      </KpiLabel>
+      <KpiLabel style={{ fontSize: 11, marginTop: 2 }}>{subtext}</KpiLabel>
+      <div style={{ marginTop: 'auto', paddingTop: 12 }}>
+        <Link href={href} style={{ display: 'block', textAlign: 'center', fontSize: 12, color: '#1890ff' }}>
+          View →
+        </Link>
+      </div>
+    </KpiCard>
+  );
+}
+
+/* ── data ─────────────────────────────────────────────────────────────────────────────── */
+
 type ProductCard = {
   id: string;
   name: string;
@@ -42,26 +139,23 @@ type ProductCard = {
   goldenDatasetName: string | null;
 };
 
-type ActivityItem = { at: string; text: string; kind: 'data' | 'snapshot' | 'test' | 'upload' | 'product' };
+type ActivityItem = { at: string; text: string; kind: string };
 
 type Props = {
   user: DashboardUser;
-  cards: {
-    productsLive: number;
-    productsTotal: number;
-    goldenTotal: number;
-    goldenLinkedProducts: number;
-    openIssues: number;
-    uploadsPending: number;
-    dataChanges7d: number;
-    pendingChangeRequests: number;
-  };
+  openIssues: number;
+  pendingChangeRequests: number;
+  uploadsPending: number;
+  dataChanges7d: number;
+  goldenLinkedProducts: number;
+  productsTotal: number;
+  lastTestRun: { passed: number; failed: number; at: string } | null;
+  testsStale: boolean;
   healthIssues: { issueType: string; severity: string; count: number }[];
   changeAlerts: { at: string; text: string }[];
-  uploadQueue: { at: string; fileName: string; status: string; dataType: string }[];
+  uploadQueue: { at: string; fileName: string; status: string }[];
   products: ProductCard[];
   activity: ActivityItem[];
-  lastTestRun: { passed: number; failed: number; at: string } | null;
 };
 
 export const getServerSideProps: GetServerSideProps = async context => {
@@ -73,8 +167,6 @@ export const getServerSideProps: GetServerSideProps = async context => {
 
   const [
     productsTotal,
-    productsLive,
-    goldenTotal,
     goldenLinkedProducts,
     openIssues,
     issueGroups,
@@ -84,14 +176,11 @@ export const getServerSideProps: GetServerSideProps = async context => {
     recentChanges,
     recentSnapshots,
     recentTests,
-    recentUploads,
     productRows,
     goldenRows,
     lastTest
   ] = await Promise.all([
     prisma.dataProductDefinition.count(),
-    prisma.dataProductDefinition.count({ where: { status: 'published' } }),
-    prisma.goldenDataset.count({ where: { isActive: true } }),
     prisma.dataProductDefinition.count({ where: { goldenDatasetId: { not: null } } }),
     prisma.dataHealthIssue.count({ where: { status: 'open' } }),
     prisma.dataHealthIssue.groupBy({
@@ -105,7 +194,7 @@ export const getServerSideProps: GetServerSideProps = async context => {
       where: { status: { notIn: ['applied', 'discarded'] } },
       orderBy: { createdAt: 'desc' },
       take: 6,
-      select: { createdAt: true, fileName: true, status: true, dataType: true }
+      select: { createdAt: true, fileName: true, status: true }
     }),
     prisma.factorDatabaseChange.count({ where: { createdAt: { gte: sevenDaysAgo } } }),
     prisma.changeRequest.count({ where: { status: 'pending' } }),
@@ -123,11 +212,6 @@ export const getServerSideProps: GetServerSideProps = async context => {
       orderBy: { createdAt: 'desc' },
       take: 3,
       select: { createdAt: true, passed: true, failed: true }
-    }),
-    prisma.importSession.findMany({
-      orderBy: { createdAt: 'desc' },
-      take: 3,
-      select: { createdAt: true, fileName: true, status: true }
     }),
     prisma.dataProductDefinition.findMany({
       orderBy: { updatedAt: 'desc' },
@@ -159,22 +243,20 @@ export const getServerSideProps: GetServerSideProps = async context => {
     } (+${change.rowsAdded}/${change.rowsUpdated}u)${change.sourceNote ? ` — ${change.sourceNote}` : ''}`
   }));
 
+  const testsStale = changeAlerts.length > 0 && (!lastTest || lastTest.createdAt.toISOString() < changeAlerts[0].at);
+
   const activity: ActivityItem[] = [
-    ...changeAlerts.map(a => ({ at: a.at, text: a.text, kind: 'data' as const })),
-    ...recentSnapshots.map(s => ({
-      at: s.createdAt.toISOString(),
-      text: `Snapshot cut: ${s.name}`,
-      kind: 'snapshot' as const
-    })),
+    ...changeAlerts.map(a => ({ at: a.at, text: a.text, kind: 'data' })),
+    ...recentSnapshots.map(s => ({ at: s.createdAt.toISOString(), text: `Snapshot cut: ${s.name}`, kind: 'snapshot' })),
     ...recentTests.map(t => ({
       at: t.createdAt.toISOString(),
       text: `Test run: ${t.passed} passed, ${t.failed} failed`,
-      kind: 'test' as const
+      kind: 'test'
     })),
-    ...recentUploads.map(u => ({
+    ...uploadsPendingList.map(u => ({
       at: u.createdAt.toISOString(),
       text: `AI upload: ${u.fileName} (${u.status})`,
-      kind: 'upload' as const
+      kind: 'upload'
     }))
   ]
     .sort((a, b) => b.at.localeCompare(a.at))
@@ -182,23 +264,22 @@ export const getServerSideProps: GetServerSideProps = async context => {
 
   const props: Props = {
     user: user as unknown as DashboardUser,
-    cards: {
-      productsLive,
-      productsTotal,
-      goldenTotal,
-      goldenLinkedProducts,
-      openIssues,
-      uploadsPending: uploadsPendingList.length,
-      dataChanges7d: changes7d,
-      pendingChangeRequests
-    },
+    openIssues,
+    pendingChangeRequests,
+    uploadsPending: uploadsPendingList.length,
+    dataChanges7d: changes7d,
+    goldenLinkedProducts,
+    productsTotal,
+    lastTestRun: lastTest
+      ? { passed: lastTest.passed, failed: lastTest.failed, at: lastTest.createdAt.toISOString() }
+      : null,
+    testsStale,
     healthIssues: issueGroups.map(g => ({ issueType: g.issueType, severity: g.severity, count: g._count._all })),
     changeAlerts,
     uploadQueue: uploadsPendingList.map(u => ({
       at: u.createdAt.toISOString(),
       fileName: u.fileName,
-      status: u.status,
-      dataType: u.dataType
+      status: u.status
     })),
     products: productRows.map(p => ({
       id: p.id,
@@ -209,21 +290,15 @@ export const getServerSideProps: GetServerSideProps = async context => {
       updatedAt: p.updatedAt.toISOString(),
       goldenDatasetName: p.goldenDatasetId ? (goldenById.get(p.goldenDatasetId) ?? null) : null
     })),
-    activity,
-    lastTestRun: lastTest
-      ? { passed: lastTest.passed, failed: lastTest.failed, at: lastTest.createdAt.toISOString() }
-      : null
+    activity
   };
   return { props: serializeJSON(props) };
 };
 
+/* ── quick actions ────────────────────────────────────────────────────────────────────── */
+
 const QUICK_ACTIONS = [
-  {
-    label: 'Upload workbook',
-    href: '/admin/data-science/databases/workbook-upload',
-    icon: <UploadOutlined />,
-    primary: true
-  },
+  { label: 'Upload workbook', href: '/admin/data-science/databases/workbook-upload', icon: <UploadOutlined /> },
   { label: 'AI Data Uploader', href: '/admin/data-science/import', icon: <RobotOutlined /> },
   { label: 'Create Calculator', href: '/admin/data-science/data-products/new?type=calculator', icon: <PlusOutlined /> },
   {
@@ -237,7 +312,7 @@ const QUICK_ACTIONS = [
     icon: <ApartmentOutlined />
   },
   { label: 'Product Designer', href: '/admin/data-science/data-products', icon: <ExperimentOutlined /> },
-  { label: 'Validate Golden Datasets', href: '/admin/data-science/test-runs', icon: <CheckCircleFilled /> },
+  { label: 'Validate Golden Datasets', href: '/admin/data-science/test-runs', icon: <SafetyCertificateOutlined /> },
   { label: 'Data Map / Traceability', href: '/admin/data-science/data-map', icon: <FileSearchOutlined /> }
 ];
 
@@ -279,16 +354,21 @@ function ProductGrid({ products }: { products: ProductCard[] }) {
 }
 
 export default function CommandCenter({
-  cards,
+  openIssues,
+  pendingChangeRequests,
+  uploadsPending,
+  dataChanges7d,
+  goldenLinkedProducts,
+  productsTotal,
+  lastTestRun,
+  testsStale,
   healthIssues,
   changeAlerts,
   uploadQueue,
   products,
-  activity,
-  lastTestRun
+  activity
 }: Props) {
   const byType = (type: string) => products.filter(p => p.productType === type);
-  const testsGreen = lastTestRun && lastTestRun.failed === 0;
 
   return (
     <>
@@ -300,79 +380,77 @@ export default function CommandCenter({
         scenarios.
       </Paragraph>
 
-      {/* Row 1 — system cards */}
-      <Row gutter={[12, 12]}>
-        <Col xs={12} md={4}>
-          <Card size='small'>
-            <Statistic title='Products live' value={cards.productsLive} suffix={`/ ${cards.productsTotal}`} />
-          </Card>
+      {/* Row 1 — governance KPI cards, original design language */}
+      <Row gutter={[16, 16]}>
+        <Col xs={12} lg={6}>
+          <KpiCardBlock
+            title='Data Health'
+            icon={<AlertOutlined />}
+            value={openIssues}
+            subtext='open data quality issues'
+            href='/admin/data-science/data-map'
+            help='Issues detected across projects and RSP submissions: missing inputs, unknown types, suspect values. Healthy is zero; anything else deserves a look.'
+          />
         </Col>
-        <Col xs={12} md={4}>
-          <Card size='small'>
-            <Statistic
-              title='Products with golden'
-              value={cards.goldenLinkedProducts}
-              suffix={`/ ${cards.productsTotal}`}
-              valueStyle={cards.goldenLinkedProducts < cards.productsTotal ? { color: '#cf1322' } : undefined}
-            />
-          </Card>
+        <Col xs={12} lg={6}>
+          <KpiCardBlock
+            title='Change Requests'
+            icon={<DatabaseOutlined />}
+            value={pendingChangeRequests}
+            subtext='pending review'
+            href='/admin/data-science/change-requests'
+            help='Proposed factor changes awaiting approval — the step between "someone thinks this value is wrong" and it changing.'
+          />
         </Col>
-        <Col xs={12} md={4}>
-          <Card size='small'>
-            <Statistic
-              title='Alerts to review'
-              value={cards.openIssues}
-              valueStyle={cards.openIssues > 0 ? { color: '#cf1322' } : { color: '#3f8600' }}
-            />
-          </Card>
+        <Col xs={12} lg={6}>
+          <KpiCardBlock
+            title='AI Uploads'
+            icon={<RobotOutlined />}
+            value={uploadsPending}
+            subtext='files awaiting review'
+            href='/admin/data-science/import'
+            help='Workbooks and files in the AI uploader queue that have been analyzed but not yet approved or discarded.'
+          />
         </Col>
-        <Col xs={12} md={4}>
-          <Card size='small'>
-            <Statistic title='AI uploads pending' value={cards.uploadsPending} />
-          </Card>
-        </Col>
-        <Col xs={12} md={4}>
-          <Card size='small'>
-            <Statistic title='Data changes (7d)' value={cards.dataChanges7d} />
-          </Card>
-        </Col>
-        <Col xs={12} md={4}>
-          <Card size='small'>
-            <Statistic title='Change requests' value={cards.pendingChangeRequests} />
-          </Card>
+        <Col xs={12} lg={6}>
+          <KpiCardBlock
+            title='Golden Validation'
+            icon={<SafetyCertificateOutlined />}
+            value={lastTestRun?.failed ?? 0}
+            subtext={
+              lastTestRun
+                ? `last run ${new Date(lastTestRun.at).toLocaleDateString()} · ${dataChanges7d} data changes this week`
+                : 'never run'
+            }
+            href='/admin/data-science/test-runs'
+            help='Failing checks from the most recent golden dataset run. Also alerts when data changed after the last run — green results against old data prove nothing.'
+            alertOverride={testsStale}
+            overrideLabel='Data updated — re-run tests'
+          />
         </Col>
       </Row>
 
-      {lastTestRun && (
-        <Alert
-          style={{ marginTop: 12 }}
-          type={testsGreen ? 'success' : 'error'}
-          showIcon
-          message={
-            testsGreen
-              ? `Last golden validation: all ${lastTestRun.passed} checks passed (${new Date(lastTestRun.at).toLocaleDateString()}).`
-              : `Last golden validation: ${lastTestRun.failed} FAILING (${new Date(lastTestRun.at).toLocaleDateString()}) — a failing golden dataset is a review artifact, look before re-running.`
-          }
-        />
-      )}
-
-      {/* Row 2 — quick actions */}
-      <Card size='small' style={{ marginTop: 16 }} title='Quick actions'>
-        <Row gutter={[8, 8]}>
-          {QUICK_ACTIONS.map(action => (
-            <Col key={action.label} xs={12} md={6} lg={3}>
-              <Link href={action.href}>
-                <Button block type={action.primary ? 'primary' : 'default'} icon={action.icon} style={{ height: 44 }}>
-                  <span style={{ fontSize: 12 }}>{action.label}</span>
-                </Button>
-              </Link>
-            </Col>
-          ))}
-        </Row>
-      </Card>
+      {/* Row 2 — quick actions as tiles */}
+      <Title level={5} style={{ margin: '24px 0 8px' }}>
+        Quick actions
+      </Title>
+      <Row gutter={[12, 12]}>
+        {QUICK_ACTIONS.map(action => (
+          <Col key={action.label} xs={12} md={6}>
+            <Link href={action.href}>
+              <ActionTile hoverable>
+                <span style={{ fontSize: 18, color: '#1f7a4d' }}>{action.icon}</span>
+                <Text strong style={{ fontSize: 13 }}>
+                  {action.label}
+                </Text>
+              </ActionTile>
+            </Link>
+          </Col>
+        ))}
+      </Row>
 
       {/* Row 3 — health · change alerts · AI queue */}
-      <Row gutter={[12, 12]} style={{ marginTop: 16 }}>
+      <Row gutter={[12, 12]} style={{ marginTop: 24 }}>
         <Col xs={24} lg={8}>
           <Card
             size='small'
@@ -464,7 +542,14 @@ export default function CommandCenter({
         size='small'
         style={{ marginTop: 16 }}
         title='Products'
-        extra={<Link href='/admin/data-science/data-products'>all products</Link>}
+        extra={
+          <>
+            <Tag color={goldenLinkedProducts < productsTotal ? 'red' : 'green'}>
+              {goldenLinkedProducts}/{productsTotal} with golden dataset
+            </Tag>
+            <Link href='/admin/data-science/data-products'>all products</Link>
+          </>
+        }
       >
         <Tabs
           items={[
