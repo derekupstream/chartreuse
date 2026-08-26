@@ -89,6 +89,16 @@ Reuse Service Providers (`org.orgType = 'reuse-service-provider'`) push usage da
 
 `lib/featureFlags.ts` — hardcoded org IDs, not a flag service.
 
+## Branches
+
+- `main` — live, Vercel auto-deploys. Currently Chart-Reuse **Legacy** (Methodology 1.0).
+- **`chartreuse-legacy-v1.0`** (tag) — immutable restore point at the last pre-2.0 state.
+- `chartreuseV2` — Chart-Reuse 2.0: versioned databases, the v2 engine (`lib/calculator/v2/`),
+  golden datasets, methodology versioning, Command Center. Unmerged; **5 migrations** must hit
+  production before it deploys. See `docs/CR2-CALC-MODEL.md`, `docs/VERSIONING.md`,
+  `docs/CR2-PRODUCT-STUDIO-SPEC.md`.
+- `feat/regional-grid-factors` — built, held on sign-off.
+
 ## Gotchas
 
 - The Vercel build target does not support spreading a Set (`[...new Set(x)]`) — use `Array.from(new Set(x))`.
