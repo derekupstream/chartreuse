@@ -170,3 +170,41 @@ Push to `main` on `derekupstream/chartreuse` → Vercel auto-deploys. `prisma/sc
 ### Client data-fetching gotcha
 
 There is **no global `SWRConfig`** — `client/helpers.ts` wrappers (`useGET`, `usePOST`, …) supply fetchers, but any raw `useSWR` call must pass an explicit fetcher or it silently does nothing.
+
+## 16. Strategic Partners & Forward Roadmap
+
+### ECCC (Environment and Climate Change Canada) — primary partner
+
+Funder, Canadian data supplier, and prospective fee-for-service client. ECCC is referencing
+Chart-Reuse in its **five-year funding renewal documents** and has raised contracting Upstream
+for additional work (Robert, 2026-08). What they want, in order of commitment:
+
+1. **A Canada-accurate Chart-Reuse** — provincial electricity rates (shipped, Hydro-Québec
+   2025), regional grid carbon intensity (built, held — `feat/regional-grid-factors`),
+   Canadian gas/water rates, CAD handling, and Canadian reusable product pricing (A-P's ask,
+   with ECCC supplying the data). Backlog #15–17 + P0 #4.
+2. **A Canadian project template** ("C-R template") co-built at the planned **Q4 2026 working
+   session**. Backlog #18.
+3. **To supply data as a versioned source** — their rates/prices arrive through the workbook
+   diff-and-choose flow as named, source-attributed data releases, citable in the policy
+   documents they write. Backlog #19a.
+4. **Policy scenario comparison** — "coffee shops only vs coffee shops + schools" by geography
+   and time horizon: the Product Studio's *scenario* type with ECCC as the marquee user, and
+   the most likely paid-contract deliverable. Backlog #19b, spec in
+   `docs/CR2-PRODUCT-STUDIO-SPEC.md`.
+5. **Institutional trust requirements** — methodology versioning and stamps (shipped),
+   calculation transparency for account owners (#19c), and **French** (Official Languages
+   Act — scope on the Q4 call, #19).
+
+### Other active partnerships
+
+- **StopWaste** — California school-district data powering the schools calculator
+  (back end complete est. end 2026; public launch Q1 2027).
+- **Sharewares & 99Bridges** — RSP API beta, October 2026 (`docs/RSP-API.md`).
+- **City of Berkeley** — reuse incentive program tracking (unpaid).
+- **City of Seattle** — paused on data-confidentiality concerns; route: receive their data via
+  the RSPs serving the city; legal agreements in drafting.
+
+The full prioritized work list lives in `docs/BACKLOG.md`; the 2.0 methodology transfer in
+`docs/CR2-CALC-MODEL.md`; the admin/product-studio direction in `docs/CR2-PRODUCT-STUDIO-SPEC.md`;
+versioning semantics in `docs/VERSIONING.md`.

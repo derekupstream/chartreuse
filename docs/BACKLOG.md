@@ -11,7 +11,7 @@ Detail lives in companion docs where noted:
 
 Status key: **open** · **blocked** (waiting on someone) · **built, held** (code exists, not released)
 
-Last updated 2026-07-21.
+Last updated 2026-08-15.
 
 ---
 
@@ -43,13 +43,22 @@ Full detail in `docs/DATA-REVIEW-AGENDA.md` §3. A golden dataset from Madhavi's
 
 ## P1 — ECCC / Canada
 
+**ECCC is a primary Chart-Reuse partner**: funder, Canadian data supplier, and prospective
+fee-for-service client. They are referencing Chart-Reuse in their five-year funding renewal
+documents and have raised contracting Upstream for additional work (Robert, 2026-08). A Q4 2026
+working session ("Canadianize Chart-Reuse", with A-P) is planned — items 15–19c below are that
+engagement's checklist. P0 #4 (CAD currency guard) is also part of the Q4 package.
+
 | #   | Item                               | Notes                                                                                                                                                                                                                |
 | --- | ---------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 15  | **Regional grid carbon intensity** | EPA eGRID + CER/ECCC provincial factors replacing one flat continent-wide number. **built, held** on branch `feat/regional-grid-factors` pending sign-off. Also corrects a factor ~2× today's US average. Agenda §3. |
 | 16  | Canadian gas and water rates       | Still US placeholders for all provinces. **open**                                                                                                                                                                    |
 | 17  | Canadian (CAD) product pricing     | A-P's ask; ECCC offered to supply the data. Extends the per-org catalog work with regional prices. **open**                                                                                                          |
 | 18  | Canadian / ECCC project template   | Co-build on the call: province default, CAD, their typical foodware. **open**                                                                                                                                        |
-| 19  | French localisation                | Official Languages requirements are likely for a federal deployment. Flag in contract scope rather than absorb. **open**                                                                                             |
+| 19  | French localisation                | Official Languages requirements are likely for a federal deployment. Flag in contract scope rather than absorb; ask Robert directly on the Q4 call. **open**                                                                                             |
+| 19a | **ECCC as a versioned data supplier** | "We could do some work to feed you info" (Robert). Their rates/prices arrive through the workbook-upload diff flow as named, source-attributed data releases ("Source: ECCC, 2026") — citable in the policy documents they write. Mechanism shipped on `feat/cr2-data-admin`; remaining work: onboard ECCC to the flow and add per-release source attribution surfaced on the methodology stamp. **open** |
+| 19b | **Scenario products for policy comparison** | ECCC's core use: compare interventions ("coffee shops only vs coffee shops + schools") by geography and time horizon. This is the Studio's scenario type (spec phases 3+, `docs/CR2-PRODUCT-STUDIO-SPEC.md`) with ECCC as the marquee user — the most likely paid-contract deliverable. **open** |
+| 19c | Calculation transparency for institutional accounts | An agency citing Chart-Reuse in federal renewal documents will need to show how a number was produced. Inspection machinery exists (Upstream-only today); opening it to institutional account owners is the "transparency free" half of the tiering line in #30b. **open** |
 
 ## P2 — Berkeley (Zohe)
 
