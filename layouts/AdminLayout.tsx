@@ -57,7 +57,15 @@ const DATA_SCIENCE_KEYS = [
   'data-science/impact',
   'data-science/inputs',
   'data-science/data-map',
-  'data-science/lineage'
+  'data-science/lineage',
+  'data-science/methodology-hub',
+  'data-science/quality',
+  'data-science/data-products-hub',
+  'data-science/annual-projections',
+  'data-science/products-db',
+  'data-science/factors-db',
+  'data-science/data-dictionary',
+  'data-science/open-questions'
 ];
 
 const RSP_KEYS = ['rsp', 'rsp/api-keys', 'rsp/test-hub', 'rsp/feed', 'rsp/key-detail'];
@@ -84,24 +92,54 @@ const siderMenuItems = [
     icon: <BarChartOutlined />,
     label: <Link href='/admin/analytics'>Analytics</Link>
   },
-  // The 2.0 structure mirrors the platform's layers: data → standardization/methodology →
-  // products, with quality/lineage as the governance that runs through all of them.
-  // De-listed tools (Inputs, Lineage, AI Uploader, Snapshots, …) stay routable and are
-  // linked from their layer's hub page. See docs/CR2-ADMIN-PLAN.md for the full mapping.
+  // The Data Science nav is dictated by Madhavi's Combined Model workbook: her tabs are the
+  // buttons (docs/CR2-ADMIN-PLAN.md § workbook-tab mapping). Tools with no workbook
+  // counterpart live under Advanced — kept, not endorsed; each is annotated in the plan doc.
   {
     key: 'data-science-group',
     icon: <ExperimentOutlined />,
     label: <Link href='/admin/data-science'>Data Science</Link>,
     children: [
-      { key: 'data-science', label: <Link href='/admin/data-science'>Overview</Link> },
-      { key: 'data-science/databases', label: <Link href='/admin/data-science/databases'>Databases</Link> },
-      { key: 'data-science/methodology-hub', label: <Link href='/admin/data-science/methodology-hub'>Methodology</Link> },
+      { key: 'data-science', label: <Link href='/admin/data-science'>Dashboard</Link> },
       {
-        key: 'data-science/data-products-hub',
-        label: <Link href='/admin/data-science/data-products-hub'>Data Products</Link>
+        key: 'data-science/annual-projections',
+        label: <Link href='/admin/data-science/data-products/annual-projections-2'>Annual Projections</Link>
       },
-      { key: 'data-science/quality', label: <Link href='/admin/data-science/quality'>Quality</Link> },
-      { key: 'data-science/data-map', label: <Link href='/admin/data-science/data-map'>Data Map</Link> }
+      {
+        key: 'data-science/products-db',
+        label: <Link href='/admin/data-science/databases?kind=reference'>Products</Link>
+      },
+      {
+        key: 'data-science/factors-db',
+        label: <Link href='/admin/data-science/databases?kind=factors'>Factors</Link>
+      },
+      {
+        key: 'data-science/data-dictionary',
+        label: <Link href='/admin/data-science/databases?openName=Data%20Dictionary'>Data Dictionary</Link>
+      },
+      { key: 'data-science/methodology-hub', label: <Link href='/admin/data-science/methodology-hub'>Methodology</Link> },
+      { key: 'data-science/quality', label: <Link href='/admin/data-science/quality'>Validation</Link> },
+      {
+        key: 'data-science/open-questions',
+        label: <Link href='/admin/data-science/databases?openName=Open%20Questions'>Open Questions</Link>
+      },
+      {
+        key: 'data-science-advanced',
+        label: 'Advanced',
+        children: [
+          {
+            key: 'data-science/data-products-hub',
+            label: <Link href='/admin/data-science/data-products-hub'>Data Products & Designer</Link>
+          },
+          { key: 'data-science/databases', label: <Link href='/admin/data-science/databases'>All Databases</Link> },
+          { key: 'data-science/smart-fields', label: <Link href='/admin/data-science/smart-fields'>Smart Fields</Link> },
+          { key: 'data-science/calculations', label: <Link href='/admin/data-science/calculations'>Functions</Link> },
+          { key: 'data-science/data-map', label: <Link href='/admin/data-science/data-map'>Data Map</Link> },
+          { key: 'data-science/import', label: <Link href='/admin/data-science/import'>AI Data Uploader</Link> },
+          { key: 'data-science/snapshots', label: <Link href='/admin/data-science/snapshots'>Snapshots</Link> },
+          { key: 'data-science/runs', label: <Link href='/admin/data-science/runs'>Calculation Log</Link> }
+        ]
+      }
     ]
   },
   {

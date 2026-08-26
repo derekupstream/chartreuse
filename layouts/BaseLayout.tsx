@@ -89,6 +89,14 @@ const adminLinks: MenuProps['items'] = [
     label: <Link href='/admin/data-science/data-products-hub'>Data Products</Link>
   },
   { key: 'data-science/quality', label: <Link href='/admin/data-science/quality'>Quality</Link> },
+  {
+    key: 'data-science/annual-projections',
+    label: <Link href='/admin/data-science/data-products/annual-projections-2'>Annual Projections</Link>
+  },
+  { key: 'data-science/products-db', label: <Link href='/admin/data-science/databases'>Products</Link> },
+  { key: 'data-science/factors-db', label: <Link href='/admin/data-science/databases'>Factors</Link> },
+  { key: 'data-science/data-dictionary', label: <Link href='/admin/data-science/databases'>Data Dictionary</Link> },
+  { key: 'data-science/open-questions', label: <Link href='/admin/data-science/databases'>Open Questions</Link> },
   { key: 'data-science/data-map', label: <Link href='/admin/data-science/data-map'>Data Map</Link> },
   { key: 'data-science/lineage', label: <Link href='/admin/data-science/lineage'>Data Lineage</Link> },
   { key: 'data-science/calculations', label: <Link href='/admin/data-science/calculations'>Calculations</Link> },

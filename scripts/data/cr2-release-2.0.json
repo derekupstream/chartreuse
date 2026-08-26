@@ -6149,5 +6149,266 @@
    "brand": null,
    "manufacturer_model_number": null
   }
+ ],
+ "data_dictionary": [
+  {
+   "Field": "product_id",
+   "Type": "integer",
+   "Unit": "none",
+   "Authority": "Database",
+   "Role / Definition": "Stable product key",
+   "Requirement": "Required"
+  },
+  {
+   "Field": "frequency",
+   "Type": "enum",
+   "Unit": "none",
+   "Authority": "User",
+   "Role / Definition": "Daily/Weekly/Monthly/Annually",
+   "Requirement": "Required"
+  },
+  {
+   "Field": "cases_per_frequency",
+   "Type": "number",
+   "Unit": "cases",
+   "Authority": "User",
+   "Role / Definition": "Purchase volume",
+   "Requirement": "Required"
+  },
+  {
+   "Field": "units_per_case",
+   "Type": "number",
+   "Unit": "units/case",
+   "Authority": "User",
+   "Role / Definition": "User-provided app input",
+   "Requirement": "Required"
+  },
+  {
+   "Field": "cost_per_case",
+   "Type": "currency",
+   "Unit": "$/case",
+   "Authority": "User",
+   "Role / Definition": "Database cost is reference-only",
+   "Requirement": "Required"
+  },
+  {
+   "Field": "annual_repurchase_rate",
+   "Type": "percentage",
+   "Unit": "fraction",
+   "Authority": "User",
+   "Role / Definition": "Reusable replenishment assumption",
+   "Requirement": "Reusable"
+  },
+  {
+   "Field": "gross_case_weight_lbs",
+   "Type": "number",
+   "Unit": "lb/case",
+   "Authority": "Database",
+   "Role / Definition": "Includes shipping box",
+   "Requirement": "Required"
+  },
+  {
+   "Field": "box_weight_pct_of_gross",
+   "Type": "percentage",
+   "Unit": "fraction",
+   "Authority": "Database",
+   "Role / Definition": "Corrugated box ratio",
+   "Requirement": "Required"
+  },
+  {
+   "Field": "item_weight_lbs",
+   "Type": "number",
+   "Unit": "lb/unit",
+   "Authority": "Derived database",
+   "Role / Definition": "Net case weight / case count",
+   "Requirement": "Required"
+  },
+  {
+   "Field": "ghg_factor",
+   "Type": "number",
+   "Unit": "MTCO\u2082e/lb",
+   "Authority": "Factor database",
+   "Role / Definition": "Material impacts",
+   "Requirement": "Required"
+  },
+  {
+   "Field": "water_factor",
+   "Type": "number",
+   "Unit": "gal/lb",
+   "Authority": "Factor database",
+   "Role / Definition": "Material water impacts",
+   "Requirement": "Required"
+  },
+  {
+   "Field": "transport_factor",
+   "Type": "number",
+   "Unit": "MTCO\u2082e/lb-mile",
+   "Authority": "Factor database",
+   "Role / Definition": "Applied to full shipped mass",
+   "Requirement": "Required"
+  },
+  {
+   "Field": "utility_electric",
+   "Type": "currency",
+   "Unit": "$/kWh",
+   "Authority": "Rate table/user",
+   "Role / Definition": "Utility cost only",
+   "Requirement": "Dishwashing"
+  },
+  {
+   "Field": "utility_gas",
+   "Type": "currency",
+   "Unit": "$/therm",
+   "Authority": "Rate table/user",
+   "Role / Definition": "Utility cost only",
+   "Requirement": "Dishwashing"
+  },
+  {
+   "Field": "utility_water",
+   "Type": "currency",
+   "Unit": "$/1000 gal",
+   "Authority": "Rate table/user",
+   "Role / Definition": "Utility cost only",
+   "Requirement": "Dishwashing"
+  }
+ ],
+ "validation": [
+  {
+   "Check": "No duplicate single-use product IDs",
+   "Status": "PASS",
+   "Purpose": "Stable keys"
+  },
+  {
+   "Check": "No duplicate reusable product IDs",
+   "Status": "PASS",
+   "Purpose": "Stable keys"
+  },
+  {
+   "Check": "Transportation factor positive",
+   "Status": "PASS",
+   "Purpose": "Factor and distance"
+  },
+  {
+   "Check": "Baseline cost nonnegative",
+   "Status": "PASS",
+   "Purpose": "Scenario check"
+  },
+  {
+   "Check": "Forecast operating cost nonnegative",
+   "Status": "PASS",
+   "Purpose": "Scenario check"
+  },
+  {
+   "Check": "SU GHG equals material + transport",
+   "Status": "PASS",
+   "Purpose": "Reconciliation"
+  },
+  {
+   "Check": "Reusable recurring GHG equals material + transport",
+   "Status": "PASS",
+   "Purpose": "Reconciliation"
+  },
+  {
+   "Check": "Dashboard GHG reduction reconciles",
+   "Status": "PASS",
+   "Purpose": "Dashboard"
+  },
+  {
+   "Check": "Dashboard water reduction reconciles",
+   "Status": "PASS",
+   "Purpose": "Dashboard"
+  }
+ ],
+ "open_questions": [
+  {
+   "ID": "Q-001",
+   "Priority": "Critical",
+   "Area": "Utility Rates",
+   "Issue": "Utility defaults use documented historical sources. The ENERGY STAR gas column required correction from its mislabeled magnitude.",
+   "Current Treatment / Decision Needed": "Electric and water defaults retained from the source calculator. Every state gas rate converted to $/therm as: source value \u00d7 100 \u00f7 10.37.",
+   "Status": "Resolved",
+   "Metrics Affected": "Dashboard cost"
+  },
+  {
+   "ID": "Q-002",
+   "Priority": "High",
+   "Area": "Dishwashing",
+   "Issue": "Only electricity directly attributable to reusable-item racks is in scope; whole-machine idle energy may serve unrelated dishwashing.",
+   "Current Treatment / Decision Needed": "Include rack-attributable building and booster water-heating energy. Exclude idle electricity unless a future input establishes incremental operating hours.",
+   "Status": "Resolved",
+   "Metrics Affected": "GHG, cost"
+  },
+  {
+   "ID": "Q-003",
+   "Priority": "High",
+   "Area": "Reusable products",
+   "Issue": "Legacy purchase-frequency labels require mapping to app options.",
+   "Current Treatment / Decision Needed": "Keep explicit user-entered annual quantities until final UI mapping is approved.",
+   "Status": "Assumed",
+   "Metrics Affected": "GHG, water, waste"
+  },
+  {
+   "ID": "Q-004",
+   "Priority": "High",
+   "Area": "First-year reporting",
+   "Issue": "Annual comparisons use recurring reusable repurchases, dishwashing, and recurring costs. First-year reporting also includes the initial reusable purchase and one-time costs/impacts.",
+   "Current Treatment / Decision Needed": "Annual = recurring forecast. First year = annual recurring forecast + initial reusable purchase + one-time inputs.",
+   "Status": "Resolved",
+   "Metrics Affected": "GHG, water, waste"
+  },
+  {
+   "ID": "Q-005",
+   "Priority": "Medium",
+   "Area": "Transportation",
+   "Issue": "The app needs an explicit reusable item linkage to the single-use item it replaces.",
+   "Current Treatment / Decision Needed": "Use Replaced_SU_Product_ID in Scenario_Reuse.",
+   "Status": "Assumed",
+   "Metrics Affected": "GHG"
+  },
+  {
+   "ID": "Q-006",
+   "Priority": "Medium",
+   "Area": "Water boundaries",
+   "Issue": "All product water factors should use the CTGT boundary.",
+   "Current Treatment / Decision Needed": "Normalize every material water factor as CTGT and add dishwashing water separately as an operational water use.",
+   "Status": "Resolved",
+   "Metrics Affected": "Water"
+  },
+  {
+   "ID": "Q-007",
+   "Priority": "Medium",
+   "Area": "Dishwashing water GHG",
+   "Issue": "Dishwashing water does not have a GHG term.",
+   "Current Treatment / Decision Needed": "Calculate dishwasher GHG from dishwasher electricity only, using 1.56 lb CO2/kWh.",
+   "Status": "Resolved",
+   "Metrics Affected": "GHG"
+  },
+  {
+   "ID": "Q-008",
+   "Priority": "Medium",
+   "Area": "Reusable repurchase",
+   "Issue": "Reusable repurchase applies to all recurring item quantities and associated information.",
+   "Current Treatment / Decision Needed": "Apply repurchase percentage to reusable units, product/secondary/box masses, transport mass, material impacts, and user-entered costs.",
+   "Status": "Resolved",
+   "Metrics Affected": "All reusable"
+  },
+  {
+   "ID": "Q-009",
+   "Priority": "Low",
+   "Area": "Factor headings",
+   "Issue": "Factor headings should be consistent across source tables.",
+   "Current Treatment / Decision Needed": "Normalized factor headings to explicit metric-and-unit names.",
+   "Status": "Resolved",
+   "Metrics Affected": "Data contract"
+  },
+  {
+   "ID": "Q-010",
+   "Priority": "Low",
+   "Area": "Source naming",
+   "Issue": "Impact metric naming should use MTCO\u2082e consistently.",
+   "Current Treatment / Decision Needed": "Normalized dashboard and table labels to MTCO\u2082e.",
+   "Status": "Resolved",
+   "Metrics Affected": "Data contract"
+  }
  ]
 }

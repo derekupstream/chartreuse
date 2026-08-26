@@ -503,7 +503,11 @@ export default function AnnualProjections2Bench(_: { user: DashboardUser }) {
 }
 
 AnnualProjections2Bench.getLayout = (page: React.ReactNode, pageProps: PageProps) => (
-  <AdminLayout {...(pageProps as any)} selectedMenuItem='data-science/data-products' title='Annual Projections 2.0'>
+  <AdminLayout
+    {...(pageProps as any)}
+    selectedMenuItem='data-science/annual-projections'
+    title='Annual Projections 2.0'
+  >
     {page}
   </AdminLayout>
 );

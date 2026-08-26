@@ -126,6 +126,30 @@ const TABLES: TableSpec[] = [
     keyColumn: 'state'
   },
   {
+    payloadKey: 'data_dictionary',
+    name: 'Data Dictionary',
+    kind: 'reference',
+    description:
+      'Machine-readable field names, units, editability and calculation role — the app/database contract (workbook tab: Data_Dictionary).',
+    keyColumn: 'Field'
+  },
+  {
+    payloadKey: 'validation',
+    name: 'Validation',
+    kind: 'reference',
+    description:
+      'PASS/FAIL model-control checks from the workbook: factors, mappings, formulas, scenario outputs (workbook tab: Validation). The app-side equivalents run as golden datasets under Quality.',
+    keyColumn: 'Check'
+  },
+  {
+    payloadKey: 'open_questions',
+    name: 'Open Questions',
+    kind: 'reference',
+    description:
+      'Every unresolved or intentionally inherited methodology rule, with priority and status (workbook tab: Open_Questions). The decision log the app inherits.',
+    keyColumn: 'ID'
+  },
+  {
     payloadKey: 'dishwasher_factors',
     name: 'Dishwasher Factors',
     kind: 'factors',

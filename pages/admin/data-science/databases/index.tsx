@@ -90,15 +90,23 @@ export default function FactorDatabasesPage({ user }: { user: DashboardUser }) {
     load();
   }, []);
 
-  // Deep link: /admin/data-science/databases?open=<id>&row=<n>&col=<key>
+  // Deep links: ?open=<id> (with optional row/col highlight) or ?openName=<database name>
+  // (used by the tab-dictated menu: "Data Dictionary" opens that database directly).
+  // ?kind=factors|reference filters the list to one side of the version policy.
   useEffect(() => {
     if (!router.isReady) return;
-    const { open, row, col } = router.query as Record<string, string>;
+    const { open, row, col, openName } = router.query as Record<string, string>;
     if (open) {
       setOpenId(open);
       setFocus(row !== undefined ? { rowIndex: Number(row), columnKey: col ?? '' } : null);
+    } else if (openName && databases) {
+      const match = databases.find(d => d.name.toLowerCase() === openName.toLowerCase());
+      if (match) setOpenId(match.id);
     }
-  }, [router.isReady, router.query]);
+  }, [router.isReady, router.query, databases]);
+
+  const kindFilter = typeof router.query.kind === 'string' ? router.query.kind : null;
+  const visibleDatabases = (databases ?? []).filter(d => !kindFilter || d.kind === kindFilter);
 
   useEffect(() => {
     if (!openId) {
@@ -346,7 +354,7 @@ export default function FactorDatabasesPage({ user }: { user: DashboardUser }) {
       <Table
         rowKey='id'
         loading={databases === null}
-        dataSource={databases ?? []}
+        dataSource={visibleDatabases}
         pagination={{ pageSize: 10, hideOnSinglePage: true }}
         columns={[
           {

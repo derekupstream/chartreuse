@@ -78,6 +78,36 @@ into Data Map; duplicate `LINEAGE_MAP` cleanup remains backlog #33), **Impact Si
 Old routes remain reachable — hubs link to them; nothing 404s. Deletion of the page files
 themselves (vs. de-listing) happens only for the Impact Simulator on this branch.
 
+## Workbook-tab navigation mapping (decided 2026-08-16)
+
+The Data Science nav is dictated by the Combined Model workbook: **her tabs are the buttons.**
+
+| Workbook tab | Menu item | Manifestation |
+|---|---|---|
+| README | Dashboard (how-to panel) | Collapsible on the Command Center |
+| Dashboard (+ Scenario_SU, Scenario_Reuse, Dishwashing, Additional_Costs) | Annual Projections | The Annual Projections 2.0 product/bench — those tabs ARE its input panels |
+| Calc_SU, Calc_Reuse | (inside Annual Projections) | `lib/calculator/v2/combinedModel.ts` — the computed columns behind the bench |
+| Single_Use_Products, Reusable_Products | Products | Databases filtered to `kind=reference` |
+| GHG/Water/Transport/Dishwasher Factors, Utility_Rates, Purchase_Frequency | Factors | Databases filtered to `kind=factors` |
+| Data_Dictionary | Data Dictionary | Loaded as a reference database; also the Methodology contract |
+| Validation | Validation | The Quality hub (test runs + golden datasets); tab also loaded as a database for workbook round-trips |
+| Open_Questions | Open Questions | Loaded as a database — the decision log; overlaps Change Requests conceptually |
+| *(not in this file)* Funding_Opportunities | — | Named by Derek but absent from the 2026-08-14 xlsx; presumably in the Google Sheet. First upload creates it. |
+
+**Advanced dropdown** — app features with no workbook counterpart, each annotated:
+
+| Tool | Verdict |
+|---|---|
+| Data Products & Designer | **Future roadmap** — the Studio (calculators/dashboards/scenarios) is the product platform; Annual Projections is its first instance |
+| All Databases | Convenience view (unfiltered) |
+| Smart Fields | **Future** — feeds the Studio's Logic stage; parked (backlog #37 → Studio spec) |
+| Functions | **Useful** — lowest-level engine view; keep for audits |
+| Data Map | **Useful** — lineage/traceability, governance visual |
+| AI Data Uploader | **Useful** — the AI mapping layer over the workbook-upload flow (Studio spec: AI Uploader) |
+| Snapshots | **Useful** — methodology versioning backbone (auto-cut; rarely visited directly) |
+| Calculation Log | **Useful** — run audit trail |
+| Inputs, Lineage, Pipeline (unlisted) | **Redundant** — superseded by Datasheet/Data Map; candidates for deletion after 2.0 ships |
+
 ## Database versioning (the "builds for data" piece)
 
 Precedent: ecoinvent 3.x, DEFRA annual factor editions, EPA WARM versions — named releases,

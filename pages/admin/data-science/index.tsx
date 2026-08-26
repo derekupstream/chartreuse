@@ -21,7 +21,7 @@ import {
   UploadOutlined,
   WarningFilled
 } from '@ant-design/icons';
-import { Badge, Card, Col, Empty, List, Row, Tabs, Tag, Tooltip, Typography } from 'antd';
+import { Badge, Card, Col, Collapse, Empty, List, Row, Tabs, Tag, Tooltip, Typography } from 'antd';
 import type { GetServerSideProps } from 'next';
 import Link from 'next/link';
 import styled from 'styled-components';
@@ -390,6 +390,52 @@ export default function CommandCenter({
         Monitor the health of datasets, calculations, and products. Create and manage calculators, dashboards, and
         scenarios.
       </Paragraph>
+
+      {/* The workbook's README, verbatim in substance — the how-to for this whole area. */}
+      <Collapse
+        ghost
+        style={{ marginBottom: 12, background: '#fff', borderRadius: 8 }}
+        items={[
+          {
+            key: 'readme',
+            label: <Text strong>How this works — from the Combined Data & Calculation Model (README)</Text>,
+            children: (
+              <div style={{ fontSize: 13 }}>
+                <Paragraph>
+                  Auditable source-of-truth model for the application.{' '}
+                  <b>Databases govern factors and product records; the methodology governs metric definitions.</b> This
+                  area mirrors the workbook: one database per tab, updated by uploading the tab.
+                </Paragraph>
+                <ul style={{ paddingLeft: 18, marginBottom: 8 }}>
+                  <li>
+                    <b>Transportation rule:</b> full shipped mass = product material mass + calculated corrugated
+                    shipping-box mass.
+                  </li>
+                  <li>
+                    <b>Material GHG units:</b> MTCO₂e per pound of material — no conversion inside material-impact
+                    multiplication. <b>Water:</b> gallons per pound, same rule.
+                  </li>
+                  <li>
+                    <b>Costs:</b> product costs are user inputs; database prices are reference-only. Utility rates are
+                    the only maintained cost factors.
+                  </li>
+                  <li>
+                    <b>Sign convention:</b> dashboards report reductions as Baseline − Forecast; positive values are
+                    reductions/savings.
+                  </li>
+                </ul>
+                <Paragraph style={{ marginBottom: 0 }}>
+                  <b>Calculation flow:</b> user inputs → annual activity → product mass split → material impacts +
+                  transportation → reusable/dishwashing impacts → baseline/forecast comparison → dashboard. See it live
+                  in <Link href='/admin/data-science/data-products/annual-projections-2'>Annual Projections</Link>;
+                  field definitions in the{' '}
+                  <Link href='/admin/data-science/databases?openName=Data%20Dictionary'>Data Dictionary</Link>.
+                </Paragraph>
+              </div>
+            )
+          }
+        ]}
+      />
 
       {/* Row 1 — governance KPI cards, original design language */}
       <Row gutter={[16, 16]}>
