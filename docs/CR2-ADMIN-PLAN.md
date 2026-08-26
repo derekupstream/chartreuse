@@ -92,7 +92,7 @@ The Data Science nav is dictated by the Combined Model workbook: **her tabs are 
 | Data_Dictionary | Data Dictionary | Loaded as a reference database; also the Methodology contract |
 | Validation | Validation | The Quality hub (test runs + golden datasets); tab also loaded as a database for workbook round-trips |
 | Open_Questions | Open Questions | Loaded as a database — the decision log; overlaps Change Requests conceptually |
-| *(not in this file)* Funding_Opportunities | — | Named by Derek but absent from the 2026-08-14 xlsx; presumably in the Google Sheet. First upload creates it. |
+| Funding_Opportunities | Funding Opportunities | Arrived in the 2026-08-16 Directory revision: 121 municipal funding rows (US + Canada, amounts, deadlines, eligibility, reuse-explicit flag). Loaded as a reference database; future frontend filtering + funding calculations. |
 
 **Advanced dropdown** — app features with no workbook counterpart, each annotated:
 

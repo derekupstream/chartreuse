@@ -65,7 +65,8 @@ const DATA_SCIENCE_KEYS = [
   'data-science/products-db',
   'data-science/factors-db',
   'data-science/data-dictionary',
-  'data-science/open-questions'
+  'data-science/open-questions',
+  'data-science/funding'
 ];
 
 const RSP_KEYS = ['rsp', 'rsp/api-keys', 'rsp/test-hub', 'rsp/feed', 'rsp/key-detail'];
@@ -122,6 +123,10 @@ const siderMenuItems = [
       {
         key: 'data-science/open-questions',
         label: <Link href='/admin/data-science/databases?openName=Open%20Questions'>Open Questions</Link>
+      },
+      {
+        key: 'data-science/funding',
+        label: <Link href='/admin/data-science/databases?openName=Funding%20Opportunities'>Funding Opportunities</Link>
       },
       {
         key: 'data-science-advanced',

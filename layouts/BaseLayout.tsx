@@ -97,6 +97,7 @@ const adminLinks: MenuProps['items'] = [
   { key: 'data-science/factors-db', label: <Link href='/admin/data-science/databases'>Factors</Link> },
   { key: 'data-science/data-dictionary', label: <Link href='/admin/data-science/databases'>Data Dictionary</Link> },
   { key: 'data-science/open-questions', label: <Link href='/admin/data-science/databases'>Open Questions</Link> },
+  { key: 'data-science/funding', label: <Link href='/admin/data-science/databases'>Funding Opportunities</Link> },
   { key: 'data-science/data-map', label: <Link href='/admin/data-science/data-map'>Data Map</Link> },
   { key: 'data-science/lineage', label: <Link href='/admin/data-science/lineage'>Data Lineage</Link> },
   { key: 'data-science/calculations', label: <Link href='/admin/data-science/calculations'>Calculations</Link> },

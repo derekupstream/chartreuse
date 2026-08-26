@@ -65,6 +65,17 @@ describe('diffWorkbookSheet', () => {
     expect(diff.newColumns).toEqual(['source']);
   });
 
+  it('treats CRLF and LF line endings as the same value', () => {
+    const diff = diffWorkbookSheet(
+      [{ material: 'Paper', scope: 'Single-Use', ghg: 0.004685, note: 'line one\nline two' }],
+      ['material', 'scope', 'ghg', 'note'],
+      [{ material: 'Paper', scope: 'Single-Use', ghg: 0.004685, note: 'line one\r\nline two' }],
+      'material'
+    );
+    expect(diff.changedRows).toHaveLength(0);
+    expect(diff.unchangedCount).toBe(1);
+  });
+
   it('counts keyless rows instead of misfiling them', () => {
     const diff = diffWorkbookSheet(existing, columns, [{ material: '', ghg: 1 }, { ghg: 2 }], 'material');
     expect(diff.keylessRows).toBe(2);

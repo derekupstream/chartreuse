@@ -29,7 +29,7 @@ import path from 'path';
 import prisma from 'lib/prisma';
 
 const RELEASE_VERSION = '2.0';
-const SOURCE_NOTE = 'Combined Data & Calculation Model (Draft) — Madhavi, 2026-08-14';
+const SOURCE_NOTE = 'Upstream Copy — Chart-Reuse Directory (Combined Model rev.) — Madhavi, 2026-08-16';
 
 const PROVINCES = [
   'British Columbia',
@@ -150,12 +150,20 @@ const TABLES: TableSpec[] = [
     keyColumn: 'ID'
   },
   {
+    payloadKey: 'funding_opportunities',
+    name: 'Funding Opportunities',
+    kind: 'reference',
+    description:
+      'Municipal reuse/waste-reduction funding: funder, geography, amounts, cycle, deadline, eligibility, reuse-explicit flag (workbook tab: Funding_Opportunities; normalized from the Upstream funding tracker). For frontend filtering and funding calculations. Informational only — availability and eligibility change.',
+    keyColumn: 'funding_id'
+  },
+  {
     payloadKey: 'dishwasher_factors',
     name: 'Dishwasher Factors',
     kind: 'factors',
     description:
       'ENERGY STAR CFS machine table, March 2021 (workbook tab: Dishwasher_Factors). Heater/emission constants live in the methodology spec.',
-    keyColumn: 'machine_type'
+    keyColumn: 'temperature,machine_type'
   }
 ];
 

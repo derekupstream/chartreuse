@@ -70,7 +70,11 @@ export function repairSwappedScopeColumns(rows: Record<string, unknown>[]): {
   };
 }
 
-/** Blank-vs-blank is equal; numbers compare numerically; strings compare trimmed. */
+/**
+ * Blank-vs-blank is equal; numbers compare numerically; strings compare trimmed with line
+ * endings normalized — different Excel parsers emit \r\n vs \n inside multiline cells, and
+ * that must never read as a data change.
+ */
 function valuesEqual(a: unknown, b: unknown): boolean {
   const aBlank = a === null || a === undefined || String(a).trim() === '';
   const bBlank = b === null || b === undefined || String(b).trim() === '';
@@ -81,7 +85,8 @@ function valuesEqual(a: unknown, b: unknown): boolean {
     const scale = Math.max(1, Math.abs(aNum), Math.abs(bNum));
     return Math.abs(aNum - bNum) / scale < 1e-12;
   }
-  return String(a).trim() === String(b).trim();
+  const normalize = (v: unknown) => String(v).replace(/\r\n?/g, '\n').trim();
+  return normalize(a) === normalize(b);
 }
 
 export function diffWorkbookSheet(
