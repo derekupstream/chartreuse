@@ -108,6 +108,22 @@ export default function FactorDatabasesPage({ user }: { user: DashboardUser }) {
   const kindFilter = typeof router.query.kind === 'string' ? router.query.kind : null;
   const visibleDatabases = (databases ?? []).filter(d => !kindFilter || d.kind === kindFilter);
 
+  // The tab-dictated menu routes several buttons here (?kind=…, ?openName=…) — highlight the
+  // button the admin actually clicked, not "All Databases".
+  const openNameParam = typeof router.query.openName === 'string' ? router.query.openName.toLowerCase() : null;
+  const menuKey =
+    openNameParam === 'data dictionary'
+      ? 'data-science/data-dictionary'
+      : openNameParam === 'open questions'
+        ? 'data-science/open-questions'
+        : openNameParam === 'funding opportunities'
+          ? 'data-science/funding'
+          : kindFilter === 'reference'
+            ? 'data-science/products-db'
+            : kindFilter === 'factors'
+              ? 'data-science/factors-db'
+              : 'data-science/databases';
+
   useEffect(() => {
     if (!openId) {
       setDetail(null);
@@ -305,7 +321,7 @@ export default function FactorDatabasesPage({ user }: { user: DashboardUser }) {
   }, [detail, search]);
 
   return (
-    <AdminLayout title='Databases' selectedMenuItem='data-science/databases' user={user}>
+    <AdminLayout title='Databases' selectedMenuItem={menuKey} user={user}>
       <HowTo tool='databases' />
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>

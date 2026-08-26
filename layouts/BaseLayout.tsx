@@ -61,7 +61,10 @@ const VALID_TOP_MENU_KEYS = new Set([
   'accounts',
   'members',
   'scenarios',
-  'dashboard'
+  'dashboard',
+  // Legacy pages still reachable by URL/redirect — unregistered keys throw at render.
+  'subscription',
+  'upstream/orgs'
 ]);
 
 // All valid admin keys — used for validation in the guard below

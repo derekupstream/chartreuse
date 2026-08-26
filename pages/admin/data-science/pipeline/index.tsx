@@ -366,7 +366,7 @@ export default function PipelinePage({ rows, unmappedCount }: Props) {
 }
 
 PipelinePage.getLayout = (page: React.ReactNode, pageProps: PageProps) => (
-  <AdminLayout {...(pageProps as any)} selectedMenuItem='data-science/pipeline-legacy' title='Pipeline Traceability'>
+  <AdminLayout {...(pageProps as any)} selectedMenuItem='data-science/pipeline' title='Pipeline Traceability'>
     {page}
   </AdminLayout>
 );

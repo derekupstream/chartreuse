@@ -6,6 +6,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Chart-Reuse (by Upstream Solutions) is a SaaS calculator that projects the cost and environmental savings of switching from single-use to reusable foodware. Full architecture reference: `docs/ROADMAP.md`.
 
+**After building anything non-trivial, run the review protocol in `docs/REVIEW-PROTOCOL.md`**:
+the first draft is not done — verify in layers (tsc/lint → focused tests → `yarn test:ci` →
+drive the real flow at runtime, e.g. `npx dotenv-cli -e .env -- npx tsx scripts/verify-cr2-admin-runtime.ts`
+for the Data Science admin) and report evidence (Changed / Verified / Not verified / Limitations).
+
 ## Commands
 
 Package manager is **Yarn**.
