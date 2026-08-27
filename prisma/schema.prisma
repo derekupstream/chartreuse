@@ -430,6 +430,19 @@ model SmartField {
 /// A "database": a named, versioned TABLE of reference data, kept in its native
 /// column structure (single-use products, reusable products, emission factors,
 /// water factors...). Distinct from Factor, which holds a single scalar value.
+/// An uploaded source file (workbook/CSV), kept verbatim so a database's "source" can be
+/// opened and downloaded rather than being a label you have to take on faith.
+model DataSourceFile {
+  id         String           @id @default(uuid()) @db.Uuid
+  createdAt  DateTime         @default(now())
+  fileName   String
+  mimeType   String
+  sizeBytes  Int
+  bytes      Bytes
+  uploadedBy String?          @db.Uuid
+  databases  FactorDatabase[]
+}
+
 model FactorDatabase {
   id          String               @id @default(uuid()) @db.Uuid
   createdAt   DateTime             @default(now())
@@ -449,6 +462,9 @@ model FactorDatabase {
   kind        String               @default("reference")
   isActive    Boolean              @default(true)
   uploadedBy  String?              @db.Uuid
+  /// The uploaded file this table came from, kept verbatim (view/download from the UI)
+  sourceFileId String?             @db.Uuid
+  sourceFile  DataSourceFile?      @relation(fields: [sourceFileId], references: [id])
   rows        FactorDatabaseRow[]
   changes     FactorDatabaseChange[]
 }

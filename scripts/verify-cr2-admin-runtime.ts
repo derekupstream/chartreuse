@@ -160,6 +160,16 @@ async function main() {
         const first = detail?.rows?.[0]?.data ?? detail?.rows?.[0];
         check('Funding row content is real', Boolean(first && JSON.stringify(first).includes('MUN-')), '');
 
+        // The source link serves the actual stored file
+        if (funding.sourceFileId) {
+          const srcRes = await get(`/api/admin/factor-databases/${funding.id}/source`);
+          const size = Number(srcRes.headers.get('content-length') ?? 0);
+          check('source file downloads', srcRes.status === 200 && size > 10000,
+            `status ${srcRes.status}, ${(size / 1024).toFixed(0)} KB, type ${srcRes.headers.get('content-type')}`);
+        } else {
+          check('source file linked', false, 'sourceFileId missing on Funding Opportunities');
+        }
+
         // Spreadsheet page renders for a real database id
         const sheetRes = await get(`/admin/data-science/databases/${funding.id}`);
         check('spreadsheet page renders', sheetRes.status === 200, `status ${sheetRes.status}`);

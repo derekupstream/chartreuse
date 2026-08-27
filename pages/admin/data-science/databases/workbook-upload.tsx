@@ -33,6 +33,7 @@ import * as XLSX from 'xlsx';
 import type { DashboardUser } from 'interfaces';
 import { AdminLayout } from 'layouts/AdminLayout';
 import { diffWorkbookSheet, repairSwappedScopeColumns } from 'lib/admin/diffWorkbookSheet';
+import { storeSourceFile } from 'lib/admin/storeSourceFile';
 import type { SheetDiff } from 'lib/admin/diffWorkbookSheet';
 import { getUserFromContext } from 'lib/middleware';
 import { ACCESS_DENIED_REDIRECT, checkIsUpstream } from 'lib/middleware/requireUpstream';
@@ -121,6 +122,7 @@ function parseWorkbook(buffer: ArrayBuffer): ParsedSheet[] {
 export default function WorkbookUploadPage(_: { user: DashboardUser }) {
   const [databases, setDatabases] = useState<FactorDatabaseSummary[] | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
+  const [sourceFileId, setSourceFileId] = useState<string | null>(null);
   const [plans, setPlans] = useState<SheetPlan[] | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
   const [applying, setApplying] = useState(false);
@@ -168,6 +170,8 @@ export default function WorkbookUploadPage(_: { user: DashboardUser }) {
     setFileName(file.name);
     try {
       const buffer = await file.arrayBuffer();
+      // Keep the workbook itself: every database applied from it links back to this file.
+      storeSourceFile(file).then(setSourceFileId);
       const sheets = parseWorkbook(buffer).filter(s => s.rows.length > 0);
       const list = await loadDatabases();
 
@@ -218,6 +222,7 @@ export default function WorkbookUploadPage(_: { user: DashboardUser }) {
             columns: plan.sheet.columns.map(key => ({ key, label: key, type: 'text' })),
             rows: plan.sheet.rows,
             mergeMode: 'upsert',
+            ...(sourceFileId ? { sourceFileId } : {}),
             // Restrict writes only when the admin deselected columns; otherwise write all
             // uploaded columns so added rows arrive complete.
             ...(restrict ? { mergeColumns: [...plan.applyColumns, plan.keyColumn!] } : {})

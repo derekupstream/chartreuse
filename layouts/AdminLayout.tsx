@@ -100,10 +100,6 @@ const siderMenuItems = [
     label: <Link href='/admin/data-science'>Data Science</Link>,
     children: [
       { key: 'data-science', label: <Link href='/admin/data-science'>Dashboard</Link> },
-      {
-        key: 'data-science/annual-projections',
-        label: <Link href='/admin/data-science/data-products/annual-projections-2'>Annual Projections</Link>
-      },
       { key: 'data-science/databases', label: <Link href='/admin/data-science/databases'>Databases</Link> },
       {
         key: 'data-science/data-dictionary',
@@ -115,6 +111,10 @@ const siderMenuItems = [
         key: 'data-science-advanced',
         label: 'Advanced',
         children: [
+          {
+            key: 'data-science/annual-projections',
+            label: <Link href='/admin/data-science/data-products/annual-projections-2'>Annual Projections</Link>
+          },
           {
             key: 'data-science/data-products-hub',
             label: <Link href='/admin/data-science/data-products-hub'>Data Products & Designer</Link>

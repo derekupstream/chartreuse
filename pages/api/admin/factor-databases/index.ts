@@ -41,6 +41,8 @@ export type FactorDatabaseSummary = {
   columnCount: number;
   rowCount: number;
   updatedAt: string;
+  /** Set when the actual uploaded source file is stored and downloadable */
+  sourceFileId: string | null;
 };
 
 export type CreateDatabaseRequest = {
@@ -67,6 +69,8 @@ export type CreateDatabaseRequest = {
   mergeColumns?: string[];
   /** 'factors' = core methodology data (changes bump the version); 'reference' = grows without a bump */
   kind?: 'factors' | 'reference';
+  /** Stored source file (POST /api/admin/data-sources) this upload came from */
+  sourceFileId?: string;
 };
 
 async function list(req: NextApiRequestWithUser, res: NextApiResponse) {
@@ -85,7 +89,8 @@ async function list(req: NextApiRequestWithUser, res: NextApiResponse) {
     keyColumn: d.keyColumn,
     columnCount: Array.isArray(d.columns) ? (d.columns as unknown[]).length : 0,
     rowCount: d._count.rows,
-    updatedAt: d.updatedAt.toISOString()
+    updatedAt: d.updatedAt.toISOString(),
+    sourceFileId: d.sourceFileId
   }));
   res.json(summaries);
 }
@@ -133,7 +138,8 @@ async function create(req: NextApiRequestWithUser, res: NextApiResponse) {
     kind,
     keyColumn: body.keyColumn || null,
     columns: body.columns as unknown as object,
-    uploadedBy: req.user.id
+    uploadedBy: req.user.id,
+    ...(body.sourceFileId ? { sourceFileId: body.sourceFileId } : {})
   };
   // A partial upload must not shrink the table's column definitions.
   if (existing && mergeMode !== 'replace') {

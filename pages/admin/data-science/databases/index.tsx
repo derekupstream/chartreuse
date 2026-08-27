@@ -1,4 +1,4 @@
-import { DatabaseOutlined, DeleteOutlined, UploadOutlined } from '@ant-design/icons';
+import { DatabaseOutlined, DeleteOutlined, PaperClipOutlined, UploadOutlined } from '@ant-design/icons';
 import {
   Alert,
   Button,
@@ -9,6 +9,7 @@ import {
   Popconfirm,
   Radio,
   Select,
+  Spin,
   Table,
   Tag,
   Typography,
@@ -22,6 +23,7 @@ import { useRouter } from 'next/router';
 import { useEffect, useMemo, useState } from 'react';
 
 import { HowTo } from 'components/admin/HowTo';
+import { LocalDate } from 'components/common/LocalDate';
 import type { DashboardUser } from 'interfaces';
 import { AdminLayout } from 'layouts/AdminLayout';
 import { getUserFromContext } from 'lib/middleware';
@@ -29,6 +31,7 @@ import { ACCESS_DENIED_REDIRECT, checkIsUpstream } from 'lib/middleware/requireU
 import { serializeJSON } from 'lib/objects';
 import type { DatabaseColumn, FactorDatabaseSummary } from 'pages/api/admin/factor-databases/index';
 import { extractMaterialFactors, guessFactorColumns } from 'lib/admin/extractMaterialFactors';
+import { storeSourceFile } from 'lib/admin/storeSourceFile';
 import type { ExtractionResult } from 'lib/admin/extractMaterialFactors';
 
 const { Text, Title } = Typography;
@@ -59,6 +62,7 @@ export default function FactorDatabasesPage({ user }: { user: DashboardUser }) {
     kind: 'reference' as 'reference' | 'factors'
   });
   const [saving, setSaving] = useState(false);
+  const [csvFile, setCsvFile] = useState<File | null>(null);
   // factors carried on product rows
   const [factorCols, setFactorCols] = useState<{ materialColumn?: string; ghgColumn?: string; waterColumn?: string }>(
     {}
@@ -123,6 +127,7 @@ export default function FactorDatabasesPage({ user }: { user: DashboardUser }) {
   })();
 
   function handleFile(file: File) {
+    setCsvFile(file);
     Papa.parse<Record<string, string>>(file, {
       header: true,
       skipEmptyLines: true,
@@ -162,6 +167,7 @@ export default function FactorDatabasesPage({ user }: { user: DashboardUser }) {
     }
     setSaving(true);
     try {
+      const sourceFileId = csvFile ? await storeSourceFile(csvFile) : null;
       const res = await fetch('/api/admin/factor-databases', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -171,7 +177,8 @@ export default function FactorDatabasesPage({ user }: { user: DashboardUser }) {
           rows: parsed.rows,
           replaceExisting,
           mergeMode,
-          mergeColumns
+          mergeColumns,
+          ...(sourceFileId ? { sourceFileId } : {})
         })
       });
       if (res.status === 409 && mergeMode === 'replace') {
@@ -302,48 +309,25 @@ export default function FactorDatabasesPage({ user }: { user: DashboardUser }) {
         </div>
       </div>
 
-      <Alert
-        type='info'
-        showIcon
-        style={{ marginBottom: 16 }}
-        message='Databases vs Factors'
-        description={
-          <>
-            A <strong>Factor</strong> holds one number (a single emission factor). A <strong>Database</strong> holds a
-            whole table with its own columns and rows — the way these datasets are organised outside the app. Upload a
-            CSV and it keeps its structure instead of being flattened into hundreds of separate factors.
-          </>
-        }
-      />
-
+      {databases === null && <Spin style={{ display: 'block', margin: '60px auto' }} />}
       {groups.map(group => (
-        <Card
-          key={group.title}
-          size='small'
-          title={group.title}
-          extra={
-            group.note ? (
-              <Text type='secondary' style={{ fontSize: 12 }}>
-                {group.note}
-              </Text>
-            ) : null
-          }
-          style={{ marginBottom: 16 }}
-        >
-          <Table
-            rowKey='id'
-            size='small'
-            loading={databases === null}
-            dataSource={group.items}
-            pagination={false}
-            columns={[
-              {
-                title: 'Database',
-                dataIndex: 'name',
-                render: (name: string, row: FactorDatabaseSummary) => (
-                  <div>
-                    <Link href={`/admin/data-science/databases/${row.id}`}>
-                      <strong>{name}</strong>
+        <div key={group.title} style={{ marginBottom: 22 }}>
+          <Text type='secondary' style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: 1 }}>
+            {group.title}
+          </Text>
+          {group.note && (
+            <Text type='secondary' style={{ fontSize: 11 }}>
+              {' '}
+              · {group.note}
+            </Text>
+          )}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 8 }}>
+            {group.items.map(row => (
+              <Card key={row.id} size='small'>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
+                  <div style={{ flex: 1, minWidth: 220 }}>
+                    <Link href={`/admin/data-science/databases/${row.id}`} style={{ fontSize: 14, fontWeight: 600 }}>
+                      {row.name}
                     </Link>
                     {row.description && (
                       <div>
@@ -353,49 +337,31 @@ export default function FactorDatabasesPage({ user }: { user: DashboardUser }) {
                       </div>
                     )}
                   </div>
-                )
-              },
-              {
-                title: 'Size',
-                key: 'size',
-                width: 140,
-                render: (_: unknown, row: FactorDatabaseSummary) => (
-                  <Text type='secondary'>
-                    {row.columnCount} cols × {row.rowCount.toLocaleString()} rows
+                  <Text type='secondary' style={{ fontSize: 12, whiteSpace: 'nowrap' }}>
+                    {row.rowCount.toLocaleString()} {row.rowCount === 1 ? 'item' : 'items'} · updated{' '}
+                    <LocalDate iso={row.updatedAt} mode='date' /> ·{' '}
+                    {row.kind === 'factors' ? (
+                      <Text strong style={{ fontSize: 12 }}>
+                        v{row.version}
+                      </Text>
+                    ) : (
+                      `v${row.version}`
+                    )}
                   </Text>
-                )
-              },
-              {
-                title: 'Source',
-                dataIndex: 'sourceName',
-                width: 240,
-                ellipsis: true,
-                render: (v: string | null, row: FactorDatabaseSummary) =>
-                  v ? (
-                    row.sourceUrl ? (
+                  <Text type='secondary' style={{ fontSize: 12, maxWidth: 260 }} ellipsis={{ tooltip: row.sourceName }}>
+                    {row.sourceFileId ? (
+                      <a href={`/api/admin/factor-databases/${row.id}/source`} title='Download the source file'>
+                        <PaperClipOutlined /> {row.sourceName ?? 'source file'}
+                      </a>
+                    ) : row.sourceUrl ? (
                       <a href={row.sourceUrl} target='_blank' rel='noreferrer'>
-                        {v}
+                        {row.sourceName}
                       </a>
                     ) : (
-                      <Text type='secondary'>{v}</Text>
-                    )
-                  ) : (
-                    <Tag>not recorded</Tag>
-                  )
-              },
-              {
-                title: 'Version',
-                dataIndex: 'version',
-                width: 85,
-                render: (v: string, row: FactorDatabaseSummary) =>
-                  row.kind === 'factors' ? <Text strong>{v}</Text> : <Text type='secondary'>{v}</Text>
-              },
-              {
-                title: '',
-                key: 'actions',
-                width: 110,
-                render: (_: unknown, row: FactorDatabaseSummary) => (
-                  <>
+                      (row.sourceName ?? '')
+                    )}
+                  </Text>
+                  <div style={{ display: 'flex', gap: 4 }}>
                     <Button size='small' href={`/admin/data-science/databases/${row.id}`}>
                       Open
                     </Button>
@@ -406,12 +372,12 @@ export default function FactorDatabasesPage({ user }: { user: DashboardUser }) {
                     >
                       <Button size='small' type='text' danger icon={<DeleteOutlined />} />
                     </Popconfirm>
-                  </>
-                )
-              }
-            ]}
-          />
-        </Card>
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
+        </div>
       ))}
 
       <Text type='secondary' style={{ fontSize: 12, display: 'block', marginBottom: 16 }}>
