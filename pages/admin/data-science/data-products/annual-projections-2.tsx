@@ -22,6 +22,7 @@ import type { DashboardUser } from 'interfaces';
 import { AdminLayout } from 'layouts/AdminLayout';
 import { computeCombinedModel } from 'lib/calculator/v2/combinedModel';
 import type { ModelInputs, ModelTables } from 'lib/calculator/v2/combinedModel';
+import { GOLDEN_EXPECTED, GOLDEN_INPUTS, GOLDEN_REL_TOLERANCE } from 'lib/calculator/v2/goldenDataset';
 import { getUserFromContext } from 'lib/middleware';
 import { ACCESS_DENIED_REDIRECT, checkIsUpstream } from 'lib/middleware/requireUpstream';
 import { serializeJSON } from 'lib/objects';
@@ -37,81 +38,10 @@ export const getServerSideProps: GetServerSideProps = async context => {
   return { props: serializeJSON({ user }) };
 };
 
-/** The workbook's example scenario — the golden dataset. Do not edit; edit copies of it. */
-const GOLDEN: ModelInputs = {
-  singleUse: [
-    {
-      productId: 17,
-      baselineFrequency: 'Weekly',
-      baselineCasesPerFrequency: 10,
-      baselineUnitsPerCase: 200,
-      baselineCostPerCase: 80,
-      forecastFrequency: 'Weekly',
-      forecastCasesPerFrequency: 0,
-      forecastUnitsPerCase: 200,
-      forecastCostPerCase: 80
-    },
-    {
-      productId: 7,
-      baselineFrequency: 'Weekly',
-      baselineCasesPerFrequency: 15,
-      baselineUnitsPerCase: 1000,
-      baselineCostPerCase: 30,
-      forecastFrequency: 'Weekly',
-      forecastCasesPerFrequency: 5,
-      forecastUnitsPerCase: 1000,
-      forecastCostPerCase: 30
-    },
-    {
-      productId: 3,
-      baselineFrequency: 'Weekly',
-      baselineCasesPerFrequency: 20,
-      baselineUnitsPerCase: 1000,
-      baselineCostPerCase: 20,
-      forecastFrequency: 'Weekly',
-      forecastCasesPerFrequency: 10,
-      forecastUnitsPerCase: 1000,
-      forecastCostPerCase: 20
-    }
-  ],
-  reusables: [{ productId: 100, initialCases: 10, unitsPerCase: 12, costPerCase: 2.28, annualRepurchaseRate: 0.1 }],
-  dishwashing: {
-    state: 'California',
-    machineType: 'Stationary Single Tank Door',
-    temperature: 'High',
-    energyStar: true,
-    buildingHeaterFuel: 'Electric',
-    boosterHeaterFuel: 'Electric',
-    operatingDaysPerYear: 365,
-    racksPerDay: 80
-  }
-};
-
-/** Expected outputs, verbatim from the workbook's Dashboard tab (workbook-faithful mode). */
-const EXPECTED = [
-  { key: 'baselineCost', label: 'Baseline single-use annual cost ($)', value: 85800, digits: 2 },
-  { key: 'forecastCost', label: 'Forecast annual operating cost ($)', value: 19633.10745, digits: 2 },
-  { key: 'savings', label: 'Annual savings ($)', value: 66166.89255, digits: 2 },
-  { key: 'oneTime', label: 'One-time startup cost ($)', value: 22.8, digits: 2 },
-  { key: 'unitsBase', label: 'Single-use units — baseline', value: 1924000, digits: 0 },
-  { key: 'unitsFcst', label: 'Single-use units — forecast', value: 780000, digits: 0 },
-  { key: 'wasteBase', label: 'Waste / purchased mass (lb) — baseline', value: 33644, digits: 2 },
-  { key: 'wasteFcst', label: 'Waste (lb) — forecast annual', value: 8690.75, digits: 2 },
-  { key: 'wasteFy', label: 'Waste (lb) — first year', value: 8758.25, digits: 2 },
-  { key: 'ghgBase', label: 'GHG (MTCO₂e) — baseline', value: 104.9831739, digits: 4 },
-  { key: 'ghgFcst', label: 'GHG (MTCO₂e) — forecast annual', value: 22.77655856, digits: 4 },
-  { key: 'ghgFy', label: 'GHG (MTCO₂e) — first year', value: 22.84475347, digits: 4 },
-  { key: 'waterBase', label: 'Water (gal) — baseline', value: 213305.5011, digits: 2 },
-  { key: 'waterFcst', label: 'Water (gal) — forecast annual', value: 95161.94939, digits: 2 },
-  { key: 'waterFy', label: 'Water (gal) — first year', value: 95377.24762, digits: 2 }
-];
-
-const REL_TOLERANCE = 1e-6;
-
 export default function AnnualProjections2Bench(_: { user: DashboardUser }) {
   const [tables, setTables] = useState<ModelTables | null>(null);
   const [unavailable, setUnavailable] = useState(false);
-  const [inputs, setInputs] = useState<ModelInputs>(() => JSON.parse(JSON.stringify(GOLDEN)));
+  const [inputs, setInputs] = useState<ModelInputs>(() => JSON.parse(JSON.stringify(GOLDEN_INPUTS)));
   const [workbookFaithful, setWorkbookFaithful] = useState(true);
 
   useEffect(() => {
@@ -123,7 +53,7 @@ export default function AnnualProjections2Bench(_: { user: DashboardUser }) {
       .catch(() => setUnavailable(true));
   }, []);
 
-  const isGolden = useMemo(() => JSON.stringify(inputs) === JSON.stringify(GOLDEN), [inputs]);
+  const isGolden = useMemo(() => JSON.stringify(inputs) === JSON.stringify(GOLDEN_INPUTS), [inputs]);
 
   const outputs = useMemo(
     () => (tables ? computeCombinedModel(inputs, tables, { replicateWorkbookBoxLookup: workbookFaithful }) : null),
@@ -154,7 +84,9 @@ export default function AnnualProjections2Bench(_: { user: DashboardUser }) {
   const allPass =
     goldenComparable &&
     outputs &&
-    EXPECTED.every(e => Math.abs(computedByKey[e.key] - e.value) / Math.max(1, Math.abs(e.value)) < REL_TOLERANCE);
+    GOLDEN_EXPECTED.every(
+      e => Math.abs(computedByKey[e.key] - e.value) / Math.max(1, Math.abs(e.value)) < GOLDEN_REL_TOLERANCE
+    );
 
   function updateSuLine(index: number, patch: Partial<ModelInputs['singleUse'][number]>) {
     setInputs(prev => ({
@@ -206,7 +138,7 @@ export default function AnnualProjections2Bench(_: { user: DashboardUser }) {
         </div>
         <Button
           icon={<UndoOutlined />}
-          onClick={() => setInputs(JSON.parse(JSON.stringify(GOLDEN)))}
+          onClick={() => setInputs(JSON.parse(JSON.stringify(GOLDEN_INPUTS)))}
           disabled={isGolden}
         >
           Reset to golden dataset
@@ -451,7 +383,7 @@ export default function AnnualProjections2Bench(_: { user: DashboardUser }) {
               size='small'
               rowKey='key'
               pagination={false}
-              dataSource={EXPECTED}
+              dataSource={GOLDEN_EXPECTED}
               columns={[
                 { title: 'Metric', dataIndex: 'label', ellipsis: true },
                 {
@@ -476,7 +408,8 @@ export default function AnnualProjections2Bench(_: { user: DashboardUser }) {
                   render: (_: unknown, row) => {
                     if (!goldenComparable) return <Tag>custom</Tag>;
                     const pass =
-                      Math.abs(computedByKey[row.key] - row.value) / Math.max(1, Math.abs(row.value)) < REL_TOLERANCE;
+                      Math.abs(computedByKey[row.key] - row.value) / Math.max(1, Math.abs(row.value)) <
+                      GOLDEN_REL_TOLERANCE;
                     return pass ? (
                       <Tag color='green' icon={<CheckCircleFilled />}>
                         PASS

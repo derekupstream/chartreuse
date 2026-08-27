@@ -428,8 +428,7 @@ export default function CommandCenter({
                   <b>Calculation flow:</b> user inputs → annual activity → product mass split → material impacts +
                   transportation → reusable/dishwashing impacts → baseline/forecast comparison → dashboard. See it live
                   in <Link href='/admin/data-science/data-products/annual-projections-2'>Annual Projections</Link>;
-                  field definitions in the{' '}
-                  <Link href='/admin/data-science/databases?openName=Data%20Dictionary'>Data Dictionary</Link>.
+                  field definitions in the <Link href='/admin/data-science/data-dictionary'>Data Dictionary</Link>.
                 </Paragraph>
               </div>
             )

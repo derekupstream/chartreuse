@@ -1,4 +1,4 @@
-import { DatabaseOutlined, DeleteOutlined, DownloadOutlined, UploadOutlined } from '@ant-design/icons';
+import { DatabaseOutlined, DeleteOutlined, UploadOutlined } from '@ant-design/icons';
 import {
   Alert,
   Button,
@@ -16,6 +16,7 @@ import {
   message
 } from 'antd';
 import type { GetServerSideProps } from 'next';
+import Link from 'next/link';
 import Papa from 'papaparse';
 import { useRouter } from 'next/router';
 import { useEffect, useMemo, useState } from 'react';
@@ -27,7 +28,6 @@ import { getUserFromContext } from 'lib/middleware';
 import { ACCESS_DENIED_REDIRECT, checkIsUpstream } from 'lib/middleware/requireUpstream';
 import { serializeJSON } from 'lib/objects';
 import type { DatabaseColumn, FactorDatabaseSummary } from 'pages/api/admin/factor-databases/index';
-import type { FactorDatabaseDetail } from 'pages/api/admin/factor-databases/[id]';
 import { extractMaterialFactors, guessFactorColumns } from 'lib/admin/extractMaterialFactors';
 import type { ExtractionResult } from 'lib/admin/extractMaterialFactors';
 
@@ -46,11 +46,6 @@ const isNumericish = (v: unknown) =>
 export default function FactorDatabasesPage({ user }: { user: DashboardUser }) {
   const router = useRouter();
   const [databases, setDatabases] = useState<FactorDatabaseSummary[] | null>(null);
-  const [openId, setOpenId] = useState<string | null>(null);
-  /** Row and column to highlight when arriving from a "view source" link */
-  const [focus, setFocus] = useState<{ rowIndex: number; columnKey: string } | null>(null);
-  const [detail, setDetail] = useState<FactorDatabaseDetail | null>(null);
-  const [search, setSearch] = useState('');
 
   // upload state
   const [uploadOpen, setUploadOpen] = useState(false);
@@ -90,61 +85,42 @@ export default function FactorDatabasesPage({ user }: { user: DashboardUser }) {
     load();
   }, []);
 
-  // Deep links: ?open=<id> (with optional row/col highlight) or ?openName=<database name>
-  // (used by the tab-dictated menu: "Data Dictionary" opens that database directly).
-  // ?kind=factors|reference filters the list to one side of the version policy.
+  // Deep links land on the spreadsheet page now: ?open=<id> (with row/col highlight) and
+  // ?openName=<database name> both redirect there, so old lineage links keep working.
   useEffect(() => {
     if (!router.isReady) return;
     const { open, row, col, openName } = router.query as Record<string, string>;
     if (open) {
-      setOpenId(open);
-      setFocus(row !== undefined ? { rowIndex: Number(row), columnKey: col ?? '' } : null);
+      const suffix = row !== undefined ? `?row=${row}&col=${col ?? ''}` : '';
+      router.replace(`/admin/data-science/databases/${open}${suffix}`);
     } else if (openName && databases) {
       const match = databases.find(d => d.name.toLowerCase() === openName.toLowerCase());
-      if (match) setOpenId(match.id);
+      if (match) router.replace(`/admin/data-science/databases/${match.id}`);
     }
-  }, [router.isReady, router.query, databases]);
+  }, [router, router.isReady, router.query, databases]);
 
-  const kindFilter = typeof router.query.kind === 'string' ? router.query.kind : null;
-  const visibleDatabases = (databases ?? []).filter(d => !kindFilter || d.kind === kindFilter);
-
-  // The tab-dictated menu routes several buttons here (?kind=…, ?openName=…) — highlight the
-  // button the admin actually clicked, not "All Databases".
-  const openNameParam = typeof router.query.openName === 'string' ? router.query.openName.toLowerCase() : null;
-  const menuKey =
-    openNameParam === 'data dictionary'
-      ? 'data-science/data-dictionary'
-      : openNameParam === 'open questions'
-        ? 'data-science/open-questions'
-        : openNameParam === 'funding opportunities'
-          ? 'data-science/funding'
-          : kindFilter === 'reference'
-            ? 'data-science/products-db'
-            : kindFilter === 'factors'
-              ? 'data-science/factors-db'
-              : 'data-science/databases';
-
-  useEffect(() => {
-    if (!openId) {
-      setDetail(null);
-      return;
-    }
-    setDetail(null);
-    setSearch('');
-    fetch(`/api/admin/factor-databases/${openId}`)
-      .then(async r => {
-        const body = await r.json();
-        // An error body must never be rendered as a database — that crashes the page.
-        if (!r.ok || !Array.isArray(body.columns)) {
-          throw new Error(body.error || `Could not load that database (HTTP ${r.status})`);
-        }
-        setDetail({ ...body, changes: Array.isArray(body.changes) ? body.changes : [] });
-      })
-      .catch(err => {
-        message.error((err as Error).message);
-        setOpenId(null);
-      });
-  }, [openId]);
+  // The curated view groups by what the data is; ?all=true is the Advanced everything-view.
+  // Page-backed databases (they have their own menu pages) stay out of the curated list.
+  const showAll = router.query.all === 'true';
+  const PAGE_BACKED = ['Data Dictionary', 'Open Questions', 'Validation'];
+  const groups = (() => {
+    if (!databases) return [];
+    if (showAll)
+      return [{ title: `All databases (${databases.length})`, note: null as string | null, items: databases }];
+    const curated = databases.filter(d => !PAGE_BACKED.includes(d.name));
+    const products = curated.filter(d => d.kind === 'reference' && /product/i.test(d.name));
+    const factors = curated.filter(d => d.kind === 'factors');
+    const other = curated.filter(d => !products.includes(d) && !factors.includes(d));
+    return [
+      { title: 'Products', note: 'The directories — what can be purchased and switched', items: products },
+      {
+        title: 'Factors',
+        note: 'The numbers that turn quantities into impacts — value changes bump the data version',
+        items: factors
+      },
+      { title: 'Other', note: 'Reference data alongside the model', items: other }
+    ].filter(g => g.items.length > 0);
+  })();
 
   function handleFile(file: File) {
     Papa.parse<Record<string, string>>(file, {
@@ -277,24 +253,10 @@ export default function FactorDatabasesPage({ user }: { user: DashboardUser }) {
     const res = await fetch(`/api/admin/factor-databases/${id}`, { method: 'DELETE' });
     if (res.ok) {
       message.success(`Deleted "${name}"`);
-      if (openId === id) setOpenId(null);
       load();
     } else {
       message.error('Could not delete that database');
     }
-  }
-
-  function downloadCsv(d: FactorDatabaseDetail) {
-    const csv = Papa.unparse({
-      fields: d.columns.map(c => c.key),
-      data: d.rows.map(r => d.columns.map(c => r[c.key]))
-    });
-    const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }));
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${d.name.replace(/[^a-z0-9]+/gi, '-').toLowerCase()}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
   }
 
   const extraction: ExtractionResult | null = useMemo(() => {
@@ -307,21 +269,8 @@ export default function FactorDatabasesPage({ user }: { user: DashboardUser }) {
     });
   }, [parsed, factorCols]);
 
-  const filteredRows = useMemo(() => {
-    if (!detail) return [];
-    if (!search.trim()) return detail.rows;
-    const q = search.toLowerCase();
-    return detail.rows.filter(r =>
-      Object.values(r).some(v =>
-        String(v ?? '')
-          .toLowerCase()
-          .includes(q)
-      )
-    );
-  }, [detail, search]);
-
   return (
-    <AdminLayout title='Databases' selectedMenuItem={menuKey} user={user}>
+    <AdminLayout title='Databases' selectedMenuItem='data-science/databases' user={user}>
       <HowTo tool='databases' />
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
@@ -330,8 +279,8 @@ export default function FactorDatabasesPage({ user }: { user: DashboardUser }) {
             <DatabaseOutlined /> Databases
           </Title>
           <Text type='secondary'>
-            One database per source tab — product directories, factors, rates. Factor tables carry the data version;
-            product directories grow without changing it.
+            Every table the model stands on, grouped by what the data is. Open one to work in it like a spreadsheet —
+            color-coded columns, the math behind every field, and edits that version themselves.
             {dataRelease && (
               <>
                 {' '}
@@ -367,217 +316,114 @@ export default function FactorDatabasesPage({ user }: { user: DashboardUser }) {
         }
       />
 
-      <Table
-        rowKey='id'
-        loading={databases === null}
-        dataSource={visibleDatabases}
-        pagination={{ pageSize: 10, hideOnSinglePage: true }}
-        columns={[
-          {
-            title: 'Database',
-            dataIndex: 'name',
-            render: (name: string, row: FactorDatabaseSummary) => (
-              <div>
-                <a onClick={() => setOpenId(row.id)}>
-                  <strong>{name}</strong>
-                </a>
-                {row.description && (
-                  <div>
-                    <Text type='secondary' style={{ fontSize: 12 }}>
-                      {row.description}
-                    </Text>
-                  </div>
-                )}
-              </div>
-            )
-          },
-          {
-            title: 'Size',
-            key: 'size',
-            width: 150,
-            render: (_: unknown, row: FactorDatabaseSummary) => (
-              <Text type='secondary'>
-                {row.columnCount} cols × {row.rowCount.toLocaleString()} rows
+      {groups.map(group => (
+        <Card
+          key={group.title}
+          size='small'
+          title={group.title}
+          extra={
+            group.note ? (
+              <Text type='secondary' style={{ fontSize: 12 }}>
+                {group.note}
               </Text>
-            )
-          },
-          {
-            title: 'Source',
-            dataIndex: 'sourceName',
-            width: 260,
-            render: (v: string | null, row: FactorDatabaseSummary) =>
-              v ? (
-                row.sourceUrl ? (
-                  <a href={row.sourceUrl} target='_blank' rel='noreferrer'>
-                    {v}
-                  </a>
-                ) : (
-                  <Text type='secondary'>{v}</Text>
-                )
-              ) : (
-                <Tag>not recorded</Tag>
-              )
-          },
-          {
-            title: 'Kind',
-            dataIndex: 'kind',
-            width: 105,
-            render: (v: string) =>
-              v === 'factors' ? <Tag color='green'>factors</Tag> : <Tag color='default'>reference</Tag>
-          },
-          {
-            title: 'Version',
-            dataIndex: 'version',
-            width: 90,
-            render: (v: string, row: FactorDatabaseSummary) =>
-              row.kind === 'factors' ? <Text strong>{v}</Text> : <Text type='secondary'>{v}</Text>
-          },
-          {
-            title: '',
-            key: 'actions',
-            width: 110,
-            render: (_: unknown, row: FactorDatabaseSummary) => (
-              <>
-                <Button size='small' onClick={() => setOpenId(row.id)}>
-                  Open
-                </Button>
-                <Popconfirm title={`Delete "${row.name}"?`} onConfirm={() => remove(row.id, row.name)} okText='Delete'>
-                  <Button size='small' type='text' danger icon={<DeleteOutlined />} />
-                </Popconfirm>
-              </>
-            )
+            ) : null
           }
-        ]}
-      />
+          style={{ marginBottom: 16 }}
+        >
+          <Table
+            rowKey='id'
+            size='small'
+            loading={databases === null}
+            dataSource={group.items}
+            pagination={false}
+            columns={[
+              {
+                title: 'Database',
+                dataIndex: 'name',
+                render: (name: string, row: FactorDatabaseSummary) => (
+                  <div>
+                    <Link href={`/admin/data-science/databases/${row.id}`}>
+                      <strong>{name}</strong>
+                    </Link>
+                    {row.description && (
+                      <div>
+                        <Text type='secondary' style={{ fontSize: 12 }}>
+                          {row.description}
+                        </Text>
+                      </div>
+                    )}
+                  </div>
+                )
+              },
+              {
+                title: 'Size',
+                key: 'size',
+                width: 140,
+                render: (_: unknown, row: FactorDatabaseSummary) => (
+                  <Text type='secondary'>
+                    {row.columnCount} cols × {row.rowCount.toLocaleString()} rows
+                  </Text>
+                )
+              },
+              {
+                title: 'Source',
+                dataIndex: 'sourceName',
+                width: 240,
+                ellipsis: true,
+                render: (v: string | null, row: FactorDatabaseSummary) =>
+                  v ? (
+                    row.sourceUrl ? (
+                      <a href={row.sourceUrl} target='_blank' rel='noreferrer'>
+                        {v}
+                      </a>
+                    ) : (
+                      <Text type='secondary'>{v}</Text>
+                    )
+                  ) : (
+                    <Tag>not recorded</Tag>
+                  )
+              },
+              {
+                title: 'Version',
+                dataIndex: 'version',
+                width: 85,
+                render: (v: string, row: FactorDatabaseSummary) =>
+                  row.kind === 'factors' ? <Text strong>{v}</Text> : <Text type='secondary'>{v}</Text>
+              },
+              {
+                title: '',
+                key: 'actions',
+                width: 110,
+                render: (_: unknown, row: FactorDatabaseSummary) => (
+                  <>
+                    <Button size='small' href={`/admin/data-science/databases/${row.id}`}>
+                      Open
+                    </Button>
+                    <Popconfirm
+                      title={`Delete "${row.name}"?`}
+                      onConfirm={() => remove(row.id, row.name)}
+                      okText='Delete'
+                    >
+                      <Button size='small' type='text' danger icon={<DeleteOutlined />} />
+                    </Popconfirm>
+                  </>
+                )
+              }
+            ]}
+          />
+        </Card>
+      ))}
 
-      {/* ── view one database as a table ─────────────────────────────── */}
-      <Modal
-        open={!!openId}
-        onCancel={() => {
-          setOpenId(null);
-          setFocus(null);
-        }}
-        width='95vw'
-        style={{ top: 20 }}
-        footer={null}
-        title={detail ? `${detail.name} — ${detail.columns.length} columns × ${detail.rows.length} rows` : 'Loading…'}
-      >
-        {detail && (
+      <Text type='secondary' style={{ fontSize: 12, display: 'block', marginBottom: 16 }}>
+        {showAll ? (
+          <Link href='/admin/data-science/databases'>← Back to the curated view</Link>
+        ) : (
           <>
-            <div style={{ display: 'flex', gap: 12, marginBottom: 12, alignItems: 'center' }}>
-              <Input.Search
-                placeholder='Search every column…'
-                allowClear
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                style={{ maxWidth: 320 }}
-              />
-              <Text type='secondary'>
-                {filteredRows.length.toLocaleString()} of {detail.rows.length.toLocaleString()} rows
-              </Text>
-              <Button icon={<DownloadOutlined />} onClick={() => downloadCsv(detail)} style={{ marginLeft: 'auto' }}>
-                Download CSV
-              </Button>
-            </div>
-            {detail.sourceName && (
-              <Text type='secondary' style={{ display: 'block', marginBottom: 8, fontSize: 12 }}>
-                Source: {detail.sourceName}
-                {detail.keyColumn ? ` · key column: ${detail.keyColumn}` : ''}
-                {` · version ${detail.version}`}
-              </Text>
-            )}
-            {detail.changes.length > 0 && (
-              <details style={{ marginBottom: 12 }}>
-                <summary style={{ cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>
-                  Version history ({detail.changes.length})
-                </summary>
-                <Table
-                  size='small'
-                  style={{ marginTop: 8 }}
-                  rowKey='id'
-                  pagination={detail.changes.length > 8 ? { pageSize: 8 } : false}
-                  dataSource={detail.changes}
-                  columns={[
-                    {
-                      title: 'When',
-                      dataIndex: 'createdAt',
-                      width: 170,
-                      render: (v: string) => new Date(v).toLocaleString()
-                    },
-                    {
-                      title: 'Version',
-                      width: 130,
-                      render: (_: unknown, c) => (
-                        <Text code>{c.versionBefore ? `${c.versionBefore} → ${c.versionAfter}` : c.versionAfter}</Text>
-                      )
-                    },
-                    { title: 'Action', dataIndex: 'action', width: 90 },
-                    {
-                      title: 'Changes',
-                      render: (_: unknown, c) => {
-                        const parts = [];
-                        if (c.rowsAdded) parts.push(`+${c.rowsAdded} rows`);
-                        if (c.rowsUpdated) parts.push(`${c.rowsUpdated} updated`);
-                        if (c.rowsRemoved) parts.push(`−${c.rowsRemoved} removed`);
-                        parts.push(`${c.rowCountAfter} after`);
-                        return parts.join(' · ');
-                      }
-                    },
-                    {
-                      title: 'Columns',
-                      render: (_: unknown, c) =>
-                        c.columnsTouched.length > 6
-                          ? `${c.columnsTouched.slice(0, 6).join(', ')} +${c.columnsTouched.length - 6}`
-                          : c.columnsTouched.join(', ') || '—'
-                    },
-                    {
-                      title: 'Source',
-                      dataIndex: 'sourceNote',
-                      width: 160,
-                      ellipsis: true,
-                      render: (v: string | null) => v ?? '—'
-                    }
-                  ]}
-                />
-              </details>
-            )}
-            <Table
-              size='small'
-              bordered
-              sticky
-              rowKey={(_r, i) => String(i)}
-              dataSource={filteredRows}
-              pagination={{
-                pageSize: 10,
-                showSizeChanger: true,
-                pageSizeOptions: ['10', '25', '50', '100'],
-                // land on the page containing the row we were sent to
-                defaultCurrent: focus ? Math.floor(focus.rowIndex / 10) + 1 : 1
-              }}
-              scroll={{ x: 'max-content' }}
-              onRow={(_r, index) => ({
-                style:
-                  focus && index === focus.rowIndex % 10 && Math.floor(focus.rowIndex / 10) >= 0
-                    ? { background: '#f9f0ff' }
-                    : undefined
-              })}
-              columns={detail.columns.map(col => ({
-                title: col.label,
-                dataIndex: col.key,
-                width: 150,
-                align: col.type === 'number' ? ('right' as const) : ('left' as const),
-                onCell: (_r: unknown, index?: number) => ({
-                  style:
-                    focus && col.key === focus.columnKey && index === focus.rowIndex % 10
-                      ? { border: '2px solid #722ed1', fontWeight: 600 }
-                      : undefined
-                }),
-                render: (v: unknown) => (v === null || v === '' ? <Text type='secondary'>—</Text> : String(v))
-              }))}
-            />
+            Data Dictionary, Validation, and Open Questions live in their own pages;{' '}
+            <Link href='/admin/data-science/databases?all=true'>show every stored table</Link>.
           </>
         )}
-      </Modal>
+      </Text>
 
       {/* ── upload ───────────────────────────────────────────────────── */}
       <Modal

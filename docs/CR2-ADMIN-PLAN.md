@@ -78,28 +78,33 @@ into Data Map; duplicate `LINEAGE_MAP` cleanup remains backlog #33), **Impact Si
 Old routes remain reachable — hubs link to them; nothing 404s. Deletion of the page files
 themselves (vs. de-listing) happens only for the Impact Simulator on this branch.
 
-## Workbook-tab navigation mapping (decided 2026-08-16)
+## Workbook-tab navigation mapping (decided 2026-08-16; revised 2026-08-27)
 
-The Data Science nav is dictated by the Combined Model workbook: **her tabs are the buttons.**
+The Data Science nav follows the Combined Model workbook, one button per **working surface**
+(Derek's second-pass correction: tabs group into surfaces rather than each becoming a button):
 
-| Workbook tab | Menu item | Manifestation |
+| Workbook tab | Where it lives | Manifestation |
 |---|---|---|
 | README | Dashboard (how-to panel) | Collapsible on the Command Center |
 | Dashboard (+ Scenario_SU, Scenario_Reuse, Dishwashing, Additional_Costs) | Annual Projections | The Annual Projections 2.0 product/bench — those tabs ARE its input panels |
 | Calc_SU, Calc_Reuse | (inside Annual Projections) | `lib/calculator/v2/combinedModel.ts` — the computed columns behind the bench |
-| Single_Use_Products, Reusable_Products | Products | Databases filtered to `kind=reference` |
-| GHG/Water/Transport/Dishwasher Factors, Utility_Rates, Purchase_Frequency | Factors | Databases filtered to `kind=factors` |
-| Data_Dictionary | Data Dictionary | Loaded as a reference database; also the Methodology contract |
-| Validation | Validation | The Quality hub (test runs + golden datasets); tab also loaded as a database for workbook round-trips |
-| Open_Questions | Open Questions | Loaded as a database — the decision log; overlaps Change Requests conceptually |
-| Funding_Opportunities | Funding Opportunities | Arrived in the 2026-08-16 Directory revision: 121 municipal funding rows (US + Canada, amounts, deadlines, eligibility, reuse-explicit flag). Loaded as a reference database; future frontend filtering + funding calculations. |
+| Single_Use_Products, Reusable_Products | **Databases → Products group** | Full-page editable spreadsheets (`databases/[id]`): compact grid, always-visible horizontal scroll, color-coded columns, cell inspector showing the Data Dictionary meaning + the exact model math, batch edits that changelog and version themselves |
+| GHG/Water/Transport/Dishwasher Factors, Utility_Rates, Purchase_Frequency | **Databases → Factors group** | Same spreadsheet surface; factor edits auto-bump the data version and cut a methodology snapshot |
+| Funding_Opportunities | **Databases → Other group** | 121 municipal funding rows (2026-08-16 revision) — a database, not a menu item; future frontend filtering + funding calculations |
+| Data_Dictionary | **Data Dictionary page** | A readable reference page (not a spreadsheet, not a popup), rendered from the loaded database — searchable, authority-tagged |
+| Validation | **Validation tool** | `quality.tsx`: her 9 Validation-tab checks *executed* against live tables (duplicate keys, factor sanity, reconciliation identities) + the 15 Dashboard metrics recomputed vs the workbook. Verdicts are computed, never stored; same checks pinned in CI (`validationChecks.spec.ts`) |
+| Open_Questions | (removed from nav) | Derek is clarifying its purpose with Madhavi; data preserved, reachable via Advanced → All Databases |
+
+**Methodology** is literal versions: 1.0 (legacy engine, production, projects pinned) and 2.0
+(Combined Model) side by side, each with its database versions, plus the append-only change
+log and auto-cut snapshots (`methodology-hub.tsx`).
 
 **Advanced dropdown** — app features with no workbook counterpart, each annotated:
 
 | Tool | Verdict |
 |---|---|
 | Data Products & Designer | **Future roadmap** — the Studio (calculators/dashboards/scenarios) is the product platform; Annual Projections is its first instance |
-| All Databases | Convenience view (unfiltered) |
+| All Databases | Convenience view (`?all=true` — everything stored, incl. page-backed tables) |
 | Smart Fields | **Future** — feeds the Studio's Logic stage; parked (backlog #37 → Studio spec) |
 | Functions | **Useful** — lowest-level engine view; keep for audits |
 | Data Map | **Useful** — lineage/traceability, governance visual |

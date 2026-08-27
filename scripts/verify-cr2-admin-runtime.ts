@@ -86,15 +86,13 @@ async function main() {
 
     // ── Every page of the tab-dictated nav renders (SSR crash ⇒ 500) ───────────────────
     const pages: [string, string[]][] = [
-      ['/admin/data-science', ['How this works', 'Funding Opportunities', 'Annual Projections']],
-      ['/admin/data-science/databases', []],
-      ['/admin/data-science/databases?kind=reference', []],
-      ['/admin/data-science/databases?kind=factors', []],
-      ['/admin/data-science/databases?openName=Data%20Dictionary', []],
-      ['/admin/data-science/databases?openName=Open%20Questions', []],
+      ['/admin/data-science', ['How this works', 'Databases', 'Annual Projections']],
+      ['/admin/data-science/databases', []], // groups render client-side; data is verified via the API below
+      ['/admin/data-science/databases?all=true', []],
       ['/admin/data-science/databases?openName=Funding%20Opportunities', []],
+      ['/admin/data-science/data-dictionary', ['Data Dictionary', 'product_id']],
       ['/admin/data-science/data-products/annual-projections-2', ['Annual Projections']],
-      ['/admin/data-science/methodology-hub', []],
+      ['/admin/data-science/methodology-hub', ['Combined Data', 'Change log', 'legacy']],
       ['/admin/data-science/quality', []],
       ['/admin/data-science/databases/workbook-upload', ['Workbook upload']],
       ['/admin/data-science/data-products-hub', []],
@@ -147,6 +145,32 @@ async function main() {
         );
         const first = detail?.rows?.[0]?.data ?? detail?.rows?.[0];
         check('Funding row content is real', Boolean(first && JSON.stringify(first).includes('MUN-')), '');
+
+        // Spreadsheet page renders for a real database id
+        const sheetRes = await get(`/admin/data-science/databases/${funding.id}`);
+        check('spreadsheet page renders', sheetRes.status === 200, `status ${sheetRes.status}`);
+
+        // Cell-edit round trip: write a marker, confirm it landed + changelogged, write back
+        const before = detail?.rows?.[0]?.internal_tracker_url ?? null;
+        const marker = 'https://verify.local/cr2-runtime-check';
+        const editRes = await fetch(`${BASE_URL}/api/admin/factor-databases/${funding.id}/cells`, {
+          method: 'PATCH',
+          headers: { cookie, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ edits: [{ rowIndex: 0, column: 'internal_tracker_url', value: marker }] })
+        });
+        const editBody = await editRes.json();
+        const after = await get(`/api/admin/factor-databases/${funding.id}`).then(r => r.json());
+        const landed = after?.rows?.[0]?.internal_tracker_url === marker;
+        const logged = after?.changes?.[0]?.action === 'edit' && after?.changes?.[0]?.rowsUpdated === 1;
+        check('cell edit lands and is changelogged', editRes.status === 200 && landed && logged,
+          `status ${editRes.status}, value ${landed ? 'written' : 'MISSING'}, changelog ${logged ? 'recorded' : 'MISSING'}, version ${editBody.versionBefore} → ${editBody.versionAfter}`);
+        await fetch(`${BASE_URL}/api/admin/factor-databases/${funding.id}/cells`, {
+          method: 'PATCH',
+          headers: { cookie, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ edits: [{ rowIndex: 0, column: 'internal_tracker_url', value: before }] })
+        });
+        const restored = await get(`/api/admin/factor-databases/${funding.id}`).then(r => r.json());
+        check('cell edit reverted cleanly', (restored?.rows?.[0]?.internal_tracker_url ?? null) === before, '');
       }
     }
   } finally {

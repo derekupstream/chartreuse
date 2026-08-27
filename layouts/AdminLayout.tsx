@@ -62,11 +62,8 @@ const DATA_SCIENCE_KEYS = [
   'data-science/quality',
   'data-science/data-products-hub',
   'data-science/annual-projections',
-  'data-science/products-db',
-  'data-science/factors-db',
-  'data-science/data-dictionary',
-  'data-science/open-questions',
-  'data-science/funding'
+  'data-science/databases-all',
+  'data-science/data-dictionary'
 ];
 
 const RSP_KEYS = ['rsp', 'rsp/api-keys', 'rsp/test-hub', 'rsp/feed', 'rsp/key-detail'];
@@ -93,8 +90,9 @@ const siderMenuItems = [
     icon: <BarChartOutlined />,
     label: <Link href='/admin/analytics'>Analytics</Link>
   },
-  // The Data Science nav is dictated by Madhavi's Combined Model workbook: her tabs are the
-  // buttons (docs/CR2-ADMIN-PLAN.md § workbook-tab mapping). Tools with no workbook
+  // The Data Science nav follows the Combined Model workbook, one button per working surface:
+  // Databases (products + factors as editable spreadsheets), Data Dictionary (reference page),
+  // Methodology (literal versions), Validation (her checks, executed). Tools with no workbook
   // counterpart live under Advanced — kept, not endorsed; each is annotated in the plan doc.
   {
     key: 'data-science-group',
@@ -106,28 +104,13 @@ const siderMenuItems = [
         key: 'data-science/annual-projections',
         label: <Link href='/admin/data-science/data-products/annual-projections-2'>Annual Projections</Link>
       },
-      {
-        key: 'data-science/products-db',
-        label: <Link href='/admin/data-science/databases?kind=reference'>Products</Link>
-      },
-      {
-        key: 'data-science/factors-db',
-        label: <Link href='/admin/data-science/databases?kind=factors'>Factors</Link>
-      },
+      { key: 'data-science/databases', label: <Link href='/admin/data-science/databases'>Databases</Link> },
       {
         key: 'data-science/data-dictionary',
-        label: <Link href='/admin/data-science/databases?openName=Data%20Dictionary'>Data Dictionary</Link>
+        label: <Link href='/admin/data-science/data-dictionary'>Data Dictionary</Link>
       },
       { key: 'data-science/methodology-hub', label: <Link href='/admin/data-science/methodology-hub'>Methodology</Link> },
       { key: 'data-science/quality', label: <Link href='/admin/data-science/quality'>Validation</Link> },
-      {
-        key: 'data-science/open-questions',
-        label: <Link href='/admin/data-science/databases?openName=Open%20Questions'>Open Questions</Link>
-      },
-      {
-        key: 'data-science/funding',
-        label: <Link href='/admin/data-science/databases?openName=Funding%20Opportunities'>Funding Opportunities</Link>
-      },
       {
         key: 'data-science-advanced',
         label: 'Advanced',
@@ -136,7 +119,10 @@ const siderMenuItems = [
             key: 'data-science/data-products-hub',
             label: <Link href='/admin/data-science/data-products-hub'>Data Products & Designer</Link>
           },
-          { key: 'data-science/databases', label: <Link href='/admin/data-science/databases'>All Databases</Link> },
+          {
+            key: 'data-science/databases-all',
+            label: <Link href='/admin/data-science/databases?all=true'>All Databases</Link>
+          },
           { key: 'data-science/smart-fields', label: <Link href='/admin/data-science/smart-fields'>Smart Fields</Link> },
           { key: 'data-science/calculations', label: <Link href='/admin/data-science/calculations'>Functions</Link> },
           { key: 'data-science/data-map', label: <Link href='/admin/data-science/data-map'>Data Map</Link> },
