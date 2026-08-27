@@ -11,6 +11,7 @@ import { Card, Col, Row, Table, Tag, Typography } from 'antd';
 import type { GetServerSideProps } from 'next';
 import Link from 'next/link';
 
+import { LocalDate } from 'components/common/LocalDate';
 import type { DashboardUser } from 'interfaces';
 import { AdminLayout } from 'layouts/AdminLayout';
 import { getUserFromContext } from 'lib/middleware';
@@ -198,7 +199,7 @@ export default function MethodologyVersions({
               title: 'When',
               dataIndex: 'createdAt',
               width: 165,
-              render: (v: string) => new Date(v).toLocaleString()
+              render: (v: string) => <LocalDate iso={v} />
             },
             { title: 'Database', dataIndex: 'databaseName', width: 190 },
             { title: 'Action', dataIndex: 'action', width: 90, render: (v: string) => <Tag>{v}</Tag> },
@@ -245,7 +246,7 @@ export default function MethodologyVersions({
               title: 'When',
               dataIndex: 'createdAt',
               width: 165,
-              render: (v: string) => new Date(v).toLocaleString()
+              render: (v: string) => <LocalDate iso={v} />
             },
             { title: 'Snapshot', dataIndex: 'name' },
             {

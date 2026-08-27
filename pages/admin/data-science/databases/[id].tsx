@@ -167,6 +167,12 @@ type DictEntry = { field: string; definition: string; type: string; unit: string
 
 const normalizeKey = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, '');
 
+/** Excel exports carry float noise (0.0005949999999…) — display clean, keep the raw value. */
+const displayValue = (v: unknown): string => {
+  if (typeof v === 'number' && Number.isFinite(v)) return String(parseFloat(v.toPrecision(12)));
+  return String(v);
+};
+
 export default function DatabaseSpreadsheetPage(_: { user: DashboardUser }) {
   const router = useRouter();
   const id = typeof router.query.id === 'string' ? router.query.id : null;
@@ -472,13 +478,13 @@ export default function DatabaseSpreadsheetPage(_: { user: DashboardUser }) {
                       id={`cell-${index}-${col.key}`}
                       className={classes || undefined}
                       style={family ? { background: family.bg } : undefined}
-                      title={value === null || value === undefined ? '' : String(value)}
+                      title={value === null || value === undefined ? '' : String(value)} // raw value on hover
                       onClick={() => select(index, col.key)}
                     >
                       {value === null || value === undefined || value === '' ? (
                         <Text type='secondary'>—</Text>
                       ) : (
-                        String(value)
+                        displayValue(value)
                       )}
                     </td>
                   );

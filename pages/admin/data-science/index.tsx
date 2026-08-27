@@ -26,6 +26,7 @@ import type { GetServerSideProps } from 'next';
 import Link from 'next/link';
 import styled from 'styled-components';
 
+import { LocalDate } from 'components/common/LocalDate';
 import type { DashboardUser } from 'interfaces';
 import { AdminLayout } from 'layouts/AdminLayout';
 import { getUserFromContext } from 'lib/middleware';
@@ -354,7 +355,7 @@ function ProductGrid({ products }: { products: ProductCard[] }) {
               </div>
               <Text type='secondary' style={{ fontSize: 11 }}>
                 {product.goldenDatasetName ?? 'link a golden dataset to validate this product'} · updated{' '}
-                {new Date(product.updatedAt).toLocaleDateString()}
+                <LocalDate iso={product.updatedAt} mode='date' />
               </Text>
             </Card>
           </Link>
@@ -475,7 +476,7 @@ export default function CommandCenter({
             value={lastTestRun?.failed ?? 0}
             subtext={
               lastTestRun
-                ? `last run ${new Date(lastTestRun.at).toLocaleDateString()} · ${dataChanges7d} data changes this week`
+                ? `last run ${lastTestRun.at.slice(0, 10)} · ${dataChanges7d} data changes this week`
                 : 'never run'
             }
             href='/admin/data-science/test-runs'
@@ -555,7 +556,10 @@ export default function CommandCenter({
                 renderItem={alert => (
                   <List.Item style={{ padding: '6px 0' }}>
                     <Text style={{ fontSize: 12 }}>
-                      <Text type='secondary'>{new Date(alert.at).toLocaleDateString()}</Text> {alert.text}
+                      <Text type='secondary'>
+                        <LocalDate iso={alert.at} mode='date' />
+                      </Text>{' '}
+                      {alert.text}
                     </Text>
                   </List.Item>
                 )}
@@ -640,7 +644,10 @@ export default function CommandCenter({
               <List.Item style={{ padding: '6px 0' }}>
                 <Text style={{ fontSize: 12 }}>
                   <Tag style={{ marginRight: 8 }}>{item.kind}</Tag>
-                  <Text type='secondary'>{new Date(item.at).toLocaleString()}</Text> — {item.text}
+                  <Text type='secondary'>
+                    <LocalDate iso={item.at} />
+                  </Text>{' '}
+                  — {item.text}
                 </Text>
               </List.Item>
             )}

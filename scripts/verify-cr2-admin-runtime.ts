@@ -15,6 +15,10 @@ import prisma from '../lib/prisma';
 const BASE_URL = process.env.VERIFY_BASE_URL ?? 'http://localhost:3000';
 const EMAIL = 'cr2-runtime-check@upstream.example.com';
 const KEEP = process.argv.includes('--keep');
+/** With --keep: print the session cookie so a browser can adopt it (console hydration checks). */
+const PRINT_COOKIE = process.argv.includes('--print-cookie');
+/** Only remove a --keep leftover, then exit. */
+const CLEANUP = process.argv.includes('--cleanup');
 
 const results: { name: string; ok: boolean; detail: string }[] = [];
 function check(name: string, ok: boolean, detail = '') {
@@ -44,6 +48,15 @@ async function main() {
   const anon = createClient(url, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
     auth: { autoRefreshToken: false, persistSession: false }
   });
+
+  if (CLEANUP) {
+    const leftover = await prisma.user.findUnique({ where: { email: EMAIL } });
+    if (leftover) await admin.auth.admin.deleteUser(leftover.id).catch(() => undefined);
+    await prisma.user.deleteMany({ where: { email: EMAIL } });
+    await prisma.$disconnect();
+    console.log(leftover ? 'throwaway user removed' : 'nothing to clean up');
+    return;
+  }
 
   const password = 'verify-' + Math.random().toString(36).slice(2) + Date.now().toString(36);
   let authUserId: string | null = null;
@@ -76,6 +89,7 @@ async function main() {
     if (signIn.error || !signIn.data.session) throw new Error(`signIn failed: ${signIn.error?.message}`);
     const cookie = sessionCookies(signIn.data.session);
     check('session', true, `signed in as ${EMAIL}`);
+    if (KEEP && PRINT_COOKIE) console.log(`COOKIE ${cookie}`);
 
     const get = (path: string, withCookie = true) =>
       fetch(BASE_URL + path, { redirect: 'manual', headers: withCookie ? { cookie } : {} });

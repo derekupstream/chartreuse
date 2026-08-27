@@ -27,9 +27,13 @@ Critical second pass → (on failure: classify, learn, change approach) → Repo
 | **A — Static** | `npx tsc --noEmit`, `yarn lint`, `yarn prisma:validate` when schema touched |
 | **B — Focused tests** | `node --experimental-vm-modules node_modules/.bin/jest <file>` for the changed area; golden specs for anything touching the v2 engine |
 | **C — Broad tests** | `yarn test:ci` (full suite) |
-| **D — Runtime** | Start/refresh `yarn dev`, exercise the real flow in the browser: navigate the menu, click the thing, watch the network tab, confirm the data on screen is the data in Postgres (`psql chartreuse_local`) — not placeholder/made-up values |
+| **D — Runtime (HTTP)** | `npx dotenv-cli -e .env -- npx tsx scripts/verify-cr2-admin-runtime.ts` — every route, unauthorized redirect, API data vs Postgres, cell-edit round trip |
+| **E — Runtime (browser)** | Load the changed pages in a REAL browser and read the console. HTTP checks cannot see hydration errors, client-side crashes, or render races. Get a session without touching credentials: `... verify-cr2-admin-runtime.ts --keep --print-cookie`, set the printed cookie via the browser tooling, drive the pages, check `read_console_messages` for errors, screenshot; then `... --cleanup` |
 
-Layer D is mandatory for UI work. A passing compile is not a working screen.
+Layers D and E are mandatory for UI work. A passing compile is not a working screen, and
+**a 200 with correct HTML is not a working page either** — hydration runs only in a browser
+(learned 2026-08-27: `toLocaleString()` dates in SSR pages threw "Text content does not
+match server-rendered HTML" on the Command Center; HTTP checks all passed).
 
 ## 3. Product-level acceptance (beyond "it renders")
 
@@ -53,6 +57,10 @@ data / auth / external. **Known environment traps here:**
 - `yarn prisma:sync` destroys schema.prisma (see CLAUDE.md). Never run it.
 - Local `prisma migrate dev/deploy` fail; apply migration SQL via psql.
 - Menu-key crash ("Menu link key not found") = key registered in one layout but not the other.
+- Hydration mismatch ("Text content does not match server-rendered HTML") = locale/time/random
+  formatting rendered during SSR. Never call `toLocaleString`/`toLocaleDateString` on data an
+  SSR page renders directly — use `components/common/LocalDate.tsx` (deterministic first
+  render, locale swap after mount).
 
 Never repeat the same failing action without new evidence.
 
