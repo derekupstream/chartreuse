@@ -7,6 +7,8 @@ import type { NextApiResponse } from 'next';
 
 import type { NextApiRequestWithUser } from 'lib/middleware';
 import { handlerWithUser, requireUpstream } from 'lib/middleware';
+import { FORMULAS_KEY, evaluateFormula, isFormula } from 'lib/admin/formula';
+import { loadDatabaseResolver, recomputeAllFormulas } from 'lib/admin/formulaServer';
 import prisma from 'lib/prisma';
 import { bumpVersion } from 'pages/api/admin/factor-databases/index';
 
@@ -19,6 +21,8 @@ export type CellEditResponse = {
   versionAfter: string;
   rowsUpdated: number;
   columnsTouched: string[];
+  /** Formula cells elsewhere that were re-evaluated because this data changed */
+  refreshedFormulaCells: number;
 };
 
 async function patch(req: NextApiRequestWithUser, res: NextApiResponse) {
@@ -40,13 +44,35 @@ async function patch(req: NextApiRequestWithUser, res: NextApiResponse) {
     return res.status(400).json({ error: 'An edited row no longer exists — reload and try again' });
   }
 
+  // Formula edits ("= 12 * @{…}") evaluate against the live databases before storing: the
+  // cell keeps the computed number (what every consumer reads) plus the formula itself.
+  const hasFormulaEdit = edits.some(e => isFormula(e.value));
+  const resolve = hasFormulaEdit ? await loadDatabaseResolver() : null;
+
   for (const row of rows) {
     const data = { ...(row.data as Record<string, unknown>) };
+    const formulas = { ...((data[FORMULAS_KEY] as Record<string, string> | undefined) ?? {}) };
     for (const edit of edits) {
-      if (edit.rowIndex === row.rowIndex) data[edit.column] = edit.value;
+      if (edit.rowIndex !== row.rowIndex) continue;
+      if (isFormula(edit.value)) {
+        const result = evaluateFormula(edit.value, resolve!);
+        if (!result.ok) {
+          return res.status(400).json({ error: `Row ${row.rowIndex + 1}, ${edit.column}: ${result.error}` });
+        }
+        data[edit.column] = result.value;
+        formulas[edit.column] = String(edit.value).trim();
+      } else {
+        data[edit.column] = edit.value;
+        delete formulas[edit.column]; // a plain value replaces any formula the cell had
+      }
     }
+    if (Object.keys(formulas).length) data[FORMULAS_KEY] = formulas;
+    else delete data[FORMULAS_KEY];
     await prisma.factorDatabaseRow.update({ where: { id: row.id }, data: { data: data as object } });
   }
+
+  // Data changed — every formula anywhere that references it must catch up.
+  const refreshedFormulaCells = await recomputeAllFormulas();
 
   const versionBefore = database.version;
   const versionAfter = database.kind === 'factors' ? bumpVersion(versionBefore) : versionBefore;
@@ -96,7 +122,8 @@ async function patch(req: NextApiRequestWithUser, res: NextApiResponse) {
     versionBefore,
     versionAfter,
     rowsUpdated: rowIndexes.length,
-    columnsTouched
+    columnsTouched,
+    refreshedFormulaCells
   };
   res.json(response);
 }

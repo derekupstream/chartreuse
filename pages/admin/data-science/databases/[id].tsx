@@ -14,11 +14,12 @@ import type { GetServerSideProps } from 'next';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import Papa from 'papaparse';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import styled from 'styled-components';
 
 import type { DashboardUser } from 'interfaces';
 import { AdminLayout } from 'layouts/AdminLayout';
+import { parseTokens, rowFormulas, rowMatchKey } from 'lib/admin/formula';
 import { getUserFromContext } from 'lib/middleware';
 import { ACCESS_DENIED_REDIRECT, checkIsUpstream } from 'lib/middleware/requireUpstream';
 import { serializeJSON } from 'lib/objects';
@@ -187,6 +188,84 @@ export default function DatabaseSpreadsheetPage(_: { user: DashboardUser }) {
   const [edits, setEdits] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
 
+  // ── @variable references ─────────────────────────────────────────────────────────────
+  // Typing @ in the edit field opens a narrowing picker over every database's variables;
+  // picking a column then a row inserts a token pill — a live reference, not a copied value.
+  const [summaries, setSummaries] = useState<FactorDatabaseSummary[]>([]);
+  const [mentionDismissed, setMentionDismissed] = useState(false);
+  const [highlight, setHighlight] = useState(0);
+  const [pendingVar, setPendingVar] = useState<{ database: FactorDatabaseSummary; column: string } | null>(null);
+  const [rowQuery, setRowQuery] = useState('');
+  const [rowOptions, setRowOptions] = useState<{ label: string; rowKey: string }[] | null>(null);
+  const detailCache = useRef<Map<string, FactorDatabaseDetail>>(new Map());
+  const formulaInputRef = useRef<any>(null);
+
+  const mentionMatch = !mentionDismissed && !pendingVar ? /@([A-Za-z0-9_ .-]*)$/.exec(draft) : null;
+  const variableOptions = useMemo(() => {
+    if (!mentionMatch) return [];
+    const query = mentionMatch[1].toLowerCase();
+    return summaries
+      .flatMap(db => db.columnKeys.map(column => ({ db, column })))
+      .filter(({ db, column }) => (column + ' ' + db.name).toLowerCase().includes(query))
+      .slice(0, 8);
+  }, [mentionMatch?.[1], summaries]);
+
+  async function chooseColumn(db: FactorDatabaseSummary, column: string) {
+    let full = detailCache.current.get(db.id);
+    if (!full) {
+      const body = await fetch(`/api/admin/factor-databases/${db.id}`).then(r => r.json());
+      if (!Array.isArray(body.columns)) return;
+      full = body as FactorDatabaseDetail;
+      detailCache.current.set(db.id, full);
+    }
+    const keyColumn = full.keyColumn || full.columns[0]?.key || '';
+    const options = full.rows
+      .map(r => ({
+        label: keyColumn
+          .split(',')
+          .map(k => String(r[k.trim()] ?? ''))
+          .filter(Boolean)
+          .join(' · '),
+        rowKey: rowMatchKey(r as Record<string, unknown>, keyColumn)
+      }))
+      .filter(o => o.rowKey);
+    if (options.length === 1) {
+      insertToken(db.name, column, options[0].rowKey);
+      return;
+    }
+    setPendingVar({ database: db, column });
+    setRowOptions(options);
+    setRowQuery('');
+    setHighlight(0);
+  }
+
+  function insertToken(databaseName: string, column: string, rowKey: string) {
+    setDraft(prev => prev.replace(/@([A-Za-z0-9_ .-]*)$/, `@{${databaseName}.${column}:${rowKey}} `));
+    setPendingVar(null);
+    setRowOptions(null);
+    setHighlight(0);
+    setTimeout(() => formulaInputRef.current?.focus(), 0);
+  }
+
+  const filteredRowOptions = (rowOptions ?? []).filter(o => o.label.toLowerCase().includes(rowQuery.toLowerCase()));
+
+  function mentionKeys(e: React.KeyboardEvent, options: { pick: () => void; count: number }) {
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setHighlight(h => Math.min(h + 1, options.count - 1));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setHighlight(h => Math.max(h - 1, 0));
+    } else if ((e.key === 'Enter' || e.key === 'Return' || e.key === 'Tab') && options.count > 0) {
+      e.preventDefault();
+      options.pick();
+    } else if (e.key === 'Escape') {
+      setPendingVar(null);
+      setRowOptions(null);
+      setMentionDismissed(true);
+    }
+  }
+
   function load(databaseId: string) {
     fetch(`/api/admin/factor-databases/${databaseId}`)
       .then(async r => {
@@ -206,6 +285,7 @@ export default function DatabaseSpreadsheetPage(_: { user: DashboardUser }) {
     fetch('/api/admin/factor-databases')
       .then(r => r.json())
       .then((list: FactorDatabaseSummary[]) => {
+        if (Array.isArray(list)) setSummaries(list);
         const dict = Array.isArray(list) ? list.find(d => d.name === 'Data Dictionary') : null;
         if (!dict) return;
         fetch(`/api/admin/factor-databases/${dict.id}`)
@@ -265,7 +345,11 @@ export default function DatabaseSpreadsheetPage(_: { user: DashboardUser }) {
 
   function select(rowIndex: number, column: string) {
     setSel({ row: rowIndex, col: column });
-    setDraft(cellValue(rowIndex, column));
+    const pending = edits[`${rowIndex}|${column}`];
+    const stored = detail ? rowFormulas(detail.rows[rowIndex] ?? {})[column] : undefined;
+    setDraft(pending !== undefined ? pending : (stored ?? cellValue(rowIndex, column)));
+    setMentionDismissed(false);
+    setPendingVar(null);
   }
 
   function commitDraft() {
@@ -397,16 +481,155 @@ export default function DatabaseSpreadsheetPage(_: { user: DashboardUser }) {
         <Text code style={{ whiteSpace: 'nowrap' }}>
           {sel ? `${sel.col} @ row ${sel.row + 1}${selKeyValue ? ` (${selKeyValue})` : ''}` : 'no cell selected'}
         </Text>
-        <Input
-          size='small'
-          placeholder='Select a cell to view or edit its value'
-          disabled={!sel}
-          value={sel ? draft : ''}
-          onChange={e => setDraft(e.target.value)}
-          onBlur={commitDraft}
-          onPressEnter={commitDraft}
-          style={{ fontFamily: 'monospace' }}
-        />
+        <div style={{ position: 'relative', flex: 1 }}>
+          <Input
+            ref={formulaInputRef}
+            size='small'
+            placeholder='Value, or = for a formula — type @ to reference any variable'
+            disabled={!sel}
+            value={sel ? draft : ''}
+            onChange={e => {
+              setDraft(e.target.value);
+              setMentionDismissed(false);
+            }}
+            onBlur={() => {
+              // let a click on the picker land before committing
+              setTimeout(() => {
+                if (!pendingVar) commitDraft();
+              }, 150);
+            }}
+            onKeyDown={e => {
+              if (mentionMatch && variableOptions.length) {
+                mentionKeys(e, {
+                  count: variableOptions.length,
+                  pick: () => {
+                    const opt = variableOptions[highlight];
+                    if (opt) chooseColumn(opt.db, opt.column);
+                  }
+                });
+              } else if (e.key === 'Enter') {
+                commitDraft();
+              }
+            }}
+            style={{ fontFamily: 'monospace', width: '100%' }}
+          />
+          {mentionMatch && variableOptions.length > 0 && (
+            <div
+              style={{
+                position: 'absolute',
+                top: '100%',
+                left: 0,
+                zIndex: 20,
+                background: 'white',
+                border: '1px solid #d9d9d6',
+                borderRadius: 6,
+                boxShadow: '0 4px 12px rgba(0,0,0,0.12)',
+                minWidth: 340,
+                marginTop: 2
+              }}
+            >
+              {variableOptions.map((opt, i) => (
+                <div
+                  key={`${opt.db.id}.${opt.column}`}
+                  onMouseDown={e => {
+                    e.preventDefault();
+                    chooseColumn(opt.db, opt.column);
+                  }}
+                  onMouseEnter={() => setHighlight(i)}
+                  style={{
+                    padding: '4px 10px',
+                    cursor: 'pointer',
+                    fontSize: 12,
+                    background: i === highlight ? '#e6f4ff' : undefined,
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    gap: 12
+                  }}
+                >
+                  <Text code style={{ fontSize: 12 }}>
+                    {opt.column}
+                  </Text>
+                  <Text type='secondary' style={{ fontSize: 11 }}>
+                    {opt.db.name}
+                  </Text>
+                </div>
+              ))}
+              <div style={{ padding: '3px 10px', borderTop: '1px solid #f0f0ee' }}>
+                <Text type='secondary' style={{ fontSize: 11 }}>
+                  ↑↓ choose · Enter next: pick the row · Esc cancel
+                </Text>
+              </div>
+            </div>
+          )}
+          {pendingVar && (
+            <div
+              style={{
+                position: 'absolute',
+                top: '100%',
+                left: 0,
+                zIndex: 20,
+                background: 'white',
+                border: '1px solid #d9d9d6',
+                borderRadius: 6,
+                boxShadow: '0 4px 12px rgba(0,0,0,0.12)',
+                minWidth: 340,
+                marginTop: 2
+              }}
+            >
+              <div style={{ padding: '4px 10px', borderBottom: '1px solid #f0f0ee' }}>
+                <Text type='secondary' style={{ fontSize: 11 }}>
+                  Which row of{' '}
+                  <Text code style={{ fontSize: 11 }}>
+                    {pendingVar.database.name}
+                  </Text>{' '}
+                  for{' '}
+                  <Text code style={{ fontSize: 11 }}>
+                    {pendingVar.column}
+                  </Text>
+                  ?
+                </Text>
+                <Input
+                  size='small'
+                  autoFocus
+                  placeholder='Type to filter rows…'
+                  value={rowQuery}
+                  onChange={e => {
+                    setRowQuery(e.target.value);
+                    setHighlight(0);
+                  }}
+                  onKeyDown={e =>
+                    mentionKeys(e, {
+                      count: Math.min(filteredRowOptions.length, 8),
+                      pick: () => {
+                        const opt = filteredRowOptions[highlight];
+                        if (opt) insertToken(pendingVar.database.name, pendingVar.column, opt.rowKey);
+                      }
+                    })
+                  }
+                  style={{ marginTop: 4 }}
+                />
+              </div>
+              {filteredRowOptions.slice(0, 8).map((opt, i) => (
+                <div
+                  key={opt.rowKey}
+                  onMouseDown={e => {
+                    e.preventDefault();
+                    insertToken(pendingVar.database.name, pendingVar.column, opt.rowKey);
+                  }}
+                  onMouseEnter={() => setHighlight(i)}
+                  style={{
+                    padding: '4px 10px',
+                    cursor: 'pointer',
+                    fontSize: 12,
+                    background: i === highlight ? '#e6f4ff' : undefined
+                  }}
+                >
+                  {opt.label}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
         <Input.Search
           size='small'
           placeholder='Search rows…'
@@ -416,6 +639,57 @@ export default function DatabaseSpreadsheetPage(_: { user: DashboardUser }) {
           style={{ maxWidth: 220 }}
         />
       </div>
+
+      {sel && draft.trim().startsWith('=') && (
+        <div
+          style={{
+            display: 'flex',
+            gap: 4,
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            padding: '4px 8px',
+            marginBottom: 8,
+            background: '#fafaf8',
+            border: '1px dashed #d9d9d6',
+            borderRadius: 6,
+            fontSize: 12
+          }}
+        >
+          <Text type='secondary' style={{ fontSize: 11 }}>
+            ƒ
+          </Text>
+          {(() => {
+            const tokens = parseTokens(draft);
+            const parts: React.ReactNode[] = [];
+            let rest = draft.trim().replace(/^=\s*/, '');
+            tokens.forEach((token, i) => {
+              const at = rest.indexOf(token.raw);
+              if (at > 0)
+                parts.push(
+                  <Text key={`t${i}`} style={{ fontFamily: 'monospace', fontSize: 12 }}>
+                    {rest.slice(0, at)}
+                  </Text>
+                );
+              parts.push(
+                <Tag key={`p${i}`} color='geekblue' style={{ margin: 0, fontSize: 11 }}>
+                  {token.column} · {token.rowKey.split('|').join(' · ')}
+                </Tag>
+              );
+              rest = rest.slice(at + token.raw.length);
+            });
+            if (rest)
+              parts.push(
+                <Text key='tail' style={{ fontFamily: 'monospace', fontSize: 12 }}>
+                  {rest}
+                </Text>
+              );
+            return parts;
+          })()}
+          <Text type='secondary' style={{ fontSize: 11, marginLeft: 'auto' }}>
+            pills stay live — the cell recomputes whenever a referenced value changes
+          </Text>
+        </div>
+      )}
 
       {sel && (dictEntry || usage) && (
         <Alert
@@ -465,6 +739,7 @@ export default function DatabaseSpreadsheetPage(_: { user: DashboardUser }) {
                   const pendingKey = `${index}|${col.key}`;
                   const isSel = sel?.row === index && sel?.col === col.key;
                   const value = edits[pendingKey] !== undefined ? edits[pendingKey] : data[col.key];
+                  const storedFormula = rowFormulas(data)[col.key];
                   const classes = [
                     col.type === 'number' ? 'num' : '',
                     isSel ? 'selected' : '',
@@ -483,6 +758,13 @@ export default function DatabaseSpreadsheetPage(_: { user: DashboardUser }) {
                     >
                       {value === null || value === undefined || value === '' ? (
                         <Text type='secondary'>—</Text>
+                      ) : storedFormula && edits[pendingKey] === undefined ? (
+                        <>
+                          {displayValue(value)}{' '}
+                          <Text type='secondary' style={{ fontSize: 10 }} title={storedFormula}>
+                            ƒ
+                          </Text>
+                        </>
                       ) : (
                         displayValue(value)
                       )}

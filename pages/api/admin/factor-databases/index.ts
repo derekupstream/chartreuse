@@ -3,6 +3,7 @@ import type { NextApiResponse } from 'next';
 import type { NextApiRequestWithUser } from 'lib/middleware';
 import { handlerWithUser, requireUpstream } from 'lib/middleware';
 import prisma from 'lib/prisma';
+import { recomputeAllFormulas } from 'lib/admin/formulaServer';
 import { mergeDatabaseRows } from 'lib/admin/mergeDatabaseRows';
 import type { MergeMode } from 'lib/admin/mergeDatabaseRows';
 
@@ -43,6 +44,8 @@ export type FactorDatabaseSummary = {
   updatedAt: string;
   /** Set when the actual uploaded source file is stored and downloadable */
   sourceFileId: string | null;
+  /** Column keys, for @variable autocomplete in the spreadsheet editor */
+  columnKeys: string[];
 };
 
 export type CreateDatabaseRequest = {
@@ -88,6 +91,7 @@ async function list(req: NextApiRequestWithUser, res: NextApiResponse) {
     kind: d.kind,
     keyColumn: d.keyColumn,
     columnCount: Array.isArray(d.columns) ? (d.columns as unknown[]).length : 0,
+    columnKeys: Array.isArray(d.columns) ? (d.columns as { key: string }[]).map(c => c.key) : [],
     rowCount: d._count.rows,
     updatedAt: d.updatedAt.toISOString(),
     sourceFileId: d.sourceFileId
@@ -215,6 +219,9 @@ async function create(req: NextApiRequestWithUser, res: NextApiResponse) {
       }
     });
   }
+
+  // Uploaded data may be referenced by formulas elsewhere — refresh them.
+  await recomputeAllFormulas();
 
   res.json({
     id: database.id,

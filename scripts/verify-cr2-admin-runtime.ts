@@ -10,6 +10,9 @@
  */
 import { createClient } from '@supabase/supabase-js';
 
+import { computeCombinedModel } from '../lib/calculator/v2/combinedModel';
+import { GOLDEN_INPUTS } from '../lib/calculator/v2/goldenDataset';
+import { loadModelTables } from '../lib/calculator/v2/projectToModelInputs';
 import prisma from '../lib/prisma';
 
 const BASE_URL = process.env.VERIFY_BASE_URL ?? 'http://localhost:3000';
@@ -195,6 +198,111 @@ async function main() {
         });
         const restored = await get(`/api/admin/factor-databases/${funding.id}`).then(r => r.json());
         check('cell edit reverted cleanly', (restored?.rows?.[0]?.internal_tracker_url ?? null) === before, '');
+
+        // ── Dynamic linking + collection versioning, end to end ─────────────────────────
+        // Editing a factor must change what the engine computes; restoring v2.0 must put
+        // both the data and the outputs back exactly.
+        const sinceCheck = new Date();
+
+        const cutRes = await fetch(`${BASE_URL}/api/admin/data-releases`, {
+          method: 'POST',
+          headers: { cookie, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: 'v2.0', note: 'Data Release 2.0 — Madhavi Directory 2026-08-16' })
+        });
+        const cutBody = await cutRes.json();
+        const cutOk = cutRes.status === 200 || String(cutBody.error ?? '').includes('already exists');
+        check('v2.0 collection release exists', cutOk, cutRes.status === 200 ? `cut fresh (${cutBody.databases} databases)` : 'already cut');
+
+        const dish = list.find((d: { name: string }) => d.name === 'Dishwasher Factors');
+        const dishDetail = await get(`/api/admin/factor-databases/${dish.id}`).then(r => r.json());
+        const dishRowIndex = dishDetail.rows.findIndex(
+          (r: Record<string, unknown>) =>
+            String(r.temperature) === 'High' && String(r.machine_type) === 'Stationary Single Tank Door'
+        );
+        const galBefore = Number(dishDetail.rows[dishRowIndex].water_gal_per_rack_energy_star);
+
+        const tablesBefore = await loadModelTables();
+        const waterBefore = computeCombinedModel(GOLDEN_INPUTS, tablesBefore!, { replicateWorkbookBoxLookup: true })
+          .waterGal.forecastAnnual;
+
+        await fetch(`${BASE_URL}/api/admin/factor-databases/${dish.id}/cells`, {
+          method: 'PATCH',
+          headers: { cookie, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            edits: [{ rowIndex: dishRowIndex, column: 'water_gal_per_rack_energy_star', value: galBefore * 2 }],
+            note: 'runtime-check: dynamic-link proof'
+          })
+        });
+        const waterAfter = computeCombinedModel(GOLDEN_INPUTS, (await loadModelTables())!, {
+          replicateWorkbookBoxLookup: true
+        }).waterGal.forecastAnnual;
+        check(
+          'editing a factor changes computed outputs (dynamic link)',
+          waterAfter > waterBefore,
+          `golden forecast water ${waterBefore.toFixed(2)} → ${waterAfter.toFixed(2)} gal after doubling gal/rack`
+        );
+
+        // Formula dependency: a cell referencing another database recomputes when it changes.
+        const pf = list.find((d: { name: string }) => d.name === 'Purchase Frequency');
+        const fundingMinBefore = restored?.rows?.[0]?.min_amount ?? null;
+        const formulaRes = await fetch(`${BASE_URL}/api/admin/factor-databases/${funding.id}/cells`, {
+          method: 'PATCH',
+          headers: { cookie, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            edits: [{ rowIndex: 0, column: 'min_amount', value: '= 2 * @{Purchase Frequency.Annual_Factor:weekly}' }],
+            note: 'runtime-check: formula'
+          })
+        });
+        const withFormula = await get(`/api/admin/factor-databases/${funding.id}`).then(r => r.json());
+        check(
+          'formula cell evaluates on save',
+          formulaRes.status === 200 && Number(withFormula.rows[0].min_amount) === 104,
+          `= 2 * @Annual_Factor[Weekly] → ${withFormula.rows[0].min_amount}`
+        );
+        const pfDetail = await get(`/api/admin/factor-databases/${pf.id}`).then(r => r.json());
+        const weeklyIndex = pfDetail.rows.findIndex((r: Record<string, unknown>) => String(r.Frequency) === 'Weekly');
+        await fetch(`${BASE_URL}/api/admin/factor-databases/${pf.id}/cells`, {
+          method: 'PATCH',
+          headers: { cookie, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            edits: [{ rowIndex: weeklyIndex, column: 'Annual_Factor', value: 53 }],
+            note: 'runtime-check: dependency'
+          })
+        });
+        const afterDependency = await get(`/api/admin/factor-databases/${funding.id}`).then(r => r.json());
+        check(
+          'formula recomputes when its referenced data changes',
+          Number(afterDependency.rows[0].min_amount) === 106,
+          `Annual_Factor 52 → 53 rippled the formula cell to ${afterDependency.rows[0].min_amount}`
+        );
+
+        // Restore v2.0 — everything above must be undone, data AND outputs.
+        const releases = await get('/api/admin/data-releases').then(r => r.json());
+        const v20 = releases.find((r: { name: string }) => r.name === 'v2.0');
+        const restoreRes = await fetch(`${BASE_URL}/api/admin/data-releases/${v20.id}/restore`, {
+          method: 'POST',
+          headers: { cookie }
+        });
+        const waterRestored = computeCombinedModel(GOLDEN_INPUTS, (await loadModelTables())!, {
+          replicateWorkbookBoxLookup: true
+        }).waterGal.forecastAnnual;
+        const fundingRestored = await get(`/api/admin/factor-databases/${funding.id}`).then(r => r.json());
+        check(
+          'restoring v2.0 returns data and outputs exactly',
+          restoreRes.status === 200 &&
+            Math.abs(waterRestored - waterBefore) < 1e-9 &&
+            (fundingRestored.rows[0].min_amount ?? null) === fundingMinBefore,
+          `forecast water back to ${waterRestored.toFixed(2)} gal; formula cell back to ${fundingRestored.rows[0].min_amount ?? 'blank'}`
+        );
+
+        // The check's own churn (edit/restore changelog rows, auto-cut snapshots) is not
+        // real history — remove it so repeated runs don't inflate the logs.
+        await prisma.factorDatabaseChange.deleteMany({
+          where: { createdAt: { gte: sinceCheck }, action: { in: ['edit', 'restore'] } }
+        });
+        await prisma.methodologySnapshot.deleteMany({
+          where: { createdAt: { gte: sinceCheck }, notes: { startsWith: 'Auto-captured' } }
+        });
       }
     }
   } finally {

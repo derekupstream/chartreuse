@@ -430,6 +430,19 @@ model SmartField {
 /// A "database": a named, versioned TABLE of reference data, kept in its native
 /// column structure (single-use products, reusable products, emission factors,
 /// water factors...). Distinct from Factor, which holds a single scalar value.
+/// A named, restorable version of the ENTIRE database collection — contents included, so
+/// "go back to v2.0" restores the actual rows, not just a label. Cut from the Databases
+/// page ("Update version to …"); restoring replaces every table with the stored state.
+model DataRelease {
+  id         String   @id @default(uuid()) @db.Uuid
+  createdAt  DateTime @default(now())
+  createdBy  String?  @db.Uuid
+  name       String   @unique
+  note       String?
+  /// Full dump: [{ name, description, sourceName, sourceUrl, kind, keyColumn, version, columns, rows, sourceFileId }]
+  tablesJson Json
+}
+
 /// An uploaded source file (workbook/CSV), kept verbatim so a database's "source" can be
 /// opened and downloaded rather than being a label you have to take on faith.
 model DataSourceFile {

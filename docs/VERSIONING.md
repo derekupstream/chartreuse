@@ -56,3 +56,19 @@ methodology before any project moves onto it.
   calculation model implemented and verified against her workbook exactly. Awaiting: her
   fixes (box-water scoping, directory gaps), the labor/hauling definition, and the v2 engine
   wiring before any project pins to 2.0.
+
+## Collection versions (v2.0, v2.1, v3 …)
+
+Beyond per-database versions, the whole collection is versioned as one unit from the
+Databases page (⋮ menu → "Update version to …"). Cutting a version stamps every database
+and stores the entire contents — rows included — in a `DataRelease` record, so
+"Restore a version …" puts every table back exactly as it was (rows, columns, sources,
+versions), with `restore` changelog entries. v1.0 is the legacy engine (compiled
+constants), not stored databases; legacy projects stay pinned to it via
+`Project.methodologyVersion`, so "going back to v1" means the engine pin, not a data
+restore.
+
+Cell formulas (`= 12 * @{GHG Factors.ghg_factor_mtco2e_per_lb:single-use|paper}`) store
+both the formula and its evaluated value; every write path re-evaluates all stored
+formulas (`lib/admin/formulaServer.ts`), so references stay live. Consumers — the 2.0
+engine included — only ever read plain values.

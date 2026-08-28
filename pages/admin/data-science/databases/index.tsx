@@ -1,9 +1,17 @@
-import { DatabaseOutlined, DeleteOutlined, PaperClipOutlined, UploadOutlined } from '@ant-design/icons';
+import {
+  DatabaseOutlined,
+  DeleteOutlined,
+  DownOutlined,
+  MoreOutlined,
+  PaperClipOutlined,
+  UploadOutlined
+} from '@ant-design/icons';
 import {
   Alert,
   Button,
   Card,
   Checkbox,
+  Dropdown,
   Input,
   Modal,
   Popconfirm,
@@ -29,6 +37,7 @@ import { AdminLayout } from 'layouts/AdminLayout';
 import { getUserFromContext } from 'lib/middleware';
 import { ACCESS_DENIED_REDIRECT, checkIsUpstream } from 'lib/middleware/requireUpstream';
 import { serializeJSON } from 'lib/objects';
+import type { DataReleaseSummary } from 'pages/api/admin/data-releases/index';
 import type { DatabaseColumn, FactorDatabaseSummary } from 'pages/api/admin/factor-databases/index';
 import { extractMaterialFactors, guessFactorColumns } from 'lib/admin/extractMaterialFactors';
 import { storeSourceFile } from 'lib/admin/storeSourceFile';
@@ -63,6 +72,65 @@ export default function FactorDatabasesPage({ user }: { user: DashboardUser }) {
   });
   const [saving, setSaving] = useState(false);
   const [csvFile, setCsvFile] = useState<File | null>(null);
+
+  // collection versioning
+  const [versionOpen, setVersionOpen] = useState(false);
+  const [versionForm, setVersionForm] = useState({ name: '', note: '' });
+  const [versionSaving, setVersionSaving] = useState(false);
+  const [restoreOpen, setRestoreOpen] = useState(false);
+  const [releases, setReleases] = useState<DataReleaseSummary[] | null>(null);
+  const [restoreId, setRestoreId] = useState<string | null>(null);
+  const [restoring, setRestoring] = useState(false);
+
+  async function cutVersion() {
+    if (!versionForm.name.trim()) {
+      message.warning('Name the version — e.g. v2.1 or v3');
+      return;
+    }
+    setVersionSaving(true);
+    try {
+      const res = await fetch('/api/admin/data-releases', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: versionForm.name, note: versionForm.note || null })
+      });
+      const body = await res.json();
+      if (!res.ok) throw new Error(body.error || 'Could not cut the version');
+      message.success(`${body.name} cut — ${body.databases} databases stored and stamped. Restorable any time.`);
+      setVersionOpen(false);
+      setVersionForm({ name: '', note: '' });
+      load();
+    } catch (e) {
+      message.error((e as Error).message);
+    } finally {
+      setVersionSaving(false);
+    }
+  }
+
+  async function openRestore() {
+    setRestoreOpen(true);
+    setReleases(null);
+    setRestoreId(null);
+    const res = await fetch('/api/admin/data-releases');
+    setReleases(res.ok ? await res.json() : []);
+  }
+
+  async function restoreVersion() {
+    if (!restoreId) return;
+    setRestoring(true);
+    try {
+      const res = await fetch(`/api/admin/data-releases/${restoreId}/restore`, { method: 'POST' });
+      const body = await res.json();
+      if (!res.ok) throw new Error(body.error || 'Restore failed');
+      message.success(`Restored ${body.name} — ${body.databases} databases returned to that state.`);
+      setRestoreOpen(false);
+      load();
+    } catch (e) {
+      message.error((e as Error).message);
+    } finally {
+      setRestoring(false);
+    }
+  }
   // factors carried on product rows
   const [factorCols, setFactorCols] = useState<{ materialColumn?: string; ghgColumn?: string; waterColumn?: string }>(
     {}
@@ -292,20 +360,41 @@ export default function FactorDatabasesPage({ user }: { user: DashboardUser }) {
               <>
                 {' '}
                 <Tag color='green' style={{ marginLeft: 4 }}>
-                  Data Release {dataRelease}
+                  v{dataRelease}
                 </Tag>
               </>
             )}
           </Text>
         </div>
-        <div style={{ display: 'flex', gap: 8 }}>
-          <Button type='primary' ghost href='/admin/data-science/databases/workbook-upload'>
-            Upload workbook (multi-sheet)
-          </Button>
-          <Button href='/admin/data-science/import'>AI Data Uploader</Button>
-          <Button type='primary' icon={<UploadOutlined />} onClick={() => setUploadOpen(true)}>
-            Upload a database
-          </Button>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <Dropdown.Button
+            type='primary'
+            icon={<DownOutlined />}
+            onClick={() => setUploadOpen(true)}
+            menu={{
+              items: [
+                { key: 'workbook', label: 'Upload workbook (multi-sheet)' },
+                { key: 'ai', label: 'AI Data Uploader' }
+              ],
+              onClick: ({ key }) =>
+                router.push(
+                  key === 'workbook' ? '/admin/data-science/databases/workbook-upload' : '/admin/data-science/import'
+                )
+            }}
+          >
+            <UploadOutlined /> Upload a database
+          </Dropdown.Button>
+          <Dropdown
+            menu={{
+              items: [
+                { key: 'cut', label: 'Update version to …' },
+                { key: 'restore', label: 'Restore a version …' }
+              ],
+              onClick: ({ key }) => (key === 'cut' ? setVersionOpen(true) : openRestore())
+            }}
+          >
+            <Button icon={<MoreOutlined />} />
+          </Dropdown>
         </div>
       </div>
 
@@ -390,6 +479,68 @@ export default function FactorDatabasesPage({ user }: { user: DashboardUser }) {
           </>
         )}
       </Text>
+
+      {/* ── collection versioning ────────────────────────────────────── */}
+      <Modal
+        open={versionOpen}
+        title='Update version'
+        onCancel={() => setVersionOpen(false)}
+        onOk={cutVersion}
+        okText='Cut this version'
+        okButtonProps={{ loading: versionSaving }}
+      >
+        <Text type='secondary' style={{ display: 'block', marginBottom: 12, fontSize: 13 }}>
+          Stamps every database with the new version and stores the entire collection — rows included — so you can
+          restore it later. Current collection: <Tag color='green'>v{dataRelease ?? '—'}</Tag>
+        </Text>
+        <Input
+          placeholder='New version name — e.g. v2.1 or v3'
+          value={versionForm.name}
+          onChange={e => setVersionForm({ ...versionForm, name: e.target.value })}
+          style={{ marginBottom: 8 }}
+        />
+        <Input
+          placeholder='What changed? (optional, shows in Methodology)'
+          value={versionForm.note}
+          onChange={e => setVersionForm({ ...versionForm, note: e.target.value })}
+        />
+      </Modal>
+
+      <Modal
+        open={restoreOpen}
+        title='Restore a version'
+        onCancel={() => setRestoreOpen(false)}
+        onOk={restoreVersion}
+        okText='Restore'
+        okButtonProps={{ danger: true, disabled: !restoreId, loading: restoring }}
+      >
+        <Text type='secondary' style={{ display: 'block', marginBottom: 12, fontSize: 13 }}>
+          Every database returns to exactly the stored state — rows, columns, sources, versions. The change log records
+          the rollback. If you might want today&apos;s data back, cut a version of it first. (v1.0 is the legacy engine,
+          not stored databases — legacy projects already stay pinned to it automatically.)
+        </Text>
+        {releases === null ? (
+          <Spin />
+        ) : releases.length === 0 ? (
+          <Text type='secondary'>No versions cut yet — use “Update version to …” first.</Text>
+        ) : (
+          <Radio.Group
+            value={restoreId}
+            onChange={e => setRestoreId(e.target.value)}
+            style={{ display: 'flex', flexDirection: 'column', gap: 8 }}
+          >
+            {releases.map(r => (
+              <Radio key={r.id} value={r.id}>
+                <Text strong>{r.name}</Text>{' '}
+                <Text type='secondary' style={{ fontSize: 12 }}>
+                  {r.databaseCount} databases · cut <LocalDate iso={r.createdAt} mode='date' />
+                  {r.note ? ` · ${r.note}` : ''}
+                </Text>
+              </Radio>
+            ))}
+          </Radio.Group>
+        )}
+      </Modal>
 
       {/* ── upload ───────────────────────────────────────────────────── */}
       <Modal
