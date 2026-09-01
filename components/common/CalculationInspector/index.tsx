@@ -1,5 +1,5 @@
 import { CalculatorOutlined, DatabaseOutlined } from '@ant-design/icons';
-import { Alert, Drawer, Spin, Table, Tag, Tooltip, Typography } from 'antd';
+import { Alert, Drawer, Spin, Table, Tag, Typography } from 'antd';
 import { createContext, useContext, useEffect, useState } from 'react';
 
 import type { OutputExplanation } from 'lib/calculator/trace/explainOutputs';
@@ -172,28 +172,49 @@ export function CalculationCard({
   children: React.ReactNode;
 }) {
   const context = useContext(Context);
+  const [hovered, setHovered] = useState(false);
 
   if (!context?.enabled) return <>{children}</>;
 
-  // Tooltips live on explicit icons only — hovering the card itself does nothing. The
-  // calculator icon carries the tooltip and opens the equation drawer on click.
+  // Hover shows the outline + "View calculation" pill; no floating text tooltip — those
+  // are reserved for explicit (i) icons.
   return (
-    <div style={{ position: 'relative', height: '100%' }}>
+    <div
+      onClick={() => context.open(outputKey)}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        position: 'relative',
+        height: '100%',
+        cursor: 'pointer',
+        borderRadius: 10,
+        outline: hovered ? '2px solid #1677ff' : '2px solid transparent',
+        outlineOffset: 2,
+        transition: 'outline-color 0.15s ease'
+      }}
+    >
       {children}
-      <Tooltip title={`See how ${label ?? 'this'} is calculated`}>
-        <CalculatorOutlined
+      {hovered && (
+        <div
           className='dont-print-me'
-          onClick={() => context.open(outputKey)}
           style={{
             position: 'absolute',
-            top: 10,
-            right: 12,
-            fontSize: 14,
-            color: 'rgba(0, 0, 0, 0.35)',
-            cursor: 'pointer'
+            top: 8,
+            right: 10,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 4,
+            background: '#1677ff',
+            color: '#fff',
+            borderRadius: 12,
+            padding: '2px 8px',
+            fontSize: 11,
+            pointerEvents: 'none'
           }}
-        />
-      </Tooltip>
+        >
+          <CalculatorOutlined /> View calculation
+        </div>
+      )}
     </div>
   );
 }
