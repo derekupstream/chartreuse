@@ -9,15 +9,13 @@
  * the Combined Model reports reduction = baseline − forecast. Converted here.
  */
 import type { ProjectionsResponse } from 'lib/calculator/getProjections';
+import { getChangeSummaryRowRounded, round } from 'lib/calculator/utils';
 import type { MetricTriple, ModelOutputs } from './combinedModel';
 
+// v1's own rounding/percent convention (whole-number totals, changePercent as a rounded
+// percentage like -74) — the overlay must speak it exactly or badges print raw fractions.
 function toChange(triple: MetricTriple) {
-  return {
-    baseline: triple.baseline,
-    forecast: triple.forecastAnnual,
-    change: -triple.reduction,
-    changePercent: triple.baseline === 0 ? 0 : -triple.reduction / triple.baseline
-  };
+  return getChangeSummaryRowRounded(triple.baseline, triple.forecastAnnual, 0);
 }
 
 export function applyV2Overrides(v1: ProjectionsResponse, v2: ModelOutputs): ProjectionsResponse {
@@ -55,11 +53,14 @@ export function applyV2Overrides(v1: ProjectionsResponse, v2: ModelOutputs): Pro
     },
     financialResults: {
       ...v1.financialResults,
-      oneTimeCosts: { ...v1.financialResults.oneTimeCosts, total: v2.financial.oneTimeStartupCost },
+      oneTimeCosts: { ...v1.financialResults.oneTimeCosts, total: round(v2.financial.oneTimeStartupCost, 0) },
       summary: {
         ...v1.financialResults.summary,
-        paybackPeriodsMonths: v2.financial.paybackMonths ?? v1.financialResults.summary.paybackPeriodsMonths,
-        annualROIPercent: v2.financial.annualSavingsROI * 100
+        // v1 conventions: payback in whole months (ceil), ROI as a percent to 2 decimals
+        paybackPeriodsMonths: v2.financial.paybackMonths
+          ? Math.ceil(v2.financial.paybackMonths)
+          : v1.financialResults.summary.paybackPeriodsMonths,
+        annualROIPercent: round(v2.financial.annualSavingsROI * 100, 2)
       }
     }
   };
