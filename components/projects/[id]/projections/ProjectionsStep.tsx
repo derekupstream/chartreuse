@@ -300,24 +300,28 @@ export const ProjectionsStep = ({ project, readOnly }: { project: ProjectContext
             )}
           </Col>
           <StyledCol xs={24} md={19}>
-            {v2Active && v2Response?.available && (
-              <Alert
-                type='info'
-                showIcon
-                closable
-                style={{ marginBottom: 12 }}
-                message="You're previewing the new 2.0 numbers"
-                description={`The big totals at the top were recalculated with the new 2.0 methodology. The detailed tables below them still come from the current methodology, so the details won't always add up to the new totals.${
-                  v2Response.excluded.length
-                    ? ` Also, the 2.0 methodology doesn't cover ${v2Response.excluded.join(', ')} yet, so those costs are left out of the new totals — savings can look better than they will be for projects that have them.`
-                    : ''
-                }${
-                  v2Response.unmatchedSingleUse + v2Response.unmatchedReusables > 0
-                    ? ` ${v2Response.unmatchedSingleUse + v2Response.unmatchedReusables} line item(s) use products the 2.0 product list doesn't include yet, so they're left out too.`
-                    : ''
-                } Turn the toggle off to see the fully consistent current-methodology view.`}
-              />
-            )}
+            {/* Only warn when something is genuinely missing from the 2.0 totals — the
+                methodology stamp at the bottom already says which version computed them. */}
+            {v2Active &&
+              v2Response?.available &&
+              (v2Response.excluded.length > 0 || v2Response.unmatchedSingleUse + v2Response.unmatchedReusables > 0) && (
+                <Alert
+                  type='warning'
+                  showIcon
+                  closable
+                  style={{ marginBottom: 12 }}
+                  message='Some of this project is not in the 2.0 totals'
+                  description={`${
+                    v2Response.excluded.length
+                      ? `The 2.0 methodology doesn't cover ${v2Response.excluded.join(', ')} yet, so those costs are left out — savings can look better than they will be. `
+                      : ''
+                  }${
+                    v2Response.unmatchedSingleUse + v2Response.unmatchedReusables > 0
+                      ? `${v2Response.unmatchedSingleUse + v2Response.unmatchedReusables} line item(s) use products the 2.0 product list doesn't include yet, so they're left out too. `
+                      : ''
+                  }Turn the toggle off for the fully consistent current-methodology view.`}
+                />
+              )}
             <span className={view === 'summary' ? '' : 'print-only'}>
               {project.category === 'event' ? (
                 <EventProjectSummary
