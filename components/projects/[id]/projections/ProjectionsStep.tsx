@@ -82,14 +82,17 @@ export const ProjectionsStep = ({ project, readOnly }: { project: ProjectContext
   const [view, setView] = useState<string>('summary');
   const { data: v1Data, error, isLoading } = useGetProjections(project.id);
   const { enabled: chartReuse2 } = useChartReuse2();
-  const { data: v2Response } = useGetProjectionsV2(chartReuse2 ? project.id : undefined);
-  // Chart-Reuse 2.0 shows Methodology 2.0 numbers; legacy shows 1.0. The overlay only
-  // touches the headline aggregates — detail views stay 1.0-derived until the v2 engine
-  // grows its own, and the banner says so.
-  const v2Active = chartReuse2 && !!v2Response?.available;
+  // A project PINNED to methodology 2.0 computes 2.0 — the pin is authoritative, not the
+  // browser's UI-mode toggle. The toggle only previews 2.0 on projects still pinned to 1.0.
+  // (Found via change request 8923824: a pinned-2.0 project rendered v1 numbers under a
+  // v2.0 stamp whenever the toggle was off.)
+  const projectPinnedV2 = (project as { methodologyVersion?: string }).methodologyVersion === '2.0';
+  const wantV2 = projectPinnedV2 || chartReuse2;
+  const { data: v2Response } = useGetProjectionsV2(wantV2 ? project.id : undefined);
+  const v2Active = wantV2 && !!v2Response?.available;
   const data = useMemo(
-    () => (v1Data && v2Response?.available && chartReuse2 ? applyV2Overrides(v1Data, v2Response.outputs) : v1Data),
-    [v1Data, v2Response, chartReuse2]
+    () => (v1Data && v2Response?.available && wantV2 ? applyV2Overrides(v1Data, v2Response.outputs) : v1Data),
+    [v1Data, v2Response, wantV2]
   );
   const { trigger: updateProjections } = useUpdateProjections(project.id);
   const [projectionsDescription, setProjectionsDescription] = useState(project.projectionsDescription);
@@ -413,7 +416,9 @@ export const ProjectionsStep = ({ project, readOnly }: { project: ProjectContext
           </StyledCol>
         </Row>
         <MethodologyStamp
-          version={v2Active ? '2.0' : (project as { methodologyVersion?: string }).methodologyVersion}
+          // The stamp cites what actually computed the numbers on screen — never the pin
+          // alone (a pinned-2.0 project rendering v1 numbers must not claim v2.0).
+          version={v2Active ? '2.0' : '1.0'}
         />
       </Wrapper>
     </CalculationInspectorProvider>
