@@ -169,7 +169,7 @@ Local DB: Postgres.app, database `chartreuse_local` (`psql` at `/Applications/Po
 |---|---|
 | `main` | The live line. Vercel auto-deploys it. Currently **Chart-Reuse Legacy** (Methodology 1.0). |
 | **tag `chartreuse-legacy-v1.0`** | **Immutable restore point** at the last pre-2.0 state (`1f36d61`, 2026-08-15): RSP API + partner portal, accounts rework, ingestion-model docs, datasheet, databases, smart fields. `git checkout chartreuse-legacy-v1.0` to return; `git checkout -b <name> chartreuse-legacy-v1.0` to work from it. |
-| `chartreuseV2` | **Chart-Reuse 2.0** — Madhavi's Combined Data & Calculation Model as versioned databases, the v2 engine, golden datasets, methodology versioning, the Command Center. Not merged; carries **7 migrations** that must be applied to production *before* any merge-and-deploy. |
+| `chartreuseV2` | **Chart-Reuse 2.0** — Madhavi's Combined Data & Calculation Model as versioned databases, the v2 engine, golden datasets, methodology versioning, the Command Center. Not merged; carries **8 migrations** that must be applied to production *before* any merge-and-deploy. |
 | `feat/regional-grid-factors` | Regional grid carbon intensity, built and held pending data-science sign-off (backlog #15). |
 
 Because 2.0 changes what the calculator produces, the legacy tag is the guarantee: whatever
