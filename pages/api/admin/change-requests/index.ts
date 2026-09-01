@@ -31,7 +31,11 @@ export default handlerWithUser()
       proposedNotes,
       proposedCategory,
       reason,
-      priority
+      priority,
+      databaseId,
+      columnKey,
+      rowKey,
+      contextUrl
     } = req.body;
     if (!type || !factorName || !reason)
       return res.status(400).json({ error: 'type, factorName, and reason are required' });
@@ -46,6 +50,10 @@ export default handlerWithUser()
         proposedSource,
         proposedNotes,
         proposedCategory,
+        databaseId: databaseId || null,
+        columnKey: columnKey || null,
+        rowKey: rowKey || null,
+        contextUrl: contextUrl || null,
         requestedBy: req.user.id,
         reason,
         priority: priority || 'medium',

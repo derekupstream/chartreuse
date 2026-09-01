@@ -164,6 +164,8 @@ type Props = {
   lastTestRun: { passed: number; failed: number; at: string } | null;
   testsStale: boolean;
   healthIssues: { issueType: string; severity: string; count: number }[];
+  /** Individual open notifications (newest first) — findings a reviewer can act on */
+  healthNotices: { id: string; issueType: string; severity: string; note: string | null; entityId: string }[];
   changeAlerts: { at: string; text: string }[];
   uploadQueue: { at: string; fileName: string; status: string }[];
   products: ProductCard[];
@@ -182,6 +184,7 @@ export const getServerSideProps: GetServerSideProps = async context => {
     goldenLinkedProducts,
     openIssues,
     issueGroups,
+    healthNoticesRows,
     uploadsPendingList,
     changes7d,
     pendingChangeRequests,
@@ -201,6 +204,12 @@ export const getServerSideProps: GetServerSideProps = async context => {
       _count: { _all: true },
       orderBy: { _count: { issueType: 'desc' } },
       take: 6
+    }),
+    prisma.dataHealthIssue.findMany({
+      where: { status: 'open', note: { not: null } },
+      orderBy: [{ severity: 'asc' }, { createdAt: 'desc' }],
+      take: 8,
+      select: { id: true, issueType: true, severity: true, note: true, entityId: true }
     }),
     prisma.importSession.findMany({
       where: { status: { notIn: ['applied', 'discarded'] } },
@@ -287,6 +296,7 @@ export const getServerSideProps: GetServerSideProps = async context => {
       : null,
     testsStale,
     healthIssues: issueGroups.map(g => ({ issueType: g.issueType, severity: g.severity, count: g._count._all })),
+    healthNotices: healthNoticesRows,
     changeAlerts,
     uploadQueue: uploadsPendingList.map(u => ({
       at: u.createdAt.toISOString(),
@@ -375,6 +385,7 @@ export default function CommandCenter({
   lastTestRun,
   testsStale,
   healthIssues,
+  healthNotices,
   changeAlerts,
   uploadQueue,
   products,
@@ -518,22 +529,50 @@ export default function CommandCenter({
             }
             extra={<Link href='/admin/data-science/data-map'>inspect</Link>}
           >
-            {healthIssues.length === 0 ? (
+            {healthIssues.length === 0 && healthNotices.length === 0 ? (
               <Text type='secondary'>No open issues.</Text>
             ) : (
-              <List
-                size='small'
-                dataSource={healthIssues}
-                renderItem={issue => (
-                  <List.Item style={{ padding: '6px 0' }}>
-                    <Badge
-                      color={issue.severity === 'error' ? 'red' : 'orange'}
-                      text={<code>{issue.issueType}</code>}
-                    />
-                    <Tag>{issue.count}</Tag>
-                  </List.Item>
+              <>
+                {healthNotices.length > 0 && (
+                  <List
+                    size='small'
+                    dataSource={healthNotices}
+                    renderItem={notice => (
+                      <List.Item style={{ padding: '6px 0', display: 'block' }}>
+                        <Badge
+                          color={
+                            notice.severity === 'error' ? 'red' : notice.severity === 'warning' ? 'orange' : 'blue'
+                          }
+                          text={<code style={{ fontSize: 11 }}>{notice.issueType}</code>}
+                        />
+                        <div style={{ fontSize: 12, margin: '2px 0 2px 14px' }}>{notice.note}</div>
+                        <Link
+                          href={`/admin/data-science/change-requests?${new URLSearchParams({
+                            file: '1',
+                            type: 'discrepancy',
+                            name: notice.issueType,
+                            reason: notice.note ?? ''
+                          }).toString()}`}
+                          style={{ fontSize: 11, marginLeft: 14 }}
+                        >
+                          File change request →
+                        </Link>
+                      </List.Item>
+                    )}
+                  />
                 )}
-              />
+                {healthIssues
+                  .filter(g => g.issueType !== 'workbook-quirk')
+                  .map(issue => (
+                    <div key={issue.issueType + issue.severity} style={{ padding: '4px 0' }}>
+                      <Badge
+                        color={issue.severity === 'error' ? 'red' : 'orange'}
+                        text={<code>{issue.issueType}</code>}
+                      />{' '}
+                      <Tag>{issue.count}</Tag>
+                    </div>
+                  ))}
+              </>
             )}
           </EqualCard>
         </Col>

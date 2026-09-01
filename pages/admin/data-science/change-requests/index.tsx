@@ -20,7 +20,8 @@ import {
 import type { ColumnsType } from 'antd/es/table';
 import type { GetServerSideProps } from 'next';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useRouter } from 'next/router';
+import { useEffect, useState } from 'react';
 
 import type { DashboardUser } from 'interfaces';
 import { AdminLayout } from 'layouts/AdminLayout';
@@ -86,6 +87,25 @@ export default function ChangeRequestsPage({ user, changeRequests: initial, fact
   const [saving, setSaving] = useState(false);
 
   const filtered = statusFilter ? requests.filter(r => r.status === statusFilter) : requests;
+
+  // Arriving from the spreadsheet's "File change request" button (or a data-health
+  // notification): open the form prefilled with the exact cell being looked at.
+  const router = useRouter();
+  useEffect(() => {
+    if (!router.isReady || router.query.file !== '1') return;
+    const q = router.query as Record<string, string>;
+    newForm.setFieldsValue({
+      type: q.type ?? 'discrepancy',
+      factorName: q.db ? `${q.db} · ${q.column}${q.rowLabel ? ` · ${q.rowLabel}` : ''}` : (q.name ?? ''),
+      databaseId: q.databaseId ?? undefined,
+      columnKey: q.column ?? undefined,
+      rowKey: q.rowKey ?? undefined,
+      contextUrl: q.url ?? undefined,
+      reason: q.value !== undefined ? `Current value: ${q.value}. ` : (q.reason ?? '')
+    });
+    setNewModal(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [router.isReady]);
 
   const pendingCount = requests.filter(r => r.status === 'pending').length;
 
@@ -196,6 +216,24 @@ export default function ChangeRequestsPage({ user, changeRequests: initial, fact
           {r.factor && (
             <Link href={`/admin/data-science/constants/${r.factor.id}/edit`}>
               <Button size='small'>View Factor</Button>
+            </Link>
+          )}
+          {(r as any).databaseId && (
+            <Link
+              href={`/admin/data-science/databases/${(r as any).databaseId}?${new URLSearchParams({
+                ...((r as any).columnKey ? { col: (r as any).columnKey } : {}),
+                ...((r as any).rowKey ? { rowKey: (r as any).rowKey } : {}),
+                cr: r.id
+              }).toString()}`}
+            >
+              <Button size='small' type='primary' ghost>
+                Implement in spreadsheet
+              </Button>
+            </Link>
+          )}
+          {(r as any).contextUrl && !(r as any).databaseId && (
+            <Link href={(r as any).contextUrl}>
+              <Button size='small'>Where it was seen</Button>
             </Link>
           )}
           {r.status === 'pending' && (
@@ -326,8 +364,22 @@ export default function ChangeRequestsPage({ user, changeRequests: initial, fact
           width={600}
         >
           <Form form={newForm} layout='vertical' onFinish={handleCreate} requiredMark='optional'>
+            {/* 2.0 references (filled by the spreadsheet's "File change request" button) */}
+            <Form.Item name='databaseId' hidden>
+              <Input type='hidden' />
+            </Form.Item>
+            <Form.Item name='columnKey' hidden>
+              <Input type='hidden' />
+            </Form.Item>
+            <Form.Item name='rowKey' hidden>
+              <Input type='hidden' />
+            </Form.Item>
+            <Form.Item name='contextUrl' hidden>
+              <Input type='hidden' />
+            </Form.Item>
             <Form.Item label='Request Type' name='type' rules={[{ required: true }]}>
               <Select>
+                <Select.Option value='discrepancy'>Discrepancy Report — the product contradicts a source</Select.Option>
                 <Select.Option value='update'>Update Value</Select.Option>
                 <Select.Option value='new'>Add New Factor</Select.Option>
                 <Select.Option value='deprecate'>Deprecate Factor</Select.Option>

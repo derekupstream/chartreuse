@@ -610,6 +610,11 @@ model ChangeRequest {
   reviewNotes      String?
   implementedBy    String?   @db.Uuid
   implementedAt    DateTime?
+  /// 2.0 references: point a request at a database cell and/or the page where it was seen
+  databaseId       String?   @db.Uuid
+  columnKey        String?
+  rowKey           String?
+  contextUrl       String?
   factor           Factor?   @relation(fields: [factorId], references: [id])
 }
 

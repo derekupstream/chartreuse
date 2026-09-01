@@ -420,6 +420,15 @@ export const ProjectionsStep = ({ project, readOnly }: { project: ProjectContext
           // alone (a pinned-2.0 project rendering v1 numbers must not claim v2.0).
           version={v2Active ? '2.0' : '1.0'}
         />
+        {/* Staff-only: the un-confusing move when numbers look wrong — Validation instantly
+            splits "data problem" from "app problem". */}
+        {project.org.isUpstream && (
+          <div className='dont-print-me' style={{ textAlign: 'center', marginTop: 4 }}>
+            <a href='/admin/data-science/quality' style={{ fontSize: 11, color: 'rgba(0,0,0,0.45)' }}>
+              Numbers look off? Verify the methodology against the workbook →
+            </a>
+          </div>
+        )}
       </Wrapper>
     </CalculationInspectorProvider>
   );

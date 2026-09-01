@@ -83,6 +83,12 @@ async function patch(req: NextApiRequestWithUser, res: NextApiResponse) {
     data: { version: versionAfter, updatedAt: new Date() }
   });
 
+  // The "why" behind the edit: the admin's note, plus the change-request id when this
+  // edit implements one — the version history and the CR log then reference each other.
+  const changeRequestId = typeof req.body?.changeRequestId === 'string' ? req.body.changeRequestId : null;
+  const noteText = typeof req.body?.note === 'string' && req.body.note ? req.body.note : 'Cell edit (spreadsheet view)';
+  const sourceNote = changeRequestId ? `${noteText} [CR:${changeRequestId.slice(0, 8)}]` : noteText;
+
   const rowCountAfter = await prisma.factorDatabaseRow.count({ where: { databaseId: database.id } });
   await prisma.factorDatabaseChange.create({
     data: {
@@ -96,9 +102,23 @@ async function patch(req: NextApiRequestWithUser, res: NextApiResponse) {
       rowsRemoved: 0,
       rowCountAfter,
       columnsTouched: columnsTouched as unknown as object,
-      sourceNote: typeof req.body?.note === 'string' && req.body.note ? req.body.note : 'Cell edit (spreadsheet view)'
+      sourceNote
     }
   });
+
+  if (changeRequestId) {
+    await prisma.changeRequest
+      .update({
+        where: { id: changeRequestId },
+        data: {
+          status: 'implemented',
+          implementedBy: req.user.id,
+          implementedAt: new Date(),
+          reviewNotes: `Implemented via spreadsheet edit on "${database.name}" (${versionBefore} → ${versionAfter}): ${noteText}`
+        }
+      })
+      .catch(() => undefined); // a stale/deleted CR must not fail the data edit
+  }
 
   // Factors changes alter what calculations produce → cut the automatic snapshot.
   if (database.kind === 'factors' && versionAfter !== versionBefore) {

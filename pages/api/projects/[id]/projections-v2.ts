@@ -35,7 +35,11 @@ handler.get(async (req: NextApiRequestWithUser, res: NextApiResponse<Projections
   const mapping = await buildModelInputs(projectId, tables);
   if (!mapping) return res.status(404).json({ available: false, reason: 'Project not found' });
 
-  const outputs = computeCombinedModel(mapping.inputs, tables);
+  // Methodology 2.0 IS Madhavi's Combined Model, verbatim — including its known box-water
+  // lookup quirk. The product reproduces her model exactly; the correction ships later as a
+  // versioned change she approves (tracked as a data-health notification + feedback #1),
+  // never as a silent default that makes our numbers differ from hers.
+  const outputs = computeCombinedModel(mapping.inputs, tables, { replicateWorkbookBoxLookup: true });
   res.json({
     available: true,
     outputs,

@@ -276,6 +276,43 @@ async function main() {
           `Annual_Factor 52 → 53 rippled the formula cell to ${afterDependency.rows[0].min_amount}`
         );
 
+        // Change request ↔ changelog linkage: an edit that implements a CR must stamp the
+        // CR id into the version history and flip the CR to implemented.
+        const crRes = await fetch(`${BASE_URL}/api/admin/change-requests`, {
+          method: 'POST',
+          headers: { cookie, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'discrepancy',
+            factorName: 'runtime-check linkage probe',
+            reason: 'Verifying CR-to-changelog linkage',
+            databaseId: funding.id,
+            columnKey: 'internal_tracker_url',
+            rowKey: 'mun-0001'
+          })
+        });
+        const cr = await crRes.json();
+        await fetch(`${BASE_URL}/api/admin/factor-databases/${funding.id}/cells`, {
+          method: 'PATCH',
+          headers: { cookie, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            edits: [{ rowIndex: 0, column: 'internal_tracker_url', value: 'https://verify.local/cr-linkage' }],
+            note: 'runtime-check: CR linkage',
+            changeRequestId: cr.id
+          })
+        });
+        const [crAfter, fundingAfterCr] = await Promise.all([
+          get(`/api/admin/change-requests?status=implemented`).then(r => r.json()),
+          get(`/api/admin/factor-databases/${funding.id}`).then(r => r.json())
+        ]);
+        const crRow = Array.isArray(crAfter) ? crAfter.find((c: { id: string }) => c.id === cr.id) : null;
+        const stamped = fundingAfterCr?.changes?.[0]?.sourceNote?.includes(`[CR:${String(cr.id).slice(0, 8)}]`);
+        check(
+          'CR implemented via edit — histories linked both ways',
+          Boolean(crRow) && Boolean(stamped),
+          `CR status ${crRow?.status ?? 'MISSING'}; changelog note "${fundingAfterCr?.changes?.[0]?.sourceNote ?? ''}"`
+        );
+        await prisma.changeRequest.delete({ where: { id: cr.id } }).catch(() => undefined);
+
         // Restore v2.0 — everything above must be undone, data AND outputs.
         const releases = await get('/api/admin/data-releases').then(r => r.json());
         const v20 = releases.find((r: { name: string }) => r.name === 'v2.0');

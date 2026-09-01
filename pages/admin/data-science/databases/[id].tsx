@@ -8,8 +8,8 @@
  * math it drives in the 2.0 model; edit in the formula bar, then save the batch — one
  * changelog entry, one version step, snapshot cut automatically for factors tables.
  */
-import { ArrowLeftOutlined, DownloadOutlined, SaveOutlined, UploadOutlined } from '@ant-design/icons';
-import { Alert, Button, Input, Spin, Tag, Typography, message } from 'antd';
+import { ArrowLeftOutlined, DownloadOutlined, FlagOutlined, SaveOutlined, UploadOutlined } from '@ant-design/icons';
+import { Alert, Button, Input, Modal, Spin, Tag, Typography, message } from 'antd';
 import type { GetServerSideProps } from 'next';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
@@ -187,6 +187,11 @@ export default function DatabaseSpreadsheetPage(_: { user: DashboardUser }) {
   /** Uncommitted edits, keyed `${rowIndex}|${column}` */
   const [edits, setEdits] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
+  // The "why" behind a save — lands in the version history; optional but encouraged.
+  const [noteOpen, setNoteOpen] = useState(false);
+  const [note, setNote] = useState('');
+  /** Arriving with ?cr=<id> means these edits implement that change request. */
+  const crParam = typeof router.query.cr === 'string' ? router.query.cr : null;
 
   // ── @variable references ─────────────────────────────────────────────────────────────
   // Typing @ in the edit field opens a narrowing picker over every database's variables;
@@ -306,16 +311,23 @@ export default function DatabaseSpreadsheetPage(_: { user: DashboardUser }) {
       .catch(() => undefined);
   }, []);
 
-  // Deep link: ?row=&col= selects and scrolls to a cell (lineage "view source" links).
+  // Deep link: ?row=&col= (index) or ?rowKey=&col= (stable key, used by change requests)
+  // selects and scrolls to a cell.
   useEffect(() => {
     if (!router.isReady || !detail) return;
-    const { row, col } = router.query as Record<string, string>;
-    if (row !== undefined) {
-      const rowIndex = Number(row);
+    const { row, col, rowKey } = router.query as Record<string, string>;
+    let rowIndex: number | null = row !== undefined ? Number(row) : null;
+    if (rowIndex === null && rowKey) {
+      const keyColumn = detail.keyColumn || detail.columns[0]?.key || '';
+      rowIndex = detail.rows.findIndex(r => rowMatchKey(r as Record<string, unknown>, keyColumn) === rowKey);
+      if (rowIndex < 0) rowIndex = null;
+    }
+    if (rowIndex !== null) {
       const column = col || detail.columns[0]?.key;
       setSel({ row: rowIndex, col: column });
+      const index = rowIndex;
       setTimeout(() => {
-        document.getElementById(`cell-${rowIndex}-${column}`)?.scrollIntoView({ block: 'center', inline: 'center' });
+        document.getElementById(`cell-${index}-${column}`)?.scrollIntoView({ block: 'center', inline: 'center' });
       }, 100);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -373,16 +385,23 @@ export default function DatabaseSpreadsheetPage(_: { user: DashboardUser }) {
       const res = await fetch(`/api/admin/factor-databases/${id}/cells`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ edits: payload })
+        body: JSON.stringify({
+          edits: payload,
+          ...(note.trim() ? { note: note.trim() } : {}),
+          ...(crParam ? { changeRequestId: crParam } : {})
+        })
       });
       const body: CellEditResponse & { error?: string } = await res.json();
       if (!res.ok) throw new Error(body.error || 'Save failed');
       message.success(
-        body.versionAfter !== body.versionBefore
+        (body.versionAfter !== body.versionBefore
           ? `Saved ${payload.length} cell${payload.length === 1 ? '' : 's'} — version ${body.versionBefore} → ${body.versionAfter}, snapshot cut`
-          : `Saved ${payload.length} cell${payload.length === 1 ? '' : 's'} (reference data — version unchanged)`
+          : `Saved ${payload.length} cell${payload.length === 1 ? '' : 's'} (reference data — version unchanged)`) +
+          (crParam ? ' · change request marked implemented' : '')
       );
       setEdits({});
+      setNote('');
+      setNoteOpen(false);
       load(id);
     } catch (e) {
       message.error((e as Error).message);
@@ -458,7 +477,7 @@ export default function DatabaseSpreadsheetPage(_: { user: DashboardUser }) {
             icon={<SaveOutlined />}
             disabled={editCount === 0}
             loading={saving}
-            onClick={saveEdits}
+            onClick={() => setNoteOpen(true)}
           >
             Save {editCount || ''} {editCount === 1 ? 'edit' : 'edits'}
           </Button>
@@ -638,6 +657,30 @@ export default function DatabaseSpreadsheetPage(_: { user: DashboardUser }) {
           onChange={e => setSearch(e.target.value)}
           style={{ maxWidth: 220 }}
         />
+        {sel && detail && (
+          <Button
+            size='small'
+            icon={<FlagOutlined />}
+            onClick={() => {
+              // Hand the CR form everything about the cell being looked at.
+              const keyColumn = detail.keyColumn || detail.columns[0]?.key || '';
+              const row = detail.rows[sel.row] ?? {};
+              const params = new URLSearchParams({
+                file: '1',
+                databaseId: detail.id,
+                db: detail.name,
+                column: sel.col,
+                rowKey: rowMatchKey(row as Record<string, unknown>, keyColumn),
+                rowLabel: selKeyValue ?? '',
+                value: cellValue(sel.row, sel.col),
+                url: `/admin/data-science/databases/${detail.id}?row=${sel.row}&col=${sel.col}`
+              });
+              router.push(`/admin/data-science/change-requests?${params.toString()}`);
+            }}
+          >
+            File change request
+          </Button>
+        )}
       </div>
 
       {sel && draft.trim().startsWith('=') && (
@@ -792,6 +835,34 @@ export default function DatabaseSpreadsheetPage(_: { user: DashboardUser }) {
           </Text>
         )}
       </div>
+
+      <Modal
+        open={noteOpen}
+        title={`Save ${editCount} ${editCount === 1 ? 'edit' : 'edits'} to ${detail.name}`}
+        onCancel={() => setNoteOpen(false)}
+        onOk={saveEdits}
+        okText='Save'
+        okButtonProps={{ loading: saving }}
+      >
+        {crParam && (
+          <Alert
+            type='info'
+            showIcon
+            style={{ marginBottom: 12 }}
+            message={`This save implements change request ${crParam.slice(0, 8)} — it will be marked implemented and referenced in the version history.`}
+          />
+        )}
+        <Text type='secondary' style={{ display: 'block', marginBottom: 8, fontSize: 13 }}>
+          Why this change? One line — it becomes part of the version history, so the reason survives with the data.
+        </Text>
+        <Input.TextArea
+          rows={2}
+          placeholder='e.g. Corrected per EPA WARM v16 update; see change request …'
+          value={note}
+          onChange={e => setNote(e.target.value)}
+          autoFocus
+        />
+      </Modal>
 
       {detail.changes.length > 0 && (
         <details style={{ marginTop: 12 }}>
