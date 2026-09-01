@@ -58,8 +58,8 @@ export async function buildModelInputs(projectId: string, tables: ModelTables): 
       reusableItems: true,
       dishwashers: true,
       laborCosts: { select: { id: true } },
-      otherExpenses: { select: { id: true } },
-      wasteHaulingCosts: { select: { id: true } }
+      otherExpenses: true,
+      wasteHaulingCosts: true
     }
   });
   if (!project) return null;
@@ -128,10 +128,28 @@ export async function buildModelInputs(projectId: string, tables: ModelTables): 
         }
       : undefined;
 
+  // The workbook's Additional_Costs tab, from the project's own rows: 'One Time' becomes
+  // one-time startup cost, everything else annualizes by frequency; hauling enters as the
+  // 12 × (forecast − baseline) monthly delta — both implemented in the engine.
+  const additionalCosts = project.otherExpenses.map(expense => ({
+    frequency: expense.frequency,
+    amount: expense.cost
+  }));
+  const wasteHauling = project.wasteHaulingCosts.length
+    ? {
+        baselineMonthly: project.wasteHaulingCosts.reduce((sum, cost) => sum + cost.monthlyCost, 0),
+        forecastMonthly: project.wasteHaulingCosts.reduce((sum, cost) => sum + cost.newMonthlyCost, 0)
+      }
+    : undefined;
+
+  // Labor remains genuinely undefined in the 2.0 model (Madhavi feedback #3).
   const excluded: string[] = [];
   if (project.laborCosts.length) excluded.push('labor costs');
-  if (project.otherExpenses.length) excluded.push('other expenses');
-  if (project.wasteHaulingCosts.length) excluded.push('waste hauling');
 
-  return { inputs: { singleUse, reusables, dishwashing }, unmatchedSingleUse, unmatchedReusables, excluded };
+  return {
+    inputs: { singleUse, reusables, dishwashing, additionalCosts, wasteHauling },
+    unmatchedSingleUse,
+    unmatchedReusables,
+    excluded
+  };
 }
