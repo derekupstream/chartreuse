@@ -51,9 +51,10 @@ match server-rendered HTML" on the Command Center; HTTP checks all passed).
 Classify before retrying: implementation / wrong assumption / test artifact / environment /
 data / auth / external. **Known environment traps here:**
 
-- Stale dev server: global-cached PrismaClient survives HMR — if an error claims code or a
-  column doesn't exist that is visibly in the file → kill the process on :3000,
-  `rm -rf .next`, `yarn dev`.
+- Stale dev server: global-cached PrismaClient survives HMR — apply schema changes with
+  `./scripts/apply-migration.sh <name>` (it stops the server for you), and if you ever see
+  the guard's 503 ("Dev server is stale…", from lib/devSchemaGuard.ts): kill the process
+  on :3000, `rm -rf .next`, `yarn dev`.
 - `yarn prisma:sync` destroys schema.prisma (see CLAUDE.md). Never run it.
 - Local `prisma migrate dev/deploy` fail; apply migration SQL via psql.
 - Menu-key crash ("Menu link key not found") = key registered in one layout but not the other.

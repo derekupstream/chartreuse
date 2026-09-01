@@ -1,6 +1,7 @@
 import type { Prisma } from '@prisma/client';
 import type { GetServerSidePropsContext } from 'next';
 
+import { STALE_SERVER_MESSAGE, schemaIsStale } from 'lib/devSchemaGuard';
 import { createSupabaseServerPropsClient } from 'lib/auth/supabaseServer';
 import prisma from 'lib/prisma';
 import { IMPERSONATION_COOKIE } from 'pages/api/admin/impersonate';
@@ -11,6 +12,7 @@ export async function getUserFromContext<T extends Partial<Prisma.UserInclude> =
   context: GetServerSidePropsContext,
   dataToInclude: T = null as unknown as T
 ) {
+  if (schemaIsStale()) throw new Error(STALE_SERVER_MESSAGE);
   const supabase = createSupabaseServerPropsClient(context);
   const {
     data: { user: authUser }

@@ -30,8 +30,11 @@ yarn prisma:status          # check migration status (safe-prisma-operations.sh)
 # (git checkout to recover). Also, `prisma migrate dev`/`deploy` fail locally: the local DB's
 # _prisma_migrations table has a stale failed record and missing rows (tables were synced by
 # other means). For schema changes: edit schema.prisma, hand-write the migration SQL in
-# prisma/migrations/<timestamp>_<name>/migration.sql, apply locally with psql -f, then
-# `npx prisma generate`. Production deploys cleanly via `migrate deploy` (its table is intact).
+# prisma/migrations/<timestamp>_<name>/migration.sql, then `./scripts/apply-migration.sh <name>`
+# — it applies via psql, regenerates the client, and STOPS the dev server (whose cached
+# Prisma client is stale by definition; restart with `yarn dev`). A dev-only guard
+# (lib/devSchemaGuard.ts) turns any forgotten restart into a clear 503 instead of
+# confusing "column does not exist" errors. Production deploys cleanly via `migrate deploy`.
 npx tsx scripts/seed.ts     # seed local DB (run one-off scripts with npx tsx)
 ```
 
