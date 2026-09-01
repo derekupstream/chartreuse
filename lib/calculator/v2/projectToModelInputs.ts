@@ -123,8 +123,11 @@ export async function buildModelInputs(projectId: string, tables: ModelTables): 
           boosterHeaterFuel: ((dish.boosterWaterHeaterFuelType ?? 'Electric').toLowerCase().startsWith('e')
             ? 'Electric'
             : 'Gas') as 'Electric' | 'Gas',
-          operatingDaysPerYear: dish.operatingDays,
-          racksPerDay: dish.racksPerDay
+          // The 2.0 model's Dishwashing tab describes the FORECAST program (dishwashing is
+          // typically new with reuse) — so it reads the project's forecast fields, matching
+          // v1's semantics where racksPerDay/operatingDays are the baseline ("before") state.
+          operatingDaysPerYear: dish.newOperatingDays,
+          racksPerDay: dish.newRacksPerDay
         }
       : undefined;
 

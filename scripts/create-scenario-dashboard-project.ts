@@ -43,10 +43,11 @@ async function main() {
   const org = await prisma.org.findFirst({ where: { isUpstream: true }, include: { accounts: true } });
   if (!org?.accounts.length) throw new Error('No Upstream org/account in this database');
 
+  // Rebuilds keep the same project id so bookmarks and open tabs survive.
   const existing = await prisma.project.findFirst({ where: { name: PROJECT_NAME, orgId: org.id } });
   if (existing) {
     await prisma.project.delete({ where: { id: existing.id } });
-    console.log('replaced the existing Scenario Dashboard project');
+    console.log('replaced the existing Scenario Dashboard project (same id)');
   }
 
   // Product names for display come from the 2.0 directory itself.
@@ -58,6 +59,7 @@ async function main() {
 
   const project = await prisma.project.create({
     data: {
+      ...(existing ? { id: existing.id } : {}),
       name: PROJECT_NAME,
       orgId: org.id,
       accountId: org.accounts[0].id,
@@ -92,14 +94,17 @@ async function main() {
       dishwashers: {
         create: [
           // Dishwashing tab inputs
+          // Dishwashing is NEW with the reuse program: baseline (single-use world) runs no
+          // dishwasher; the forecast runs her tab's 80 racks × 365 days. v1 charges the
+          // delta; the 2.0 mapping reads the forecast fields.
           {
             type: 'Stationary Single Tank Door',
             temperature: 'High',
             energyStarCertified: true,
             buildingWaterHeaterFuelType: 'Electric',
             boosterWaterHeaterFuelType: 'Electric',
-            operatingDays: 365,
-            racksPerDay: 80,
+            operatingDays: 0,
+            racksPerDay: 0,
             newOperatingDays: 365,
             newRacksPerDay: 80
           }
