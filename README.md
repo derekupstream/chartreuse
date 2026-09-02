@@ -27,6 +27,7 @@ If `docs/ROADMAP.md` and any other doc disagree, trust the ROADMAP (and fix the 
 | [docs/ACTUALS.md](docs/ACTUALS.md) | RSP/Actuals gap analysis (live design doc) |
 | [docs/PRISMA_WORKFLOW.md](docs/PRISMA_WORKFLOW.md) | Database migration runbook (drift recovery, safe operations) |
 | [docs/CALCULATOR_BUILD_PROMPT.md](docs/CALCULATOR_BUILD_PROMPT.md) | Methodology 1.0 formulas & factor tables (the "why" behind `lib/calculator/constants/`) |
+| [docs/CANADIAN-UTILITY-RATES.md](docs/CANADIAN-UTILITY-RATES.md) | Canadian provincial electricity rates: value-by-value trace to the Hydro-Québec 2025 price comparison |
 | [docs/user-guide.md](docs/user-guide.md) | End-user walkthrough |
 | [CHANGELOG.md](CHANGELOG.md) | Milestone history |
 
