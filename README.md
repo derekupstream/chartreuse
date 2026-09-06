@@ -18,6 +18,7 @@ If `docs/ROADMAP.md` and any other doc disagree, trust the ROADMAP (and fix the 
 | [docs/BACKLOG.md](docs/BACKLOG.md) | Numbered work items, including the ECCC partner set |
 | [CLAUDE.md](CLAUDE.md) | Working companion: commands, environment traps, branch rules |
 | [docs/REVIEW-PROTOCOL.md](docs/REVIEW-PROTOCOL.md) | Build→verify discipline: every non-trivial change is verified in layers, ending in the real browser |
+| [docs/CR2-LAUNCH-PLAN.md](docs/CR2-LAUNCH-PLAN.md) | Chart-Reuse 2.0 positioning + Q4 2026 beta plan → January 2027 launch |
 | [docs/VERSIONING.md](docs/VERSIONING.md) | Data/methodology versioning: semver for data, collection releases (v2.0…), restore, cell formulas |
 | [docs/CR2-CALC-MODEL.md](docs/CR2-CALC-MODEL.md) | Analysis of the Combined Model workbook, feedback items for Madhavi, verification results |
 | [docs/CR2-ADMIN-PLAN.md](docs/CR2-ADMIN-PLAN.md) | Data Science admin overhaul + workbook-tab → app mapping |
