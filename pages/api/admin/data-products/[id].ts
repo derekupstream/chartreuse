@@ -32,9 +32,11 @@ export default handlerWithUser()
       inputSchemaJson,
       outputSchemaJson,
       flowDefinitionJson,
+      screensJson,
       executionCode,
       methodologyDocumentId,
-      isPublic
+      isPublic,
+      publishedVersion
     } = req.body;
 
     const updated = await prisma.dataProductDefinition.update({
@@ -49,6 +51,8 @@ export default handlerWithUser()
         ...(inputSchemaJson !== undefined && { inputSchemaJson }),
         ...(outputSchemaJson !== undefined && { outputSchemaJson }),
         ...(flowDefinitionJson !== undefined && { flowDefinitionJson }),
+        ...(screensJson !== undefined && { screensJson }),
+        ...(publishedVersion !== undefined && { publishedVersion }),
         ...(executionCode !== undefined && { executionCode }),
         ...(methodologyDocumentId !== undefined && { methodologyDocumentId }),
         ...(isPublic !== undefined && { isPublic }),

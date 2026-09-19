@@ -185,11 +185,19 @@ aggregates in the grammar, the screen renderer, the UX Builder shell, publish pi
 
 Post-launch work (January 2027 launch scope is untouched; native products ship it).
 
-1. **Thin vertical slice** — one composed product end to end, deliberately tiny: the
-   **Funding Estimator** (amount + frequency inputs → smart field using Purchase
-   Frequency factors → one screen → published card). Madhavi's Data_Dictionary already
-   specs its fields (`funding_amount_method`, `applied_funding`). Proves: input store,
-   field eval, renderer, publish.
+1. ✅ **Thin vertical slice** — SHIPPED 2026-09-19 and dogfooded end to end wearing all
+   three hats: a smart field built in the GUI, a second built entirely in the new
+   Console editor (`oneTimeCosts - fundingAmount * fundingTimesPerYear`), the
+   **Funding Estimator** composed in the Product UX Builder (screens/blocks, derived
+   dependencies, one-click input defs), published, and used as an end user at
+   `/p/funding-estimator` — answers + results snapshot stored as a ProductSubmission.
+   Shipped pieces: `lib/smartFields/console.ts` (Visual|Console round-trip),
+   `lib/products/composed.ts` + `ComposedProductRenderer` (one renderer for builder
+   preview and live product), the builder at products/[id]/builder (Preview/Data/UX
+   tabs, dependency-gated publish), `/p/[slug]` + submissions, migration
+   20260919000000. Dogfooding fixes: unsaved-work guard + console resync in the Field
+   Builder; suggestion tags carry catalog labels/units; new input blocks default to
+   the first unplaced input.
 2. **Repeating groups + aggregates** — the grammar and group inputs; re-express one
    Calc_SU column as a field chain to prove it.
 3. **Field Builder to mockup 1** — gallery, requirements panel, Variable Source panel,

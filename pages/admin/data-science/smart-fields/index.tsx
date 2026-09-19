@@ -17,6 +17,7 @@ import {
   Input,
   InputNumber,
   Row,
+  Segmented,
   Select,
   Spin,
   Tabs,
@@ -26,7 +27,7 @@ import {
 } from 'antd';
 import type { GetServerSideProps } from 'next';
 import Link from 'next/link';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { HowTo } from 'components/admin/HowTo';
 import type { DashboardUser } from 'interfaces';
@@ -34,6 +35,7 @@ import { AdminLayout } from 'layouts/AdminLayout';
 import { getUserFromContext } from 'lib/middleware';
 import { ACCESS_DENIED_REDIRECT, checkIsUpstream } from 'lib/middleware/requireUpstream';
 import { serializeJSON } from 'lib/objects';
+import { parseEquation, serializeEquation } from 'lib/smartFields/console';
 import { detectRequirements, evaluateEquation } from 'lib/smartFields/variables';
 import type { EquationToken, SmartVariable, VariableCategory } from 'lib/smartFields/variables';
 import type { SmartFieldRecord } from 'pages/api/admin/smart-fields/index';
@@ -91,6 +93,58 @@ export default function SmartFieldsPage({ user }: { user: DashboardUser }) {
   const [fieldSearch, setFieldSearch] = useState('');
   const [fieldCategory, setFieldCategory] = useState<string>('All');
   const [saving, setSaving] = useState(false);
+  // Visual | Console — two editors over the same equation (spec §3). The console is
+  // plain text; every valid parse updates the equation live, an invalid one shows its
+  // error and leaves the last good equation standing.
+  const [editorMode, setEditorMode] = useState<'visual' | 'console'>('visual');
+  const [consoleText, setConsoleText] = useState('');
+  const [consoleError, setConsoleError] = useState<string | null>(null);
+  // True while a draft change originated from console typing — every OTHER equation change
+  // (new field, loading a field, pill edits) must resync the console text, or the split
+  // view lies (found dogfooding 2026-09-19: "New smart field" left the old text standing).
+  const consoleEditRef = useRef(false);
+  useEffect(() => {
+    if (consoleEditRef.current) {
+      consoleEditRef.current = false;
+      return;
+    }
+    setConsoleText(serializeEquation(draft.equation));
+    setConsoleError(null);
+  }, [draft.equation]);
+
+  // Unsaved-work guard (found dogfooding 2026-09-19: a stray navigation silently discarded
+  // a half-built field). The snapshot marks known-clean states — save, load, new.
+  const cleanSnapshotRef = useRef(JSON.stringify({ ...EMPTY_FIELD }));
+  const markClean = (value: typeof draft) => {
+    cleanSnapshotRef.current = JSON.stringify(value);
+  };
+  const isDirty = JSON.stringify(draft) !== cleanSnapshotRef.current;
+  useEffect(() => {
+    if (!isDirty) return;
+    const warn = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = '';
+    };
+    window.addEventListener('beforeunload', warn);
+    return () => window.removeEventListener('beforeunload', warn);
+  }, [isDirty]);
+
+  function enterConsole() {
+    setConsoleText(serializeEquation(draft.equation));
+    setConsoleError(null);
+    setEditorMode('console');
+  }
+  function onConsoleChange(text: string) {
+    setConsoleText(text);
+    const parsed = parseEquation(text);
+    if (parsed.ok) {
+      setConsoleError(null);
+      consoleEditRef.current = true;
+      setDraft(d => ({ ...d, equation: parsed.tokens }));
+    } else {
+      setConsoleError(parsed.error);
+    }
+  }
 
   const variableMap = useMemo(() => new Map(variables.map(v => [v.key, v])), [variables]);
 
@@ -161,7 +215,9 @@ export default function SmartFieldsPage({ user }: { user: DashboardUser }) {
       });
       if (!res.ok) throw new Error((await res.json()).error || 'Could not save');
       const saved = await res.json();
-      setDraft({ ...draft, id: saved.id });
+      const next = { ...draft, id: saved.id };
+      markClean(next);
+      setDraft(next);
       message.success(publish ? `Published "${saved.name}"` : `Saved "${saved.name}"`);
       loadFields();
     } catch (e: any) {
@@ -258,8 +314,9 @@ export default function SmartFieldsPage({ user }: { user: DashboardUser }) {
                   size='small'
                   hoverable
                   style={{ marginBottom: 8, border: isOpen ? '2px solid #52c41a' : undefined }}
-                  onClick={() =>
-                    setDraft({
+                  onClick={() => {
+                    if (isDirty && !window.confirm('Discard your unsaved changes to the current field?')) return;
+                    const loaded = {
                       id: field.id,
                       name: field.name,
                       description: field.description ?? '',
@@ -267,8 +324,10 @@ export default function SmartFieldsPage({ user }: { user: DashboardUser }) {
                       category: field.category ?? 'Other',
                       equation: field.equation,
                       testInputs: field.testInputs
-                    })
-                  }
+                    };
+                    markClean(loaded);
+                    setDraft(loaded);
+                  }}
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                     <Text strong style={{ fontSize: 13 }}>
@@ -306,7 +365,10 @@ export default function SmartFieldsPage({ user }: { user: DashboardUser }) {
               hoverable
               style={{ border: '1px dashed #d9d9d9', textAlign: 'center', background: 'transparent' }}
               onClick={() => {
-                setDraft({ ...EMPTY_FIELD });
+                if (isDirty && !window.confirm('Discard your unsaved changes to the current field?')) return;
+                const empty = { ...EMPTY_FIELD };
+                markClean(empty);
+                setDraft(empty);
                 setSelectedVariableKey(null);
               }}
             >
@@ -381,12 +443,46 @@ export default function SmartFieldsPage({ user }: { user: DashboardUser }) {
             </Card>
 
             {/* equation */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-              <Text strong>Equation</Text>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8 }}>
+              <div style={{ display: 'flex', gap: 10, alignItems: 'baseline' }}>
+                <Text strong>Equation</Text>
+                <Segmented
+                  size='small'
+                  value={editorMode}
+                  onChange={mode => (mode === 'console' ? enterConsole() : setEditorMode('visual'))}
+                  options={[
+                    { label: 'Visual', value: 'visual' },
+                    { label: 'Console', value: 'console' }
+                  ]}
+                />
+              </div>
               <Text type='secondary' style={{ fontSize: 12 }}>
-                Click a variable to see where its value comes from
+                {editorMode === 'visual'
+                  ? 'Click a variable to see where its value comes from'
+                  : 'Type math over variable keys — a new key becomes a user input'}
               </Text>
             </div>
+            {editorMode === 'console' && (
+              <div style={{ margin: '6px 0 10px' }}>
+                <Input.TextArea
+                  value={consoleText}
+                  onChange={e => onConsoleChange(e.target.value)}
+                  autoSize={{ minRows: 2, maxRows: 6 }}
+                  style={{ fontFamily: 'monospace', fontSize: 13 }}
+                  placeholder='e.g. fundingAmount * fundingTimesPerYear'
+                />
+                {consoleError ? (
+                  <Text type='danger' style={{ fontSize: 12 }}>
+                    {consoleError} — the last valid equation is kept until this parses
+                  </Text>
+                ) : (
+                  <Text type='secondary' style={{ fontSize: 12 }}>
+                    Parsed ✓ — {draft.equation.length} token{draft.equation.length === 1 ? '' : 's'}; switch to Visual
+                    to see the pills
+                  </Text>
+                )}
+              </div>
+            )}
             <div
               style={{
                 minHeight: 54,
@@ -421,7 +517,7 @@ export default function SmartFieldsPage({ user }: { user: DashboardUser }) {
                         margin: 0,
                         boxShadow: isSelected ? '0 0 0 2px rgba(114,46,209,0.2)' : undefined
                       }}
-                      closable
+                      closable={editorMode === 'visual'}
                       onClose={e => {
                         e.preventDefault();
                         removeTokenAt(i);
@@ -434,14 +530,26 @@ export default function SmartFieldsPage({ user }: { user: DashboardUser }) {
                   );
                 }
                 return (
-                  <Tag key={i} closable style={{ margin: 0 }} onClose={e => (e.preventDefault(), removeTokenAt(i))}>
+                  <Tag
+                    key={i}
+                    closable={editorMode === 'visual'}
+                    style={{ margin: 0 }}
+                    onClose={e => (e.preventDefault(), removeTokenAt(i))}
+                  >
                     {token.kind === 'number' ? token.value : token.value}
                   </Tag>
                 );
               })}
             </div>
 
-            <div style={{ display: 'flex', gap: 6, marginBottom: 12, flexWrap: 'wrap' }}>
+            <div
+              style={{
+                display: editorMode === 'console' ? 'none' : 'flex',
+                gap: 6,
+                marginBottom: 12,
+                flexWrap: 'wrap'
+              }}
+            >
               {(['+', '-', '*', '/'] as const).map(op => (
                 <Button key={op} size='small' onClick={() => addToken({ kind: 'operator', value: op })}>
                   {op}

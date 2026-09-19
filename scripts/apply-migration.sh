@@ -25,7 +25,8 @@ npx prisma generate >/dev/null
 PID=$(lsof -ti tcp:3000 || true)
 if [ -n "$PID" ]; then
   echo "→ stopping dev server (pid $PID) — its cached Prisma client is now stale"
-  kill "$PID"
+  # $PID can be several newline-separated pids (dev server + workers) — kill each.
+  echo "$PID" | xargs kill 2>/dev/null || true
   rm -rf .next
   echo "✓ migration applied. Start the server again: yarn dev"
 else

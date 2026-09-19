@@ -125,6 +125,20 @@ export const KNOWN_INPUTS: SmartVariable[] = [
     category: 'Inputs',
     unit: '$',
     description: 'Reusables, equipment and installation'
+  },
+  {
+    key: 'fundingAmount',
+    label: 'Funding amount',
+    category: 'Inputs',
+    unit: '$',
+    description: 'A grant, rebate or incentive amount (applied per occurrence)'
+  },
+  {
+    key: 'fundingTimesPerYear',
+    label: 'Funding occurrences per year',
+    category: 'Inputs',
+    unit: 'times/yr',
+    description: '1 for one-time or annual; 12 for monthly'
   }
 ];
 
