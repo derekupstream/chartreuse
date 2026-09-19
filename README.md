@@ -24,6 +24,7 @@ If `docs/ROADMAP.md` and any other doc disagree, trust the ROADMAP (and fix the 
 | [docs/CR2-ADMIN-PLAN.md](docs/CR2-ADMIN-PLAN.md) | Data Science admin overhaul + workbook-tab → app mapping |
 | [docs/CR2-PRODUCT-STUDIO-SPEC.md](docs/CR2-PRODUCT-STUDIO-SPEC.md) | Product Studio vision (math backend / UX frontend), phased into 6 builds |
 | [docs/CR2-MADHAVI-REVIEW.md](docs/CR2-MADHAVI-REVIEW.md) | Meeting doc: how her spreadsheet became Chart-Reuse 2.0's guide + golden data |
+| [docs/CR2-2026-09-18-REVIEW-PLAN.md](docs/CR2-2026-09-18-REVIEW-PLAN.md) | Implementation plan from the Sept 18 workbook review (IA changes, funding model, uploader, Madhavi console) |
 | [docs/RSP-API.md](docs/RSP-API.md) / [docs/PUBLIC-API-DOCS.md](docs/PUBLIC-API-DOCS.md) | Partner-facing RSP API contract and public-site docs |
 | [docs/ACTUALS.md](docs/ACTUALS.md) | RSP/Actuals gap analysis (live design doc) |
 | [docs/PRISMA_WORKFLOW.md](docs/PRISMA_WORKFLOW.md) | Database migration runbook (drift recovery, safe operations) |
