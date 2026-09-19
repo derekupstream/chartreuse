@@ -180,8 +180,11 @@ export const ProjectionsStep = ({ project, readOnly }: { project: ProjectContext
   }
 
   const hideSingleAndReusableDetailsForEugeneOrg = isEugeneOrg({ id: project.orgId });
-  // Timeline (milestone history) is a Chart-Reuse 2.0 feature — hidden on legacy.
-  const v2Enabled = chartReuse2;
+  // The legacy / 2.0 delineation (Derek, 2026-09-19): Timeline + milestones, View as
+  // Datasheet, and the calculation inspector (hover highlight + "view calculation"
+  // drawer) are Chart-Reuse 2.0 features — none of them show on legacy. A project is
+  // "2.0" when it is pinned to methodology 2.0 or the browser is previewing 2.0.
+  const v2Enabled = wantV2;
   const timelineMenuItem = v2Enabled ? [{ key: 'timeline', label: 'Timeline' }] : [];
 
   const sidebarMenuItems = hideSingleAndReusableDetailsForEugeneOrg
@@ -218,7 +221,7 @@ export const ProjectionsStep = ({ project, readOnly }: { project: ProjectContext
   }
 
   return (
-    <CalculationInspectorProvider projectId={project.id} enabled={!!project.org.isUpstream}>
+    <CalculationInspectorProvider projectId={project.id} enabled={!!project.org.isUpstream && v2Enabled}>
       <Wrapper ref={printRef}>
         <PrintHeader accountName={project.account.name} orgName={project.org.name} projectName={project.name} />
         <div
@@ -243,7 +246,7 @@ export const ProjectionsStep = ({ project, readOnly }: { project: ProjectContext
           </Typography.Title>
           <div style={{ display: 'flex', gap: 16, alignItems: 'center', flexShrink: 0 }}>
             <PrintButton printRef={printRef} pdfTitle={`${project.name} - Chart-Reuse`} />
-            {project.org.isUpstream && (
+            {project.org.isUpstream && v2Enabled && (
               <Button
                 className='dont-print-me'
                 icon={<TableOutlined />}
@@ -254,7 +257,7 @@ export const ProjectionsStep = ({ project, readOnly }: { project: ProjectContext
               </Button>
             )}
             {!project.isTemplate && <ShareButton projectId={project.id} publicSlug={project.publicSlug} />}
-            {!project.isTemplate && !readOnly && (
+            {!project.isTemplate && !readOnly && v2Enabled && (
               <SaveSnapshotButton
                 projectId={project.id}
                 isActuals={project.dataType === 'actual' || project.category === 'event'}
