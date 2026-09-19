@@ -20,7 +20,15 @@ type Response = {
   laborCosts: LaborCost[];
 };
 
-const LaborSection = ({ projectId, readOnly }: { projectId: string; readOnly: boolean }) => {
+const LaborSection = ({
+  projectId,
+  readOnly,
+  region
+}: {
+  projectId: string;
+  readOnly: boolean;
+  region?: string | null;
+}) => {
   const url = `/api/labor-costs/?projectId=${projectId}`;
   const { data, isLoading, refetch } = useSimpleQuery<Response>(url);
   const deleteLabor = useSimpleMutation(url, 'DELETE');
@@ -163,7 +171,7 @@ const LaborSection = ({ projectId, readOnly }: { projectId: string; readOnly: bo
         contentWrapperStyle={contentWrapperStyle}
         destroyOnClose
       >
-        <LaborFormDrawer input={activeLabor} onClose={onSubmit} />
+        <LaborFormDrawer input={activeLabor} onClose={onSubmit} region={region} />
       </Drawer>
     </Container>
   );

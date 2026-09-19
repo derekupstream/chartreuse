@@ -1,4 +1,4 @@
-import { Col, Row, Menu, Slider, Typography } from 'antd';
+import { Col, Row, Menu, Select, Slider, Typography } from 'antd';
 import { useRouter } from 'next/router';
 import { useEffect, useRef, useState } from 'react';
 import styled from 'styled-components';
@@ -61,7 +61,8 @@ export function SharedPage({
   isProjectTemplate,
   bannerTitle,
   bannerDescription,
-  useShrinkageRate
+  useShrinkageRate,
+  country
 }: {
   dashboardTitle: string;
   orgId?: string;
@@ -72,6 +73,7 @@ export function SharedPage({
   bannerTitle?: string | null;
   bannerDescription?: string | null;
   useShrinkageRate: boolean;
+  country?: 'us' | 'canada';
 }) {
   const [view, setView] = useState<SharedPageView>('summary');
   const [data, setData] = useState(projections[0]);
@@ -96,6 +98,12 @@ export function SharedPage({
     }
   }
 
+  function setCountry(value: 'us' | 'canada') {
+    // Not shallow: the projections are computed server-side with that country's rates,
+    // so the page reloads its data. The country stays in the URL for shared links.
+    router.push({ query: { ...router.query, country: value } });
+  }
+
   function openAssumptionsPopup() {
     const url = router.asPath.split('?')[0];
     window.open(url + '/assumptions', '_blank', 'popup,width=800,height=600');
@@ -106,7 +114,10 @@ export function SharedPage({
   }, [setFooterState]);
 
   useEffect(() => {
-    const data = router.query.project && projections.find(p => p.slug === router.query.project);
+    // Re-derive from props whenever they change: a country switch replaces the whole
+    // projections array, so falling back to the first entry keeps the numbers current
+    // even when no ?project= is selected.
+    const data = (router.query.project && projections.find(p => p.slug === router.query.project)) || projections[0];
     if (data) {
       setData(data);
     }
@@ -159,6 +170,22 @@ export function SharedPage({
                 mode={'vertical'}
                 items={visibleInfoPages.map(p => ({ key: `info_${p.id}`, label: p.title || 'Untitled page' }))}
               />
+            )}
+            {isProjectTemplate && (
+              <div style={{ marginBottom: 24 }}>
+                <Card>
+                  <Typography.Paragraph>Country</Typography.Paragraph>
+                  <Select
+                    style={{ width: '100%' }}
+                    value={country ?? 'us'}
+                    onChange={setCountry}
+                    options={[
+                      { value: 'us', label: 'United States' },
+                      { value: 'canada', label: 'Canada' }
+                    ]}
+                  />
+                </Card>
+              </div>
             )}
             {isProjectTemplate && (
               <Card>

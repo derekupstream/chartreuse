@@ -1,5 +1,6 @@
 import { ProjectCategory } from '@prisma/client';
 import { getProjectInventory } from 'lib/inventory/getProjectInventory';
+import type { InventoryOverrides } from 'lib/inventory/getProjectInventory';
 import type { ProjectInventory } from 'lib/inventory/types/projects';
 
 import { getAnnualSummary } from './calculations/getAnnualSummary';
@@ -31,8 +32,8 @@ export function getProjectionsFromInventory(inventory: ProjectInventory) {
   };
 }
 
-export async function getProjections(projectId: string) {
-  const inventory = await getProjectInventory(projectId);
+export async function getProjections(projectId: string, overrides?: InventoryOverrides) {
+  const inventory = await getProjectInventory(projectId, overrides);
   return getProjectionsFromInventory(inventory);
 }
 

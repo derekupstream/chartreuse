@@ -127,8 +127,10 @@ export function ProjectForm({ actionLabel, org, project, template, onComplete }:
   }
 
   const [showCustomUtilities, setShowCustomUtilities] = useState(project ? !project?.USState : false);
+  // A saved project keeps its own country; a new project starts on the org's country.
+  const orgIsCanadian = /canada/i.test(org.country ?? '');
   const [utilityCountry, setUtilityCountry] = useState<'US' | 'CA'>(
-    project?.USState && isCanadianRegion(project.USState) ? 'CA' : 'US'
+    project?.USState ? (isCanadianRegion(project.USState) ? 'CA' : 'US') : orgIsCanadian ? 'CA' : 'US'
   );
   const { confirm } = Modal;
 
@@ -552,6 +554,31 @@ export function ProjectForm({ actionLabel, org, project, template, onComplete }:
                       ))}
                     </Select>
                   </Form.Item>
+                  {utilityCountry === 'CA' && currencyAbbreviation !== 'CAD' && (
+                    <Alert
+                      style={{ marginBottom: 12 }}
+                      type='warning'
+                      showIcon
+                      message='Canadian rates are in Canadian dollars'
+                      description={
+                        <>
+                          The built-in provincial utility rates are in Canadian dollars, but your organization displays
+                          costs in {currencyAbbreviation}. To keep every number in this project in the same currency,
+                          set your organization&apos;s currency to Canadian Dollar (CAD) in{' '}
+                          <a href='/settings'>organization settings</a>.
+                        </>
+                      }
+                    />
+                  )}
+                  {utilityCountry === 'US' && currencyAbbreviation === 'CAD' && (
+                    <Alert
+                      style={{ marginBottom: 12 }}
+                      type='warning'
+                      showIcon
+                      message='US rates are in US dollars'
+                      description='The built-in state utility rates are in US dollars, but your organization displays costs in Canadian dollars. Consider entering custom rates in Canadian dollars instead.'
+                    />
+                  )}
                 </>
               )}
               {showCustomUtilities && (

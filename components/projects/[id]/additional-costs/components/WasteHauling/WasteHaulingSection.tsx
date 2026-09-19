@@ -22,7 +22,15 @@ interface Response {
   wasteHaulingCosts: WasteHaulingCost[];
 }
 
-const WasteHaulingSection = ({ projectId, readOnly }: { projectId: string; readOnly: boolean }) => {
+const WasteHaulingSection = ({
+  projectId,
+  readOnly,
+  region
+}: {
+  projectId: string;
+  readOnly: boolean;
+  region?: string | null;
+}) => {
   const url = `/api/waste-hauling/?projectId=${projectId}`;
   const { data, isLoading, refetch } = useSimpleQuery<Response>(url);
   const deleteWasteHauling = useSimpleMutation(url, 'DELETE');
@@ -201,7 +209,7 @@ const WasteHaulingSection = ({ projectId, readOnly }: { projectId: string; readO
         contentWrapperStyle={contentWrapperStyle}
         destroyOnClose
       >
-        <WasteHaulingBaselineForm input={formValues} onClose={onCloseFirstForm} />
+        <WasteHaulingBaselineForm input={formValues} onClose={onCloseFirstForm} region={region} />
       </Drawer>
       <Drawer
         title={`${formValues?.id ? 'Update' : 'Add'} the forecast for monthly waste hauling service fees`}

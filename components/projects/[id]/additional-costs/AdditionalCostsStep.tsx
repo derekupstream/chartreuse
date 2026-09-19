@@ -29,9 +29,9 @@ export function AdditionalCostsStep({ project, readOnly }: ServerSideProps) {
         line. This section will help you accurately capture and estimate those additional impacts.
       </StepDescription>
       <br />
-      <LaborSection projectId={project.id} readOnly={readOnly} />
+      <LaborSection projectId={project.id} readOnly={readOnly} region={project.USState} />
       <br />
-      <WasteHaulingSection projectId={project.id} readOnly={readOnly} />
+      <WasteHaulingSection projectId={project.id} readOnly={readOnly} region={project.USState} />
       <br />
       <OtherExpenseSection projectId={project.id} readOnly={readOnly} />
     </Wrapper>

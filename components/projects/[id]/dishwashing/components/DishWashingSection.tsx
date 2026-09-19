@@ -4,6 +4,7 @@ import { Button, Col, Drawer, message, Popconfirm, Typography, Popover } from 'a
 import { useRouter } from 'next/router';
 import React, { useState } from 'react';
 import styled from 'styled-components';
+import { isCanadianRegion } from 'lib/calculator/constants/utilities';
 import { formatNumber, valueInPounds } from 'lib/number';
 
 import CurrencySymbol from 'components/_app/CurrencySymbol';
@@ -175,7 +176,7 @@ export function DishWashingSection({
         Use this section to help calculate dishwashing energy and water costs. Energy and water rates are based on your{' '}
         <Popover content={utilities.content} title={utilities.title} trigger='hover'>
           <Typography.Link underline href={!readOnly ? `/projects/${projectId}/edit?redirect=${route.asPath}` : ''}>
-            {data?.state ? 'state average' : 'custom rates'}
+            {data?.state ? (isCanadianRegion(data.state) ? 'provincial average' : 'state average') : 'custom rates'}
           </Typography.Link>
         </Popover>
         .

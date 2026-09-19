@@ -284,8 +284,20 @@ export default function SettingsPage({ user, apiKeys: initialApiKeys }: Props) {
                   <Input />
                 </Form.Item>
 
-                <Form.Item label='Country / Region' name='country'>
-                  <Input placeholder='e.g. United States' />
+                <Form.Item
+                  label='Country / Region'
+                  name='country'
+                  extra='Choosing Canada makes new projects default to Canadian provinces and rates.'
+                >
+                  <Select
+                    showSearch
+                    allowClear
+                    placeholder='Select your country'
+                    options={[
+                      { value: 'United States', label: 'United States' },
+                      { value: 'Canada', label: 'Canada' }
+                    ]}
+                  />
                 </Form.Item>
 
                 <Form.Item label='City' name='city'>

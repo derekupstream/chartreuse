@@ -33,7 +33,15 @@ import type {
 const gallonsUsedPerBottleStation = 27.15;
 const gallonsPerBottle = 0.132;
 
-export async function getProjectInventory(projectId: string): Promise<ProjectInventory> {
+export type InventoryOverrides = {
+  /** Replace the project's region-derived utility rates (e.g. the public calculator's country toggle). */
+  utilityRates?: { electric: number; gas: number; water: number };
+};
+
+export async function getProjectInventory(
+  projectId: string,
+  overrides?: InventoryOverrides
+): Promise<ProjectInventory> {
   // Refresh material factors from the Databases area before anything is computed, so the
   // calculator uses the uploaded values. Falls back to compiled defaults if unavailable.
   await loadMaterialFactorOverrides();
@@ -73,7 +81,7 @@ export async function getProjectInventory(projectId: string): Promise<ProjectInv
     throw new Error('Project not found. Project Id: ' + projectId);
   }
   // get utility rates
-  const utilityRates = getProjectUtilities(project);
+  const utilityRates = overrides?.utilityRates ?? getProjectUtilities(project);
   // map db model types to frontend types
   const products = await getSingleUseProducts({ orgId: project.orgId });
   const reusableProducts = await getReusableProductsWithBottleStation();

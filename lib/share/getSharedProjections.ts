@@ -1,6 +1,13 @@
 import { getProjections } from 'lib/calculator/getProjections';
 import type { ProjectionsResponse } from 'lib/calculator/getProjections';
+import { CANADA_AVERAGE_RATES } from 'lib/calculator/constants/utilities';
 import prisma from 'lib/prisma';
+
+export type ShareCountry = 'us' | 'canada';
+
+export function parseShareCountry(value: unknown): ShareCountry {
+  return typeof value === 'string' && value.toLowerCase() === 'canada' ? 'canada' : 'us';
+}
 
 import { pages } from './config';
 import { ProjectCategory } from '@prisma/client';
@@ -14,7 +21,7 @@ export type ProjectProjection = {
   showRecommendations?: boolean;
 };
 
-export async function getSharedProjections(slug: string) {
+export async function getSharedProjections(slug: string, country: ShareCountry = 'us') {
   const pageConfig = pages.find(p => p.slug === slug);
   if (!pageConfig) throw new Error('No shared page config found for slug: ' + slug);
 
@@ -41,7 +48,12 @@ export async function getSharedProjections(slug: string) {
   const projections = await Promise.all(
     projects.map(async ({ slug, project }): Promise<ProjectProjection | null> => {
       if (project) {
-        const projections = await getProjections(project.id);
+        // Canada view: same template businesses, priced with Canada-average utility
+        // rates (C$) instead of the template project's US state rates.
+        const projections = await getProjections(
+          project.id,
+          country === 'canada' ? { utilityRates: CANADA_AVERAGE_RATES } : undefined
+        );
         return {
           projections,
           slug,
@@ -58,5 +70,9 @@ export async function getSharedProjections(slug: string) {
     throw new Error('No projects found for shared page');
   }
 
-  return { org, projects: projections };
+  // The Canada view displays in Canadian dollars and metric units — the app shell reads
+  // both from the serialized org (pages/_app.tsx providers).
+  const displayOrg = country === 'canada' ? { ...org, currency: 'CAD', useMetricSystem: true } : org;
+
+  return { org: displayOrg, projects: projections, country };
 }

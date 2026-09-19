@@ -4,7 +4,7 @@ import type { GetServerSideProps } from 'next';
 import { SharedPage } from 'components/share/SharedPage';
 import { SharedPageLayout } from 'layouts/SharedPageLayout';
 import { serializeJSON } from 'lib/objects';
-import { getSharedProjections } from 'lib/share/getSharedProjections';
+import { getSharedProjections, parseShareCountry } from 'lib/share/getSharedProjections';
 import { isTruthy } from 'lib/types';
 
 /**
@@ -17,7 +17,7 @@ type ServerSideProps = Awaited<ReturnType<typeof getSharedProjections>>;
 
 export const getServerSideProps: GetServerSideProps = async context => {
   try {
-    const props = await getSharedProjections(context.query.slug as string);
+    const props = await getSharedProjections(context.query.slug as string, parseShareCountry(context.query.country));
     // console.log(props.projects);
     return {
       props: serializeJSON(props)
@@ -28,7 +28,7 @@ export const getServerSideProps: GetServerSideProps = async context => {
   }
 };
 
-function ProjectionsPage({ projects, org }: ServerSideProps) {
+function ProjectionsPage({ projects, org, country }: ServerSideProps) {
   const title = `${org.name} | Projections`;
   return (
     <SharedPageLayout title={title}>
@@ -39,6 +39,7 @@ function ProjectionsPage({ projects, org }: ServerSideProps) {
         pageTitle={title}
         projections={projects.filter(isTruthy)}
         isProjectTemplate
+        country={country}
       />
       <MethodologyStamp />
     </SharedPageLayout>
