@@ -89,6 +89,7 @@ const PALETTE: { kind: ComposedBlock['kind']; hint: string }[] = [
   { kind: 'heading', hint: 'A screen title' },
   { kind: 'text', hint: 'Guidance or explanation' },
   { kind: 'inputField', hint: 'A question the user answers' },
+  { kind: 'questionGroup', hint: 'Several questions together under one title' },
   { kind: 'smartFieldCard', hint: 'A computed metric card' },
   { kind: 'button', hint: 'Continue / back / save' }
 ];
