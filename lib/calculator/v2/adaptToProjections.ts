@@ -46,9 +46,21 @@ export function applyV2Overrides(v1: ProjectionsResponse, v2: ModelOutputs): Pro
     },
     environmentalResults: {
       ...v1.environmentalResults,
+      // The environmental headline cards read these totals (not annualSummary.*) — each must
+      // be overlaid or its card silently keeps speaking v1 (caught 2026-09-19: the GHG card
+      // showed v1's −82.16 beside a 2.0 stamp; her Dashboard says 82.21). The per-category
+      // bars inside the charts stay v1 until the model defines decompositions (feedback #11).
       annualWaterUsageChanges: {
         ...v1.environmentalResults.annualWaterUsageChanges,
         total: { ...v1.environmentalResults.annualWaterUsageChanges.total, ...toChange(v2.waterGal) }
+      },
+      annualGasEmissionChanges: {
+        ...v1.environmentalResults.annualGasEmissionChanges,
+        total: { ...v1.environmentalResults.annualGasEmissionChanges.total, ...toChange(v2.ghgMtco2e) }
+      },
+      annualWasteChanges: {
+        ...v1.environmentalResults.annualWasteChanges,
+        summary: { ...v1.environmentalResults.annualWasteChanges.summary, ...toChange(v2.wasteLb) }
       }
     },
     financialResults: {
