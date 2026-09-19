@@ -86,6 +86,8 @@ const adminLinks: MenuProps['items'] = [
     label: <Link href='/admin/data-science/change-requests'>Change Requests</Link>
   },
   { key: 'data-science/inputs', label: <Link href='/admin/data-science/inputs'>Data Inputs</Link> },
+  { key: 'data-science/products', label: <Link href='/admin/data-science/products'>Products</Link> },
+  { key: 'data-science/console', label: <Link href='/admin/data-science/console'>Model Console</Link> },
   { key: 'data-science/methodology-hub', label: <Link href='/admin/data-science/methodology-hub'>Methodology</Link> },
   {
     key: 'data-science/data-products-hub',

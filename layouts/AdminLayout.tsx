@@ -51,6 +51,8 @@ const DATA_SCIENCE_KEYS = [
   'data-science/smart-fields',
   'data-science/import',
   'data-science/data-products',
+  'data-science/products',
+  'data-science/console',
   'data-science/pipeline',
   'data-science/snapshots',
   'data-science/runs',
@@ -105,20 +107,14 @@ const siderMenuItems = [
         key: 'data-science/data-dictionary',
         label: <Link href='/admin/data-science/data-dictionary'>Data Dictionary</Link>
       },
+      { key: 'data-science/products', label: <Link href='/admin/data-science/products'>Products</Link> },
       { key: 'data-science/methodology-hub', label: <Link href='/admin/data-science/methodology-hub'>Methodology</Link> },
       { key: 'data-science/quality', label: <Link href='/admin/data-science/quality'>Validation</Link> },
       {
         key: 'data-science-advanced',
         label: 'Advanced',
         children: [
-          {
-            key: 'data-science/annual-projections',
-            label: <Link href='/admin/data-science/data-products/annual-projections-2'>Annual Projections</Link>
-          },
-          {
-            key: 'data-science/data-products-hub',
-            label: <Link href='/admin/data-science/data-products-hub'>Data Products & Designer</Link>
-          },
+          { key: 'data-science/console', label: <Link href='/admin/data-science/console'>Model Console</Link> },
           {
             key: 'data-science/databases-all',
             label: <Link href='/admin/data-science/databases?all=true'>All Databases</Link>

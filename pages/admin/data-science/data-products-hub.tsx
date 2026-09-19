@@ -53,7 +53,7 @@ export default function DataProductsHub(_: { user: DashboardUser }) {
 }
 
 DataProductsHub.getLayout = (page: React.ReactNode, pageProps: PageProps) => (
-  <AdminLayout {...(pageProps as any)} selectedMenuItem='data-science/data-products-hub' title='Data Products'>
+  <AdminLayout {...(pageProps as any)} selectedMenuItem='data-science/products' title='Data Products'>
     {page}
   </AdminLayout>
 );
