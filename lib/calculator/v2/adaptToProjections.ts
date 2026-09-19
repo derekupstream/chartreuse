@@ -18,6 +18,14 @@ function toChange(triple: MetricTriple) {
   return getChangeSummaryRowRounded(triple.baseline, triple.forecastAnnual, 0);
 }
 
+// GHG keeps two decimals (Derek, 2026-09-19): projects small enough to round to a whole
+// MTCO2e — or to 0 — would misstate their impact. The percent badge stays whole-rounded
+// so badges read consistently across cards.
+function toChangeGhg(triple: MetricTriple) {
+  const precise = getChangeSummaryRowRounded(triple.baseline, triple.forecastAnnual, 2);
+  return { ...precise, changePercent: toChange(triple).changePercent };
+}
+
 export function applyV2Overrides(v1: ProjectionsResponse, v2: ModelOutputs): ProjectionsResponse {
   return {
     ...v1,
@@ -41,7 +49,7 @@ export function applyV2Overrides(v1: ProjectionsResponse, v2: ModelOutputs): Pro
       wasteWeight: { ...v1.annualSummary.wasteWeight, ...toChange(v2.wasteLb) },
       greenhouseGasEmissions: {
         ...v1.annualSummary.greenhouseGasEmissions,
-        total: { ...v1.annualSummary.greenhouseGasEmissions.total, ...toChange(v2.ghgMtco2e) }
+        total: { ...v1.annualSummary.greenhouseGasEmissions.total, ...toChangeGhg(v2.ghgMtco2e) }
       }
     },
     environmentalResults: {
@@ -56,24 +64,39 @@ export function applyV2Overrides(v1: ProjectionsResponse, v2: ModelOutputs): Pro
       },
       annualGasEmissionChanges: {
         ...v1.environmentalResults.annualGasEmissionChanges,
-        total: { ...v1.environmentalResults.annualGasEmissionChanges.total, ...toChange(v2.ghgMtco2e) }
+        total: { ...v1.environmentalResults.annualGasEmissionChanges.total, ...toChangeGhg(v2.ghgMtco2e) }
       },
       annualWasteChanges: {
         ...v1.environmentalResults.annualWasteChanges,
         summary: { ...v1.environmentalResults.annualWasteChanges.summary, ...toChange(v2.wasteLb) }
       }
     },
-    financialResults: {
-      ...v1.financialResults,
-      oneTimeCosts: { ...v1.financialResults.oneTimeCosts, total: round(v2.financial.oneTimeStartupCost, 0) },
-      summary: {
-        ...v1.financialResults.summary,
-        // v1 conventions: payback in whole months (ceil), ROI as a percent to 2 decimals
-        paybackPeriodsMonths: v2.financial.paybackMonths
-          ? Math.ceil(v2.financial.paybackMonths)
-          : v1.financialResults.summary.paybackPeriodsMonths,
-        annualROIPercent: round(v2.financial.annualSavingsROI * 100, 2)
-      }
-    }
+    financialResults: (() => {
+      // The Financial summary card must speak ONE methodology (Derek, 2026-09-19: v1's
+      // $66,505 savings sat beside 2.0's ROI). Savings total and dishwashing utilities come
+      // from the model; the recurring aggregate shifts by the same delta so the column still
+      // sums. Restocking/labor/hauling lines are identical math in both methodologies.
+      const v1Utilities = v1.financialResults.annualCostChanges.utilities;
+      const utilities = v2.dishwashing ? round(v2.dishwashing.utilityCost, 2) : v1Utilities;
+      return {
+        ...v1.financialResults,
+        annualCostChanges: {
+          ...v1.financialResults.annualCostChanges,
+          utilities,
+          change: round(v1.financialResults.annualCostChanges.change + (utilities - v1Utilities), 2)
+        },
+        oneTimeCosts: { ...v1.financialResults.oneTimeCosts, total: round(v2.financial.oneTimeStartupCost, 0) },
+        summary: {
+          ...v1.financialResults.summary,
+          // v1 sign convention: annualCost negative = net savings (the card displays ×−1)
+          annualCost: -round(v2.financial.annualSavings, 2),
+          // v1 conventions: payback in whole months (ceil), ROI as a percent to 2 decimals
+          paybackPeriodsMonths: v2.financial.paybackMonths
+            ? Math.ceil(v2.financial.paybackMonths)
+            : v1.financialResults.summary.paybackPeriodsMonths,
+          annualROIPercent: round(v2.financial.annualSavingsROI * 100, 2)
+        }
+      };
+    })()
   };
 }

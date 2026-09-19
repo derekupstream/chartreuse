@@ -43,8 +43,18 @@ const v1 = {
     annualWasteChanges: { summary: { ...SENTINEL }, disposableProductWeight: { ...SENTINEL } }
   },
   financialResults: {
+    // Realistic v1 recurring lines so the utilities swap + aggregate shift is checkable:
+    // v1 prices the scenario's dishwashing at 1092.33; the model says 1430.83.
+    annualCostChanges: {
+      change: -66505.39, // v1 net = the sum of its own lines: -67600 + 2.28 + 1092.33
+      singleUseProductChange: -67600,
+      reusableProductCosts: 2.28,
+      laborCosts: 0,
+      utilities: 1092.33,
+      wasteHauling: 0
+    },
     oneTimeCosts: { total: 999004 },
-    summary: { paybackPeriodsMonths: 999, annualROIPercent: 999 }
+    summary: { annualCost: 999005, paybackPeriodsMonths: 999, annualROIPercent: 999 }
   }
 } as unknown as ProjectionsResponse;
 
@@ -56,24 +66,35 @@ describe('applyV2Overrides covers every field the summary cards read', () => {
     expect(out.annualSummary.dollarCost.change).toBe(-66167);
     expect(out.annualSummary.singleUseProductCount.change).toBe(-1144000);
     expect(out.annualSummary.wasteWeight.change).toBe(-24953);
-    expect(out.annualSummary.greenhouseGasEmissions.total.change).toBe(-82);
+    // GHG keeps two decimals (Derek, 2026-09-19) — small projects must not round to 0.
+    expect(out.annualSummary.greenhouseGasEmissions.total.change).toBe(-82.21);
   });
 
   test('environmentalResults totals (what the water/GHG/waste cards read)', () => {
     expect(out.environmentalResults.annualWaterUsageChanges.total.change).toBe(-118144);
-    expect(out.environmentalResults.annualGasEmissionChanges.total.change).toBe(-82);
+    expect(out.environmentalResults.annualGasEmissionChanges.total.change).toBe(-82.21);
     expect(out.environmentalResults.annualWasteChanges.summary.change).toBe(-24953);
-    // Percent badges must be v1-convention rounded percentages, never raw fractions.
+    // Percent badges must be v1-convention rounded percentages, never raw fractions —
+    // whole numbers even where the value keeps decimals.
     expect(out.environmentalResults.annualWaterUsageChanges.total.changePercent).toBe(-55);
     expect(out.environmentalResults.annualGasEmissionChanges.total.changePercent).toBe(-78);
   });
 
-  test('financial summary speaks 2.0 in v1 conventions', () => {
+  test('financial summary speaks 2.0 throughout, in v1 conventions', () => {
     // The golden INPUTS carry no additional costs (the $200k lives on the Scenario Dashboard
     // project), so one-time here is just the reusables purchase: 22.8 → 23.
     expect(out.financialResults.oneTimeCosts.total).toBe(23);
     expect(out.financialResults.summary.paybackPeriodsMonths).toBe(1);
     expect(out.financialResults.summary.annualROIPercent).toBeCloseTo((66166.89255 / 22.8) * 100, 0);
+    // Savings total is the model's (negative = savings; the card displays ×−1)…
+    expect(out.financialResults.summary.annualCost).toBe(-66166.89);
+    // …dishwashing utilities are the model's Dishwashing-tab price, not v1's…
+    expect(out.financialResults.annualCostChanges.utilities).toBe(1430.83);
+    // …and the recurring aggregate shifted by exactly the utilities delta, so the
+    // column still sums: recurring total = change − singleUseProductChange.
+    const recurring =
+      out.financialResults.annualCostChanges.change - out.financialResults.annualCostChanges.singleUseProductChange;
+    expect(recurring).toBeCloseTo(1430.83 + 2.28, 1);
   });
 
   test('no sentinel survives into an overlaid total', () => {

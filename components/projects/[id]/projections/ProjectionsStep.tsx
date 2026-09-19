@@ -88,7 +88,7 @@ export const ProjectionsStep = ({ project, readOnly }: { project: ProjectContext
   // v2.0 stamp whenever the toggle was off.)
   const projectPinnedV2 = (project as { methodologyVersion?: string }).methodologyVersion === '2.0';
   const wantV2 = projectPinnedV2 || chartReuse2;
-  const { data: v2Response } = useGetProjectionsV2(wantV2 ? project.id : undefined);
+  const { data: v2Response, isLoading: v2Loading } = useGetProjectionsV2(wantV2 ? project.id : undefined);
   const v2Active = wantV2 && !!v2Response?.available;
   const data = useMemo(
     () => (v1Data && v2Response?.available && wantV2 ? applyV2Overrides(v1Data, v2Response.outputs) : v1Data),
@@ -197,7 +197,11 @@ export const ProjectionsStep = ({ project, readOnly }: { project: ProjectContext
 
   const activeInfoPage = view.startsWith('info_') ? infoPages.find(p => `info_${p.id}` === view) : null;
 
-  if (isLoading) {
+  // Wait for BOTH engines before showing numbers on a 2.0 project — rendering v1 first and
+  // overlaying when v2 arrives made every headline visibly change a beat after load
+  // (Derek, 2026-09-19: "$66,505 then changes to $66,167"). If the v2 request fails,
+  // v2Loading settles false and the page falls back to v1 numbers under a 1.0 stamp.
+  if (isLoading || (wantV2 && v2Loading)) {
     return (
       <Wrapper>
         <ContentLoader />
