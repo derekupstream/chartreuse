@@ -11,17 +11,38 @@ import {
   ArrowLeftOutlined,
   ArrowUpOutlined,
   DeleteOutlined,
-  ExportOutlined,
+  DownOutlined,
+  EyeOutlined,
+  HolderOutlined,
   PlusOutlined,
+  RobotOutlined,
   SaveOutlined,
   SendOutlined
 } from '@ant-design/icons';
-import { Alert, Button, Card, Input, InputNumber, Select, Spin, Table, Tabs, Tag, Typography, message } from 'antd';
+import {
+  Alert,
+  Button,
+  Card,
+  Dropdown,
+  Input,
+  InputNumber,
+  Modal,
+  Radio,
+  Segmented,
+  Select,
+  Spin,
+  Table,
+  Tabs,
+  Tag,
+  Typography,
+  message
+} from 'antd';
 import type { GetServerSideProps } from 'next';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useEffect, useMemo, useState } from 'react';
 
+import { SmartFieldBuilder } from 'components/admin/SmartFieldBuilder';
 import { ComposedProductRenderer } from 'components/products/ComposedProductRenderer';
 import type { DashboardUser } from 'interfaces';
 import { AdminLayout } from 'layouts/AdminLayout';
@@ -49,6 +70,8 @@ type ProductRecord = {
   description: string | null;
   status: string;
   version: number;
+  audience?: string;
+  isPublic?: boolean;
   screensJson: { screens: ComposedDefinition['screens'] } | null;
   inputSchemaJson: { fields: InputFieldDef[] } | null;
 };
@@ -83,6 +106,16 @@ export default function ProductUxBuilderPage(_: { user: DashboardUser }) {
   const [tab, setTab] = useState<'preview' | 'data' | 'ux'>('ux');
   const [saving, setSaving] = useState(false);
   const [dirty, setDirty] = useState(false);
+  const [publishOpen, setPublishOpen] = useState(false);
+  const [audience, setAudience] = useState<'public' | 'client' | 'internal'>('client');
+  // AI Builder: a prompt becomes a draft of input fields, smart fields and screens.
+  const [aiOpen, setAiOpen] = useState(false);
+  const [aiPrompt, setAiPrompt] = useState('');
+  const [aiMode, setAiMode] = useState<'new' | 'modify'>('new');
+  const [aiRunning, setAiRunning] = useState(false);
+  /** Desktop / tablet / mobile canvas width — a cheap honesty check on the layout. */
+  const [device, setDevice] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
+  const deviceWidth = device === 'desktop' ? undefined : device === 'tablet' ? 720 : 390;
 
   useEffect(() => {
     if (!id) return;
@@ -152,9 +185,11 @@ export default function ProductUxBuilderPage(_: { user: DashboardUser }) {
           ? { id: idNew, kind, text: 'Explain this step…' }
           : kind === 'inputField'
             ? { id: idNew, kind, inputKey: nextUnplacedInput?.key ?? '' }
-            : kind === 'smartFieldCard'
-              ? { id: idNew, kind, smartFieldId: smartFields[0]?.id ?? '' }
-              : { id: idNew, kind, label: 'Continue', action: 'next' };
+            : kind === 'questionGroup'
+              ? { id: idNew, kind, title: 'About your operation', inputKeys: [] }
+              : kind === 'smartFieldCard'
+                ? { id: idNew, kind, smartFieldId: smartFields[0]?.id ?? '' }
+                : { id: idNew, kind: 'button', label: 'Continue', action: 'next' };
     update(d => {
       d.screens[screenIndex]?.blocks.push(block);
       return d;
@@ -216,7 +251,12 @@ export default function ProductUxBuilderPage(_: { user: DashboardUser }) {
     }
   }
 
-  async function publish() {
+  /**
+   * Publishing controls who can USE the product. The modal asks for the audience;
+   * the split button afterwards carries sharing actions (copy the link, open it,
+   * take it offline).
+   */
+  function publish() {
     if (!definition.screens.length) {
       message.warning('Add at least one screen before publishing');
       return;
@@ -226,10 +266,29 @@ export default function ProductUxBuilderPage(_: { user: DashboardUser }) {
       setTab('data');
       return;
     }
+    setPublishOpen(true);
+  }
+
+  async function confirmPublish() {
+    setPublishOpen(false);
     await save(
-      { status: 'published', publishedVersion: product?.version ?? 1 },
+      {
+        status: 'published',
+        publishedVersion: product?.version ?? 1,
+        audience,
+        isPublic: audience === 'public'
+      },
       `Published — live at /p/${product?.slug}`
     );
+    setProduct(p => (p ? { ...p, audience, isPublic: audience === 'public' } : p));
+  }
+
+  const liveUrl = product ? `${typeof window !== 'undefined' ? window.location.origin : ''}/p/${product.slug}` : '';
+
+  /** Preview exactly as a user would see it — the draft, in its own browser tab. */
+  async function openPreviewTab() {
+    await save({}, 'Draft saved — opening preview');
+    window.open(`/p/${product?.slug}?draft=1`, '_blank');
   }
 
   if (!product) return <Spin style={{ display: 'block', margin: '80px auto' }} />;
@@ -285,19 +344,154 @@ export default function ProductUxBuilderPage(_: { user: DashboardUser }) {
           </Text>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
-          {product.status === 'published' && (
-            <Button icon={<ExportOutlined />} href={`/p/${product.slug}`} target='_blank'>
-              Open live
-            </Button>
-          )}
+          <Button icon={<RobotOutlined />} onClick={() => setAiOpen(true)}>
+            AI Builder
+          </Button>
+          <Button icon={<EyeOutlined />} loading={saving} onClick={openPreviewTab}>
+            Preview in new tab
+          </Button>
           <Button icon={<SaveOutlined />} loading={saving} onClick={() => save()}>
             Save draft
           </Button>
-          <Button type='primary' icon={<SendOutlined />} loading={saving} onClick={publish}>
-            Publish
-          </Button>
+          {product.status === 'published' ? (
+            <Dropdown.Button
+              type='primary'
+              icon={<DownOutlined />}
+              onClick={publish}
+              menu={{
+                items: [
+                  { key: 'copy', label: 'Copy the public link' },
+                  { key: 'open', label: 'Open the live product' },
+                  { key: 'unpublish', label: 'Unpublish (back to draft)', danger: true }
+                ],
+                onClick: async ({ key }) => {
+                  if (key === 'copy') {
+                    await navigator.clipboard.writeText(liveUrl);
+                    message.success('Link copied — share it or add it to the marketing site');
+                  } else if (key === 'open') {
+                    window.open(`/p/${product.slug}`, '_blank');
+                  } else if (key === 'unpublish') {
+                    await save({ status: 'draft' }, 'Unpublished — the live link now shows nothing');
+                  }
+                }
+              }}
+            >
+              <SendOutlined /> Republish
+            </Dropdown.Button>
+          ) : (
+            <Button type='primary' icon={<SendOutlined />} loading={saving} onClick={publish}>
+              Publish
+            </Button>
+          )}
         </div>
       </div>
+
+      <Modal
+        open={aiOpen}
+        title='AI Builder'
+        okText={aiMode === 'new' ? 'Create the draft' : 'Apply the changes'}
+        confirmLoading={aiRunning}
+        onCancel={() => setAiOpen(false)}
+        onOk={async () => {
+          if (!aiPrompt.trim()) {
+            message.warning('Describe the product first');
+            return;
+          }
+          setAiRunning(true);
+          try {
+            const res = await fetch('/api/admin/products/ai-compose', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ productId: product.id, prompt: aiPrompt, mode: aiMode })
+            });
+            const body = await res.json();
+            if (!body.ok) throw new Error(body.error);
+            const parts = [
+              body.createdFields.length ? `created ${body.createdFields.length} smart field(s)` : null,
+              body.updatedFields.length ? `updated ${body.updatedFields.length}` : null,
+              `${body.screenCount} screen(s)`
+            ].filter(Boolean);
+            message.success(`AI draft ready — ${parts.join(', ')}. Every equation was checked before saving.`);
+            if (body.droppedFields.length) {
+              message.warning(
+                `Dropped (bad equations): ${body.droppedFields.map((d: any) => `${d.name} (${d.error})`).join('; ')}`
+              );
+            }
+            setAiOpen(false);
+            // Reload everything the AI may have touched.
+            const [productRes, fieldsRes] = await Promise.all([
+              fetch(`/api/admin/data-products/${product.id}`),
+              fetch('/api/admin/smart-fields')
+            ]);
+            const fresh: ProductRecord = await productRes.json();
+            setProduct(fresh);
+            setDefinition({
+              screens: fresh.screensJson?.screens ?? [],
+              inputFields: fresh.inputSchemaJson?.fields ?? []
+            });
+            setScreenIndex(0);
+            setSelectedBlockId(null);
+            const allFields: SmartFieldApi[] = await fieldsRes.json();
+            setSmartFields(allFields.filter(f => f.isPublished));
+          } catch (e) {
+            message.error((e as Error).message);
+          } finally {
+            setAiRunning(false);
+          }
+        }}
+      >
+        <Paragraph type='secondary' style={{ fontSize: 13 }}>
+          Describe the product and the AI drafts it: the questions to ask, the smart-field calculations (every equation
+          is verified by the same parser you type into — nothing unchecked is ever saved), and the screens. You then
+          review and edit everything here, exactly as if you had built it by hand.
+        </Paragraph>
+        <Radio.Group value={aiMode} onChange={e => setAiMode(e.target.value)} style={{ marginBottom: 10 }}>
+          <Radio value='new'>Start fresh (replaces this product&apos;s screens and questions)</Radio>
+          <Radio value='modify'>Modify what&apos;s here</Radio>
+        </Radio.Group>
+        <Input.TextArea
+          value={aiPrompt}
+          onChange={e => setAiPrompt(e.target.value)}
+          autoSize={{ minRows: 4, maxRows: 10 }}
+          placeholder='e.g. A calculator for cafés: they list each single-use product they buy (cases per week, units per case, cost per case), and we show annual purchasing cost, items used per year, and estimated annual savings from switching 60% to reusables.'
+        />
+      </Modal>
+
+      <Modal
+        open={publishOpen}
+        title='Publish this product'
+        okText='Publish'
+        onCancel={() => setPublishOpen(false)}
+        onOk={confirmPublish}
+      >
+        <Paragraph type='secondary' style={{ fontSize: 13 }}>
+          Publishing makes the product usable at <Text code>/p/{product.slug}</Text>. Who should be able to open it?
+        </Paragraph>
+        <Radio.Group
+          value={audience}
+          onChange={e => setAudience(e.target.value)}
+          style={{ display: 'flex', flexDirection: 'column', gap: 8 }}
+        >
+          <Radio value='public'>
+            <Text strong>Anyone with the link</Text>
+            <Text type='secondary' style={{ display: 'block', fontSize: 12 }}>
+              No sign-in needed — right for the marketing site or sharing outside Chart-Reuse.
+            </Text>
+          </Radio>
+          <Radio value='client'>
+            <Text strong>Any signed-in Chart-Reuse user</Text>
+            <Text type='secondary' style={{ display: 'block', fontSize: 12 }}>
+              Visible to every account, not to the open internet.
+            </Text>
+          </Radio>
+          <Radio value='internal'>
+            <Text strong>Upstream staff only</Text>
+            <Text type='secondary' style={{ display: 'block', fontSize: 12 }}>
+              For testing with the team before a wider release.
+            </Text>
+          </Radio>
+        </Radio.Group>
+      </Modal>
 
       <Tabs
         activeKey={tab}
@@ -308,19 +502,32 @@ export default function ProductUxBuilderPage(_: { user: DashboardUser }) {
             label: 'Preview',
             children: (
               <Card>
-                <Alert
-                  type='info'
-                  showIcon
-                  style={{ marginBottom: 16 }}
-                  message='Exactly what a user will see — same renderer, nothing saved from here.'
-                />
-                <ComposedProductRenderer
-                  key={JSON.stringify(definition)} // restart the walkthrough when the definition changes
-                  definition={definition}
-                  smartFields={composedFields}
-                  variables={variables}
-                  mode='live'
-                />
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+                  <Alert
+                    type='info'
+                    showIcon
+                    style={{ marginBottom: 16, flex: 1, minWidth: 280 }}
+                    message='Exactly what a user will see — same renderer, nothing saved from here. "Preview in new tab" opens it as its own page.'
+                  />
+                  <Segmented
+                    value={device}
+                    onChange={v => setDevice(v as typeof device)}
+                    options={[
+                      { label: 'Desktop', value: 'desktop' },
+                      { label: 'Tablet', value: 'tablet' },
+                      { label: 'Mobile', value: 'mobile' }
+                    ]}
+                  />
+                </div>
+                <div style={{ maxWidth: deviceWidth, margin: deviceWidth ? '0 auto' : undefined }}>
+                  <ComposedProductRenderer
+                    key={JSON.stringify(definition)} // restart the walkthrough when the definition changes
+                    definition={definition}
+                    smartFields={composedFields}
+                    variables={variables}
+                    mode='live'
+                  />
+                </div>
               </Card>
             )
           },
@@ -370,12 +577,19 @@ export default function ProductUxBuilderPage(_: { user: DashboardUser }) {
                             style={{ width: 110 }}
                             options={[
                               { value: 'number', label: 'number' },
-                              { value: 'currency', label: 'currency' }
+                              { value: 'currency', label: 'currency' },
+                              { value: 'group', label: 'list (table)' }
                             ]}
                             onChange={type =>
                               update(d => {
                                 d.inputFields = d.inputFields.map(f =>
-                                  f.key === r.key ? { ...f, type: type as any } : f
+                                  f.key === r.key
+                                    ? {
+                                        ...f,
+                                        type: type as any,
+                                        ...(type === 'group' && !f.columns ? { columns: [] } : {})
+                                      }
+                                    : f
                                 );
                                 return d;
                               })
@@ -384,24 +598,47 @@ export default function ProductUxBuilderPage(_: { user: DashboardUser }) {
                         )
                       },
                       {
-                        title: 'Unit',
+                        title: 'Unit / columns',
                         dataIndex: 'unit',
-                        width: 110,
-                        render: (v: string | undefined, r: InputFieldDef) => (
-                          <Input
-                            size='small'
-                            value={v}
-                            placeholder='unit'
-                            onChange={e =>
-                              update(d => {
-                                d.inputFields = d.inputFields.map(f =>
-                                  f.key === r.key ? { ...f, unit: e.target.value } : f
-                                );
-                                return d;
-                              })
-                            }
-                          />
-                        )
+                        width: 180,
+                        render: (v: string | undefined, r: InputFieldDef) =>
+                          r.type === 'group' ? (
+                            <Input
+                              size='small'
+                              // A list's columns, edited as comma-separated names —
+                              // e.g. "cases, unitsPerCase, costPerCase".
+                              value={(r.columns ?? []).map(c => c.key).join(', ')}
+                              placeholder='columns: cases, unitsPerCase'
+                              onChange={e =>
+                                update(d => {
+                                  const columns = e.target.value
+                                    .split(',')
+                                    .map(s => s.trim())
+                                    .filter(Boolean)
+                                    .map(key => {
+                                      const existing = r.columns?.find(c => c.key === key);
+                                      return existing ?? { key, label: key, type: 'number' as const };
+                                    });
+                                  d.inputFields = d.inputFields.map(f => (f.key === r.key ? { ...f, columns } : f));
+                                  return d;
+                                })
+                              }
+                            />
+                          ) : (
+                            <Input
+                              size='small'
+                              value={v}
+                              placeholder='unit'
+                              onChange={e =>
+                                update(d => {
+                                  d.inputFields = d.inputFields.map(f =>
+                                    f.key === r.key ? { ...f, unit: e.target.value } : f
+                                  );
+                                  return d;
+                                })
+                              }
+                            />
+                          )
                       },
                       {
                         title: '',
@@ -441,6 +678,16 @@ export default function ProductUxBuilderPage(_: { user: DashboardUser }) {
                       .filter(u => !definition.inputFields.some(f => f.key === u.key))
                       .map(u => {
                         const variable = variableMap.get(u.key);
+                        // A SUM in an equation needs a LIST question — the suggestion
+                        // arrives ready-made with the columns the equation reads.
+                        if (u.isGroup) {
+                          return {
+                            key: u.key,
+                            label: variable?.label ?? u.label,
+                            type: 'group' as const,
+                            columns: (u.columns ?? []).map(c => ({ key: c, label: c, type: 'number' as const }))
+                          };
+                        }
                         return {
                           key: u.key,
                           label: variable?.label ?? u.label,
@@ -464,11 +711,17 @@ export default function ProductUxBuilderPage(_: { user: DashboardUser }) {
                         </div>
                       ))}
                     <Text type='secondary' style={{ fontSize: 12 }}>
-                      Build or edit fields in the{' '}
-                      <Link href='/admin/data-science/smart-fields'>Smart Field Builder</Link>.
+                      Build or edit fields right below — the full Smart Field Builder is part of this tab.
                     </Text>
                   </Card>
                   {dependenciesPanel}
+                </div>
+
+                {/* The REAL Smart Field Builder, embedded (Derek, 2026-09-19: "Data should
+                    have the Smart Field Builder view") — same component as the standalone
+                    page, so nothing here is a copy that can drift. */}
+                <div style={{ flexBasis: '100%', borderTop: '1px solid #ececea', paddingTop: 16 }}>
+                  <SmartFieldBuilder />
                 </div>
               </div>
             )
@@ -562,13 +815,27 @@ export default function ProductUxBuilderPage(_: { user: DashboardUser }) {
                 >
                   {screen ? (
                     <>
+                      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
+                        <Segmented
+                          size='small'
+                          value={device}
+                          onChange={v => setDevice(v as typeof device)}
+                          options={[
+                            { label: 'Desktop', value: 'desktop' },
+                            { label: 'Tablet', value: 'tablet' },
+                            { label: 'Mobile', value: 'mobile' }
+                          ]}
+                        />
+                      </div>
                       <div
                         style={{
                           border: '1px dashed #d9d9d6',
                           borderRadius: 8,
                           padding: 16,
                           minHeight: 160,
-                          background: 'white'
+                          background: 'white',
+                          maxWidth: deviceWidth,
+                          margin: deviceWidth ? '0 auto' : undefined
                         }}
                       >
                         <ComposedProductRenderer
@@ -593,6 +860,60 @@ export default function ProductUxBuilderPage(_: { user: DashboardUser }) {
                           ))}
                         </div>
                       </div>
+                      {screen.blocks.length > 0 && (
+                        <div style={{ marginTop: 12 }}>
+                          <Text strong style={{ fontSize: 12 }}>
+                            Blocks on this screen — drag to reorder
+                          </Text>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 4 }}>
+                            {screen.blocks.map((block, index) => (
+                              <div
+                                key={block.id}
+                                draggable
+                                onDragStart={e => e.dataTransfer.setData('text/block-index', String(index))}
+                                onDragOver={e => e.preventDefault()}
+                                onDrop={e => {
+                                  e.preventDefault();
+                                  const from = Number(e.dataTransfer.getData('text/block-index'));
+                                  if (Number.isNaN(from) || from === index) return;
+                                  update(d => {
+                                    const blocks = d.screens[screenIndex].blocks;
+                                    const [moved] = blocks.splice(from, 1);
+                                    blocks.splice(index, 0, moved);
+                                    return d;
+                                  });
+                                }}
+                                onClick={() => setSelectedBlockId(block.id)}
+                                style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: 8,
+                                  padding: '4px 8px',
+                                  borderRadius: 6,
+                                  border: selectedBlockId === block.id ? '1px solid #1677ff' : '1px solid #ececea',
+                                  background: 'white',
+                                  cursor: 'grab',
+                                  fontSize: 12
+                                }}
+                              >
+                                <HolderOutlined style={{ color: '#bbb' }} />
+                                <Tag style={{ margin: 0 }}>{BLOCK_LABELS[block.kind]}</Tag>
+                                <Text type='secondary' ellipsis style={{ fontSize: 12, flex: 1 }}>
+                                  {block.kind === 'heading' || block.kind === 'text'
+                                    ? block.text
+                                    : block.kind === 'inputField'
+                                      ? block.inputKey
+                                      : block.kind === 'questionGroup'
+                                        ? block.title || `${block.inputKeys.length} questions`
+                                        : block.kind === 'smartFieldCard'
+                                          ? (composedFields.find(f => f.id === block.smartFieldId)?.name ?? '—')
+                                          : block.label}
+                                </Text>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </>
                   ) : (
                     <Button type='primary' icon={<PlusOutlined />} onClick={addScreen}>
@@ -632,6 +953,27 @@ export default function ProductUxBuilderPage(_: { user: DashboardUser }) {
                             onChange={inputKey => updateBlock(selectedBlock.id, { inputKey } as any)}
                             notFoundContent={<Text type='secondary'>Define input fields on the Data tab</Text>}
                           />
+                        )}
+                        {selectedBlock.kind === 'questionGroup' && (
+                          <>
+                            <Input
+                              style={{ marginTop: 8 }}
+                              placeholder='Group title (optional)'
+                              value={selectedBlock.title}
+                              onChange={e => updateBlock(selectedBlock.id, { title: e.target.value } as any)}
+                            />
+                            <Select
+                              mode='multiple'
+                              style={{ width: '100%', marginTop: 8 }}
+                              value={selectedBlock.inputKeys}
+                              placeholder='Which questions belong in this group?'
+                              options={definition.inputFields.map(f => ({
+                                value: f.key,
+                                label: `${f.label} (${f.key})`
+                              }))}
+                              onChange={inputKeys => updateBlock(selectedBlock.id, { inputKeys } as any)}
+                            />
+                          </>
                         )}
                         {selectedBlock.kind === 'smartFieldCard' && (
                           <>
@@ -710,7 +1052,13 @@ export default function ProductUxBuilderPage(_: { user: DashboardUser }) {
   );
 }
 
-type InputSuggestion = { key: string; label: string; unit?: string; type: InputFieldDef['type'] };
+type InputSuggestion = {
+  key: string;
+  label: string;
+  unit?: string;
+  type: InputFieldDef['type'];
+  columns?: InputFieldDef['columns'];
+};
 
 /** Inline "new input field" row — suggests the fields placed smart fields still need. */
 function AddInputField({ onAdd, suggestions }: { onAdd: (f: InputFieldDef) => void; suggestions: InputSuggestion[] }) {
@@ -727,6 +1075,7 @@ function AddInputField({ onAdd, suggestions }: { onAdd: (f: InputFieldDef) => vo
       label: (field?.label ?? label).trim() || cleanKey,
       type: field?.type ?? type,
       ...(field?.unit ? { unit: field.unit } : {}),
+      ...(field?.columns ? { columns: field.columns } : {}),
       ...(!field && defaultValue !== null ? { defaultValue } : {})
     });
     setKey('');

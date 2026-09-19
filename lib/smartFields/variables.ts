@@ -45,14 +45,29 @@ export type EquationToken =
   | { kind: 'variable'; key: string }
   | { kind: 'number'; value: number }
   | { kind: 'operator'; value: '+' | '-' | '*' | '/' }
-  | { kind: 'paren'; value: '(' | ')' };
+  | { kind: 'paren'; value: '(' | ')' }
+  /**
+   * "Do this math FOR EACH ROW of a list the user filled in, then total the rows."
+   * Example: SUM(products, cases * unitsPerCase) — `products` is a list-type input
+   * (a small table the user adds rows to); inside the body, a name resolves first to a
+   * COLUMN of the current row, then to ordinary inputs/factors. This is how the model's
+   * real shape ("for each product line: …, then sum") becomes expressible (spec §4).
+   */
+  | { kind: 'aggregate'; fn: 'SUM'; group: string; body: EquationToken[] };
+
+/** One row of a list-type input: column key → what the user typed. */
+export type GroupRow = Record<string, number | string>;
+/** Everything a user has answered: plain numbers, or arrays of rows for list inputs. */
+export type FieldValues = Record<string, number | GroupRow[]>;
 
 export type Requirement = {
-  kind: 'input' | 'factor' | 'product' | 'intermediate' | 'missing';
+  kind: 'input' | 'factor' | 'product' | 'intermediate' | 'missing' | 'group';
   key: string;
   label: string;
   /** True when this is satisfied */
   met: boolean;
+  /** For kind 'group': column names the equation reads from each row (inferred). */
+  columns?: string[];
 };
 
 /** A1-style reference from a zero-based row and column index. Data starts at row 2. */
@@ -160,7 +175,9 @@ export const KNOWN_INTERMEDIATES: SmartVariable[] = [
 export function evaluateEquation(
   tokens: EquationToken[],
   variables: Map<string, SmartVariable>,
-  testInputs: Record<string, number> = {}
+  testInputs: FieldValues = {},
+  /** Column values of the current row, while evaluating inside a SUM. */
+  rowScope?: GroupRow
 ): { value: number | null; error?: string; expression: string } {
   if (!tokens.length) return { value: null, error: 'The equation is empty', expression: '' };
 
@@ -174,10 +191,29 @@ export function evaluateEquation(
     } else if (token.kind === 'operator' || token.kind === 'paren') {
       parts.push(token.value);
       readable.push(token.value);
+    } else if (token.kind === 'aggregate') {
+      // "For each row of the list, compute the body; then add the rows together."
+      const rows = testInputs[token.group];
+      if (!Array.isArray(rows) || rows.length === 0) {
+        return { value: null, error: `The list “${token.group}” has no rows yet`, expression: readable.join(' ') };
+      }
+      let total = 0;
+      for (const row of rows) {
+        const rowResult = evaluateEquation(token.body, variables, testInputs, row);
+        if (rowResult.value === null) {
+          return { value: null, error: rowResult.error, expression: readable.join(' ') };
+        }
+        total += rowResult.value;
+      }
+      parts.push(String(total));
+      readable.push(`SUM(${token.group})=${total}`);
     } else {
-      const variable = variables.get(token.key);
+      // A name resolves in this order: the current row's column (inside a SUM), then the
+      // user's answers, then the variable catalog (factors and other known values).
+      const fromRow = rowScope?.[token.key];
       const supplied = testInputs[token.key];
-      const value = supplied !== undefined ? supplied : variable?.value;
+      const variable = variables.get(token.key);
+      const value = fromRow !== undefined ? Number(fromRow) : typeof supplied === 'number' ? supplied : variable?.value;
       if (value === undefined || value === null || !Number.isFinite(value)) {
         return {
           value: null,
@@ -213,55 +249,86 @@ export function evaluateEquation(
 export function detectRequirements(
   tokens: EquationToken[],
   variables: Map<string, SmartVariable>,
-  testInputs: Record<string, number> = {}
+  testInputs: FieldValues = {}
 ): Requirement[] {
   const requirements: Requirement[] = [];
   const seen = new Set<string>();
 
-  for (const token of tokens) {
-    if (token.kind !== 'variable' || seen.has(token.key)) continue;
-    seen.add(token.key);
+  const walk = (list: EquationToken[], insideGroupColumns?: Set<string>) => {
+    for (const token of list) {
+      if (token.kind === 'aggregate') {
+        if (!seen.has(token.group)) {
+          seen.add(token.group);
+          // Column names mirror the EVALUATOR's resolution order (row first): inside a SUM,
+          // an identifier is a row column unless it is a catalog variable that already
+          // carries a value (a factor). A catalog INPUT with the same name must not shadow
+          // a column — found 2026-09-19 when "unitsPerCase" (also a known input) wrongly
+          // blocked publishing as "uncollected".
+          const columns = new Set<string>();
+          for (const inner of token.body) {
+            if (inner.kind !== 'variable') continue;
+            const catalogValue = variables.get(inner.key)?.value;
+            if (catalogValue === undefined || !Number.isFinite(catalogValue)) columns.add(inner.key);
+          }
+          const rows = testInputs[token.group];
+          requirements.push({
+            kind: 'group',
+            key: token.group,
+            label: token.group,
+            met: Array.isArray(rows) && rows.length > 0,
+            columns: Array.from(columns)
+          });
+          walk(token.body, columns);
+        }
+        continue;
+      }
+      if (token.kind !== 'variable' || seen.has(token.key)) continue;
+      // Inside a SUM, a name that is a row column is satisfied by the list itself.
+      if (insideGroupColumns?.has(token.key)) continue;
+      seen.add(token.key);
 
-    const variable = variables.get(token.key);
-    if (!variable) {
-      requirements.push({ kind: 'missing', key: token.key, label: token.key, met: false });
-      continue;
+      const variable = variables.get(token.key);
+      if (!variable) {
+        requirements.push({ kind: 'missing', key: token.key, label: token.key, met: false });
+        continue;
+      }
+      if (variable.category === 'Inputs') {
+        requirements.push({
+          kind: 'input',
+          key: token.key,
+          label: variable.label,
+          met: testInputs[token.key] !== undefined
+        });
+      } else if (variable.category === 'Intermediates') {
+        // Derived by the calculator upstream of this field, so it needs a test value here
+        // to preview — it is not a missing factor.
+        requirements.push({
+          kind: 'intermediate',
+          key: token.key,
+          label: variable.label,
+          met: testInputs[token.key] !== undefined
+        });
+      } else if (variable.category === 'Products') {
+        // A product column only has a value once a specific product is chosen on the
+        // calculator — that is a pending selection, not a missing factor.
+        requirements.push({
+          kind: 'product',
+          key: token.key,
+          label: variable.label,
+          met: testInputs[token.key] !== undefined
+        });
+      } else {
+        const resolved = variable.value !== undefined && Number.isFinite(variable.value);
+        requirements.push({
+          kind: resolved ? 'factor' : 'missing',
+          key: token.key,
+          label: variable.label,
+          met: resolved
+        });
+      }
     }
-    if (variable.category === 'Inputs') {
-      requirements.push({
-        kind: 'input',
-        key: token.key,
-        label: variable.label,
-        met: testInputs[token.key] !== undefined
-      });
-    } else if (variable.category === 'Intermediates') {
-      // Derived by the calculator upstream of this field, so it needs a test value here
-      // to preview — it is not a missing factor.
-      requirements.push({
-        kind: 'intermediate',
-        key: token.key,
-        label: variable.label,
-        met: testInputs[token.key] !== undefined
-      });
-    } else if (variable.category === 'Products') {
-      // A product column only has a value once a specific product is chosen on the
-      // calculator — that is a pending selection, not a missing factor.
-      requirements.push({
-        kind: 'product',
-        key: token.key,
-        label: variable.label,
-        met: testInputs[token.key] !== undefined
-      });
-    } else {
-      const resolved = variable.value !== undefined && Number.isFinite(variable.value);
-      requirements.push({
-        kind: resolved ? 'factor' : 'missing',
-        key: token.key,
-        label: variable.label,
-        met: resolved
-      });
-    }
-  }
+  };
 
+  walk(tokens);
   return requirements;
 }

@@ -38,6 +38,7 @@ type ComposedProductRow = {
   name: string;
   slug: string;
   status: string;
+  description: string | null;
   screenCount: number;
   submissionCount: number;
 };
@@ -69,6 +70,7 @@ export const getServerSideProps: GetServerSideProps = async context => {
       name: p.name,
       slug: p.slug,
       status: p.status,
+      description: p.description,
       screenCount: ((p.screensJson as any)?.screens ?? []).length,
       submissionCount: p._count.submissions
     }));
@@ -227,9 +229,11 @@ export default function ProductsPage({ products, registryCount, composed }: Prop
           </Title>
           <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
             {composed.map(p => (
-              <Card key={p.id} size='small' style={{ flex: '1 1 300px', maxWidth: 420 }}>
+              <Card key={p.id} style={{ flex: '1 1 380px', maxWidth: 560 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
-                  <Text strong>{p.name}</Text>
+                  <Title level={4} style={{ marginTop: 0, marginBottom: 4 }}>
+                    {p.name}
+                  </Title>
                   <Badge
                     status={p.status === 'published' ? 'success' : 'default'}
                     text={
@@ -239,21 +243,36 @@ export default function ProductsPage({ products, registryCount, composed }: Prop
                     }
                   />
                 </div>
+                <Paragraph type='secondary' style={{ fontSize: 13 }}>
+                  {p.description ??
+                    'A composed product: screens of questions and smart-field calculations, built in the Product UX Builder.'}
+                </Paragraph>
                 <Text type='secondary' style={{ fontSize: 12 }}>
                   {p.screenCount} screen{p.screenCount === 1 ? '' : 's'} · {p.submissionCount} submission
                   {p.submissionCount === 1 ? '' : 's'}
                 </Text>
-                <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
-                  <Link href={`/admin/data-science/products/${p.id}/builder`}>
-                    <Button size='small' icon={<ToolOutlined />}>
-                      Builder
-                    </Button>
-                  </Link>
-                  {p.status === 'published' && (
-                    <Button size='small' type='primary' ghost href={`/p/${p.slug}`} target='_blank'>
+                <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 14, flexWrap: 'wrap' }}>
+                  {p.status === 'published' ? (
+                    <Button type='primary' ghost href={`/p/${p.slug}`} target='_blank'>
                       Open live <ArrowRightOutlined />
                     </Button>
+                  ) : (
+                    <Button type='primary' ghost href={`/p/${p.slug}?draft=1`} target='_blank'>
+                      Preview draft <ArrowRightOutlined />
+                    </Button>
                   )}
+                  <Link href={`/admin/data-science/products/${p.id}/builder`}>
+                    <Button icon={<ToolOutlined />}>Builder</Button>
+                  </Link>
+                  <Link href='/admin/data-science/quality'>
+                    <Tag style={{ cursor: 'pointer' }}>Validation</Tag>
+                  </Link>
+                  <Link href='/admin/data-science/methodology-hub'>
+                    <Tag style={{ cursor: 'pointer' }}>Methodology</Tag>
+                  </Link>
+                  <Link href='/admin/data-science/console'>
+                    <Tag style={{ cursor: 'pointer' }}>Model Console</Tag>
+                  </Link>
                 </div>
               </Card>
             ))}

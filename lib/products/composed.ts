@@ -11,19 +11,30 @@ export type ComposedBlock =
   | { id: string; kind: 'heading'; text: string }
   | { id: string; kind: 'text'; text: string }
   | { id: string; kind: 'inputField'; inputKey: string }
+  /** Several questions presented together under one small title. */
+  | { id: string; kind: 'questionGroup'; title?: string; inputKeys: string[] }
   | { id: string; kind: 'smartFieldCard'; smartFieldId: string; label?: string }
   | { id: string; kind: 'button'; label: string; action: 'next' | 'back' | 'submit' };
 
 export type ComposedScreen = { id: string; title: string; blocks: ComposedBlock[] };
 
-/** A question the product asks — key matches equation variables (spec §4). */
+/** A column of a list-type question ("add each product you buy…"). */
+export type GroupColumn = { key: string; label: string; type: 'number' | 'currency' | 'text' };
+
+/**
+ * A question the product asks — key matches equation variables (spec §4).
+ * type 'group' is a LIST: the user adds rows to a small table, and equations total them
+ * with SUM(key, per-row math).
+ */
 export type InputFieldDef = {
   key: string;
   label: string;
-  type: 'number' | 'currency';
+  type: 'number' | 'currency' | 'group';
   unit?: string;
   help?: string;
   defaultValue?: number;
+  /** Only for type 'group': the table's columns. */
+  columns?: GroupColumn[];
 };
 
 export type ComposedDefinition = { screens: ComposedScreen[]; inputFields: InputFieldDef[] };
@@ -38,8 +49,9 @@ export type ComposedSmartField = {
 
 export const BLOCK_LABELS: Record<ComposedBlock['kind'], string> = {
   heading: 'Heading',
-  text: 'Text',
+  text: 'Rich text',
   inputField: 'Input field',
+  questionGroup: 'Question group',
   smartFieldCard: 'Smart field card',
   button: 'Button'
 };
@@ -59,10 +71,15 @@ export function analyzeDependencies(
     definition.screens.flatMap(s => s.blocks).flatMap(b => (b.kind === 'smartFieldCard' ? [b.smartFieldId] : []))
   );
   const collectedKeys = new Set(
-    definition.screens.flatMap(s => s.blocks).flatMap(b => (b.kind === 'inputField' ? [b.inputKey] : []))
+    definition.screens
+      .flatMap(s => s.blocks)
+      .flatMap(b => (b.kind === 'inputField' ? [b.inputKey] : b.kind === 'questionGroup' ? b.inputKeys : []))
   );
 
-  const requiredInputs = new Map<string, { label: string; collected: boolean }>();
+  const requiredInputs = new Map<
+    string,
+    { label: string; collected: boolean; isGroup?: boolean; columns?: string[] }
+  >();
   const requiredFactors: { key: string; label: string; met: boolean }[] = [];
   const missing: string[] = [];
 
@@ -72,6 +89,15 @@ export function analyzeDependencies(
       if (req.kind === 'input' || req.kind === 'intermediate') {
         if (!requiredInputs.has(req.key))
           requiredInputs.set(req.key, { label: req.label, collected: collectedKeys.has(req.key) });
+      } else if (req.kind === 'group') {
+        // A SUM needs a LIST question; the equation tells us which columns each row needs.
+        if (!requiredInputs.has(req.key))
+          requiredInputs.set(req.key, {
+            label: req.label,
+            collected: collectedKeys.has(req.key),
+            isGroup: true,
+            columns: req.columns
+          });
       } else if (req.kind === 'factor') {
         if (!requiredFactors.some(f => f.key === req.key)) requiredFactors.push(req);
       } else if (req.kind === 'missing') {
