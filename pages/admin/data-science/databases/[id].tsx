@@ -59,7 +59,7 @@ const Grid = styled.table`
   border-collapse: separate;
   border-spacing: 0;
   font-size: 12px;
-  width: max-content;
+  table-layout: fixed; /* widths come from the <colgroup> — content-fitted, then user-resizable */
 
   th {
     position: sticky;
@@ -72,6 +72,21 @@ const Grid = styled.table`
     text-align: left;
     font-weight: 600;
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis; /* columns fit their CONTENT; a long header truncates (full name on hover) */
+  }
+  th .resizer {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 7px;
+    height: 100%;
+    cursor: col-resize;
+    z-index: 4;
+  }
+  th .resizer:hover,
+  th .resizer.active {
+    background: rgba(22, 119, 255, 0.3);
   }
   th.rownum,
   td.rownum {
@@ -93,7 +108,6 @@ const Grid = styled.table`
     border-right: 1px solid #f0f0ee;
     padding: 3px 8px;
     white-space: nowrap;
-    max-width: 280px;
     overflow: hidden;
     text-overflow: ellipsis;
     cursor: cell;
@@ -181,6 +195,42 @@ const displayValue = (v: unknown): string => {
   return String(v);
 };
 
+/* ── column sizing ───────────────────────────────────────────────────────────────────────
+ * Columns open fitted to their CONTENT, a hair wider — not to their header, which otherwise
+ * forces a wide column of tiny numbers under a name like water_rate_usd_per_1000_gal
+ * (Derek, 2026-09-19). Headers ellipsize (full name on hover). Every column has a drag
+ * handle (double-click it to re-fit), and widths persist per database in this browser.
+ */
+const COL_MIN = 46;
+const COL_MAX = 340;
+const CELL_CHROME = 20; // horizontal padding + border + breathing room
+
+function measureColumnWidths(
+  columns: { key: string; label: string }[],
+  rows: Record<string, unknown>[]
+): Record<string, number> {
+  const ctx = document.createElement('canvas').getContext('2d');
+  if (!ctx) return {};
+  ctx.font = '12px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
+  const sample = rows.length > 400 ? rows.slice(0, 400) : rows;
+  const widths: Record<string, number> = {};
+  for (const col of columns) {
+    let max = 0;
+    for (const row of sample) {
+      const v = row[col.key];
+      if (v === null || v === undefined || v === '') continue;
+      const w = ctx.measureText(displayValue(v)).width;
+      if (w > max) max = w;
+    }
+    // Never narrower than a readable slice of the header (up to 90px of it).
+    const headerMin = Math.min(ctx.measureText(col.label).width + CELL_CHROME, 90);
+    widths[col.key] = Math.round(Math.min(COL_MAX, Math.max(COL_MIN, max + CELL_CHROME, headerMin)));
+  }
+  return widths;
+}
+
+const widthsStorageKey = (databaseId: string) => `cr2-colwidths-${databaseId}`;
+
 export default function DatabaseSpreadsheetPage(_: { user: DashboardUser }) {
   const router = useRouter();
   const id = typeof router.query.id === 'string' ? router.query.id : null;
@@ -211,6 +261,69 @@ export default function DatabaseSpreadsheetPage(_: { user: DashboardUser }) {
   const [rowOptions, setRowOptions] = useState<{ label: string; rowKey: string }[] | null>(null);
   const detailCache = useRef<Map<string, FactorDatabaseDetail>>(new Map());
   const formulaInputRef = useRef<any>(null);
+
+  // ── column widths: content-fitted on load, drag-resizable, remembered per database ─────
+  const [colWidths, setColWidths] = useState<Record<string, number>>({});
+  const [resizingCol, setResizingCol] = useState<string | null>(null);
+  const measuredWidths = useRef<Record<string, number>>({});
+  const colWidthsRef = useRef(colWidths);
+  useEffect(() => {
+    colWidthsRef.current = colWidths;
+  }, [colWidths]);
+
+  useEffect(() => {
+    if (!detail) return;
+    const measured = measureColumnWidths(detail.columns, detail.rows as Record<string, unknown>[]);
+    measuredWidths.current = measured;
+    let saved: Record<string, number> = {};
+    try {
+      saved = JSON.parse(localStorage.getItem(widthsStorageKey(detail.id)) ?? '{}');
+    } catch {
+      saved = {};
+    }
+    setColWidths({ ...measured, ...saved });
+    // Re-measure only when a different database loads — user resizes must survive a save.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [detail?.id]);
+
+  const persistWidths = () => {
+    if (!detail) return;
+    try {
+      localStorage.setItem(widthsStorageKey(detail.id), JSON.stringify(colWidthsRef.current));
+    } catch {
+      /* storage unavailable — widths just won't stick */
+    }
+  };
+
+  function startResize(e: React.MouseEvent, key: string) {
+    e.preventDefault();
+    e.stopPropagation();
+    const startX = e.clientX;
+    const startW = colWidthsRef.current[key] ?? measuredWidths.current[key] ?? 120;
+    setResizingCol(key);
+    const onMove = (ev: MouseEvent) => {
+      const w = Math.max(COL_MIN, Math.round(startW + ev.clientX - startX));
+      setColWidths(prev => ({ ...prev, [key]: w }));
+    };
+    const onUp = () => {
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+      document.body.style.cursor = '';
+      setResizingCol(null);
+      persistWidths();
+    };
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+    document.body.style.cursor = 'col-resize';
+  }
+
+  /** Double-click the handle: re-fit the column to its content. */
+  function autofitColumn(key: string) {
+    const next = { ...colWidthsRef.current, [key]: measuredWidths.current[key] ?? 120 };
+    colWidthsRef.current = next;
+    setColWidths(next);
+    persistWidths();
+  }
 
   const mentionMatch = !mentionDismissed && !pendingVar ? /@([A-Za-z0-9_ .-]*)$/.exec(draft) : null;
   const variableOptions = useMemo(() => {
@@ -781,15 +894,31 @@ export default function DatabaseSpreadsheetPage(_: { user: DashboardUser }) {
       )}
 
       <GridScroll>
-        <Grid>
+        <Grid style={{ width: 44 + detail.columns.reduce((sum, c) => sum + (colWidths[c.key] ?? 120), 0) }}>
+          <colgroup>
+            <col style={{ width: 44 }} />
+            {detail.columns.map(col => (
+              <col key={col.key} style={{ width: colWidths[col.key] ?? 120 }} />
+            ))}
+          </colgroup>
           <thead>
             <tr>
               <th className='rownum'>#</th>
               {detail.columns.map(col => {
                 const family = columnFamily(col.key);
                 return (
-                  <th key={col.key} style={family ? { color: family.color, background: family.bg } : undefined}>
+                  <th
+                    key={col.key}
+                    title={col.label}
+                    style={family ? { color: family.color, background: family.bg } : undefined}
+                  >
                     {col.label}
+                    <span
+                      className={resizingCol === col.key ? 'resizer active' : 'resizer'}
+                      onMouseDown={e => startResize(e, col.key)}
+                      onDoubleClick={() => autofitColumn(col.key)}
+                      title='Drag to resize · double-click to fit'
+                    />
                   </th>
                 );
               })}
