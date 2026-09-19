@@ -108,27 +108,50 @@ reuse credit).
    are actually populated (she added the columns; the audit didn't finish normalizing
    the data — inconsistent dates, early-bird vs late deadlines). Revisit when Miley's
    CSV lands.
-5. **B5 — Uploader intake**: her next Funding_Opportunities upload arrives with new
-   columns (min_amount, max_amount, funding_range_text, tracker URLs, opportunity_link)
-   — the diff flow already presents new columns as declinable adds; verify that path
-   with this real file before she uses it.
+5. **B5 — Funding data intake**: the new Funding_Opportunities columns (min_amount,
+   max_amount, funding_range_text, tracker URLs, opportunity_link) land via the C1
+   reconciliation upload; when Miley's CSV arrives it comes through the uploader too —
+   funding is a dataset maintained outside the admin, so it stays on the intake path.
 
 ---
 
-## Workstream C — Uploader as the working data pipeline (her preferred path)
+## Workstream C — The admin is her workbench; the uploader is the intake tool
 
-Meeting agreement: spreadsheet stays the source of truth for now; Derek's uploader
-remaps into the product; a full admin manager is the end goal (and largely exists —
-this workstream is hardening, not building).
+Corrected framing (Derek, post-meeting): Madhavi enjoyed building the spreadsheet,
+but **going forward she wants to work inside the Data Science admin** — not keep
+editing the workbook and re-uploading it. The AI-powered uploader stays and matters,
+but its job is *intake*: bringing new datasets, bulk data, and partner data into the
+product (Miley's funding CSV, ECCC releases, future factor sets), plus the one-time
+migration of anything still living only in her workbook.
 
-- **C1** Skip list for non-data tabs (README, Open_Questions) — see A3.
-- **C2** New-field detection UX: the diff already surfaces added/changed columns; add
-  an explicit "what changed since last upload" summary at the top (N new fields, N
-  changed values, N ambiguities) so a full-workbook re-upload reads as a change review,
-  not 12 separate tables.
-- **C3** Ambiguity flags: where a column renamed (no key match) or a row key changed,
-  present an AI-suggested mapping with confirm/decline instead of add+delete.
-- **C4** Every accepted upload cuts a changelog entry and (on request) a collection
+That resolves the workbook's status cleanly: her Sept 18 file is the **final
+specification snapshot**, not a living pipeline. Once its contents are confirmed
+loaded, the versioned databases in the admin become the source of truth, and the
+workbook becomes what her README tab calls it — the auditable spec the product was
+verified against.
+
+### C-a. Make the admin fully sufficient for her daily work (the priority)
+
+Most of this exists (spreadsheet-style editing, @ formulas, save-with-reason,
+changelogs, releases, change requests, validation). What "sufficient" still needs:
+
+- **C1** A final reconciliation upload of the Sept 18 workbook — diff every tab against
+  the live databases, accept what's new (funding min/max columns etc.), and record the
+  release. After this, divergence between workbook and product is expected and fine.
+- **C2** Close the friction she hits working in-admin during M2 beta — treat her
+  first two weeks as a punch list (bulk row operations, column reorder, copy/paste
+  from Excel are the likely asks). The Model Console (D1) is part of this workbench.
+- **C3** Confirm with her which tabs she considers "hers to keep editing in Excel"
+  (if any) vs done — so we know whether any tab still needs the re-upload path at all.
+
+### C-b. Uploader hardening (for intake, not for her routine)
+
+- **C4** Skip list for non-data tabs (README, Open_Questions) — see A3.
+- **C5** New-field detection UX: an explicit "what changed" summary (N new fields,
+  N changed values, N ambiguities) so a multi-tab intake reads as one change review.
+- **C6** Ambiguity flags: renamed columns / changed row keys get an AI-suggested
+  mapping with confirm/decline instead of add+delete.
+- **C7** Every accepted upload cuts a changelog entry and (on request) a collection
   release — this is the mechanism ECCC onboards onto in M3, so its polish pays twice.
 
 ---
@@ -181,9 +204,9 @@ Actions:
 
 | When | What lands |
 |---|---|
-| **Now → M1 (Sept–mid Oct)** | A1 (frequency → dictionary), A3 (Open Questions/README cleanup), B1/B2 (funding policy + link-out), C1, B5 (verify her new file uploads cleanly) |
-| **M2 (mid Oct–mid Nov)** | D1 Phase 1 (Model Console — in Madhavi's hands for beta), A4 (Products listing + Validation regroup), B3 (funding input on projects), C2/C3 (upload review UX) |
-| **M3 (mid Nov–Dec 11)** | C4 exercised for real by ECCC onboarding; B4 revisited if Miley's CSV lands; D2 transparency work rides #19c |
+| **Now → M1 (Sept–mid Oct)** | A1 (frequency → dictionary), A3 + C4 (Open Questions/README cleanup + skip list), B1/B2 (funding policy + link-out), C1 (final reconciliation upload of the Sept 18 workbook — after this, the admin is the source of truth) |
+| **M2 (mid Oct–mid Nov)** | D1 Phase 1 (Model Console — in Madhavi's hands for beta), C2 (her in-admin friction punch list, worked weekly), A4 (Products listing + Validation regroup), B3 (funding input on projects), C5/C6 (intake review UX) |
+| **M3 (mid Nov–Dec 11)** | C7 exercised for real by ECCC onboarding; B4 revisited if Miley's CSV lands; D2 transparency work rides #19c |
 | **Post-launch** | A4 full designer (Studio phases 3–6), D1 Phase 2 (Python console), D3 items as contracts/partners mature |
 
 ## Open decisions for Derek
