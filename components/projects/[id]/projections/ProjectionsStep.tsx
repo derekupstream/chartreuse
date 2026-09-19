@@ -182,9 +182,12 @@ export const ProjectionsStep = ({ project, readOnly }: { project: ProjectContext
   const hideSingleAndReusableDetailsForEugeneOrg = isEugeneOrg({ id: project.orgId });
   // The legacy / 2.0 delineation (Derek, 2026-09-19): Timeline + milestones, View as
   // Datasheet, and the calculation inspector (hover highlight + "view calculation"
-  // drawer) are Chart-Reuse 2.0 features — none of them show on legacy. A project is
-  // "2.0" when it is pinned to methodology 2.0 or the browser is previewing 2.0.
-  const v2Enabled = wantV2;
+  // drawer) are Chart-Reuse 2.0 INTERFACE features — the browser's mode toggle alone
+  // decides whether they show. A project PINNED to 2.0 still computes with the 2.0
+  // engine in legacy mode (wantV2, above — the stamp says so), but its interface stays
+  // legacy until the toggle is on: "legacy still has the view calculation pill" was
+  // Derek seeing the pinned Scenario Dashboard keep the pill with the toggle off.
+  const v2Enabled = chartReuse2;
   const timelineMenuItem = v2Enabled ? [{ key: 'timeline', label: 'Timeline' }] : [];
 
   const sidebarMenuItems = hideSingleAndReusableDetailsForEugeneOrg
