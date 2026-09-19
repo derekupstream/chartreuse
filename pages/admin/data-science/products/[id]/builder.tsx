@@ -25,13 +25,11 @@ import {
   Card,
   Dropdown,
   Input,
-  InputNumber,
   Modal,
   Radio,
   Segmented,
   Select,
   Spin,
-  Table,
   Tabs,
   Tag,
   Typography,
@@ -48,6 +46,7 @@ import type { DashboardUser } from 'interfaces';
 import { AdminLayout } from 'layouts/AdminLayout';
 import type { ComposedBlock, ComposedDefinition, ComposedSmartField, InputFieldDef } from 'lib/products/composed';
 import { BLOCK_LABELS, analyzeDependencies, newBlockId } from 'lib/products/composed';
+import { detectRequirements } from 'lib/smartFields/variables';
 import type { EquationToken, SmartVariable } from 'lib/smartFields/variables';
 import { getUserFromContext } from 'lib/middleware';
 import { ACCESS_DENIED_REDIRECT, checkIsUpstream } from 'lib/middleware/requireUpstream';
@@ -118,6 +117,17 @@ export default function ProductUxBuilderPage(_: { user: DashboardUser }) {
   const [device, setDevice] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
   const deviceWidth = device === 'desktop' ? undefined : device === 'tablet' ? 720 : 390;
 
+  // Leaving with unsaved changes warns first — same protection the Field Builder has.
+  useEffect(() => {
+    if (!dirty) return;
+    const warn = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = '';
+    };
+    window.addEventListener('beforeunload', warn);
+    return () => window.removeEventListener('beforeunload', warn);
+  }, [dirty]);
+
   useEffect(() => {
     if (!id) return;
     fetch(`/api/admin/data-products/${id}`)
@@ -169,6 +179,46 @@ export default function ProductUxBuilderPage(_: { user: DashboardUser }) {
       s.blocks = s.blocks.map(b => (b.id === blockId ? ({ ...b, ...patch } as ComposedBlock) : b));
       return d;
     });
+  }
+
+  /**
+   * The one-click fix for a "not collected" warning: create the question definition
+   * (named and typed from the variable catalog, columns included for a list) AND place
+   * its block on the current screen, selected and ready to reposition. Questions are
+   * born from the UX flow, not from a separate table (Derek, 2026-09-19).
+   */
+  function addAndPlaceInput(key: string) {
+    if (!definition.screens.length) {
+      message.warning('Add a screen first');
+      return;
+    }
+    const requirement = dependencies.inputs.find(i => i.key === key);
+    const variable = variableMap.get(key);
+    const blockId = newBlockId();
+    update(d => {
+      if (!d.inputFields.some(f => f.key === key)) {
+        if (requirement?.isGroup) {
+          d.inputFields.push({
+            key,
+            label: variable?.label ?? requirement.label ?? key,
+            type: 'group',
+            columns: (requirement.columns ?? []).map(c => ({ key: c, label: c, type: 'number' as const }))
+          });
+        } else {
+          d.inputFields.push({
+            key,
+            label: variable?.label ?? requirement?.label ?? key,
+            type: variable?.unit === '$' ? 'currency' : 'number',
+            ...(variable?.unit && variable.unit !== '$' ? { unit: variable.unit } : {})
+          });
+        }
+      }
+      d.screens[screenIndex].blocks.push({ id: blockId, kind: 'inputField', inputKey: key });
+      return d;
+    });
+    setSelectedBlockId(blockId);
+    setTab('ux');
+    message.success(`Question added to “${definition.screens[screenIndex].title}” — drag it where it belongs`);
   }
 
   function addBlock(kind: ComposedBlock['kind']) {
@@ -302,9 +352,26 @@ export default function ProductUxBuilderPage(_: { user: DashboardUser }) {
         </Text>
       )}
       {dependencies.inputs.map(input => (
-        <div key={input.key} style={{ fontSize: 12, marginBottom: 4 }}>
-          {input.collected ? <Tag color='green'>collected</Tag> : <Tag color='red'>not collected</Tag>}
-          <Text code>{input.key}</Text> {input.label !== input.key ? `— ${input.label}` : ''}
+        <div
+          key={input.key}
+          style={{ fontSize: 12, marginBottom: 6, display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}
+        >
+          {input.collected ? (
+            <Tag color='green' style={{ margin: 0 }}>
+              collected
+            </Tag>
+          ) : (
+            <Tag color='red' style={{ margin: 0 }}>
+              not collected
+            </Tag>
+          )}
+          <Text code>{input.key}</Text>
+          {input.label !== input.key ? <Text style={{ fontSize: 12 }}>— {input.label}</Text> : null}
+          {!input.collected && (
+            <Button size='small' onClick={() => addAndPlaceInput(input.key)}>
+              + Add the question to this screen
+            </Button>
+          )}
         </div>
       ))}
       {dependencies.factors.map(f => (
@@ -536,195 +603,11 @@ export default function ProductUxBuilderPage(_: { user: DashboardUser }) {
             key: 'data',
             label: 'Data',
             children: (
-              <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start', flexWrap: 'wrap' }}>
-                <Card
-                  size='small'
-                  title='Input fields — the questions this product can ask'
-                  style={{ flex: '2 1 520px' }}
-                >
-                  <Table
-                    size='small'
-                    rowKey='key'
-                    pagination={false}
-                    dataSource={definition.inputFields}
-                    columns={[
-                      { title: 'Key', dataIndex: 'key', render: (v: string) => <Text code>{v}</Text> },
-                      {
-                        title: 'Question label',
-                        dataIndex: 'label',
-                        render: (v: string, r: InputFieldDef) => (
-                          <Input
-                            size='small'
-                            value={v}
-                            onChange={e =>
-                              update(d => {
-                                d.inputFields = d.inputFields.map(f =>
-                                  f.key === r.key ? { ...f, label: e.target.value } : f
-                                );
-                                return d;
-                              })
-                            }
-                          />
-                        )
-                      },
-                      {
-                        title: 'Type',
-                        dataIndex: 'type',
-                        width: 120,
-                        render: (v: string, r: InputFieldDef) => (
-                          <Select
-                            size='small'
-                            value={v}
-                            style={{ width: 110 }}
-                            options={[
-                              { value: 'number', label: 'number' },
-                              { value: 'currency', label: 'currency' },
-                              { value: 'group', label: 'list (table)' }
-                            ]}
-                            onChange={type =>
-                              update(d => {
-                                d.inputFields = d.inputFields.map(f =>
-                                  f.key === r.key
-                                    ? {
-                                        ...f,
-                                        type: type as any,
-                                        ...(type === 'group' && !f.columns ? { columns: [] } : {})
-                                      }
-                                    : f
-                                );
-                                return d;
-                              })
-                            }
-                          />
-                        )
-                      },
-                      {
-                        title: 'Unit / columns',
-                        dataIndex: 'unit',
-                        width: 180,
-                        render: (v: string | undefined, r: InputFieldDef) =>
-                          r.type === 'group' ? (
-                            <Input
-                              size='small'
-                              // A list's columns, edited as comma-separated names —
-                              // e.g. "cases, unitsPerCase, costPerCase".
-                              value={(r.columns ?? []).map(c => c.key).join(', ')}
-                              placeholder='columns: cases, unitsPerCase'
-                              onChange={e =>
-                                update(d => {
-                                  const columns = e.target.value
-                                    .split(',')
-                                    .map(s => s.trim())
-                                    .filter(Boolean)
-                                    .map(key => {
-                                      const existing = r.columns?.find(c => c.key === key);
-                                      return existing ?? { key, label: key, type: 'number' as const };
-                                    });
-                                  d.inputFields = d.inputFields.map(f => (f.key === r.key ? { ...f, columns } : f));
-                                  return d;
-                                })
-                              }
-                            />
-                          ) : (
-                            <Input
-                              size='small'
-                              value={v}
-                              placeholder='unit'
-                              onChange={e =>
-                                update(d => {
-                                  d.inputFields = d.inputFields.map(f =>
-                                    f.key === r.key ? { ...f, unit: e.target.value } : f
-                                  );
-                                  return d;
-                                })
-                              }
-                            />
-                          )
-                      },
-                      {
-                        title: '',
-                        width: 40,
-                        render: (_: unknown, r: InputFieldDef) => (
-                          <Button
-                            size='small'
-                            type='text'
-                            danger
-                            icon={<DeleteOutlined />}
-                            onClick={() =>
-                              update(d => {
-                                d.inputFields = d.inputFields.filter(f => f.key !== r.key);
-                                return d;
-                              })
-                            }
-                          />
-                        )
-                      }
-                    ]}
-                  />
-                  <AddInputField
-                    onAdd={field =>
-                      update(d => {
-                        if (d.inputFields.some(f => f.key === field.key)) {
-                          message.warning(`“${field.key}” already exists`);
-                          return d;
-                        }
-                        d.inputFields.push(field);
-                        return d;
-                      })
-                    }
-                    // Suggestions carry the catalog's label and unit, so one click makes a
-                    // finished question — not a key the designer has to re-word (dogfooding
-                    // 2026-09-19: labels defaulted to raw keys like "fundingTimesPerYear").
-                    suggestions={dependencies.uncollected
-                      .filter(u => !definition.inputFields.some(f => f.key === u.key))
-                      .map(u => {
-                        const variable = variableMap.get(u.key);
-                        // A SUM in an equation needs a LIST question — the suggestion
-                        // arrives ready-made with the columns the equation reads.
-                        if (u.isGroup) {
-                          return {
-                            key: u.key,
-                            label: variable?.label ?? u.label,
-                            type: 'group' as const,
-                            columns: (u.columns ?? []).map(c => ({ key: c, label: c, type: 'number' as const }))
-                          };
-                        }
-                        return {
-                          key: u.key,
-                          label: variable?.label ?? u.label,
-                          unit: variable?.unit,
-                          type: (variable?.unit === '$' ? 'currency' : 'number') as InputFieldDef['type']
-                        };
-                      })}
-                  />
-                </Card>
-                <div style={{ flex: '1 1 320px' }}>
-                  <Card size='small' title='Smart fields this product uses'>
-                    {composedFields
-                      .filter(f =>
-                        definition.screens.some(s =>
-                          s.blocks.some(b => b.kind === 'smartFieldCard' && b.smartFieldId === f.id)
-                        )
-                      )
-                      .map(f => (
-                        <div key={f.id} style={{ marginBottom: 6, fontSize: 12 }}>
-                          <Text strong>{f.name}</Text> {f.unit && <Text type='secondary'>({f.unit})</Text>}
-                        </div>
-                      ))}
-                    <Text type='secondary' style={{ fontSize: 12 }}>
-                      Build or edit fields right below — the full Smart Field Builder is part of this tab.
-                    </Text>
-                  </Card>
-                  {dependenciesPanel}
-                </div>
-
-                {/* The REAL Smart Field Builder, embedded (Derek, 2026-09-19: "Data should
-                    have the Smart Field Builder view") — same component as the standalone
-                    page, so nothing here is a copy that can drift. */}
-                <div style={{ flexBasis: '100%', borderTop: '1px solid #ececea', paddingTop: 16 }}>
-                  <SmartFieldBuilder />
-                </div>
-              </div>
+              // The Data tab IS the Smart Field Builder (Derek, 2026-09-19: no separate
+              // input-fields section — fields are tested here with simulated inputs, and
+              // question definitions are created from the UX side when a placed field
+              // needs one).
+              <SmartFieldBuilder />
             )
           },
           {
@@ -943,17 +826,95 @@ export default function ProductUxBuilderPage(_: { user: DashboardUser }) {
                           />
                         )}
                         {selectedBlock.kind === 'inputField' && (
-                          <Select
-                            style={{ width: '100%', marginTop: 8 }}
-                            value={selectedBlock.inputKey || undefined}
-                            placeholder='Which input field?'
-                            options={definition.inputFields.map(f => ({
-                              value: f.key,
-                              label: `${f.label} (${f.key})`
-                            }))}
-                            onChange={inputKey => updateBlock(selectedBlock.id, { inputKey } as any)}
-                            notFoundContent={<Text type='secondary'>Define input fields on the Data tab</Text>}
-                          />
+                          <>
+                            <Select
+                              style={{ width: '100%', marginTop: 8 }}
+                              value={selectedBlock.inputKey || undefined}
+                              placeholder='Which question?'
+                              options={definition.inputFields.map(f => ({
+                                value: f.key,
+                                label: `${f.label} (${f.key})`
+                              }))}
+                              onChange={inputKey => updateBlock(selectedBlock.id, { inputKey } as any)}
+                              notFoundContent={
+                                <Text type='secondary'>
+                                  Place a smart field card — its needed questions appear below
+                                </Text>
+                              }
+                            />
+                            {/* The question's DEFINITION is edited right here — there is no
+                                separate table anymore (Derek, 2026-09-19). */}
+                            {(() => {
+                              const def = definition.inputFields.find(f => f.key === selectedBlock.inputKey);
+                              if (!def) return null;
+                              const patchDef = (patch: Partial<InputFieldDef>) =>
+                                update(d => {
+                                  d.inputFields = d.inputFields.map(f => (f.key === def.key ? { ...f, ...patch } : f));
+                                  return d;
+                                });
+                              return (
+                                <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                                  <Input
+                                    value={def.label}
+                                    onChange={e => patchDef({ label: e.target.value })}
+                                    placeholder='Question label'
+                                  />
+                                  <div style={{ display: 'flex', gap: 8 }}>
+                                    <Select
+                                      value={def.type}
+                                      style={{ width: 130 }}
+                                      options={[
+                                        { value: 'number', label: 'number' },
+                                        { value: 'currency', label: 'currency' },
+                                        { value: 'group', label: 'list (table)' }
+                                      ]}
+                                      onChange={type =>
+                                        patchDef({
+                                          type: type as InputFieldDef['type'],
+                                          ...(type === 'group' && !def.columns ? { columns: [] } : {})
+                                        })
+                                      }
+                                    />
+                                    {def.type === 'group' ? (
+                                      <Input
+                                        style={{ flex: 1 }}
+                                        value={(def.columns ?? []).map(c => c.key).join(', ')}
+                                        placeholder='columns: cases, unitsPerCase'
+                                        onChange={e =>
+                                          patchDef({
+                                            columns: e.target.value
+                                              .split(',')
+                                              .map(s => s.trim())
+                                              .filter(Boolean)
+                                              .map(
+                                                key =>
+                                                  def.columns?.find(c => c.key === key) ?? {
+                                                    key,
+                                                    label: key,
+                                                    type: 'number' as const
+                                                  }
+                                              )
+                                          })
+                                        }
+                                      />
+                                    ) : (
+                                      <Input
+                                        style={{ flex: 1 }}
+                                        value={def.unit}
+                                        placeholder='unit (optional)'
+                                        onChange={e => patchDef({ unit: e.target.value })}
+                                      />
+                                    )}
+                                  </div>
+                                  <Input
+                                    value={def.help}
+                                    onChange={e => patchDef({ help: e.target.value })}
+                                    placeholder='Help text under the question (optional)'
+                                  />
+                                </div>
+                              );
+                            })()}
+                          </>
                         )}
                         {selectedBlock.kind === 'questionGroup' && (
                           <>
@@ -991,6 +952,52 @@ export default function ProductUxBuilderPage(_: { user: DashboardUser }) {
                               value={selectedBlock.label}
                               onChange={e => updateBlock(selectedBlock.id, { label: e.target.value } as any)}
                             />
+                            {/* The connect-the-wires notification: this card's calculation
+                                lists what it needs; anything no screen collects yet gets a
+                                one-click "add the question" fix. */}
+                            {(() => {
+                              const field = composedFields.find(f => f.id === selectedBlock.smartFieldId);
+                              if (!field) return null;
+                              const collected = new Set(
+                                definition.screens
+                                  .flatMap(s => s.blocks)
+                                  .flatMap(b =>
+                                    b.kind === 'inputField'
+                                      ? [b.inputKey]
+                                      : b.kind === 'questionGroup'
+                                        ? b.inputKeys
+                                        : []
+                                  )
+                              );
+                              const needed = detectRequirements(field.equation, variableMap).filter(
+                                r =>
+                                  (r.kind === 'input' || r.kind === 'group' || r.kind === 'missing') &&
+                                  !collected.has(r.key)
+                              );
+                              if (!needed.length)
+                                return (
+                                  <Text type='secondary' style={{ fontSize: 12, display: 'block', marginTop: 8 }}>
+                                    ✓ Every input this calculation needs is collected by a screen.
+                                  </Text>
+                                );
+                              return (
+                                <Alert
+                                  type='warning'
+                                  showIcon
+                                  style={{ marginTop: 8 }}
+                                  message='This calculation needs questions no screen asks yet'
+                                  description={
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                                      {needed.map(r => (
+                                        <Button key={r.key} size='small' onClick={() => addAndPlaceInput(r.key)}>
+                                          + Add “{r.label}” to this screen
+                                        </Button>
+                                      ))}
+                                    </div>
+                                  }
+                                />
+                              );
+                            })()}
                           </>
                         )}
                         {selectedBlock.kind === 'button' && (
@@ -1050,91 +1057,6 @@ export default function ProductUxBuilderPage(_: { user: DashboardUser }) {
         ]}
       />
     </>
-  );
-}
-
-type InputSuggestion = {
-  key: string;
-  label: string;
-  unit?: string;
-  type: InputFieldDef['type'];
-  columns?: InputFieldDef['columns'];
-};
-
-/** Inline "new input field" row — suggests the fields placed smart fields still need. */
-function AddInputField({ onAdd, suggestions }: { onAdd: (f: InputFieldDef) => void; suggestions: InputSuggestion[] }) {
-  const [key, setKey] = useState('');
-  const [label, setLabel] = useState('');
-  const [type, setType] = useState<'number' | 'currency'>('number');
-  const [defaultValue, setDefaultValue] = useState<number | null>(null);
-
-  function add(field?: InputSuggestion) {
-    const cleanKey = (field?.key ?? key).trim();
-    if (!cleanKey) return;
-    onAdd({
-      key: cleanKey,
-      label: (field?.label ?? label).trim() || cleanKey,
-      type: field?.type ?? type,
-      ...(field?.unit ? { unit: field.unit } : {}),
-      ...(field?.columns ? { columns: field.columns } : {}),
-      ...(!field && defaultValue !== null ? { defaultValue } : {})
-    });
-    setKey('');
-    setLabel('');
-    setDefaultValue(null);
-  }
-
-  return (
-    <div style={{ marginTop: 12 }}>
-      {suggestions.length > 0 && (
-        <div style={{ marginBottom: 8 }}>
-          <Text type='secondary' style={{ fontSize: 12 }}>
-            Needed by placed fields:{' '}
-          </Text>
-          {suggestions.map(s => (
-            <Tag key={s.key} color='red' style={{ cursor: 'pointer' }} title={s.key} onClick={() => add(s)}>
-              + {s.label}
-            </Tag>
-          ))}
-        </div>
-      )}
-      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-        <Input
-          size='small'
-          placeholder='key (e.g. fundingAmount)'
-          value={key}
-          onChange={e => setKey(e.target.value)}
-          style={{ width: 190 }}
-        />
-        <Input
-          size='small'
-          placeholder='Question label'
-          value={label}
-          onChange={e => setLabel(e.target.value)}
-          style={{ width: 220 }}
-        />
-        <Select
-          size='small'
-          value={type}
-          style={{ width: 100 }}
-          options={[
-            { value: 'number', label: 'number' },
-            { value: 'currency', label: 'currency' }
-          ]}
-          onChange={v => setType(v)}
-        />
-        <InputNumber
-          size='small'
-          placeholder='default'
-          value={defaultValue as any}
-          onChange={v => setDefaultValue(v === null ? null : Number(v))}
-          style={{ width: 100 }}
-        />
-        <Button size='small' icon={<PlusOutlined />} onClick={() => add()}>
-          Add input field
-        </Button>
-      </div>
-    </div>
   );
 }
 
