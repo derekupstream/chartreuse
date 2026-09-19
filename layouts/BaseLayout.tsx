@@ -275,7 +275,15 @@ export const BaseLayout: React.FC<DashboardProps> = ({ user, selectedMenuItem, t
                 <Button
                   size='small'
                   icon={<RocketOutlined />}
-                  onClick={() => setV2Enabled(!v2Enabled)}
+                  onClick={() => {
+                    // Switching modes RELOADS the page. The mode lives in localStorage and
+                    // every component reads it once on load — without a reload, the header
+                    // flips but the page body (e.g. the calculation inspector on
+                    // projections) keeps the old mode until a manual refresh
+                    // (Derek, 2026-09-19).
+                    setV2Enabled(!v2Enabled);
+                    window.location.reload();
+                  }}
                   style={{
                     background: v2Enabled
                       ? 'linear-gradient(90deg, #722ed1 0%, #1677ff 100%)'

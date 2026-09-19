@@ -1,8 +1,11 @@
 import type { RadioChangeEvent } from 'antd';
 import { Radio, Typography, Row, Col, Tooltip } from 'antd';
 import { InfoCircleOutlined } from '@ant-design/icons';
+import dynamic from 'next/dynamic';
 import { useState } from 'react';
 import styled from 'styled-components';
+
+const Line = dynamic(() => import('@ant-design/plots').then(r => r.Line), { ssr: false });
 
 import { InspectTooltip } from 'components/common/InspectMode';
 import { CalculationCard } from 'components/common/CalculationInspector';
@@ -27,7 +30,12 @@ type Props = {
   data: ProjectionsResponse['environmentalResults'];
   hideWaterUsage?: boolean;
   isEventProject?: boolean;
-  /** Environmental break-even card is a Chart-Reuse 2.0 feature in-app; defaults on so public share pages are unaffected. */
+  /**
+   * The Environmental Break-Even card is a Chart-Reuse 2.0 feature, so it is OFF unless a
+   * caller explicitly turns it on (the projections page passes its 2.0-mode flag). Public
+   * share pages compute with the legacy engine, so leaving this out hides the card there
+   * too (Derek, 2026-09-19: "doesn't belong in Chart-Reuse legacy").
+   */
   showEnvBreakEven?: boolean;
 };
 
@@ -35,7 +43,7 @@ export const EnvironmentalSummary: React.FC<Props> = ({
   data,
   hideWaterUsage,
   isEventProject,
-  showEnvBreakEven = true
+  showEnvBreakEven = false
 }) => {
   const displayAsMetric = useMetricSystem();
   const [units, setUnits] = useState<'pounds' | 'tons'>('pounds');
@@ -267,7 +275,7 @@ export const EnvironmentalSummary: React.FC<Props> = ({
         {showEnvBreakEven &&
           data.envBreakEven &&
           (data.envBreakEven.co2BreakEvenMonths != null || data.envBreakEven.embodiedCO2Mtco2e > 0) && (
-            <StyledCol xs={24} lg={12}>
+            <StyledCol xs={24}>
               <InspectTooltip
                 meta={{
                   id: 'env-break-even',
@@ -296,6 +304,17 @@ export const EnvironmentalSummary: React.FC<Props> = ({
                     </span>
                   }
                 >
+                  <Typography.Text type='secondary' style={{ fontSize: 12, display: 'block', marginTop: 4 }}>
+                    How many months until the manufacturing carbon footprint of all reusables purchased is offset by
+                    avoided single-use emissions. Based on material embodied carbon, transportation, and annual avoided
+                    GHG emissions.
+                  </Typography.Text>
+                  <br />
+                  <EnvBreakEvenChart
+                    embodied={data.envBreakEven.embodiedCO2Mtco2e}
+                    annualSavings={data.envBreakEven.annualCO2SavingsMtco2e}
+                    breakEvenMonths={data.envBreakEven.co2BreakEvenMonths}
+                  />
                   <Typography.Text type='secondary' style={{ fontSize: 12, display: 'block', marginTop: 8 }}>
                     Reusable manufacturing footprint:{' '}
                     <InspectTooltip
@@ -336,3 +355,66 @@ export const EnvironmentalSummary: React.FC<Props> = ({
     </SectionContainer>
   );
 };
+
+/**
+ * The Environmental Break-Even chart (Derek, 2026-09-19): the reusables' one-time
+ * manufacturing footprint drawn as a flat line, and the avoided single-use emissions
+ * accumulating month by month — where the rising line crosses the flat one is the
+ * break-even month, marked with a dashed vertical line. Shows a horizon of about
+ * 1.5× the break-even time so the crossing sits comfortably inside the chart.
+ */
+function EnvBreakEvenChart({
+  embodied,
+  annualSavings,
+  breakEvenMonths
+}: {
+  embodied: number;
+  annualSavings: number;
+  breakEvenMonths: number | null;
+}) {
+  const horizon = breakEvenMonths != null ? Math.min(Math.max(Math.ceil(breakEvenMonths * 1.5), 12), 120) : 24;
+  const chartData: { month: number; value: number; series: string }[] = [];
+  for (let month = 0; month <= horizon; month++) {
+    chartData.push({
+      month,
+      value: (annualSavings / 12) * month,
+      series: 'Avoided single-use emissions (cumulative)'
+    });
+    chartData.push({ month, value: embodied, series: 'Reusables manufacturing footprint' });
+  }
+  const annotations =
+    breakEvenMonths != null
+      ? [
+          {
+            type: 'lineX',
+            xField: breakEvenMonths,
+            style: { stroke: '#52c41a', lineWidth: 2, lineDash: [4, 4] },
+            label: { text: `Break-even: ${breakEvenMonths} mos.`, position: 'top', fill: '#3f8600' }
+          }
+        ]
+      : [];
+  return (
+    <div style={{ height: 280 }}>
+      <Line
+        data={chartData}
+        xField='month'
+        yField='value'
+        colorField='series'
+        animate={false}
+        scale={{ color: { range: ['#52a41c', '#8c8c8c'] } }}
+        annotations={annotations}
+        axis={{ x: { title: 'Months' }, y: { title: 'MTCO2e' } }}
+        legend={{ color: { position: 'bottom' } }}
+        tooltip={{
+          title: (d: { month: number }) => `Month ${d.month}`,
+          items: [
+            {
+              field: 'value',
+              valueFormatter: (v: number) => `${Number(v).toFixed(2)} MTCO2e`
+            }
+          ]
+        }}
+      />
+    </div>
+  );
+}
