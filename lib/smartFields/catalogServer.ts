@@ -114,6 +114,33 @@ export async function buildVariableCatalog(): Promise<SmartVariable[]> {
     }
   }
 
+  // User-defined input variables live as rows of the Data Dictionary (Authority "User…")
+  // — created from the Field Builder's "+ New variable" dialog, so making a variable IS
+  // recording it in the dictionary (Derek, 2026-09-19).
+  const dictionary = await prisma.factorDatabase.findUnique({
+    where: { name: 'Data Dictionary' },
+    include: { rows: { orderBy: { rowIndex: 'asc' } } }
+  });
+  for (const row of dictionary?.rows ?? []) {
+    const data = row.data as Record<string, string | null>;
+    const key = (data.Field ?? '').trim();
+    if (!key || usedKeys.has(key)) continue;
+    if (
+      !String(data.Authority ?? '')
+        .toLowerCase()
+        .startsWith('user')
+    )
+      continue;
+    usedKeys.add(key);
+    variables.push({
+      key,
+      label: data['Role / Definition']?.trim() || key,
+      category: 'Inputs',
+      unit: data.Unit && data.Unit !== 'none' ? data.Unit : undefined,
+      description: `Defined in the Data Dictionary (${data.Type ?? 'number'})`
+    });
+  }
+
   // Published smart fields can be reused inside other smart fields
   const published = await prisma.smartField.findMany({ where: { isPublished: true } });
   for (const field of published) {

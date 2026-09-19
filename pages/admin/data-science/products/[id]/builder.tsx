@@ -23,6 +23,7 @@ import {
   Alert,
   Button,
   Card,
+  Drawer,
   Dropdown,
   Input,
   Modal,
@@ -80,6 +81,7 @@ type SmartFieldApi = {
   name: string;
   unit: string | null;
   description: string | null;
+  category?: string | null;
   equation: EquationToken[];
   isPublished: boolean;
 };
@@ -113,6 +115,12 @@ export default function ProductUxBuilderPage(_: { user: DashboardUser }) {
   const [aiPrompt, setAiPrompt] = useState('');
   const [aiMode, setAiMode] = useState<'new' | 'modify'>('new');
   const [aiRunning, setAiRunning] = useState(false);
+  // The smart-field picker: a right-side panel styled like the Data view's gallery —
+  // drag a field onto the canvas, or click it to add (Derek, 2026-09-19).
+  const [fieldPickerOpen, setFieldPickerOpen] = useState(false);
+  const [pickerSearch, setPickerSearch] = useState('');
+  const [pickerCategory, setPickerCategory] = useState('All');
+
   /** Desktop / tablet / mobile canvas width — a cheap honesty check on the layout. */
   const [device, setDevice] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
   const deviceWidth = device === 'desktop' ? undefined : device === 'tablet' ? 720 : 390;
@@ -219,6 +227,19 @@ export default function ProductUxBuilderPage(_: { user: DashboardUser }) {
     setSelectedBlockId(blockId);
     setTab('ux');
     message.success(`Question added to “${definition.screens[screenIndex].title}” — drag it where it belongs`);
+  }
+
+  function addSmartFieldCard(smartFieldId: string) {
+    if (!definition.screens.length) {
+      message.warning('Add a screen first');
+      return;
+    }
+    const blockId = newBlockId();
+    update(d => {
+      d.screens[screenIndex].blocks.push({ id: blockId, kind: 'smartFieldCard', smartFieldId });
+      return d;
+    });
+    setSelectedBlockId(blockId);
   }
 
   function addBlock(kind: ComposedBlock['kind']) {
@@ -368,7 +389,11 @@ export default function ProductUxBuilderPage(_: { user: DashboardUser }) {
           <Text code>{input.key}</Text>
           {input.label !== input.key ? <Text style={{ fontSize: 12 }}>— {input.label}</Text> : null}
           {!input.collected && (
-            <Button size='small' onClick={() => addAndPlaceInput(input.key)}>
+            <Button
+              size='small'
+              onClick={() => addAndPlaceInput(input.key)}
+              style={{ whiteSpace: 'normal', height: 'auto', textAlign: 'left' }}
+            >
               + Add the question to this screen
             </Button>
           )}
@@ -453,6 +478,72 @@ export default function ProductUxBuilderPage(_: { user: DashboardUser }) {
           )}
         </div>
       </div>
+
+      {/* The smart-field picker: gallery-style cards on the right; drag onto the canvas
+          or click to add (Derek, 2026-09-19). mask=false keeps the canvas visible and
+          droppable while the panel is open. */}
+      <Drawer
+        title='Smart fields'
+        placement='right'
+        width={340}
+        open={fieldPickerOpen}
+        onClose={() => setFieldPickerOpen(false)}
+        mask={false}
+      >
+        <Text type='secondary' style={{ fontSize: 12, display: 'block', marginBottom: 8 }}>
+          Drag a card onto the screen, or click it to add. New fields are built on the Data tab.
+        </Text>
+        <Input.Search
+          placeholder='Search smart fields…'
+          allowClear
+          value={pickerSearch}
+          onChange={e => setPickerSearch(e.target.value)}
+          style={{ marginBottom: 8 }}
+        />
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 10 }}>
+          {['All', ...Array.from(new Set(smartFields.map(f => f.category ?? 'Other')))].map(c => (
+            <Tag
+              key={c}
+              color={pickerCategory === c ? 'green' : undefined}
+              style={{ cursor: 'pointer', margin: 0 }}
+              onClick={() => setPickerCategory(c)}
+            >
+              {c}
+              {c !== 'All'
+                ? ` ${smartFields.filter(f => (f.category ?? 'Other') === c).length}`
+                : ` ${smartFields.length}`}
+            </Tag>
+          ))}
+        </div>
+        {smartFields
+          .filter(f => pickerCategory === 'All' || (f.category ?? 'Other') === pickerCategory)
+          .filter(
+            f =>
+              !pickerSearch.trim() ||
+              f.name.toLowerCase().includes(pickerSearch.toLowerCase()) ||
+              (f.unit ?? '').toLowerCase().includes(pickerSearch.toLowerCase())
+          )
+          .map(f => (
+            <Card
+              key={f.id}
+              size='small'
+              hoverable
+              draggable
+              onDragStart={e => e.dataTransfer.setData('text/smart-field-id', f.id)}
+              onClick={() => addSmartFieldCard(f.id)}
+              style={{ marginBottom: 8, cursor: 'grab' }}
+            >
+              <Text strong style={{ fontSize: 13 }}>
+                {f.name}
+              </Text>
+              <Text type='secondary' style={{ fontSize: 11, display: 'block' }}>
+                {f.equation.length} token{f.equation.length === 1 ? '' : 's'}
+                {f.unit ? ` · ${f.unit}` : ''}
+              </Text>
+              <Tag style={{ marginTop: 4, fontSize: 10 }}>{f.category ?? 'Other'}</Tag>
+            </Card>
+          ))}
+      </Drawer>
 
       <Modal
         open={aiOpen}
@@ -712,6 +803,14 @@ export default function ProductUxBuilderPage(_: { user: DashboardUser }) {
                         />
                       </div>
                       <div
+                        onDragOver={e => e.preventDefault()}
+                        onDrop={e => {
+                          const fieldId = e.dataTransfer.getData('text/smart-field-id');
+                          if (fieldId) {
+                            e.preventDefault();
+                            addSmartFieldCard(fieldId);
+                          }
+                        }}
                         style={{
                           border: '1px dashed #d9d9d6',
                           borderRadius: 8,
@@ -738,7 +837,14 @@ export default function ProductUxBuilderPage(_: { user: DashboardUser }) {
                         </Text>
                         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 4 }}>
                           {PALETTE.map(p => (
-                            <Button key={p.kind} size='small' title={p.hint} onClick={() => addBlock(p.kind)}>
+                            <Button
+                              key={p.kind}
+                              size='small'
+                              title={p.hint}
+                              onClick={() =>
+                                p.kind === 'smartFieldCard' ? setFieldPickerOpen(true) : addBlock(p.kind)
+                              }
+                            >
                               + {BLOCK_LABELS[p.kind]}
                             </Button>
                           ))}
@@ -989,7 +1095,19 @@ export default function ProductUxBuilderPage(_: { user: DashboardUser }) {
                                   description={
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                                       {needed.map(r => (
-                                        <Button key={r.key} size='small' onClick={() => addAndPlaceInput(r.key)}>
+                                        <Button
+                                          key={r.key}
+                                          size='small'
+                                          onClick={() => addAndPlaceInput(r.key)}
+                                          // Long question names must wrap inside the narrow
+                                          // panel, never spill out of it (Derek, 2026-09-19).
+                                          style={{
+                                            whiteSpace: 'normal',
+                                            height: 'auto',
+                                            textAlign: 'left',
+                                            width: '100%'
+                                          }}
+                                        >
                                           + Add “{r.label}” to this screen
                                         </Button>
                                       ))}

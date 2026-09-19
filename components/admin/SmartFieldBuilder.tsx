@@ -25,6 +25,7 @@ import {
   Empty,
   Input,
   InputNumber,
+  Modal,
   Row,
   Segmented,
   Select,
@@ -38,7 +39,7 @@ import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { parseEquation, serializeEquation } from 'lib/smartFields/console';
-import { detectRequirements, evaluateEquation } from 'lib/smartFields/variables';
+import { detectRequirements, evaluateEquation, toVariableKey } from 'lib/smartFields/variables';
 import type { EquationToken, FieldValues, GroupRow, SmartVariable, VariableCategory } from 'lib/smartFields/variables';
 import type { SmartFieldRecord } from 'pages/api/admin/smart-fields/index';
 import type { SourcePreview } from 'pages/api/admin/smart-fields/source-preview';
@@ -123,6 +124,47 @@ export function SmartFieldBuilder() {
     window.addEventListener('beforeunload', warn);
     return () => window.removeEventListener('beforeunload', warn);
   }, [isDirty]);
+
+  // "+ New variable": creates a user-input variable, which is stored as a Data Dictionary
+  // row (defining and documenting are one act) and dropped straight into the equation.
+  const [varOpen, setVarOpen] = useState(false);
+  const [varLabel, setVarLabel] = useState('');
+  const [varKey, setVarKey] = useState('');
+  const [varKeyTouched, setVarKeyTouched] = useState(false);
+  const [varUnit, setVarUnit] = useState('');
+  const [varDesc, setVarDesc] = useState('');
+  const [varSaving, setVarSaving] = useState(false);
+
+  async function createVariable() {
+    if (!varLabel.trim()) {
+      message.warning('Name the variable first');
+      return;
+    }
+    setVarSaving(true);
+    try {
+      const res = await fetch('/api/admin/smart-fields/variables', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ label: varLabel, key: varKey, unit: varUnit, description: varDesc })
+      });
+      if (!res.ok) throw new Error((await res.json()).error || 'Could not create the variable');
+      const { variable } = await res.json();
+      setVariables(prev => [variable, ...prev]);
+      setDraft(d => ({ ...d, equation: [...d.equation, { kind: 'variable', key: variable.key }] }));
+      setCategory('Inputs');
+      setVarOpen(false);
+      setVarLabel('');
+      setVarKey('');
+      setVarKeyTouched(false);
+      setVarUnit('');
+      setVarDesc('');
+      message.success(`“${variable.label}” created, added to the Data Dictionary, and dropped into the equation`);
+    } catch (e) {
+      message.error((e as Error).message);
+    } finally {
+      setVarSaving(false);
+    }
+  }
 
   function enterConsole() {
     setConsoleText(serializeEquation(draft.equation));
@@ -299,6 +341,26 @@ export function SmartFieldBuilder() {
                 Nothing matches that filter.
               </Text>
             )}
+            {/* "New" lives at the TOP — starting a field shouldn't require scrolling past
+                every existing one (Derek, 2026-09-19). */}
+            <Card
+              size='small'
+              hoverable
+              style={{ border: '1px dashed #d9d9d9', textAlign: 'center', background: 'transparent', marginBottom: 8 }}
+              onClick={() => {
+                if (isDirty && !window.confirm('Discard your unsaved changes to the current field?')) return;
+                const empty = { ...EMPTY_FIELD };
+                markClean(empty);
+                setDraft(empty);
+                setSelectedVariableKey(null);
+              }}
+            >
+              <PlusOutlined style={{ fontSize: 20, color: '#8c8c8c' }} />
+              <div>
+                <Text type='secondary'>New smart field</Text>
+              </div>
+            </Card>
+
             {list.map(field => {
               const isOpen = draft.id === field.id;
               return (
@@ -352,24 +414,6 @@ export function SmartFieldBuilder() {
                 </Card>
               );
             })}
-
-            <Card
-              size='small'
-              hoverable
-              style={{ border: '1px dashed #d9d9d9', textAlign: 'center', background: 'transparent' }}
-              onClick={() => {
-                if (isDirty && !window.confirm('Discard your unsaved changes to the current field?')) return;
-                const empty = { ...EMPTY_FIELD };
-                markClean(empty);
-                setDraft(empty);
-                setSelectedVariableKey(null);
-              }}
-            >
-              <PlusOutlined style={{ fontSize: 20, color: '#8c8c8c' }} />
-              <div>
-                <Text type='secondary'>New smart field</Text>
-              </div>
-            </Card>
           </Card>
         </Col>
 
@@ -387,20 +431,45 @@ export function SmartFieldBuilder() {
               />
             }
             extra={
+              /* Category and unit are type-or-choose pills (Derek, 2026-09-19): pick an
+                 existing value or type a new one; the pill's × clears it. Taking the LAST
+                 value keeps it single-choice while still allowing replacement. */
               <div style={{ display: 'flex', gap: 6 }}>
                 <Select
                   size='small'
-                  value={draft.category}
-                  onChange={v => setDraft({ ...draft, category: v })}
-                  style={{ width: 130 }}
-                  options={FIELD_CATEGORIES.filter(c => c !== 'All').map(c => ({ value: c, label: c }))}
+                  mode='tags'
+                  placeholder='category'
+                  value={draft.category ? [draft.category] : []}
+                  onChange={values => setDraft({ ...draft, category: values[values.length - 1] ?? 'Other' })}
+                  style={{ minWidth: 130 }}
+                  options={Array.from(
+                    new Set([
+                      ...FIELD_CATEGORIES.filter(c => c !== 'All'),
+                      ...(fields ?? []).map(f => f.category ?? 'Other')
+                    ])
+                  ).map(c => ({ value: c, label: c }))}
                 />
-                <Input
+                <Select
                   size='small'
+                  mode='tags'
                   placeholder='unit'
-                  value={draft.unit}
-                  onChange={e => setDraft({ ...draft, unit: e.target.value })}
-                  style={{ width: 120 }}
+                  value={draft.unit ? [draft.unit] : []}
+                  onChange={values => setDraft({ ...draft, unit: values[values.length - 1] ?? '' })}
+                  style={{ minWidth: 120 }}
+                  // Display rule everywhere units render: "$" goes BEFORE the number,
+                  // every other unit goes AFTER it (see ComposedProductRenderer.fmtValue).
+                  options={Array.from(
+                    new Set([
+                      '$',
+                      'lb',
+                      'gal',
+                      'MTCO2e',
+                      'items/year',
+                      '%',
+                      'times/yr',
+                      ...(fields ?? []).map(f => f.unit ?? '').filter(Boolean)
+                    ])
+                  ).map(u => ({ value: u, label: u }))}
                 />
               </div>
             }
@@ -456,22 +525,42 @@ export function SmartFieldBuilder() {
               </Text>
             </div>
             {editorMode === 'console' && (
-              <div style={{ margin: '6px 0 10px' }}>
+              /* Styled like a terminal on purpose, so switching to Console is unmistakable
+                 (Derek, 2026-09-19: "I am not seeing the console mode"). */
+              <div
+                style={{
+                  margin: '6px 0 10px',
+                  background: '#1c2128',
+                  borderRadius: 8,
+                  padding: '10px 12px 8px',
+                  border: '1px solid #30363d'
+                }}
+              >
+                <Text style={{ color: '#7ee787', fontFamily: 'monospace', fontSize: 12 }}>
+                  console — type math over variable keys; SUM(list, per-row math) totals a list
+                </Text>
                 <Input.TextArea
                   value={consoleText}
                   onChange={e => onConsoleChange(e.target.value)}
-                  autoSize={{ minRows: 2, maxRows: 6 }}
-                  style={{ fontFamily: 'monospace', fontSize: 13 }}
-                  placeholder='e.g. fundingAmount * fundingTimesPerYear'
+                  autoSize={{ minRows: 3, maxRows: 8 }}
+                  variant='borderless'
+                  style={{
+                    fontFamily: 'monospace',
+                    fontSize: 14,
+                    color: '#e6edf3',
+                    background: 'transparent',
+                    caretColor: '#7ee787',
+                    padding: '6px 0'
+                  }}
+                  placeholder='e.g. SUM(products, cases * unitsPerCase) * 52'
                 />
                 {consoleError ? (
-                  <Text type='danger' style={{ fontSize: 12 }}>
-                    {consoleError} — the last valid equation is kept until this parses
+                  <Text style={{ fontSize: 12, color: '#ff7b72', fontFamily: 'monospace' }}>
+                    ✗ {consoleError} — the last valid equation is kept until this parses
                   </Text>
                 ) : (
-                  <Text type='secondary' style={{ fontSize: 12 }}>
-                    Parsed ✓ — {draft.equation.length} token{draft.equation.length === 1 ? '' : 's'}; switch to Visual
-                    to see the pills
+                  <Text style={{ fontSize: 12, color: '#7ee787', fontFamily: 'monospace' }}>
+                    ✓ parsed — {draft.equation.length} token{draft.equation.length === 1 ? '' : 's'}
                   </Text>
                 )}
               </div>
@@ -586,7 +675,56 @@ export function SmartFieldBuilder() {
             </div>
 
             {/* variable picker */}
-            <Text strong>Add a variable</Text>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+              <Text strong>Add a variable</Text>
+              <Button size='small' icon={<PlusOutlined />} onClick={() => setVarOpen(true)}>
+                New variable
+              </Button>
+            </div>
+            <Modal
+              open={varOpen}
+              title='New variable'
+              okText='Create the variable'
+              confirmLoading={varSaving}
+              onCancel={() => setVarOpen(false)}
+              onOk={createVariable}
+            >
+              <Paragraph type='secondary' style={{ fontSize: 13 }}>
+                A new user-input variable — something a product will ask its user for. It is recorded in the{' '}
+                <Link href='/admin/data-science/data-dictionary'>Data Dictionary</Link> at the same time, so the
+                app&apos;s contract stays complete, and it becomes usable in equations immediately.
+              </Paragraph>
+              <Input
+                placeholder='Name — e.g. Delivery distance'
+                value={varLabel}
+                onChange={e => {
+                  setVarLabel(e.target.value);
+                  if (!varKeyTouched) setVarKey(toVariableKey(e.target.value));
+                }}
+                style={{ marginBottom: 8 }}
+              />
+              <Input
+                placeholder='Key used in equations — e.g. deliveryDistance'
+                value={varKey}
+                onChange={e => {
+                  setVarKeyTouched(true);
+                  setVarKey(e.target.value);
+                }}
+                style={{ marginBottom: 8, fontFamily: 'monospace' }}
+              />
+              <Input
+                placeholder='Unit (optional) — e.g. miles'
+                value={varUnit}
+                onChange={e => setVarUnit(e.target.value)}
+                style={{ marginBottom: 8 }}
+              />
+              <Input.TextArea
+                placeholder='What it means (optional) — becomes its Data Dictionary definition'
+                value={varDesc}
+                onChange={e => setVarDesc(e.target.value)}
+                autoSize={{ minRows: 2, maxRows: 4 }}
+              />
+            </Modal>
             <Tabs
               size='small'
               activeKey={category}
