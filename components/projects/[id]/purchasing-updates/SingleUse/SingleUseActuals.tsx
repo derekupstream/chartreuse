@@ -42,7 +42,7 @@ export function SingleUseActuals({
   dateRange?: DateRange;
   periodSelect: JSX.Element;
 }) {
-  const { symbol: currencySymbol } = useCurrency();
+  const { abbreviation: currencyAbbreviation } = useCurrency();
   const [selectedCategoryId, setSelectedCategory] = useState<string | undefined>(undefined);
   const [useUnits, setUseUnits] = useState(true);
 
@@ -151,9 +151,9 @@ export function SingleUseActuals({
                 ? `${categoryName(actuals.singleUseProducts.biggestSavingsCategory.id)}: ${changeValue(
                     actuals.singleUseProducts.biggestSavingsCategory.change,
                     {
-                      preUnit: currencySymbol
+                      preUnit: '$'
                     }
-                  ).toLocaleString()} `
+                  ).toLocaleString()} ${currencyAbbreviation}`
                 : 'N/A'
             }
           />

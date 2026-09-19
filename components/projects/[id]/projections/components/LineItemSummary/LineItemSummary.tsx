@@ -84,7 +84,7 @@ export function LineItemSummary({
 }) {
   const [rowType, setRowType] = useState<RowType>('productType');
   const [changeType, setChangeType] = useState<ChangeType>(projectCategory === 'event' ? 'waste' : 'cost');
-  const { symbol: currencySymbol, abbreviation: currencyAbbreviation } = useCurrency();
+  const { abbreviation: currencyAbbreviation } = useCurrency();
   const displayAsMetric = useMetricSystem();
   const [displayWeightAsMetric, setDisplayWeightAsMetric] = useState(displayAsMetric);
 
@@ -226,17 +226,17 @@ export function LineItemSummary({
               {/* if on-site dining project and reusables, show the baseline cost because the change is 0 */}
               {isOnSiteDiningProjectReusables ? (
                 <KPIContent
-                  changeStr={`${changeValue(annualCost.baseline, { preUnit: currencySymbol }).toLocaleString()}`}
+                  changeStr={`${changeValue(annualCost.baseline, { preUnit: '$' }).toLocaleString()} ${currencyAbbreviation}`}
                 />
               ) : (
                 <KPIContent
                   changePercent={annualCost.changePercent * -1}
-                  changeStr={`${changeValue(annualCost.change * -1, { preUnit: currencySymbol }).toLocaleString()}`}
+                  changeStr={`${changeValue(annualCost.change * -1, { preUnit: '$' }).toLocaleString()} ${currencyAbbreviation}`}
                 />
               )}
               <BarChart
                 data={costsData}
-                formatter={(label, data) => `${data.label}: ${currencySymbol}${data.value.toLocaleString()}`}
+                formatter={(label, data) => `${data.label}: $${data.value.toLocaleString()} ${currencyAbbreviation}`}
                 seriesField='label'
               />
             </Section>

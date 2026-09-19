@@ -3,8 +3,9 @@ import React from 'react';
 import { useCurrency } from './CurrencyProvider';
 
 const CurrencySymbol: React.FC<{ value?: number }> = ({ value }) => {
-  const { symbol } = useCurrency();
-  // If no value is provided, just return the symbol
+  const { symbol, abbreviation } = useCurrency();
+  // If no value is provided, just return the symbol (used as an input prefix, where
+  // there is no room for a code suffix — CAD shows CA$ there).
 
   if (typeof value === 'undefined') {
     return <span dangerouslySetInnerHTML={{ __html: symbol }} />;
@@ -18,7 +19,9 @@ const CurrencySymbol: React.FC<{ value?: number }> = ({ value }) => {
     maximumFractionDigits: fractionDigits,
     minimumFractionDigits: fractionDigits
   });
-  return <span dangerouslySetInnerHTML={{ __html: symbol + formattedValue }} />;
+  // Site convention: "$1,234 USD" / "$1,234 CAD" — the currency code rides after the
+  // amount at the same size, like the lbs / units / MTCO2e unit labels.
+  return <span style={{ whiteSpace: 'nowrap' }}>{`$${formattedValue} ${abbreviation}`}</span>;
 };
 
 export default CurrencySymbol;

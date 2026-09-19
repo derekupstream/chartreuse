@@ -39,14 +39,16 @@ export function getChangeSummaryRowRounded(baseline: number, forecast: number, d
 }
 
 // minimumFractionDigits needs to be set or we get "RangeError: maximumFractionDigits value is out of range"
+// Site convention: money renders as "$1,234 USD" / "$1,234 CAD" — a plain dollar sign
+// (narrowSymbol) with the currency code after the amount doing the disambiguation.
 export const formatToDollar = (value: number, currencyAbbreviation: string) =>
-  removeNegativeZero(value).toLocaleString('en-US', {
+  `${removeNegativeZero(value).toLocaleString('en-US', {
     style: 'currency',
     currency: currencyAbbreviation,
     currencyDisplay: 'narrowSymbol',
     maximumFractionDigits: 0,
     minimumFractionDigits: 0
-  });
+  })} ${currencyAbbreviation}`;
 
 // sometimes 0 is displayed as -0, this removes the negative sign
 function removeNegativeZero(value: number) {

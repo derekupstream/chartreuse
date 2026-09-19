@@ -25,7 +25,7 @@ type Props = {
 };
 
 export const ProjectImpacts: React.FC<Props> = ({ data, showTitle }) => {
-  const { symbol: currencySymbol } = useCurrency();
+  const { abbreviation: currencyAbbreviation } = useCurrency();
   const displayAsMetric = useMetricSystem();
 
   const firstLabel = 'Baseline';
@@ -81,13 +81,13 @@ export const ProjectImpacts: React.FC<Props> = ({ data, showTitle }) => {
               <Card
                 title='Your estimated annual savings'
                 changePercent={data.dollarCost.changePercent * -1}
-                changeStr={`${changeValue(data.dollarCost.change * -1, { preUnit: currencySymbol }).toLocaleString()}`}
+                changeStr={`${changeValue(data.dollarCost.change * -1, { preUnit: '$' }).toLocaleString()} ${currencyAbbreviation}`}
               >
                 <br />
                 <BarChart
                   data={savingsData}
                   formatter={(text, data) => {
-                    return `${data.label}: ${currencySymbol}${data.value.toLocaleString()}`;
+                    return `${data.label}: $${data.value.toLocaleString()} ${currencyAbbreviation}`;
                   }}
                   seriesField='label'
                 />
