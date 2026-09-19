@@ -146,8 +146,14 @@ async function main() {
     if (Array.isArray(list)) {
       const dbCount = await prisma.factorDatabase.count();
       check('database count matches Postgres', list.length === dbCount, `${list.length} API vs ${dbCount} DB`);
-      const offVersion = list.filter((d: { version: string }) => d.version !== '2.0');
-      check('all databases at version 2.0', offVersion.length === 0, offVersion.map((d: any) => d.name).join(', '));
+      // The collection version moves as releases are cut (v2.0, v2.1, …) — the invariant
+      // is that every database shares it, not what it is called today.
+      const versions = Array.from(new Set(list.map((d: { version: string }) => d.version)));
+      check(
+        'all databases share one collection version',
+        versions.length === 1,
+        versions.length === 1 ? `v${versions[0]}` : `mixed: ${versions.join(', ')}`
+      );
 
       const funding = list.find((d: { name: string }) => d.name === 'Funding Opportunities');
       check('Funding Opportunities exists', Boolean(funding));
@@ -200,8 +206,11 @@ async function main() {
         check('cell edit reverted cleanly', (restored?.rows?.[0]?.internal_tracker_url ?? null) === before, '');
 
         // ── Dynamic linking + collection versioning, end to end ─────────────────────────
-        // Editing a factor must change what the engine computes; restoring v2.0 must put
-        // both the data and the outputs back exactly.
+        // Editing a factor must change what the engine computes; restoring the LATEST
+        // release must put both the data and the outputs back exactly. (Restoring latest —
+        // not a hardcoded v2.0 — so this check round-trips the current state rather than
+        // resetting the collection to an old snapshot: learned 2026-09-18 when a v2.0
+        // restore resurrected the retired Open Questions table and undid new descriptions.)
         const sinceCheck = new Date();
 
         const cutRes = await fetch(`${BASE_URL}/api/admin/data-releases`, {
@@ -313,10 +322,12 @@ async function main() {
         );
         await prisma.changeRequest.delete({ where: { id: cr.id } }).catch(() => undefined);
 
-        // Restore v2.0 — everything above must be undone, data AND outputs.
+        // Restore the latest release — everything above must be undone, data AND outputs.
         const releases = await get('/api/admin/data-releases').then(r => r.json());
-        const v20 = releases.find((r: { name: string }) => r.name === 'v2.0');
-        const restoreRes = await fetch(`${BASE_URL}/api/admin/data-releases/${v20.id}/restore`, {
+        const latest = [...releases].sort(
+          (a: { createdAt: string }, b: { createdAt: string }) => Date.parse(b.createdAt) - Date.parse(a.createdAt)
+        )[0];
+        const restoreRes = await fetch(`${BASE_URL}/api/admin/data-releases/${latest.id}/restore`, {
           method: 'POST',
           headers: { cookie }
         });
@@ -325,7 +336,7 @@ async function main() {
         }).waterGal.forecastAnnual;
         const fundingRestored = await get(`/api/admin/factor-databases/${funding.id}`).then(r => r.json());
         check(
-          'restoring v2.0 returns data and outputs exactly',
+          `restoring ${latest.name} returns data and outputs exactly`,
           restoreRes.status === 200 &&
             Math.abs(waterRestored - waterBefore) < 1e-9 &&
             (fundingRestored.rows[0].min_amount ?? null) === fundingMinBefore,

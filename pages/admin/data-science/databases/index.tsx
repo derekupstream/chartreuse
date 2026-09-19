@@ -173,8 +173,11 @@ export default function FactorDatabasesPage({ user }: { user: DashboardUser }) {
 
   // The curated view groups by what the data is; ?all=true is the Advanced everything-view.
   // Page-backed databases (they have their own menu pages) stay out of the curated list.
+  // Purchase Frequency lives on the Data Dictionary page — it's a conversion factor, not a
+  // standalone database (Madhavi, 2026-09-18). Open Questions guards against old releases
+  // restoring the retired table into the curated view.
   const showAll = router.query.all === 'true';
-  const PAGE_BACKED = ['Data Dictionary', 'Open Questions', 'Validation'];
+  const PAGE_BACKED = ['Data Dictionary', 'Open Questions', 'Validation', 'Purchase Frequency'];
   const groups = (() => {
     if (!databases) return [];
     if (showAll)
@@ -474,7 +477,7 @@ export default function FactorDatabasesPage({ user }: { user: DashboardUser }) {
           <Link href='/admin/data-science/databases'>← Back to the curated view</Link>
         ) : (
           <>
-            Data Dictionary, Validation, and Open Questions live in their own pages;{' '}
+            The Data Dictionary (including Purchase Frequency) and Validation live in their own pages;{' '}
             <Link href='/admin/data-science/databases?all=true'>show every stored table</Link>.
           </>
         )}

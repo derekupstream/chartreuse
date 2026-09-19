@@ -32,17 +32,35 @@ type DictionaryEntry = {
   definition: string;
 };
 
-type Props = { user: DashboardUser; entries: DictionaryEntry[]; version: string | null; databaseId: string | null };
+type FrequencyTerm = { frequency: string; annualFactor: number | null };
+
+type Props = {
+  user: DashboardUser;
+  entries: DictionaryEntry[];
+  version: string | null;
+  databaseId: string | null;
+  frequencies: FrequencyTerm[];
+  frequencyDatabaseId: string | null;
+};
 
 export const getServerSideProps: GetServerSideProps = async context => {
   const { user } = await getUserFromContext(context, { org: true });
   if (!user?.org.isUpstream) return ACCESS_DENIED_REDIRECT;
   if (!(await checkIsUpstream(user.org.id))) return ACCESS_DENIED_REDIRECT;
 
-  const database = await prisma.factorDatabase.findUnique({
-    where: { name: 'Data Dictionary' },
-    include: { rows: { orderBy: { rowIndex: 'asc' } } }
-  });
+  const [database, frequencyDb] = await Promise.all([
+    prisma.factorDatabase.findUnique({
+      where: { name: 'Data Dictionary' },
+      include: { rows: { orderBy: { rowIndex: 'asc' } } }
+    }),
+    // Purchase Frequency lives here rather than in the Databases listing: it's a
+    // conversion factor that DEFINES the frequency terms (Madhavi, 2026-09-18). The
+    // table itself stays a FactorDatabase — @-formulas reference its Annual_Factor.
+    prisma.factorDatabase.findUnique({
+      where: { name: 'Purchase Frequency' },
+      include: { rows: { orderBy: { rowIndex: 'asc' } } }
+    })
+  ]);
 
   const entries: DictionaryEntry[] = (database?.rows ?? []).map(r => {
     const d = r.data as Record<string, string | null>;
@@ -56,8 +74,21 @@ export const getServerSideProps: GetServerSideProps = async context => {
     };
   });
 
+  const frequencies: FrequencyTerm[] = (frequencyDb?.rows ?? []).map(r => {
+    const d = r.data as Record<string, string | number | null>;
+    const factor = Number(d.Annual_Factor);
+    return { frequency: String(d.Frequency ?? ''), annualFactor: Number.isFinite(factor) ? factor : null };
+  });
+
   return {
-    props: serializeJSON({ user, entries, version: database?.version ?? null, databaseId: database?.id ?? null })
+    props: serializeJSON({
+      user,
+      entries,
+      version: database?.version ?? null,
+      databaseId: database?.id ?? null,
+      frequencies,
+      frequencyDatabaseId: frequencyDb?.id ?? null
+    })
   };
 };
 
@@ -71,7 +102,7 @@ function authorityColor(authority: string): string | undefined {
   return 'green'; // database / factor database — Upstream-maintained
 }
 
-export default function DataDictionaryPage({ entries, version, databaseId }: Props) {
+export default function DataDictionaryPage({ entries, version, databaseId, frequencies, frequencyDatabaseId }: Props) {
   const [search, setSearch] = useState('');
 
   const visible = useMemo(() => {
@@ -162,6 +193,63 @@ export default function DataDictionaryPage({ entries, version, databaseId }: Pro
           .
         </Text>
       </Card>
+
+      {frequencies.length > 0 && (
+        <Card size='small' style={{ marginTop: 16 }}>
+          <Title level={4} style={{ marginTop: 0, marginBottom: 4 }}>
+            Defined terms &amp; conversion factors
+          </Title>
+          <Paragraph type='secondary' style={{ maxWidth: 740, fontSize: 13 }}>
+            The <Text code>frequency</Text> terms and what each converts to annually. These factors multiply
+            user-entered quantities everywhere a frequency appears (purchasing, costs, funding) — they are the
+            definition of the terms, so they live here rather than as a standalone database. Formulas reference them as{' '}
+            <Text code>@Purchase Frequency</Text>.
+          </Paragraph>
+          <Table
+            size='small'
+            rowKey='frequency'
+            pagination={false}
+            dataSource={frequencies}
+            style={{ maxWidth: 560 }}
+            columns={[
+              {
+                title: 'Term',
+                dataIndex: 'frequency',
+                width: 160,
+                render: (v: string) => <Text code>{v}</Text>
+              },
+              {
+                title: 'Annual factor',
+                dataIndex: 'annualFactor',
+                align: 'right' as const,
+                width: 130,
+                render: (v: number | null) => (v === null ? <Text type='secondary'>—</Text> : v.toLocaleString())
+              },
+              {
+                title: 'Meaning',
+                key: 'meaning',
+                render: (_: unknown, t: FrequencyTerm) =>
+                  t.annualFactor === null ? (
+                    <Text type='secondary'>—</Text>
+                  ) : (
+                    <Text type='secondary' style={{ fontSize: 12 }}>
+                      an amount entered as “{t.frequency}” counts {t.annualFactor.toLocaleString()}× per year
+                    </Text>
+                  )
+              }
+            ]}
+          />
+          <Text type='secondary' style={{ fontSize: 12, display: 'block', marginTop: 8 }}>
+            Changing a factor changes calculations and versions itself like any factor edit —{' '}
+            {frequencyDatabaseId ? (
+              <Link href={`/admin/data-science/databases/${frequencyDatabaseId}`}>edit in the spreadsheet</Link>
+            ) : (
+              'edit in the spreadsheet'
+            )}
+            .
+          </Text>
+        </Card>
+      )}
     </>
   );
 }

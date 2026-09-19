@@ -64,6 +64,11 @@ const TAB_TO_DATABASE: Record<string, string> = {
 
 const normalize = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, '');
 
+// Workbook tabs that are documentation or retired, never data — silently left out of the
+// sheet list so they can't show up as "+1 new database" (README added 2026-09-18;
+// Open Questions retired the same day).
+const NON_DATA_TABS = new Set(['readme', 'openquestions']);
+
 type ParsedSheet = {
   tabName: string;
   columns: string[];
@@ -172,7 +177,7 @@ export default function WorkbookUploadPage(_: { user: DashboardUser }) {
       const buffer = await file.arrayBuffer();
       // Keep the workbook itself: every database applied from it links back to this file.
       storeSourceFile(file).then(setSourceFileId);
-      const sheets = parseWorkbook(buffer).filter(s => s.rows.length > 0);
+      const sheets = parseWorkbook(buffer).filter(s => s.rows.length > 0 && !NON_DATA_TABS.has(normalize(s.tabName)));
       const list = await loadDatabases();
 
       const nextPlans: SheetPlan[] = [];

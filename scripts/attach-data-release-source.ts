@@ -24,7 +24,6 @@ const RELEASE_DATABASES = [
   'Dishwasher Factors',
   'Data Dictionary',
   'Validation',
-  'Open Questions',
   'Funding Opportunities'
 ];
 

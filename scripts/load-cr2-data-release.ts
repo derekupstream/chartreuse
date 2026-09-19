@@ -48,6 +48,7 @@ const PROVINCES = [
 ];
 
 const REMOVE_AFTER_LOAD = [
+  'Open Questions', // retired 2026-09-18 (Derek + Madhavi review) — the workbook tab is skipped on upload too
   'Single-Use Material Factors',
   'Reusable Material Factors',
   'State & Province Utility Rates',
@@ -114,7 +115,8 @@ const TABLES: TableSpec[] = [
     payloadKey: 'purchase_frequency',
     name: 'Purchase Frequency',
     kind: 'factors',
-    description: 'Annualization factors for purchase/cost frequencies (workbook tab: Purchase_Frequency).',
+    description:
+      'Annualization factors for purchase/cost frequencies (workbook tab: Purchase_Frequency). Surfaced on the Data Dictionary page — it defines the frequency terms rather than standing as its own database (2026-09-18).',
     keyColumn: 'Frequency'
   },
   {
@@ -142,19 +144,11 @@ const TABLES: TableSpec[] = [
     keyColumn: 'Check'
   },
   {
-    payloadKey: 'open_questions',
-    name: 'Open Questions',
-    kind: 'reference',
-    description:
-      'Every unresolved or intentionally inherited methodology rule, with priority and status (workbook tab: Open_Questions). The decision log the app inherits.',
-    keyColumn: 'ID'
-  },
-  {
     payloadKey: 'funding_opportunities',
     name: 'Funding Opportunities',
     kind: 'reference',
     description:
-      'Municipal reuse/waste-reduction funding: funder, geography, amounts, cycle, deadline, eligibility, reuse-explicit flag (workbook tab: Funding_Opportunities; normalized from the Upstream funding tracker). For frontend filtering and funding calculations. Informational only — availability and eligibility change.',
+      'Municipal reuse/waste-reduction funding: funder, geography, amounts, cycle, deadline, eligibility, reuse-explicit flag (workbook tab: Funding_Opportunities; normalized from the Upstream funding tracker). Informational only — NEVER wired into cost calculations: grant amounts are too variable to price reliably (policy, 2026-09-18). A project can carry a user-entered funding amount instead.',
     keyColumn: 'funding_id'
   },
   {

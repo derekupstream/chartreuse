@@ -8,7 +8,14 @@
  * math it drives in the 2.0 model; edit in the formula bar, then save the batch — one
  * changelog entry, one version step, snapshot cut automatically for factors tables.
  */
-import { ArrowLeftOutlined, DownloadOutlined, FlagOutlined, SaveOutlined, UploadOutlined } from '@ant-design/icons';
+import {
+  ArrowLeftOutlined,
+  DownloadOutlined,
+  FlagOutlined,
+  LinkOutlined,
+  SaveOutlined,
+  UploadOutlined
+} from '@ant-design/icons';
 import { Alert, Button, Input, Modal, Spin, Tag, Typography, message } from 'antd';
 import type { GetServerSideProps } from 'next';
 import Link from 'next/link';
@@ -463,7 +470,22 @@ export default function DatabaseSpreadsheetPage(_: { user: DashboardUser }) {
             {detail.columns.length} columns × {detail.rows.length.toLocaleString()} rows
             {detail.keyColumn ? ` · key: ${detail.keyColumn}` : ''}
             {detail.sourceName ? ` · source: ${detail.sourceName}` : ''}
+            {detail.sourceUrl && (
+              <>
+                {' · '}
+                <a href={detail.sourceUrl} target='_blank' rel='noreferrer'>
+                  {detail.sourceUrl.replace(/^https?:\/\//, '').split('/')[0]} <LinkOutlined />
+                </a>
+              </>
+            )}
           </Text>
+          {detail.description && (
+            <div style={{ maxWidth: 720 }}>
+              <Text type='secondary' style={{ fontSize: 12 }}>
+                {detail.description}
+              </Text>
+            </div>
+          )}
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
           <Button icon={<DownloadOutlined />} onClick={downloadCsv}>

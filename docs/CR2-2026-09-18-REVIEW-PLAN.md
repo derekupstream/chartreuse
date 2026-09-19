@@ -200,6 +200,33 @@ Actions:
 
 ---
 
+## Status — first batch shipped 2026-09-18
+
+A1, A3, C4, B1, B2, and C1 all landed the day of the review:
+
+- Purchase Frequency renders on the Data Dictionary page ("Defined terms & conversion
+  factors") and is out of the curated Databases listing; the table and its @-formulas
+  are untouched.
+- Open Questions retired everywhere (listing guard, loader, payload, live table);
+  README + Open_Questions on the workbook-upload skip list.
+- Funding policy is in the database description and the spreadsheet page header now
+  shows description + a source link — Funding links to the public tracker.
+- **C1 verdict: the databases already supersede the Sept 18 workbook.** The
+  reconciliation diff (`scripts/reconcile-workbook.ts`) found every tab identical
+  except two known-and-intentional differences: Utility Rates carries our 13 Canadian
+  provinces (her tab is US-only), and Dishwasher_Factors' second table (heater
+  constants, feedback #9) shows as 5 declinable adds. Nothing accepted; **v2.1 cut**
+  as the post-review restore point (`scripts/cut-release.ts`).
+- Learned: restore is exact time travel, so the runtime suite's restore check now
+  targets the latest release instead of hardcoded v2.0 (a v2.0 restore had resurrected
+  Open Questions). Convention going forward: cut a release after governance changes —
+  the runtime suite ends by restoring the latest one.
+- **Discovery for B3**: Madhavi's Data_Dictionary already specifies the funding input —
+  `funding_amount_method` (enum: Slider or Custom), `applied_funding` (User/Derived,
+  currency, "Selected funding amount; reduces one-time cost"), `opportunity_url`.
+  So B3's contract is hers, not ours to invent: build the custom-amount path first,
+  slider when min/max data is normalized — and it reduces the ONE-TIME cost family.
+
 ## Sequencing against the launch plan
 
 | When | What lands |
