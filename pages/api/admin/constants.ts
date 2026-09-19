@@ -3,7 +3,7 @@ import { handlerWithUser } from 'lib/middleware/handler';
 import { checkIsUpstream } from 'lib/middleware/requireUpstream';
 import type { NextApiRequestWithUser } from 'lib/middleware/getUser';
 import { MATERIALS, REUSABLE_MATERIALS } from 'lib/calculator/constants/materials';
-import { STATES } from 'lib/calculator/constants/utilities';
+import { isCanadianRegion, STATES, WATER_NATIONAL_AVERAGE } from 'lib/calculator/constants/utilities';
 import {
   ELECTRIC_CO2_EMISSIONS_FACTOR,
   NATURAL_GAS_CO2_EMISSIONS_FACTOR,
@@ -39,7 +39,10 @@ export default handlerWithUser().get(async (req: NextApiRequestWithUser, res: Ne
       state: s.name,
       electricRateDollarPerKwh: s.electric,
       gasRateDollarPerTherm: s.gas,
-      source: 'EIA Commercial Rates'
+      waterRateDollarPer1000Gal: 'water' in s && typeof s.water === 'number' ? s.water : WATER_NATIONAL_AVERAGE,
+      source: isCanadianRegion(s.name)
+        ? 'Electric: Hydro-Québec 2025 comparison; gas: StatCan 25-10-0086-01 (12 mo to Jun 2026); water: 7-city commercial avg 2025–26. C$; see docs/CANADIAN-UTILITY-RATES.md'
+        : 'EIA Commercial Rates; water: US national average'
     }))
   });
 });

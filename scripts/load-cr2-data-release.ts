@@ -171,7 +171,8 @@ function columnsFrom(rows: Row[]): { key: string; label: string; type: 'text' | 
 }
 
 const PROVINCE_SOURCE_STATUS =
-  'Hydro-Québec 2025 comparison (electric, C$/kWh); gas and water are US placeholders pending a 2.0 Canadian set';
+  'Electric: Hydro-Québec 2025 comparison (C$/kWh). Gas: StatCan 25-10-0086-01, 12 mo ending Jun 2026 (C$/therm). ' +
+  'Water: 7-city commercial water+wastewater average 2025–26 (C$/1000 gal). See docs/CANADIAN-UTILITY-RATES.md';
 
 /**
  * Canadian provinces for Utility Rates, recovered from whichever source still has them, so
@@ -204,14 +205,14 @@ async function provinceRows(): Promise<Row[]> {
     }));
   if (fromLegacy.length) return fromLegacy;
 
-  const { STATES } = await import('lib/calculator/constants/utilities');
-  return (STATES as { name: string; electric: number; gas: number }[])
+  const { STATES, WATER_NATIONAL_AVERAGE } = await import('lib/calculator/constants/utilities');
+  return (STATES as { name: string; electric: number; gas: number; water?: number }[])
     .filter(s => PROVINCES.includes(s.name))
     .map(s => ({
       state: s.name,
       electric_rate_usd_per_kwh: s.electric,
       gas_rate_usd_per_therm: s.gas,
-      water_rate_usd_per_1000_gal: 11.0,
+      water_rate_usd_per_1000_gal: s.water ?? WATER_NATIONAL_AVERAGE,
       source_status: PROVINCE_SOURCE_STATUS
     }));
 }

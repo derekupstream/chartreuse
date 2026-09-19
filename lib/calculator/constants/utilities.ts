@@ -1,4 +1,4 @@
-const WATER_NATIONAL_AVERAGE = 6.98; // $ per 1000 gallons
+export const WATER_NATIONAL_AVERAGE = 6.98; // US$ per 1000 gallons — US national average
 
 import { LITER_TO_GALLON } from '../../number';
 
@@ -58,26 +58,37 @@ export const STATES = [
   { name: 'Wisconsin', electric: 0.11, gas: 0.92 },
   { name: 'Wyoming', electric: 0.09, gas: 0.92 },
   // ── Canadian provinces / territories ──
-  // Provincial rates from Hydro-Québec, "Comparison of Electricity Prices in Major
-  // North American Cities 2025" (rates in effect April 1, 2025, excluding taxes),
-  // small-power commercial profile: 40 kW demand / 10,000 kWh / 35% load factor.
-  // Values are C$/kWh (Canadian orgs run in CAD). Provinces with two surveyed
-  // cities use their average (Alberta: Calgary+Edmonton; Ontario: Ottawa+Toronto).
-  // Territories are not in the study — estimates retained. Gas is left at the US
-  // placeholder until we wire region-specific gas pricing.
-  { name: 'British Columbia', electric: 0.127, gas: 0.92 },
-  { name: 'Alberta', electric: 0.177, gas: 0.92 },
-  { name: 'Saskatchewan', electric: 0.154, gas: 0.92 },
-  { name: 'Manitoba', electric: 0.097, gas: 0.92 },
-  { name: 'Ontario', electric: 0.148, gas: 0.92 },
-  { name: 'Quebec', electric: 0.121, gas: 0.92 },
-  { name: 'New Brunswick', electric: 0.18, gas: 0.92 },
-  { name: 'Nova Scotia', electric: 0.192, gas: 0.92 },
-  { name: 'Prince Edward Island', electric: 0.204, gas: 0.92 },
-  { name: 'Newfoundland and Labrador', electric: 0.146, gas: 0.92 },
-  { name: 'Yukon', electric: 0.14, gas: 0.92 },
-  { name: 'Northwest Territories', electric: 0.3, gas: 0.92 },
-  { name: 'Nunavut', electric: 0.29, gas: 0.92 }
+  // All values are C$ (Canadian orgs run in CAD). Full derivations, caveats and refresh
+  // cadence: docs/CANADIAN-UTILITY-RATES.md.
+  //
+  // electric (C$/kWh): Hydro-Québec, "Comparison of Electricity Prices in Major North
+  //   American Cities 2025" (rates in effect April 1, 2025, excluding taxes), small-power
+  //   commercial profile: 40 kW demand / 10,000 kWh / 35% load factor. Provinces with two
+  //   surveyed cities use their average (Alberta: Calgary+Edmonton; Ontario:
+  //   Ottawa+Toronto). Territories are not in the study — estimates retained.
+  // gas (C$/therm): Statistics Canada Table 25-10-0086-01, commercial consumption value ÷
+  //   energy, 12 months ending June 2026, converted from C$/GJ (× 0.105506). Averages
+  //   across all commercial customers — a small business in Alberta typically pays more
+  //   than the provincial average once delivery charges land. PEI, Newfoundland, Yukon and
+  //   Nunavut have no piped gas distribution; they carry the Canadian commercial average
+  //   (C$6.61/GJ) as a stand-in. Northwest Territories is real but from a tiny market.
+  // water (C$/1000 gal, water + wastewater combined): average of seven major cities'
+  //   published 2025–26 commercial rate schedules (Toronto, Vancouver, Calgary, Edmonton,
+  //   Ottawa, Winnipeg, Halifax) = C$4.65/m³. Water pricing is municipal, so one national
+  //   figure is the honest constant — per-province values are not defensible.
+  { name: 'British Columbia', electric: 0.127, gas: 1.06, water: 17.6 },
+  { name: 'Alberta', electric: 0.177, gas: 0.237, water: 17.6 },
+  { name: 'Saskatchewan', electric: 0.154, gas: 0.621, water: 17.6 },
+  { name: 'Manitoba', electric: 0.097, gas: 0.556, water: 17.6 },
+  { name: 'Ontario', electric: 0.148, gas: 0.723, water: 17.6 },
+  { name: 'Quebec', electric: 0.121, gas: 1.216, water: 17.6 },
+  { name: 'New Brunswick', electric: 0.18, gas: 0.918, water: 17.6 },
+  { name: 'Nova Scotia', electric: 0.192, gas: 1.973, water: 17.6 },
+  { name: 'Prince Edward Island', electric: 0.204, gas: 0.697, water: 17.6 },
+  { name: 'Newfoundland and Labrador', electric: 0.146, gas: 0.697, water: 17.6 },
+  { name: 'Yukon', electric: 0.14, gas: 0.697, water: 17.6 },
+  { name: 'Northwest Territories', electric: 0.3, gas: 3.756, water: 17.6 },
+  { name: 'Nunavut', electric: 0.29, gas: 0.697, water: 17.6 }
 ] as const;
 
 export type USState = (typeof STATES)[number]['name'];
@@ -106,15 +117,27 @@ export function isCanadianRegion(name: string): boolean {
 
 export type UtilityRates = { gas: number; electric: number; water: number };
 
+/**
+ * Canada-wide average utility rates (C$), for surfaces that speak at the country level
+ * (e.g. the public calculator's country toggle) rather than a specific province:
+ * - electric: unweighted mean of the ten provincial rates above (Hydro-Québec 2025
+ *   comparison; territories excluded as estimates) = C$0.155/kWh
+ * - gas: Statistics Canada 25-10-0086-01 "Canada" commercial line, 12 months ending
+ *   June 2026 (C$6.61/GJ) = C$0.697/therm
+ * - water: the same national commercial figure the provinces carry (C$17.60/1000 gal)
+ */
+export const CANADA_AVERAGE_RATES: UtilityRates = { electric: 0.155, gas: 0.697, water: 17.6 };
+
 function getUtilitiesByState(state: USState): UtilityRates {
-  let localRates = STATES.find(s => s.name === state);
+  let localRates: (typeof STATES)[number] | undefined = STATES.find(s => s.name === state);
   if (!localRates) {
     console.error(`No utilities rates for state ${state}`);
     localRates = STATES[0];
   }
   return {
     ...localRates,
-    water: WATER_NATIONAL_AVERAGE
+    // Regions without their own water rate fall back to the US national average.
+    water: 'water' in localRates && typeof localRates.water === 'number' ? localRates.water : WATER_NATIONAL_AVERAGE
   };
 }
 
