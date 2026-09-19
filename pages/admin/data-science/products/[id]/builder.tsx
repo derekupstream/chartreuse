@@ -7,17 +7,25 @@
  * blocked while a placed smart field needs an input no screen collects.
  */
 import {
+  AlignLeftOutlined,
   ArrowDownOutlined,
   ArrowLeftOutlined,
   ArrowUpOutlined,
+  BarChartOutlined,
   DeleteOutlined,
   DownOutlined,
   EyeOutlined,
+  FontSizeOutlined,
+  FormOutlined,
+  FundOutlined,
   HolderOutlined,
   PlusOutlined,
+  ProfileOutlined,
+  RightCircleOutlined,
   RobotOutlined,
   SaveOutlined,
-  SendOutlined
+  SendOutlined,
+  ThunderboltOutlined
 } from '@ant-design/icons';
 import {
   Alert,
@@ -45,7 +53,13 @@ import { SmartFieldBuilder } from 'components/admin/SmartFieldBuilder';
 import { ComposedProductRenderer } from 'components/products/ComposedProductRenderer';
 import type { DashboardUser } from 'interfaces';
 import { AdminLayout } from 'layouts/AdminLayout';
-import type { ComposedBlock, ComposedDefinition, ComposedSmartField, InputFieldDef } from 'lib/products/composed';
+import type {
+  ComposedBlock,
+  ComposedDefinition,
+  ComposedSmartField,
+  InputFieldDef,
+  ProductCatalog
+} from 'lib/products/composed';
 import { BLOCK_LABELS, analyzeDependencies, newBlockId } from 'lib/products/composed';
 import { detectRequirements } from 'lib/smartFields/variables';
 import type { EquationToken, SmartVariable } from 'lib/smartFields/variables';
@@ -83,15 +97,29 @@ type SmartFieldApi = {
   description: string | null;
   category?: string | null;
   equation: EquationToken[];
+  comparison?: { baseline: EquationToken[]; forecast: EquationToken[] } | null;
   isPublished: boolean;
+};
+
+type DatabaseSummary = { id: string; name: string; columnKeys: string[]; rowCount: number };
+
+const BLOCK_ICONS: Record<ComposedBlock['kind'], React.ReactNode> = {
+  heading: <FontSizeOutlined />,
+  text: <AlignLeftOutlined />,
+  inputField: <FormOutlined />,
+  questionGroup: <ProfileOutlined />,
+  smartFieldCard: <FundOutlined />,
+  chart: <BarChartOutlined />,
+  button: <RightCircleOutlined />
 };
 
 const PALETTE: { kind: ComposedBlock['kind']; hint: string }[] = [
   { kind: 'heading', hint: 'A screen title' },
   { kind: 'text', hint: 'Guidance or explanation' },
-  { kind: 'inputField', hint: 'A question the user answers' },
   { kind: 'questionGroup', hint: 'Several questions together under one title' },
+  { kind: 'inputField', hint: 'A question the user answers' },
   { kind: 'smartFieldCard', hint: 'A computed metric card' },
+  { kind: 'chart', hint: 'A baseline-vs-forecast bar chart for a smart field' },
   { kind: 'button', hint: 'Continue / back / save' }
 ];
 
@@ -120,6 +148,10 @@ export default function ProductUxBuilderPage(_: { user: DashboardUser }) {
   const [fieldPickerOpen, setFieldPickerOpen] = useState(false);
   const [pickerSearch, setPickerSearch] = useState('');
   const [pickerCategory, setPickerCategory] = useState('All');
+  // The product wizard: which databases can feed a list question's product picker, and
+  // the loaded rows for every database a question actually references.
+  const [databases, setDatabases] = useState<DatabaseSummary[]>([]);
+  const [productCatalog, setProductCatalog] = useState<ProductCatalog>({});
 
   /** Desktop / tablet / mobile canvas width — a cheap honesty check on the layout. */
   const [device, setDevice] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
@@ -154,7 +186,30 @@ export default function ProductUxBuilderPage(_: { user: DashboardUser }) {
     fetch('/api/admin/smart-fields/variables')
       .then(r => r.json())
       .then(d => setVariables(d.variables ?? []));
+    fetch('/api/admin/factor-databases')
+      .then(r => r.json())
+      .then((all: DatabaseSummary[]) => setDatabases(all))
+      .catch(() => undefined);
   }, [id]);
+
+  // Load the rows behind every product picker in use, once per database.
+  useEffect(() => {
+    const wanted = definition.inputFields.flatMap(f => (f.productSource ? [f.productSource] : []));
+    for (const source of wanted) {
+      if (productCatalog[source.databaseId]) continue;
+      // Mark as loading immediately so parallel effects don't fetch twice.
+      setProductCatalog(prev => ({ ...prev, [source.databaseId]: { nameColumnKey: source.nameColumnKey, rows: [] } }));
+      fetch(`/api/admin/factor-databases/${source.databaseId}`)
+        .then(r => r.json())
+        .then(db =>
+          setProductCatalog(prev => ({
+            ...prev,
+            [source.databaseId]: { nameColumnKey: source.nameColumnKey, rows: db.rows ?? [] }
+          }))
+        )
+        .catch(() => undefined);
+    }
+  }, [definition.inputFields, productCatalog]);
 
   const variableMap = useMemo(() => new Map(variables.map(v => [v.key, v])), [variables]);
   const composedFields: ComposedSmartField[] = useMemo(
@@ -164,7 +219,8 @@ export default function ProductUxBuilderPage(_: { user: DashboardUser }) {
         name: f.name,
         unit: f.unit,
         description: f.description,
-        equation: f.equation
+        equation: f.equation,
+        comparison: f.comparison ?? null
       })),
     [smartFields]
   );
@@ -261,7 +317,14 @@ export default function ProductUxBuilderPage(_: { user: DashboardUser }) {
               ? { id: idNew, kind, title: 'About your operation', inputKeys: [] }
               : kind === 'smartFieldCard'
                 ? { id: idNew, kind, smartFieldId: smartFields[0]?.id ?? '' }
-                : { id: idNew, kind: 'button', label: 'Continue', action: 'next' };
+                : kind === 'chart'
+                  ? {
+                      id: idNew,
+                      kind,
+                      // A chart wants a field WITH a comparison; fall back to any field.
+                      smartFieldId: (smartFields.find(f => f.comparison) ?? smartFields[0])?.id ?? ''
+                    }
+                  : { id: idNew, kind: 'button', label: 'Continue', action: 'next' };
     update(d => {
       d.screens[screenIndex]?.blocks.push(block);
       return d;
@@ -684,6 +747,7 @@ export default function ProductUxBuilderPage(_: { user: DashboardUser }) {
                     definition={definition}
                     smartFields={composedFields}
                     variables={variables}
+                    productCatalog={productCatalog}
                     mode='live'
                   />
                 </div>
@@ -722,29 +786,41 @@ export default function ProductUxBuilderPage(_: { user: DashboardUser }) {
                       style={{
                         display: 'flex',
                         alignItems: 'center',
-                        gap: 4,
-                        padding: '6px 8px',
-                        borderRadius: 6,
+                        gap: 8,
+                        padding: '8px 10px',
+                        marginBottom: 6,
+                        borderRadius: 8,
                         cursor: 'pointer',
-                        background: i === screenIndex ? '#f0f5e4' : undefined,
-                        border: i === screenIndex ? '1px solid #b7d93c' : '1px solid transparent'
+                        background: i === screenIndex ? '#f3f8e7' : '#fff',
+                        border: i === screenIndex ? '1.5px solid #7fb428' : '1px solid #ececea',
+                        boxShadow: i === screenIndex ? undefined : '0 1px 2px rgba(0,0,0,0.03)'
                       }}
                     >
-                      <Text style={{ flex: 1, fontSize: 13 }}>
-                        {i + 1}. {s.title}
-                      </Text>
-                      <Button
-                        size='small'
-                        type='text'
-                        icon={<ArrowUpOutlined />}
-                        onClick={e => (e.stopPropagation(), moveScreen(i, -1))}
-                      />
-                      <Button
-                        size='small'
-                        type='text'
-                        icon={<ArrowDownOutlined />}
-                        onClick={e => (e.stopPropagation(), moveScreen(i, 1))}
-                      />
+                      <HolderOutlined style={{ color: '#c6c6c2' }} />
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <Text strong style={{ fontSize: 13, display: 'block' }} ellipsis>
+                          {i + 1}. {s.title}
+                        </Text>
+                        <Text type='secondary' style={{ fontSize: 11 }}>
+                          {s.blocks.length} block{s.blocks.length === 1 ? '' : 's'}
+                        </Text>
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        <Button
+                          size='small'
+                          type='text'
+                          style={{ height: 18 }}
+                          icon={<ArrowUpOutlined style={{ fontSize: 10 }} />}
+                          onClick={e => (e.stopPropagation(), moveScreen(i, -1))}
+                        />
+                        <Button
+                          size='small'
+                          type='text'
+                          style={{ height: 18 }}
+                          icon={<ArrowDownOutlined style={{ fontSize: 10 }} />}
+                          onClick={e => (e.stopPropagation(), moveScreen(i, 1))}
+                        />
+                      </div>
                       <Button
                         size='small'
                         type='text'
@@ -761,7 +837,12 @@ export default function ProductUxBuilderPage(_: { user: DashboardUser }) {
                       />
                     </div>
                   ))}
-                  <Button block icon={<PlusOutlined />} style={{ marginTop: 8 }} onClick={addScreen}>
+                  <Button
+                    block
+                    icon={<PlusOutlined />}
+                    style={{ marginTop: 8, borderStyle: 'dashed', height: 40 }}
+                    onClick={addScreen}
+                  >
                     New screen
                   </Button>
                 </Card>
@@ -790,7 +871,19 @@ export default function ProductUxBuilderPage(_: { user: DashboardUser }) {
                 >
                   {screen ? (
                     <>
-                      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
+                      <div
+                        style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          gap: 8,
+                          marginBottom: 8,
+                          flexWrap: 'wrap'
+                        }}
+                      >
+                        <Text type='secondary' style={{ fontSize: 12 }}>
+                          Design this screen: drag blocks below onto it, or click a component to edit it.
+                        </Text>
                         <Segmented
                           size='small'
                           value={device}
@@ -825,6 +918,7 @@ export default function ProductUxBuilderPage(_: { user: DashboardUser }) {
                           definition={definition}
                           smartFields={composedFields}
                           variables={variables}
+                          productCatalog={productCatalog}
                           mode='builder'
                           screenIndex={screenIndex}
                           selectedBlockId={selectedBlockId}
@@ -832,28 +926,44 @@ export default function ProductUxBuilderPage(_: { user: DashboardUser }) {
                         />
                       </div>
                       <div style={{ marginTop: 12 }}>
-                        <Text strong style={{ fontSize: 12 }}>
-                          Add a block
-                        </Text>
-                        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 4 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                          <Text strong style={{ fontSize: 12 }}>
+                            Screen blocks
+                          </Text>
+                          <Text type='secondary' style={{ fontSize: 11 }}>
+                            Click a block to add it to this screen
+                          </Text>
+                        </div>
+                        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 6 }}>
                           {PALETTE.map(p => (
                             <Button
                               key={p.kind}
                               size='small'
+                              icon={BLOCK_ICONS[p.kind]}
                               title={p.hint}
+                              style={{ borderRadius: 6 }}
                               onClick={() =>
                                 p.kind === 'smartFieldCard' ? setFieldPickerOpen(true) : addBlock(p.kind)
                               }
                             >
-                              + {BLOCK_LABELS[p.kind]}
+                              {BLOCK_LABELS[p.kind]}
                             </Button>
                           ))}
+                          <Button
+                            size='small'
+                            icon={<ThunderboltOutlined />}
+                            style={{ borderRadius: 6, color: '#722ed1', borderColor: '#d3adf7' }}
+                            title='Opens the Data tab, where smart fields are built'
+                            onClick={() => setTab('data')}
+                          >
+                            Create new smart field
+                          </Button>
                         </div>
                       </div>
                       {screen.blocks.length > 0 && (
                         <div style={{ marginTop: 12 }}>
                           <Text strong style={{ fontSize: 12 }}>
-                            Blocks on this screen — drag to reorder
+                            Blocks on this screen ({screen.blocks.length}) — drag to reorder
                           </Text>
                           <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 4 }}>
                             {screen.blocks.map((block, index) => (
@@ -887,7 +997,10 @@ export default function ProductUxBuilderPage(_: { user: DashboardUser }) {
                                 }}
                               >
                                 <HolderOutlined style={{ color: '#bbb' }} />
-                                <Tag style={{ margin: 0 }}>{BLOCK_LABELS[block.kind]}</Tag>
+                                <Tag style={{ margin: 0 }} icon={BLOCK_ICONS[block.kind]}>
+                                  {' '}
+                                  {BLOCK_LABELS[block.kind]}
+                                </Tag>
                                 <Text type='secondary' ellipsis style={{ fontSize: 12, flex: 1 }}>
                                   {block.kind === 'heading' || block.kind === 'text'
                                     ? block.text
@@ -895,7 +1008,7 @@ export default function ProductUxBuilderPage(_: { user: DashboardUser }) {
                                       ? block.inputKey
                                       : block.kind === 'questionGroup'
                                         ? block.title || `${block.inputKeys.length} questions`
-                                        : block.kind === 'smartFieldCard'
+                                        : block.kind === 'smartFieldCard' || block.kind === 'chart'
                                           ? (composedFields.find(f => f.id === block.smartFieldId)?.name ?? '—')
                                           : block.label}
                                 </Text>
@@ -914,7 +1027,7 @@ export default function ProductUxBuilderPage(_: { user: DashboardUser }) {
 
                 {/* properties */}
                 <div style={{ flex: '1 1 300px', minWidth: 280 }}>
-                  <Card size='small' title='Properties'>
+                  <Card size='small' title='Properties & data'>
                     {!selectedBlock && (
                       <Text type='secondary' style={{ fontSize: 12 }}>
                         Click a block on the canvas to edit it.
@@ -922,7 +1035,30 @@ export default function ProductUxBuilderPage(_: { user: DashboardUser }) {
                     )}
                     {selectedBlock && (
                       <>
-                        <Tag>{BLOCK_LABELS[selectedBlock.kind]}</Tag>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                          <span
+                            style={{
+                              width: 28,
+                              height: 28,
+                              borderRadius: 6,
+                              background: '#f3f8e7',
+                              color: '#5c8a12',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              justifyContent: 'center'
+                            }}
+                          >
+                            {BLOCK_ICONS[selectedBlock.kind]}
+                          </span>
+                          <div>
+                            <Text strong style={{ fontSize: 13, display: 'block' }}>
+                              {BLOCK_LABELS[selectedBlock.kind]}
+                            </Text>
+                            <Text type='secondary' style={{ fontSize: 11 }}>
+                              {PALETTE.find(p => p.kind === selectedBlock.kind)?.hint}
+                            </Text>
+                          </div>
+                        </div>
                         {(selectedBlock.kind === 'heading' || selectedBlock.kind === 'text') && (
                           <Input.TextArea
                             value={selectedBlock.text}
@@ -1017,6 +1153,113 @@ export default function ProductUxBuilderPage(_: { user: DashboardUser }) {
                                     onChange={e => patchDef({ help: e.target.value })}
                                     placeholder='Help text under the question (optional)'
                                   />
+                                  {def.type === 'group' && (
+                                    /* The product wizard: let users pick from a catalog
+                                       instead of typing — typing stays possible either way
+                                       (Derek, 2026-09-19). */
+                                    <div
+                                      style={{
+                                        border: '1px solid #f0f0f0',
+                                        borderRadius: 8,
+                                        padding: '8px 10px'
+                                      }}
+                                    >
+                                      <Text strong style={{ fontSize: 12 }}>
+                                        Product wizard
+                                      </Text>
+                                      <Text
+                                        type='secondary'
+                                        style={{ fontSize: 11, display: 'block', marginBottom: 6 }}
+                                      >
+                                        Add a per-row product picker fed by a database. Choosing a product fills any
+                                        column whose key matches one of the database&apos;s columns (for example{' '}
+                                        <Text code style={{ fontSize: 10 }}>
+                                          caseCount
+                                        </Text>{' '}
+                                        fills from{' '}
+                                        <Text code style={{ fontSize: 10 }}>
+                                          case_count
+                                        </Text>
+                                        ); everything can still be typed by hand.
+                                      </Text>
+                                      <Select
+                                        allowClear
+                                        style={{ width: '100%' }}
+                                        placeholder='No wizard — users type everything'
+                                        value={def.productSource?.databaseId}
+                                        options={databases.map(db => ({
+                                          value: db.id,
+                                          label: `${db.name} (${db.rowCount} rows)`
+                                        }))}
+                                        onChange={databaseId => {
+                                          if (!databaseId) return patchDef({ productSource: undefined });
+                                          const db = databases.find(d => d.id === databaseId);
+                                          const nameColumnKey =
+                                            db?.columnKeys.find(k => ['product', 'name', 'factor_name'].includes(k)) ??
+                                            db?.columnKeys[0] ??
+                                            'name';
+                                          patchDef({ productSource: { databaseId, nameColumnKey } });
+                                        }}
+                                      />
+                                      {def.productSource && (
+                                        <>
+                                          <Select
+                                            style={{ width: '100%', marginTop: 6 }}
+                                            value={def.productSource.nameColumnKey}
+                                            options={(
+                                              databases.find(d => d.id === def.productSource?.databaseId)?.columnKeys ??
+                                              []
+                                            ).map(k => ({ value: k, label: `Name column: ${k}` }))}
+                                            onChange={nameColumnKey =>
+                                              patchDef({
+                                                productSource: { ...def.productSource!, nameColumnKey }
+                                              })
+                                            }
+                                          />
+                                          {/* Where each of this question's columns copies its
+                                              value from when a product is picked. */}
+                                          {(def.columns ?? []).map(column => (
+                                            <div
+                                              key={column.key}
+                                              style={{
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: 6,
+                                                marginTop: 6
+                                              }}
+                                            >
+                                              <Text code style={{ fontSize: 11, whiteSpace: 'nowrap' }}>
+                                                {column.key}
+                                              </Text>
+                                              <Text type='secondary' style={{ fontSize: 11 }}>
+                                                ←
+                                              </Text>
+                                              <Select
+                                                size='small'
+                                                allowClear
+                                                style={{ flex: 1, minWidth: 0 }}
+                                                placeholder='typed by hand'
+                                                value={column.fillFrom}
+                                                options={(
+                                                  databases.find(d => d.id === def.productSource?.databaseId)
+                                                    ?.columnKeys ?? []
+                                                ).map(k => ({ value: k, label: k }))}
+                                                onChange={fillFrom =>
+                                                  patchDef({
+                                                    columns: (def.columns ?? []).map(c =>
+                                                      c.key === column.key
+                                                        ? { ...c, fillFrom: fillFrom || undefined }
+                                                        : c
+                                                    )
+                                                  })
+                                                }
+                                              />
+                                            </div>
+                                          ))}
+                                        </>
+                                      )}
+                                    </div>
+                                  )}
                                 </div>
                               );
                             })()}
@@ -1043,15 +1286,25 @@ export default function ProductUxBuilderPage(_: { user: DashboardUser }) {
                             />
                           </>
                         )}
-                        {selectedBlock.kind === 'smartFieldCard' && (
+                        {(selectedBlock.kind === 'smartFieldCard' || selectedBlock.kind === 'chart') && (
                           <>
                             <Select
                               style={{ width: '100%', marginTop: 8 }}
                               value={selectedBlock.smartFieldId || undefined}
                               placeholder='Which smart field?'
-                              options={smartFields.map(f => ({ value: f.id, label: f.name }))}
+                              options={smartFields.map(f => ({
+                                value: f.id,
+                                label: f.comparison ? `${f.name} (has comparison chart)` : f.name
+                              }))}
                               onChange={smartFieldId => updateBlock(selectedBlock.id, { smartFieldId } as any)}
                             />
+                            {selectedBlock.kind === 'chart' &&
+                              !smartFields.find(f => f.id === selectedBlock.smartFieldId)?.comparison && (
+                                <Text type='secondary' style={{ fontSize: 12, display: 'block', marginTop: 4 }}>
+                                  This field has no baseline/forecast comparison yet — add one on the Data tab and the
+                                  chart will draw.
+                                </Text>
+                              )}
                             <Input
                               style={{ marginTop: 8 }}
                               placeholder='Card label (defaults to the field name)'
@@ -1075,9 +1328,22 @@ export default function ProductUxBuilderPage(_: { user: DashboardUser }) {
                                         : []
                                   )
                               );
-                              const needed = detectRequirements(field.equation, variableMap).filter(
+                              const needed = detectRequirements(
+                                [
+                                  ...field.equation,
+                                  ...(field.comparison?.baseline ?? []),
+                                  ...(field.comparison?.forecast ?? [])
+                                ],
+                                variableMap
+                              ).filter(
                                 r =>
-                                  (r.kind === 'input' || r.kind === 'group' || r.kind === 'missing') &&
+                                  // Everything a composed product must ASK for: plain inputs,
+                                  // lists, unknown keys, and calculator intermediates (a
+                                  // composed product has no engine upstream to derive them).
+                                  (r.kind === 'input' ||
+                                    r.kind === 'group' ||
+                                    r.kind === 'missing' ||
+                                    r.kind === 'intermediate') &&
                                   !collected.has(r.key)
                               );
                               if (!needed.length)

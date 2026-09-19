@@ -423,6 +423,9 @@ model SmartField {
   equation    Json
   /// Test values for input variables, so the preview can compute something
   testInputs  Json?
+  /// Optional baseline-vs-forecast comparison: { baseline: tokens[], forecast: tokens[] } —
+  /// rendered as the side-by-side bar chart next to the headline number
+  comparisonJson Json?
   isPublished Boolean  @default(false)
   createdBy   String?  @db.Uuid
 }

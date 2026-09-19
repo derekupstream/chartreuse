@@ -154,10 +154,50 @@ export const KNOWN_INPUTS: SmartVariable[] = [
     category: 'Inputs',
     unit: 'times/yr',
     description: '1 for one-time or annual; 12 for monthly'
+  },
+  {
+    key: 'reusablePurchaseCost',
+    label: 'Reusable products purchase cost',
+    category: 'Inputs',
+    unit: '$',
+    description: 'One-time cost of the reusable cups, containers or dishes'
+  },
+  {
+    key: 'equipmentCost',
+    label: 'Equipment cost',
+    category: 'Inputs',
+    unit: '$',
+    description: 'One-time cost of dishwashers, racks and collection bins'
+  },
+  {
+    key: 'installationCost',
+    label: 'Installation cost',
+    category: 'Inputs',
+    unit: '$',
+    description: 'One-time plumbing, electrical and setup work'
+  },
+  {
+    key: 'laborCostAnnual',
+    label: 'Annual labor cost',
+    category: 'Inputs',
+    unit: '$',
+    description: 'Yearly staff time for washing, collecting and restocking'
+  },
+  {
+    key: 'otherRecurringCosts',
+    label: 'Other recurring costs',
+    category: 'Inputs',
+    unit: '$',
+    description: 'Any other yearly program expense (supplies, service contracts…)'
   }
 ];
 
-/** Quantities the engine derives, usable as building blocks. */
+/**
+ * Quantities the engine derives, usable as building blocks. The baseline/forecast pairs
+ * mirror the projections dashboard's decomposition (single-use today vs the reuse
+ * program), so dashboard metrics like "Annual GHG changes" are expressible as
+ * baseline − forecast — exactly the shape the comparison chart draws.
+ */
 export const KNOWN_INTERMEDIATES: SmartVariable[] = [
   {
     key: 'annualItems',
@@ -168,7 +208,102 @@ export const KNOWN_INTERMEDIATES: SmartVariable[] = [
   },
   { key: 'annualMaterialWeight', label: 'Annual material weight', category: 'Intermediates', unit: 'lb' },
   { key: 'annualBoxWeight', label: 'Annual shipping box weight', category: 'Intermediates', unit: 'lb' },
-  { key: 'annualCost', label: 'Annual purchasing cost', category: 'Intermediates', unit: '$' }
+  { key: 'annualCost', label: 'Annual purchasing cost', category: 'Intermediates', unit: '$' },
+  // GHG (lineage: environmentalResults.annualGasEmissionChanges — materials + shipping boxes)
+  {
+    key: 'baselineMaterialGas',
+    label: 'Baseline material emissions',
+    category: 'Intermediates',
+    unit: 'MTCO2e',
+    description: 'Emissions from the single-use materials bought today'
+  },
+  {
+    key: 'baselineShippingGas',
+    label: 'Baseline shipping-box emissions',
+    category: 'Intermediates',
+    unit: 'MTCO2e',
+    description: 'Emissions from the cardboard boxes those cases ship in'
+  },
+  {
+    key: 'forecastMaterialGas',
+    label: 'Forecast material emissions',
+    category: 'Intermediates',
+    unit: 'MTCO2e',
+    description: 'Material emissions remaining after the switch to reusables'
+  },
+  {
+    key: 'forecastShippingGas',
+    label: 'Forecast shipping-box emissions',
+    category: 'Intermediates',
+    unit: 'MTCO2e',
+    description: 'Shipping-box emissions remaining after the switch'
+  },
+  // Water (lineage: environmentalResults.annualWaterUsageChanges — manufacturing vs dishwashing)
+  {
+    key: 'baselineWaterUse',
+    label: 'Baseline water use',
+    category: 'Intermediates',
+    unit: 'gal',
+    description: 'Water used to manufacture the single-use items bought today'
+  },
+  {
+    key: 'forecastWaterUse',
+    label: 'Forecast water use',
+    category: 'Intermediates',
+    unit: 'gal',
+    description: 'Water used after the switch (mostly dishwashing)'
+  },
+  // Waste (lineage: environmentalResults.annualWasteChanges)
+  {
+    key: 'baselineWasteWeight',
+    label: 'Baseline waste to landfill',
+    category: 'Intermediates',
+    unit: 'lb',
+    description: 'Single-use items and boxes sent to landfill today'
+  },
+  {
+    key: 'forecastWasteWeight',
+    label: 'Forecast waste to landfill',
+    category: 'Intermediates',
+    unit: 'lb',
+    description: 'Waste remaining after the switch (breakage, unreturned items)'
+  },
+  // Cost (lineage: financialResults / annualSummary)
+  {
+    key: 'baselineAnnualCost',
+    label: 'Baseline annual cost',
+    category: 'Intermediates',
+    unit: '$',
+    description: 'What the operation spends per year staying with single-use'
+  },
+  {
+    key: 'forecastAnnualCost',
+    label: 'Forecast annual cost',
+    category: 'Intermediates',
+    unit: '$',
+    description: 'What the reuse program costs per year once running'
+  },
+  {
+    key: 'baselineHaulingCost',
+    label: 'Baseline waste-hauling cost',
+    category: 'Intermediates',
+    unit: '$',
+    description: 'Hauling paid today for the single-use waste stream'
+  },
+  {
+    key: 'forecastHaulingCost',
+    label: 'Forecast waste-hauling cost',
+    category: 'Intermediates',
+    unit: '$',
+    description: 'Hauling remaining after the switch'
+  },
+  {
+    key: 'utilityCostPerRack',
+    label: 'Utility cost per dishwasher rack',
+    category: 'Intermediates',
+    unit: '$/rack',
+    description: 'Water + energy cost of washing one rack (from the dishwasher and utility-rate tables)'
+  }
 ];
 
 /** Evaluates an equation, returning the value or the reason it can't be computed. */

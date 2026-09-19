@@ -30,6 +30,7 @@ import {
   Segmented,
   Select,
   Spin,
+  Switch,
   Tabs,
   Tag,
   Typography,
@@ -38,6 +39,7 @@ import {
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
+import { ComparisonBars, DeltaChip, fmtValue } from 'components/products/ComposedProductRenderer';
 import { parseEquation, serializeEquation } from 'lib/smartFields/console';
 import { detectRequirements, evaluateEquation, toVariableKey } from 'lib/smartFields/variables';
 import type { EquationToken, FieldValues, GroupRow, SmartVariable, VariableCategory } from 'lib/smartFields/variables';
@@ -74,7 +76,9 @@ const EMPTY_FIELD = {
   unit: '',
   category: 'Other',
   equation: [] as EquationToken[],
-  testInputs: {} as FieldValues
+  testInputs: {} as FieldValues,
+  /** Optional baseline-vs-forecast pair, drawn as the side-by-side bar chart. */
+  comparison: null as { baseline: EquationToken[]; forecast: EquationToken[] } | null
 };
 
 export function SmartFieldBuilder() {
@@ -166,6 +170,44 @@ export function SmartFieldBuilder() {
     }
   }
 
+  // ── the baseline/forecast comparison ─────────────────────────────────────
+  // Two extra equations edited as text (same grammar as the console). Each side keeps
+  // its last VALID parse in the draft; an invalid side shows its error without wiping
+  // the other. The comparison saves only when both sides parse to something.
+  const [cmpBaseText, setCmpBaseText] = useState('');
+  const [cmpFcText, setCmpFcText] = useState('');
+  const [cmpBaseError, setCmpBaseError] = useState<string | null>(null);
+  const [cmpFcError, setCmpFcError] = useState<string | null>(null);
+  const cmpEditRef = useRef(false);
+  useEffect(() => {
+    if (cmpEditRef.current) {
+      cmpEditRef.current = false;
+      return;
+    }
+    setCmpBaseText(draft.comparison ? serializeEquation(draft.comparison.baseline) : '');
+    setCmpFcText(draft.comparison ? serializeEquation(draft.comparison.forecast) : '');
+    setCmpBaseError(null);
+    setCmpFcError(null);
+  }, [draft.comparison]);
+  function onComparisonChange(side: 'baseline' | 'forecast', text: string) {
+    (side === 'baseline' ? setCmpBaseText : setCmpFcText)(text);
+    const parsed = parseEquation(text);
+    const setError = side === 'baseline' ? setCmpBaseError : setCmpFcError;
+    if (!parsed.ok) {
+      setError(parsed.error);
+      return;
+    }
+    setError(null);
+    cmpEditRef.current = true;
+    setDraft(d => ({
+      ...d,
+      comparison: {
+        baseline: side === 'baseline' ? parsed.tokens : (d.comparison?.baseline ?? []),
+        forecast: side === 'forecast' ? parsed.tokens : (d.comparison?.forecast ?? [])
+      }
+    }));
+  }
+
   function enterConsole() {
     setConsoleText(serializeEquation(draft.equation));
     setConsoleError(null);
@@ -216,9 +258,23 @@ export function SmartFieldBuilder() {
     () => evaluateEquation(draft.equation, variableMap, draft.testInputs),
     [draft.equation, draft.testInputs, variableMap]
   );
+  // Both comparison sides run on the SAME test inputs as the main equation.
+  const comparisonEval = useMemo(() => {
+    if (!draft.comparison) return null;
+    return {
+      baseline: evaluateEquation(draft.comparison.baseline, variableMap, draft.testInputs),
+      forecast: evaluateEquation(draft.comparison.forecast, variableMap, draft.testInputs)
+    };
+  }, [draft.comparison, draft.testInputs, variableMap]);
+  // Requirements cover the comparison too, so its test values are asked for here as well.
   const requirements = useMemo(
-    () => detectRequirements(draft.equation, variableMap, draft.testInputs),
-    [draft.equation, draft.testInputs, variableMap]
+    () =>
+      detectRequirements(
+        [...draft.equation, ...(draft.comparison?.baseline ?? []), ...(draft.comparison?.forecast ?? [])],
+        variableMap,
+        draft.testInputs
+      ),
+    [draft.equation, draft.comparison, draft.testInputs, variableMap]
   );
 
   const filteredVariables = useMemo(
@@ -363,6 +419,17 @@ export function SmartFieldBuilder() {
 
             {list.map(field => {
               const isOpen = draft.id === field.id;
+              // Each gallery card previews its own value using its saved test inputs —
+              // the mockup's "library of little result cards" look, and an instant
+              // health check that the equation still computes.
+              const cardValue = evaluateEquation(field.equation, variableMap, field.testInputs);
+              const cardBaseline = field.comparison
+                ? evaluateEquation(field.comparison.baseline, variableMap, field.testInputs)
+                : null;
+              const cardForecast = field.comparison
+                ? evaluateEquation(field.comparison.forecast, variableMap, field.testInputs)
+                : null;
+              const cardComparable = cardBaseline?.value != null && cardForecast?.value != null;
               return (
                 <Card
                   key={field.id}
@@ -378,7 +445,8 @@ export function SmartFieldBuilder() {
                       unit: field.unit ?? '',
                       category: field.category ?? 'Other',
                       equation: field.equation,
-                      testInputs: field.testInputs
+                      testInputs: field.testInputs,
+                      comparison: field.comparison ?? null
                     };
                     markClean(loaded);
                     setDraft(loaded);
@@ -399,10 +467,29 @@ export function SmartFieldBuilder() {
                       }}
                     />
                   </div>
-                  <Text type='secondary' style={{ fontSize: 11, display: 'block' }}>
-                    {field.equation.length} token{field.equation.length === 1 ? '' : 's'}
-                    {field.unit ? ` · ${field.unit}` : ''}
-                  </Text>
+                  {cardValue.value !== null ? (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <Text strong style={{ fontSize: 17 }}>
+                        {fmtValue(cardValue.value, field.unit)}
+                      </Text>
+                      {cardComparable && (
+                        <DeltaChip baseline={cardBaseline!.value!} forecast={cardForecast!.value!} size='mini' />
+                      )}
+                    </div>
+                  ) : (
+                    <Text type='secondary' style={{ fontSize: 11, display: 'block' }}>
+                      {field.equation.length} token{field.equation.length === 1 ? '' : 's'}
+                      {field.unit ? ` · ${field.unit}` : ''}
+                    </Text>
+                  )}
+                  {cardComparable && (
+                    <ComparisonBars
+                      baseline={cardBaseline!.value!}
+                      forecast={cardForecast!.value!}
+                      unit={field.unit}
+                      size='mini'
+                    />
+                  )}
                   <Tag color={CATEGORY_TAG[field.category ?? 'Other']} style={{ marginTop: 4, fontSize: 10 }}>
                     {field.category ?? 'Other'}
                   </Tag>
@@ -474,12 +561,21 @@ export function SmartFieldBuilder() {
               </div>
             }
           >
-            {/* preview */}
-            <Card size='small' style={{ background: '#f6ffed', marginBottom: 12 }}>
-              <Text type='secondary' style={{ fontSize: 12 }}>
-                {draft.name || 'Your smart field'}
+            {/* preview — the card exactly as a product will show it, mockup-style */}
+            <Card size='small' style={{ background: '#f8faf3', border: '1px solid #e4eecf', marginBottom: 12 }}>
+              <Text strong style={{ fontSize: 13 }}>
+                Your {draft.name || 'smart field'}
               </Text>
-              <div style={{ fontSize: 30, fontWeight: 600, lineHeight: 1.2 }}>
+              <div
+                style={{
+                  fontSize: 30,
+                  fontWeight: 600,
+                  lineHeight: 1.3,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 10
+                }}
+              >
                 {evaluation.value === null ? (
                   <Text type='secondary' style={{ fontSize: 18 }}>
                     —
@@ -492,6 +588,9 @@ export function SmartFieldBuilder() {
                     </Text>
                   </>
                 )}
+                {comparisonEval?.baseline.value != null && comparisonEval?.forecast.value != null && (
+                  <DeltaChip baseline={comparisonEval.baseline.value} forecast={comparisonEval.forecast.value} />
+                )}
               </div>
               {evaluation.error ? (
                 <Text type='secondary' style={{ fontSize: 12 }}>
@@ -502,6 +601,20 @@ export function SmartFieldBuilder() {
                   = {evaluation.expression}
                 </Text>
               )}
+              {comparisonEval?.baseline.value != null && comparisonEval?.forecast.value != null && (
+                <ComparisonBars
+                  baseline={comparisonEval.baseline.value}
+                  forecast={comparisonEval.forecast.value}
+                  unit={draft.unit || null}
+                />
+              )}
+              {draft.comparison &&
+                (comparisonEval?.baseline.value == null || comparisonEval?.forecast.value == null) && (
+                  <Text type='secondary' style={{ fontSize: 12, display: 'block' }}>
+                    The comparison chart draws once both sides compute —{' '}
+                    {comparisonEval?.baseline.error ?? comparisonEval?.forecast.error}
+                  </Text>
+                )}
             </Card>
 
             {/* equation */}
@@ -674,9 +787,69 @@ export function SmartFieldBuilder() {
               </Button>
             </div>
 
+            {/* baseline vs forecast comparison — the side-by-side bar chart */}
+            <div style={{ border: '1px solid #f0f0f0', borderRadius: 8, padding: '10px 12px', marginBottom: 12 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <Switch
+                  size='small'
+                  checked={!!draft.comparison}
+                  onChange={on => setDraft(d => ({ ...d, comparison: on ? { baseline: [], forecast: [] } : null }))}
+                />
+                <Text strong style={{ fontSize: 13 }}>
+                  Baseline vs forecast comparison
+                </Text>
+                <Text type='secondary' style={{ fontSize: 12 }}>
+                  — draws the two-bar chart (today vs after the switch) on this field&apos;s cards
+                </Text>
+              </div>
+              {draft.comparison && (
+                <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  {(
+                    [
+                      ['baseline', 'Baseline — the “today” number', cmpBaseText, cmpBaseError],
+                      ['forecast', 'Forecast — the “after the switch” number', cmpFcText, cmpFcError]
+                    ] as const
+                  ).map(([side, label, text, error]) => (
+                    <div key={side}>
+                      <Text type='secondary' style={{ fontSize: 12 }}>
+                        {label}
+                      </Text>
+                      <Input
+                        value={text}
+                        status={error ? 'error' : undefined}
+                        onChange={e => onComparisonChange(side, e.target.value)}
+                        placeholder={
+                          side === 'baseline'
+                            ? 'e.g. baselineMaterialGas + baselineShippingGas'
+                            : 'e.g. forecastMaterialGas + forecastShippingGas'
+                        }
+                        style={{ fontFamily: 'monospace', fontSize: 13 }}
+                      />
+                      {error && (
+                        <Text type='danger' style={{ fontSize: 12 }}>
+                          {error}
+                        </Text>
+                      )}
+                    </div>
+                  ))}
+                  <Text type='secondary' style={{ fontSize: 11 }}>
+                    Same language as the console: math over variable keys. Both sides use the test values below.
+                  </Text>
+                </div>
+              )}
+            </div>
+
             {/* variable picker */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-              <Text strong>Add a variable</Text>
+              <Text strong>
+                Add a variable
+                {editorMode === 'console' && (
+                  <Text type='secondary' style={{ fontSize: 12, fontWeight: 400 }}>
+                    {' '}
+                    — click one to type its key into the console for you
+                  </Text>
+                )}
+              </Text>
               <Button size='small' icon={<PlusOutlined />} onClick={() => setVarOpen(true)}>
                 New variable
               </Button>
@@ -761,6 +934,13 @@ export function SmartFieldBuilder() {
                   <span>
                     <span style={{ color: CATEGORY_COLOR[variable.category], marginRight: 6 }}>◆</span>
                     <Text style={{ fontSize: 13 }}>{variable.label}</Text>
+                    {/* In console mode the KEY is what you type, so it rides along as the
+                        reference — and clicking still inserts it (Derek, 2026-09-19). */}
+                    {editorMode === 'console' && (
+                      <Text code style={{ fontSize: 11, marginLeft: 6 }}>
+                        {variable.key}
+                      </Text>
+                    )}
                   </span>
                   <Text type='secondary' style={{ fontSize: 11, whiteSpace: 'nowrap' }}>
                     {variable.value !== undefined ? variable.value : (variable.unit ?? 'needs input')}

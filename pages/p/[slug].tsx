@@ -9,7 +9,7 @@ import Head from 'next/head';
 
 import { ComposedProductRenderer } from 'components/products/ComposedProductRenderer';
 import type { SubmitResult } from 'components/products/ComposedProductRenderer';
-import type { ComposedDefinition, ComposedSmartField } from 'lib/products/composed';
+import type { ComposedDefinition, ComposedSmartField, ProductCatalog } from 'lib/products/composed';
 import { buildVariableCatalog } from 'lib/smartFields/catalogServer';
 import type { FieldValues, SmartVariable } from 'lib/smartFields/variables';
 import type { EquationToken } from 'lib/smartFields/variables';
@@ -25,6 +25,7 @@ type Props = {
   definition: ComposedDefinition;
   smartFields: ComposedSmartField[];
   variables: SmartVariable[];
+  productCatalog: ProductCatalog;
 };
 
 export const getServerSideProps: GetServerSideProps = async context => {
@@ -55,17 +56,37 @@ export const getServerSideProps: GetServerSideProps = async context => {
 
   const fieldIds = definition.screens
     .flatMap(s => s.blocks)
-    .flatMap(b => (b.kind === 'smartFieldCard' ? [b.smartFieldId] : []));
+    .flatMap(b => (b.kind === 'smartFieldCard' || b.kind === 'chart' ? [b.smartFieldId] : []));
   const fields = await prisma.smartField.findMany({ where: { id: { in: fieldIds } } });
   const smartFields: ComposedSmartField[] = fields.map(f => ({
     id: f.id,
     name: f.name,
     unit: f.unit,
     description: f.description,
-    equation: f.equation as unknown as EquationToken[]
+    equation: f.equation as unknown as EquationToken[],
+    comparison: (f.comparisonJson as ComposedSmartField['comparison']) ?? null
   }));
 
   const variables = await buildVariableCatalog();
+
+  // The product wizard's catalog rows, embedded server-side: only the databases this
+  // product's questions actually reference, so a public product never opens a general
+  // database-reading door.
+  const productCatalog: ProductCatalog = {};
+  const sources = definition.inputFields.flatMap(f => (f.productSource ? [f.productSource] : []));
+  if (sources.length) {
+    const catalogDbs = await prisma.factorDatabase.findMany({
+      where: { id: { in: Array.from(new Set(sources.map(s => s.databaseId))) } },
+      include: { rows: { orderBy: { rowIndex: 'asc' } } }
+    });
+    for (const db of catalogDbs) {
+      const nameColumnKey = sources.find(s => s.databaseId === db.id)?.nameColumnKey ?? 'name';
+      productCatalog[db.id] = {
+        nameColumnKey,
+        rows: db.rows.map(r => r.data as Record<string, string | number | null>)
+      };
+    }
+  }
 
   return {
     props: serializeJSON({
@@ -73,12 +94,20 @@ export const getServerSideProps: GetServerSideProps = async context => {
       isDraft: wantsDraft && product.status !== 'published',
       definition,
       smartFields,
-      variables
+      variables,
+      productCatalog
     })
   };
 };
 
-export default function ComposedProductPage({ product, definition, smartFields, variables, isDraft }: Props) {
+export default function ComposedProductPage({
+  product,
+  definition,
+  smartFields,
+  variables,
+  productCatalog,
+  isDraft
+}: Props) {
   async function handleSubmit(values: FieldValues, results: SubmitResult) {
     // A draft preview is for looking, not for storing — say so instead of failing
     // quietly (found 2026-09-19: a preview's "Save" hit the API and 404ed in silence).
@@ -131,6 +160,7 @@ export default function ComposedProductPage({ product, definition, smartFields, 
             definition={definition}
             smartFields={smartFields}
             variables={variables}
+            productCatalog={productCatalog}
             mode='live'
             onSubmit={handleSubmit}
           />

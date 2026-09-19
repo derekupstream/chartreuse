@@ -3,12 +3,18 @@
  * /p/<slug> page both render through this, so what you build is exactly what ships
  * (docs/CR2-PRODUCT-STUDIO-SPEC.md §6-7).
  */
-import { Button, Card, Input as AntInput, InputNumber, Steps, Tooltip, Typography, message } from 'antd';
+import { Button, Card, Input as AntInput, InputNumber, Select, Steps, Tooltip, Typography, message } from 'antd';
 import { useMemo, useState } from 'react';
 
-import type { ComposedBlock, ComposedDefinition, ComposedSmartField, InputFieldDef } from 'lib/products/composed';
+import type {
+  ComposedBlock,
+  ComposedDefinition,
+  ComposedSmartField,
+  InputFieldDef,
+  ProductCatalog
+} from 'lib/products/composed';
 import type { FieldValues, GroupRow, SmartVariable } from 'lib/smartFields/variables';
-import { evaluateEquation } from 'lib/smartFields/variables';
+import { evaluateEquation, toVariableKey } from 'lib/smartFields/variables';
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -20,13 +26,16 @@ type Props = {
   variables: SmartVariable[];
   /** 'live': stepper + submit; 'builder': render one screen, blocks selectable */
   mode: 'live' | 'builder';
+  /** Catalog rows for any question with a product wizard, keyed by database id. */
+  productCatalog?: ProductCatalog;
   screenIndex?: number;
   selectedBlockId?: string | null;
   onSelectBlock?: (blockId: string) => void;
   onSubmit?: (values: FieldValues, results: SubmitResult) => Promise<void> | void;
 };
 
-const fmtValue = (value: number, unit: string | null) => {
+// Display rule (Derek, 2026-09-19): "$" renders BEFORE the number; every other unit after.
+export const fmtValue = (value: number, unit: string | null) => {
   const n =
     Math.abs(value) >= 100 ? Math.round(value).toLocaleString() : parseFloat(value.toPrecision(4)).toLocaleString();
   if (!unit) return n;
@@ -34,11 +43,101 @@ const fmtValue = (value: number, unit: string | null) => {
   return `${n} ${unit}`;
 };
 
+/**
+ * The baseline-vs-forecast bar pair from the mockups: two horizontal bars scaled to the
+ * larger value, with a legend. Shared by the Field Builder preview, the gallery cards,
+ * and the live product's chart block, so the comparison looks identical everywhere.
+ */
+export function ComparisonBars({
+  baseline,
+  forecast,
+  unit,
+  size = 'regular'
+}: {
+  baseline: number;
+  forecast: number;
+  unit: string | null;
+  size?: 'mini' | 'regular';
+}) {
+  const max = Math.max(Math.abs(baseline), Math.abs(forecast), 1e-9);
+  const barHeight = size === 'mini' ? 8 : 16;
+  const bar = (value: number, color: string, label: string) => (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: size === 'mini' ? 3 : 6 }}>
+      <div
+        style={{
+          width: `${Math.max((Math.abs(value) / max) * 100, 2)}%`,
+          maxWidth: 'calc(100% - 120px)',
+          height: barHeight,
+          borderRadius: 4,
+          background: color,
+          transition: 'width 0.3s',
+          flexShrink: 0
+        }}
+      />
+      {size === 'regular' && (
+        <Text type='secondary' style={{ fontSize: 12, whiteSpace: 'nowrap' }}>
+          {label}: <Text style={{ fontSize: 12 }}>{fmtValue(value, unit)}</Text>
+        </Text>
+      )}
+    </div>
+  );
+  return (
+    <div style={{ marginTop: size === 'mini' ? 6 : 10 }}>
+      {bar(baseline, '#d3ecb2', 'Baseline')}
+      {bar(forecast, '#52a41c', 'Forecast')}
+      <div style={{ display: 'flex', gap: 12, marginTop: 2 }}>
+        {[
+          ['#d3ecb2', 'Baseline'],
+          ['#52a41c', 'Forecast']
+        ].map(([color, label]) => (
+          <span key={label} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+            <span style={{ width: 8, height: 8, borderRadius: 2, background: color, display: 'inline-block' }} />
+            <Text type='secondary' style={{ fontSize: size === 'mini' ? 10 : 11 }}>
+              {label}
+            </Text>
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/** The green "↓ 81%" chip next to a compared value. */
+export function DeltaChip({
+  baseline,
+  forecast,
+  size = 'regular'
+}: {
+  baseline: number;
+  forecast: number;
+  size?: 'mini' | 'regular';
+}) {
+  if (!Number.isFinite(baseline) || Math.abs(baseline) < 1e-9) return null;
+  const pct = Math.round(((baseline - forecast) / Math.abs(baseline)) * 100);
+  const down = pct >= 0;
+  return (
+    <span
+      style={{
+        background: down ? '#e9f6dc' : '#fff1f0',
+        color: down ? '#3f8600' : '#cf1322',
+        borderRadius: 999,
+        padding: size === 'mini' ? '0 6px' : '1px 8px',
+        fontSize: size === 'mini' ? 10 : 12,
+        fontWeight: 600,
+        whiteSpace: 'nowrap'
+      }}
+    >
+      {down ? '↓' : '↑'} {Math.abs(pct)}%
+    </span>
+  );
+}
+
 export function ComposedProductRenderer({
   definition,
   smartFields,
   variables,
   mode,
+  productCatalog,
   screenIndex,
   selectedBlockId,
   onSelectBlock,
@@ -68,7 +167,7 @@ export function ComposedProductRenderer({
     const results: SubmitResult = {};
     for (const s of definition.screens) {
       for (const block of s.blocks) {
-        if (block.kind !== 'smartFieldCard') continue;
+        if (block.kind !== 'smartFieldCard' && block.kind !== 'chart') continue;
         const field = fieldById.get(block.smartFieldId);
         if (!field) continue;
         const { value } = evaluateEquation(field.equation, variableMap, values);
@@ -96,6 +195,43 @@ export function ComposedProductRenderer({
       const rows = Array.isArray(values[def.key]) ? (values[def.key] as GroupRow[]) : [];
       const columns = def.columns ?? [];
       const setRows = (next: GroupRow[]) => setValues(prev => ({ ...prev, [def.key]: next }));
+      // The product wizard: an optional picker per row. Choosing a catalog product fills
+      // every column it can match; anything can still be typed or corrected by hand.
+      const catalog = def.productSource ? productCatalog?.[def.productSource.databaseId] : undefined;
+      const applyProduct = (rowIndex: number, name: string) => {
+        if (!catalog || !def.productSource) return;
+        const picked = catalog.rows.find(r => String(r[def.productSource!.nameColumnKey] ?? '') === name);
+        if (!picked) return;
+        setRows(
+          rows.map((row, i) => {
+            if (i !== rowIndex) return row;
+            const next: GroupRow = { ...row, __product: name };
+            for (const column of columns) {
+              // A column fills from its explicit mapping first, then a catalog column with
+              // the same key, then one whose camelCase form matches (group columns are
+              // usually camelCase keys).
+              const raw =
+                (column.fillFrom ? picked[column.fillFrom] : undefined) ??
+                picked[column.key] ??
+                Object.entries(picked).find(([k]) => toVariableKey(k) === column.key)?.[1];
+              if (raw === undefined || raw === null || raw === '') continue;
+              if (column.type === 'text') next[column.key] = String(raw);
+              else {
+                const num = Number(String(raw).replace(/[^0-9.eE+-]/g, ''));
+                if (Number.isFinite(num)) next[column.key] = num;
+              }
+            }
+            // A text column that names the product and got nothing from the mappings
+            // receives the picked product's name, so the row reads like the catalog entry.
+            for (const column of columns) {
+              if (column.type !== 'text' || next[column.key]) continue;
+              if (/product|name|item/i.test(column.key) || /product|name|item/i.test(column.label))
+                next[column.key] = name;
+            }
+            return next;
+          })
+        );
+      };
       return (
         <div style={{ marginBottom: 16, maxWidth: 640 }}>
           <Text strong>{def.label}</Text>
@@ -104,10 +240,20 @@ export function ComposedProductRenderer({
               {def.help}
             </Text>
           )}
+          {catalog && (
+            <Text type='secondary' style={{ display: 'block', fontSize: 12 }}>
+              Pick a product to fill in its numbers, or type everything yourself — both work.
+            </Text>
+          )}
           <div style={{ overflowX: 'auto', marginTop: 6 }}>
             <table style={{ borderCollapse: 'collapse', width: '100%' }}>
               <thead>
                 <tr>
+                  {catalog && (
+                    <th style={{ textAlign: 'left', fontSize: 12, color: '#888', padding: '2px 8px 4px 0' }}>
+                      Product
+                    </th>
+                  )}
                   {columns.map(column => (
                     <th
                       key={column.key}
@@ -122,6 +268,25 @@ export function ComposedProductRenderer({
               <tbody>
                 {rows.map((row, rowIndex) => (
                   <tr key={rowIndex}>
+                    {catalog && def.productSource && (
+                      <td style={{ padding: '2px 8px 2px 0', minWidth: 180 }}>
+                        <Select
+                          style={{ width: '100%' }}
+                          showSearch
+                          allowClear
+                          placeholder='Choose from the catalog…'
+                          value={(row.__product as string) || undefined}
+                          onChange={name => (name ? applyProduct(rowIndex, name) : undefined)}
+                          options={Array.from(
+                            new Set(
+                              catalog.rows
+                                .map(r => String(r[def.productSource!.nameColumnKey] ?? '').trim())
+                                .filter(Boolean)
+                            )
+                          ).map(name => ({ value: name, label: name }))}
+                        />
+                      </td>
+                    )}
                     {columns.map(column => (
                       <td key={column.key} style={{ padding: '2px 8px 2px 0' }}>
                         {column.type === 'text' ? (
@@ -255,16 +420,31 @@ export function ComposedProductRenderer({
           </div>
         );
       }
-      case 'smartFieldCard': {
+      case 'smartFieldCard':
+      case 'chart': {
         const field = fieldById.get(block.smartFieldId);
         if (!field) return wrap(<Text type='danger'>This card points at a smart field that no longer exists</Text>);
         const { value, error } = evaluateEquation(field.equation, variableMap, values);
+        // The comparison chart only draws once both sides compute.
+        const baseline = field.comparison ? evaluateEquation(field.comparison.baseline, variableMap, values) : null;
+        const forecast = field.comparison ? evaluateEquation(field.comparison.forecast, variableMap, values) : null;
+        const comparable = baseline?.value != null && forecast?.value != null;
+        const isChart = block.kind === 'chart';
         return wrap(
-          <Card size='small' style={{ maxWidth: 380, marginBottom: 12 }}>
+          <Card size='small' style={{ maxWidth: isChart ? 560 : 380, marginBottom: 12 }}>
             <Text type='secondary' style={{ fontSize: 12 }}>
               {block.label || field.name}
             </Text>
-            <div style={{ fontSize: 26, fontWeight: 700, lineHeight: 1.3 }}>
+            <div
+              style={{
+                fontSize: isChart ? 30 : 26,
+                fontWeight: 700,
+                lineHeight: 1.3,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8
+              }}
+            >
               {value === null ? (
                 <Tooltip title={error}>
                   <Text type='secondary'>—</Text>
@@ -272,10 +452,25 @@ export function ComposedProductRenderer({
               ) : (
                 fmtValue(value, field.unit)
               )}
+              {comparable && <DeltaChip baseline={baseline!.value!} forecast={forecast!.value!} />}
             </div>
             {value === null && (
               <Text type='secondary' style={{ fontSize: 12 }}>
                 {error?.includes('no value') ? error.replace('has no value yet', 'is still needed') : error}
+              </Text>
+            )}
+            {comparable && (
+              <ComparisonBars
+                baseline={baseline!.value!}
+                forecast={forecast!.value!}
+                unit={field.unit}
+                size={isChart ? 'regular' : 'mini'}
+              />
+            )}
+            {isChart && !field.comparison && (
+              <Text type='secondary' style={{ fontSize: 12 }}>
+                This smart field has no baseline/forecast comparison yet — add one in the Field Builder to draw the
+                chart.
               </Text>
             )}
           </Card>

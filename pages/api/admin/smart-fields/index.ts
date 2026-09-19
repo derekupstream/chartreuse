@@ -8,6 +8,8 @@ import prisma from 'lib/prisma';
 const handler = handlerWithUser();
 handler.use(requireUpstream);
 
+export type SmartFieldComparison = { baseline: EquationToken[]; forecast: EquationToken[] };
+
 export type SmartFieldRecord = {
   id: string;
   name: string;
@@ -16,6 +18,7 @@ export type SmartFieldRecord = {
   category: string;
   equation: EquationToken[];
   testInputs: Record<string, number>;
+  comparison: SmartFieldComparison | null;
   isPublished: boolean;
   updatedAt: string;
 };
@@ -28,6 +31,7 @@ export type SaveSmartFieldRequest = {
   category?: string;
   equation: EquationToken[];
   testInputs?: Record<string, number>;
+  comparison?: SmartFieldComparison | null;
   isPublished?: boolean;
 };
 
@@ -50,6 +54,7 @@ const toRecord = (f: any): SmartFieldRecord => ({
   category: f.category ?? 'Other',
   equation: (f.equation as EquationToken[]) ?? [],
   testInputs: (f.testInputs as Record<string, number>) ?? {},
+  comparison: (f.comparisonJson as SmartFieldComparison | null) ?? null,
   isPublished: f.isPublished,
   updatedAt: f.updatedAt.toISOString()
 });
@@ -70,6 +75,10 @@ handler.post(async (req: NextApiRequestWithUser, res: NextApiResponse) => {
     category: body.category || categoryFromUnit(body.unit),
     equation: (body.equation ?? []) as unknown as object,
     testInputs: (body.testInputs ?? {}) as unknown as object,
+    // A comparison only counts when BOTH sides have an equation; anything else clears it.
+    comparisonJson: (body.comparison?.baseline?.length && body.comparison?.forecast?.length
+      ? body.comparison
+      : null) as unknown as object,
     isPublished: body.isPublished ?? false,
     createdBy: req.user.id
   };

@@ -14,12 +14,18 @@ export type ComposedBlock =
   /** Several questions presented together under one small title. */
   | { id: string; kind: 'questionGroup'; title?: string; inputKeys: string[] }
   | { id: string; kind: 'smartFieldCard'; smartFieldId: string; label?: string }
+  /** A larger baseline-vs-forecast bar chart for a smart field that has a comparison. */
+  | { id: string; kind: 'chart'; smartFieldId: string; label?: string }
   | { id: string; kind: 'button'; label: string; action: 'next' | 'back' | 'submit' };
 
 export type ComposedScreen = { id: string; title: string; blocks: ComposedBlock[] };
 
-/** A column of a list-type question ("add each product you buy…"). */
-export type GroupColumn = { key: string; label: string; type: 'number' | 'currency' | 'text' };
+/**
+ * A column of a list-type question ("add each product you buy…").
+ * `fillFrom` names the catalog column the product wizard copies into this one when the
+ * names differ (e.g. unitsPerCase ← case_count); without it, matching is by name.
+ */
+export type GroupColumn = { key: string; label: string; type: 'number' | 'currency' | 'text'; fillFrom?: string };
 
 /**
  * A question the product asks — key matches equation variables (spec §4).
@@ -35,7 +41,17 @@ export type InputFieldDef = {
   defaultValue?: number;
   /** Only for type 'group': the table's columns. */
   columns?: GroupColumn[];
+  /**
+   * Only for type 'group': the product wizard. When set, every row gets a product picker
+   * fed by this database; choosing a product fills any matching columns of that row
+   * (typing stays possible — the wizard is an option, not a replacement;
+   * Derek, 2026-09-19).
+   */
+  productSource?: { databaseId: string; nameColumnKey: string };
 };
+
+/** The catalog rows a product picker offers, keyed by database id. */
+export type ProductCatalog = Record<string, { nameColumnKey: string; rows: Record<string, string | number | null>[] }>;
 
 export type ComposedDefinition = { screens: ComposedScreen[]; inputFields: InputFieldDef[] };
 
@@ -45,6 +61,8 @@ export type ComposedSmartField = {
   unit: string | null;
   description: string | null;
   equation: EquationToken[];
+  /** Optional baseline-vs-forecast pair for the comparison chart. */
+  comparison?: { baseline: EquationToken[]; forecast: EquationToken[] } | null;
 };
 
 export const BLOCK_LABELS: Record<ComposedBlock['kind'], string> = {
@@ -53,6 +71,7 @@ export const BLOCK_LABELS: Record<ComposedBlock['kind'], string> = {
   inputField: 'Input field',
   questionGroup: 'Question group',
   smartFieldCard: 'Smart field card',
+  chart: 'Chart',
   button: 'Button'
 };
 
@@ -68,7 +87,9 @@ export function analyzeDependencies(
   variables: Map<string, SmartVariable>
 ) {
   const placedFieldIds = new Set(
-    definition.screens.flatMap(s => s.blocks).flatMap(b => (b.kind === 'smartFieldCard' ? [b.smartFieldId] : []))
+    definition.screens
+      .flatMap(s => s.blocks)
+      .flatMap(b => (b.kind === 'smartFieldCard' || b.kind === 'chart' ? [b.smartFieldId] : []))
   );
   const collectedKeys = new Set(
     definition.screens
@@ -85,7 +106,10 @@ export function analyzeDependencies(
 
   for (const field of smartFields) {
     if (!placedFieldIds.has(field.id)) continue;
-    for (const req of detectRequirements(field.equation, variables)) {
+    // A comparison's two equations have needs of their own — the chart must not publish
+    // with a baseline nobody collects.
+    const allTokens = [...field.equation, ...(field.comparison?.baseline ?? []), ...(field.comparison?.forecast ?? [])];
+    for (const req of detectRequirements(allTokens, variables)) {
       if (req.kind === 'input' || req.kind === 'intermediate') {
         if (!requiredInputs.has(req.key))
           requiredInputs.set(req.key, { label: req.label, collected: collectedKeys.has(req.key) });
