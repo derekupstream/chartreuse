@@ -206,15 +206,18 @@ export default function ProductsPage({ products, registryCount, composed }: Prop
             <Text type='secondary' style={{ fontSize: 12 }}>
               {product.projectCount.toLocaleString()} {product.projectLabel}
             </Text>
+            {/* Primary actions on the first row; the tool links on their own row below. */}
             <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 14, flexWrap: 'wrap' }}>
               <Link href={product.href}>
                 <Button type='primary' ghost>
                   Open product <ArrowRightOutlined />
                 </Button>
               </Link>
+            </div>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 10, flexWrap: 'wrap' }}>
               {product.links.map(link => (
                 <Link key={link.href} href={link.href}>
-                  <Tag style={{ cursor: 'pointer' }}>{link.label}</Tag>
+                  <Tag style={{ cursor: 'pointer', margin: 0 }}>{link.label}</Tag>
                 </Link>
               ))}
             </div>
@@ -251,6 +254,7 @@ export default function ProductsPage({ products, registryCount, composed }: Prop
                   {p.screenCount} screen{p.screenCount === 1 ? '' : 's'} · {p.submissionCount} submission
                   {p.submissionCount === 1 ? '' : 's'}
                 </Text>
+                {/* Primary actions on the first row; the tool links on their own row below. */}
                 <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 14, flexWrap: 'wrap' }}>
                   {p.status === 'published' ? (
                     <Button type='primary' ghost href={`/p/${p.slug}`} target='_blank'>
@@ -264,14 +268,16 @@ export default function ProductsPage({ products, registryCount, composed }: Prop
                   <Link href={`/admin/data-science/products/${p.id}/builder`}>
                     <Button icon={<ToolOutlined />}>Builder</Button>
                   </Link>
+                </div>
+                <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 10, flexWrap: 'wrap' }}>
                   <Link href='/admin/data-science/quality'>
-                    <Tag style={{ cursor: 'pointer' }}>Validation</Tag>
+                    <Tag style={{ cursor: 'pointer', margin: 0 }}>Validation</Tag>
                   </Link>
                   <Link href='/admin/data-science/methodology-hub'>
-                    <Tag style={{ cursor: 'pointer' }}>Methodology</Tag>
+                    <Tag style={{ cursor: 'pointer', margin: 0 }}>Methodology</Tag>
                   </Link>
                   <Link href='/admin/data-science/console'>
-                    <Tag style={{ cursor: 'pointer' }}>Model Console</Tag>
+                    <Tag style={{ cursor: 'pointer', margin: 0 }}>Model Console</Tag>
                   </Link>
                 </div>
               </Card>
