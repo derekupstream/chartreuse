@@ -13,7 +13,7 @@ export const getServerSideProps: GetServerSideProps = async context => {
 function ProjectionsPage({ project, readOnly, user }: ProjectContext) {
   return (
     <ProjectStepsLayout currentStepIndex={0} project={project} title={`${project.name} - Projections`} user={user}>
-      <ProjectionsStep project={project} readOnly={readOnly} />
+      <ProjectionsStep project={project} readOnly={readOnly} viewerIsUpstream={!!user?.org?.isUpstream} />
     </ProjectStepsLayout>
   );
 }

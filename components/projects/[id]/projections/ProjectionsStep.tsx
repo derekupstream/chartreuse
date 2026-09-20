@@ -78,10 +78,25 @@ export type ProjectionsView = string;
 
 const defaultProjectionsDescription = `These graphs - showing the financial and environmental impacts of reducing single-use items - can help you make the case for reuse and make data driven decisions on how to move forward. You can also print a PDF for sharing and distribution.`;
 
-export const ProjectionsStep = ({ project, readOnly }: { project: ProjectContext['project']; readOnly: boolean }) => {
+export const ProjectionsStep = ({
+  project,
+  readOnly,
+  viewerIsUpstream = false
+}: {
+  project: ProjectContext['project'];
+  readOnly: boolean;
+  /** Whether the SIGNED-IN user is Upstream staff — 2.0 preview and inspection are staff-only. */
+  viewerIsUpstream?: boolean;
+}) => {
   const [view, setView] = useState<string>('summary');
   const { data: v1Data, error, isLoading } = useGetProjections(project.id);
-  const { enabled: chartReuse2 } = useChartReuse2();
+  const { enabled: chartReuse2Raw } = useChartReuse2();
+  // The 2.0 toggle lives in the BROWSER's storage, so it survives switching accounts on
+  // the same machine. 2.0 preview is staff-only today — a non-staff sign-in must see
+  // legacy even when a staff session left the toggle on (found 2026-09-20: Derek's RSP
+  // demo login inherited his staff toggle and saw a "View calculation" pill whose API
+  // then rightly refused it).
+  const chartReuse2 = chartReuse2Raw && viewerIsUpstream;
   // A project PINNED to methodology 2.0 computes 2.0 — the pin is authoritative, not the
   // browser's UI-mode toggle. The toggle only previews 2.0 on projects still pinned to 1.0.
   // (Found via change request 8923824: a pinned-2.0 project rendered v1 numbers under a
@@ -224,7 +239,7 @@ export const ProjectionsStep = ({ project, readOnly }: { project: ProjectContext
   }
 
   return (
-    <CalculationInspectorProvider projectId={project.id} enabled={!!project.org.isUpstream && v2Enabled}>
+    <CalculationInspectorProvider projectId={project.id} enabled={viewerIsUpstream && v2Enabled}>
       <Wrapper ref={printRef}>
         <PrintHeader accountName={project.account.name} orgName={project.org.name} projectName={project.name} />
         <div
@@ -249,7 +264,7 @@ export const ProjectionsStep = ({ project, readOnly }: { project: ProjectContext
           </Typography.Title>
           <div style={{ display: 'flex', gap: 16, alignItems: 'center', flexShrink: 0 }}>
             <PrintButton printRef={printRef} pdfTitle={`${project.name} - Chart-Reuse`} />
-            {project.org.isUpstream && v2Enabled && (
+            {viewerIsUpstream && v2Enabled && (
               <Button
                 className='dont-print-me'
                 icon={<TableOutlined />}
@@ -432,7 +447,7 @@ export const ProjectionsStep = ({ project, readOnly }: { project: ProjectContext
         />
         {/* Staff-only: the un-confusing move when numbers look wrong — Validation instantly
             splits "data problem" from "app problem". */}
-        {project.org.isUpstream && (
+        {viewerIsUpstream && (
           <div className='dont-print-me' style={{ textAlign: 'center', marginTop: 4 }}>
             <a href='/admin/data-science/quality' style={{ fontSize: 11, color: 'rgba(0,0,0,0.45)' }}>
               Numbers look off? Verify the methodology against the workbook →

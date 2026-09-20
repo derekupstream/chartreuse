@@ -33,6 +33,7 @@ export function CalculationInspectorProvider({
 }) {
   const [outputKey, setOutputKey] = useState<string | null>(null);
   const [data, setData] = useState<ExplainResponse | null>(null);
+  const [denied, setDenied] = useState(false);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -43,7 +44,13 @@ export function CalculationInspectorProvider({
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ projectId })
     })
-      .then(r => (r.ok ? r.json() : null))
+      .then(r => {
+        if (r.ok) return r.json();
+        // Say so when the sign-in lacks access, instead of a misleading "no breakdown"
+        // (found 2026-09-20: an RSP login saw exactly that).
+        if (r.status === 401 || r.status === 403) setDenied(true);
+        return null;
+      })
       .then(setData)
       .catch(() => setData(null))
       .finally(() => setLoading(false));
@@ -65,7 +72,15 @@ export function CalculationInspectorProvider({
         }
       >
         {loading && <Spin />}
-        {!loading && !explanation && outputKey && (
+        {!loading && denied && (
+          <Alert
+            type='warning'
+            showIcon
+            message='Calculation inspection is an Upstream staff tool'
+            description='This sign-in does not have access to the calculation breakdowns yet.'
+          />
+        )}
+        {!loading && !denied && !explanation && outputKey && (
           <Alert type='info' showIcon message='No breakdown is available for this number yet.' />
         )}
         {explanation && (
