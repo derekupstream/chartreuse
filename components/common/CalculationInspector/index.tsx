@@ -1,5 +1,5 @@
 import { CalculatorOutlined, DatabaseOutlined } from '@ant-design/icons';
-import { Alert, Drawer, Spin, Table, Tag, Typography } from 'antd';
+import { Alert, Drawer, Spin, Table, Tag, Tooltip, Typography } from 'antd';
 import { createContext, useContext, useEffect, useState } from 'react';
 
 import type { OutputExplanation } from 'lib/calculator/trace/explainOutputs';
@@ -94,7 +94,8 @@ export function CalculationInspectorProvider({
                   pagination={false}
                   dataSource={explanation.contributors}
                   columns={[
-                    { title: 'Line', dataIndex: 'label', ellipsis: true },
+                    // Full names, wrapped — never truncated (Derek, 2026-09-20).
+                    { title: 'Line', dataIndex: 'label' },
                     {
                       title: explanation.unit,
                       dataIndex: 'value',
@@ -123,7 +124,7 @@ export function CalculationInspectorProvider({
                   pagination={{ pageSize: 6, hideOnSinglePage: true }}
                   dataSource={explanation.factorsUsed}
                   columns={[
-                    { title: 'Factor', dataIndex: 'name', ellipsis: true },
+                    { title: 'Factor', dataIndex: 'name' },
                     {
                       title: 'Value',
                       dataIndex: 'value',
@@ -136,11 +137,46 @@ export function CalculationInspectorProvider({
                       width: 190,
                       render: (origin: string, row) =>
                         origin === 'database' ? (
-                          <Tag color='green' icon={<DatabaseOutlined />}>
-                            {row.database}
-                          </Tag>
+                          <>
+                            <Tooltip
+                              title={
+                                (row.sourceNote ? `Reference: ${row.sourceNote}. ` : '') +
+                                (row.databaseId ? 'Click to open the database row and verify it.' : '')
+                              }
+                            >
+                              {row.databaseId ? (
+                                <a
+                                  href={`/admin/data-science/databases?open=${row.databaseId}${
+                                    row.rowIndex != null ? `&row=${row.rowIndex}` : ''
+                                  }`}
+                                  target='_blank'
+                                  rel='noreferrer'
+                                >
+                                  <Tag color='green' icon={<DatabaseOutlined />} style={{ cursor: 'pointer' }}>
+                                    {row.database}
+                                  </Tag>
+                                </a>
+                              ) : (
+                                <Tag color='green' icon={<DatabaseOutlined />}>
+                                  {row.database}
+                                </Tag>
+                              )}
+                            </Tooltip>
+                            {row.sourceUrl && (
+                              <a
+                                href={row.sourceUrl}
+                                target='_blank'
+                                rel='noreferrer'
+                                style={{ fontSize: 11, display: 'block', marginTop: 2 }}
+                              >
+                                reference ↗
+                              </a>
+                            )}
+                          </>
                         ) : (
-                          <Tag>in the code</Tag>
+                          <Tooltip title='A built-in Chart-Reuse value that no database supplies yet. Every default is on its way into the Factor Library with a citation — this tag marks the ones still pending.'>
+                            <Tag>Upstream default</Tag>
+                          </Tooltip>
                         )
                     }
                   ]}

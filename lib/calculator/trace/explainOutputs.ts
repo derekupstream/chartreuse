@@ -26,6 +26,12 @@ export type FactorProvenance = {
   origin: 'database' | 'code';
   /** Which database, when origin is 'database' */
   database?: string;
+  /** The exact row that documents it, so the UI can open it for verification */
+  databaseId?: string;
+  rowIndex?: number;
+  /** Row-level citation and link, when the table carries them (factorReferences.ts) */
+  sourceNote?: string;
+  sourceUrl?: string;
 };
 
 export type Contributor = {

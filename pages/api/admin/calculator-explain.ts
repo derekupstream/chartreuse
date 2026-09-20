@@ -1,5 +1,6 @@
 import type { NextApiResponse } from 'next';
 
+import { attachFactorReferences, loadFactorReferences } from 'lib/calculator/factors/factorReferences';
 import { explainOutputs } from 'lib/calculator/trace/explainOutputs';
 import type { CalculatorExplanation } from 'lib/calculator/trace/explainOutputs';
 import { getProjectInventory } from 'lib/inventory/getProjectInventory';
@@ -67,6 +68,9 @@ handler.post(async (req: NextApiRequestWithUser, res: NextApiResponse) => {
   };
 
   const explanation = explainOutputs(adjusted as typeof inventory);
+  // Point every factor at the database row that documents it, with its citation —
+  // provenance only, never the values (Derek, 2026-09-20).
+  attachFactorReferences(explanation, await loadFactorReferences());
 
   const response: ExplainResponse = {
     ...explanation,
