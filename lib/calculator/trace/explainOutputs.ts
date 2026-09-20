@@ -283,6 +283,44 @@ export function explainOutputs(inventory: ProjectInventory): CalculatorExplanati
         }
       ].filter(c => c.value !== 0),
       caveats: []
+    },
+    {
+      key: 'envBreakEven',
+      label: 'Environmental break-even',
+      group: 'Environmental',
+      value: projections.environmentalResults.envBreakEven.co2BreakEvenMonths ?? 0,
+      unit: 'months',
+      formula: 'reusables manufacturing footprint ÷ annual avoided GHG emissions × 12',
+      inputsUsed: [],
+      factorsUsed: [
+        {
+          name: 'Transportation CO2 (overseas cargo)',
+          value: TRANSPORTATION_CO2_EMISSIONS_FACTOR,
+          unit: 'MTCO2e/lb',
+          origin: 'code'
+        },
+        { name: 'Corrugated cardboard GHG', value: CORRUGATED_CARDBOARD_GAS, unit: 'MTCO2e/lb', origin: 'code' }
+      ],
+      contributors: withShares([
+        {
+          label: 'Reusables manufacturing footprint',
+          detail: 'material embodied carbon + transportation + shipping boxes, one-time',
+          value: projections.environmentalResults.envBreakEven.embodiedCO2Mtco2e
+        },
+        {
+          label: 'Annual avoided emissions',
+          detail: 'single-use GHG the program avoids each year',
+          value: projections.environmentalResults.envBreakEven.annualCO2SavingsMtco2e
+        }
+      ]),
+      caveats: [
+        'Assumptions: both lines on the chart accumulate emissions at a constant monthly rate — the reusables ' +
+          'line starts at the one-time manufacturing footprint (material embodied carbon, overseas ' +
+          'transportation, and shipping boxes) and the single-use line starts at zero. Where they cross, the ' +
+          'manufacturing footprint has been fully offset; the shaded area after it is the emissions avoided.',
+        'Reusable product lifespan is not yet modeled — when durability data reaches the product catalog, the ' +
+          'manufacturing footprint should be spread over the expected number of uses.'
+      ]
     }
   ];
 
