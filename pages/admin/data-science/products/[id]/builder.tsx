@@ -25,6 +25,8 @@ import {
   RobotOutlined,
   SaveOutlined,
   SendOutlined,
+  ShoppingCartOutlined,
+  SyncOutlined,
   ThunderboltOutlined
 } from '@ant-design/icons';
 import {
@@ -60,7 +62,14 @@ import type {
   InputFieldDef,
   ProductCatalog
 } from 'lib/products/composed';
-import { BLOCK_LABELS, analyzeDependencies, newBlockId } from 'lib/products/composed';
+import {
+  BLOCK_LABELS,
+  HALF_CAPABLE_KINDS,
+  WIDGET_INPUT_DEFS,
+  analyzeDependencies,
+  catalogKey,
+  newBlockId
+} from 'lib/products/composed';
 import { detectRequirements } from 'lib/smartFields/variables';
 import type { EquationToken, SmartVariable } from 'lib/smartFields/variables';
 import { getUserFromContext } from 'lib/middleware';
@@ -110,6 +119,8 @@ const BLOCK_ICONS: Record<ComposedBlock['kind'], React.ReactNode> = {
   questionGroup: <ProfileOutlined />,
   smartFieldCard: <FundOutlined />,
   chart: <BarChartOutlined />,
+  singleUseItems: <ShoppingCartOutlined />,
+  reusableItems: <SyncOutlined />,
   button: <RightCircleOutlined />
 };
 
@@ -120,6 +131,14 @@ const PALETTE: { kind: ComposedBlock['kind']; hint: string }[] = [
   { kind: 'inputField', hint: 'A question the user answers' },
   { kind: 'smartFieldCard', hint: 'A computed metric card' },
   { kind: 'chart', hint: 'A baseline-vs-forecast bar chart for a smart field' },
+  {
+    kind: 'singleUseItems',
+    hint: 'The wizard’s line-by-line single-use purchasing entry, backed by the Single-Use Products catalog (full width)'
+  },
+  {
+    kind: 'reusableItems',
+    hint: 'Line-by-line reusable purchasing entry, backed by the Reusable Products catalog (full width)'
+  },
   { kind: 'button', hint: 'Continue / back / save' }
 ];
 
@@ -192,24 +211,36 @@ export default function ProductUxBuilderPage(_: { user: DashboardUser }) {
       .catch(() => undefined);
   }, [id]);
 
-  // Load the rows behind every product picker in use, once per database.
+  // Load the rows behind every product picker in use, once per database — the sources on
+  // question definitions (by id) plus the purchasing widgets' built-in sources (by NAME,
+  // resolved against the database summaries once those load).
   useEffect(() => {
-    const wanted = definition.inputFields.flatMap(f => (f.productSource ? [f.productSource] : []));
+    const wanted = [
+      ...definition.inputFields.flatMap(f => (f.productSource ? [f.productSource] : [])),
+      ...definition.screens
+        .flatMap(s => s.blocks)
+        .flatMap(b =>
+          b.kind === 'singleUseItems' || b.kind === 'reusableItems' ? [WIDGET_INPUT_DEFS[b.kind].productSource!] : []
+        )
+    ];
     for (const source of wanted) {
-      if (productCatalog[source.databaseId]) continue;
+      const key = catalogKey(source);
+      if (!key || productCatalog[key]) continue;
+      const databaseId = source.databaseId ?? databases.find(d => d.name === source.databaseName)?.id;
+      if (!databaseId) continue; // summaries not loaded yet — this effect reruns when they are
       // Mark as loading immediately so parallel effects don't fetch twice.
-      setProductCatalog(prev => ({ ...prev, [source.databaseId]: { nameColumnKey: source.nameColumnKey, rows: [] } }));
-      fetch(`/api/admin/factor-databases/${source.databaseId}`)
+      setProductCatalog(prev => ({ ...prev, [key]: { nameColumnKey: source.nameColumnKey, rows: [] } }));
+      fetch(`/api/admin/factor-databases/${databaseId}`)
         .then(r => r.json())
         .then(db =>
           setProductCatalog(prev => ({
             ...prev,
-            [source.databaseId]: { nameColumnKey: source.nameColumnKey, rows: db.rows ?? [] }
+            [key]: { nameColumnKey: source.nameColumnKey, rows: db.rows ?? [] }
           }))
         )
         .catch(() => undefined);
     }
-  }, [definition.inputFields, productCatalog]);
+  }, [definition, databases, productCatalog]);
 
   const variableMap = useMemo(() => new Map(variables.map(v => [v.key, v])), [variables]);
   const composedFields: ComposedSmartField[] = useMemo(
@@ -324,7 +355,9 @@ export default function ProductUxBuilderPage(_: { user: DashboardUser }) {
                       // A chart wants a field WITH a comparison; fall back to any field.
                       smartFieldId: (smartFields.find(f => f.comparison) ?? smartFields[0])?.id ?? ''
                     }
-                  : { id: idNew, kind: 'button', label: 'Continue', action: 'next' };
+                  : kind === 'singleUseItems' || kind === 'reusableItems'
+                    ? { id: idNew, kind }
+                    : { id: idNew, kind: 'button', label: 'Continue', action: 'next' };
     update(d => {
       d.screens[screenIndex]?.blocks.push(block);
       return d;
@@ -1010,7 +1043,9 @@ export default function ProductUxBuilderPage(_: { user: DashboardUser }) {
                                         ? block.title || `${block.inputKeys.length} questions`
                                         : block.kind === 'smartFieldCard' || block.kind === 'chart'
                                           ? (composedFields.find(f => f.id === block.smartFieldId)?.name ?? '—')
-                                          : block.label}
+                                          : block.kind === 'singleUseItems' || block.kind === 'reusableItems'
+                                            ? (block.label ?? WIDGET_INPUT_DEFS[block.kind].label)
+                                            : block.label}
                                 </Text>
                               </div>
                             ))}
@@ -1384,6 +1419,32 @@ export default function ProductUxBuilderPage(_: { user: DashboardUser }) {
                             })()}
                           </>
                         )}
+                        {(selectedBlock.kind === 'singleUseItems' || selectedBlock.kind === 'reusableItems') && (
+                          <>
+                            <Input
+                              style={{ marginTop: 8 }}
+                              placeholder={`Title (defaults to “${WIDGET_INPUT_DEFS[selectedBlock.kind].label}”)`}
+                              value={selectedBlock.label}
+                              onChange={e => updateBlock(selectedBlock.id, { label: e.target.value } as any)}
+                            />
+                            <Text type='secondary' style={{ fontSize: 12, display: 'block', marginTop: 8 }}>
+                              The wizard&apos;s line-by-line purchasing entry, backed by the{' '}
+                              <Text strong style={{ fontSize: 12 }}>
+                                {WIDGET_INPUT_DEFS[selectedBlock.kind].productSource?.databaseName}
+                              </Text>{' '}
+                              catalog. Equations reach its rows as the list{' '}
+                              <Text code style={{ fontSize: 11 }}>
+                                {WIDGET_INPUT_DEFS[selectedBlock.kind].key}
+                              </Text>{' '}
+                              with columns{' '}
+                              {(WIDGET_INPUT_DEFS[selectedBlock.kind].columns ?? [])
+                                .map(c => c.key)
+                                .filter(k => k !== 'productName')
+                                .join(', ')}
+                              . Always a full-width block.
+                            </Text>
+                          </>
+                        )}
                         {selectedBlock.kind === 'button' && (
                           <>
                             <Input
@@ -1402,6 +1463,25 @@ export default function ProductUxBuilderPage(_: { user: DashboardUser }) {
                               onChange={action => updateBlock(selectedBlock.id, { action } as any)}
                             />
                           </>
+                        )}
+                        {/* Row layout (Derek, 2026-09-20): compact blocks can share a row —
+                            set two consecutive blocks to "Half row" and they sit side by
+                            side, Squarespace-style. Wide blocks stay full width. */}
+                        {HALF_CAPABLE_KINDS.includes(selectedBlock.kind) && (
+                          <div style={{ marginTop: 12 }}>
+                            <Text type='secondary' style={{ fontSize: 12, display: 'block', marginBottom: 4 }}>
+                              Row layout — two consecutive half-row blocks share one row
+                            </Text>
+                            <Segmented
+                              size='small'
+                              value={selectedBlock.width ?? 'full'}
+                              onChange={width => updateBlock(selectedBlock.id, { width } as any)}
+                              options={[
+                                { label: 'Full row', value: 'full' },
+                                { label: 'Half row (2-column)', value: 'half' }
+                              ]}
+                            />
+                          </div>
                         )}
                         <div style={{ display: 'flex', gap: 6, marginTop: 12 }}>
                           <Button

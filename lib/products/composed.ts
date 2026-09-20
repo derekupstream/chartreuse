@@ -7,7 +7,14 @@
 import type { EquationToken, SmartVariable } from 'lib/smartFields/variables';
 import { detectRequirements } from 'lib/smartFields/variables';
 
-export type ComposedBlock =
+/**
+ * How much of a row a block takes (Derek, 2026-09-20, the Squarespace-style layout):
+ * 'full' is its own row; consecutive 'half' blocks pair up side by side, two per row.
+ * Only compact blocks may be 'half' — see HALF_CAPABLE_KINDS.
+ */
+export type BlockWidth = 'full' | 'half';
+
+export type ComposedBlock = { width?: BlockWidth } & (
   | { id: string; kind: 'heading'; text: string }
   | { id: string; kind: 'text'; text: string }
   | { id: string; kind: 'inputField'; inputKey: string }
@@ -16,7 +23,19 @@ export type ComposedBlock =
   | { id: string; kind: 'smartFieldCard'; smartFieldId: string; label?: string }
   /** A larger baseline-vs-forecast bar chart for a smart field that has a comparison. */
   | { id: string; kind: 'chart'; smartFieldId: string; label?: string }
-  | { id: string; kind: 'button'; label: string; action: 'next' | 'back' | 'submit' };
+  /**
+   * The Single-Use purchasing widget from the projections wizard: line-by-line product
+   * entry backed by the Single-Use Products catalog. Writes rows under the fixed key
+   * 'singleUseProducts' (see WIDGET_INPUT_DEFS) so equations can SUM over them.
+   */
+  | { id: string; kind: 'singleUseItems'; label?: string }
+  /** The Reusables purchasing widget — rows under 'reusableProducts'. */
+  | { id: string; kind: 'reusableItems'; label?: string }
+  | { id: string; kind: 'button'; label: string; action: 'next' | 'back' | 'submit' }
+);
+
+/** Blocks compact enough to share a row; everything else is always full width. */
+export const HALF_CAPABLE_KINDS: ComposedBlock['kind'][] = ['smartFieldCard', 'chart', 'inputField', 'text'];
 
 export type ComposedScreen = { id: string; title: string; blocks: ComposedBlock[] };
 
@@ -47,11 +66,60 @@ export type InputFieldDef = {
    * (typing stays possible — the wizard is an option, not a replacement;
    * Derek, 2026-09-19).
    */
-  productSource?: { databaseId: string; nameColumnKey: string };
+  productSource?: { databaseId?: string; databaseName?: string; nameColumnKey: string };
 };
 
-/** The catalog rows a product picker offers, keyed by database id. */
+/**
+ * The catalog rows a product picker offers. Keys are the database id, or
+ * `name:<database name>` for name-addressed sources (catalogKey builds them) — the
+ * built-in purchasing widgets address by NAME so they work in any environment.
+ */
 export type ProductCatalog = Record<string, { nameColumnKey: string; rows: Record<string, string | number | null>[] }>;
+
+/** The catalog-map key for a product source: its id, or "name:<database name>". */
+export function catalogKey(source: { databaseId?: string; databaseName?: string }): string | null {
+  if (source.databaseId) return source.databaseId;
+  if (source.databaseName) return `name:${source.databaseName}`;
+  return null;
+}
+
+/**
+ * The built-in purchasing widgets' question definitions (Derek, 2026-09-20: "add the
+ * Single-Use Widget or Reusables Widget to a page in the flow"). Fixed keys so equations
+ * can rely on them; columns mirror the projections wizard's line items, with catalog
+ * auto-fill for units, weight and (for reusables) price.
+ */
+export const WIDGET_INPUT_DEFS: Record<'singleUseItems' | 'reusableItems', InputFieldDef> = {
+  singleUseItems: {
+    key: 'singleUseProducts',
+    label: 'Single-use purchases',
+    type: 'group',
+    help: 'Add a row for each single-use product you buy. Pick from the catalog to fill in the details, or type them.',
+    productSource: { databaseName: 'Single-Use Products', nameColumnKey: 'product' },
+    columns: [
+      { key: 'productName', label: 'Product name', type: 'text' },
+      { key: 'casesPerYear', label: 'Cases / year', type: 'number' },
+      { key: 'unitsPerCase', label: 'Units per case', type: 'number', fillFrom: 'case_count' },
+      { key: 'caseCost', label: 'Cost per case', type: 'currency' },
+      { key: 'itemWeightLbs', label: 'Item weight (lb)', type: 'number', fillFrom: 'item_weight_lbs' },
+      { key: 'newCasesPerYear', label: 'Cases / year after switch', type: 'number' }
+    ]
+  },
+  reusableItems: {
+    key: 'reusableProducts',
+    label: 'Reusable purchases',
+    type: 'group',
+    help: 'Add a row for each reusable product you will buy. Pick from the catalog to fill in the details, or type them.',
+    productSource: { databaseName: 'Reusable Products', nameColumnKey: 'product' },
+    columns: [
+      { key: 'productName', label: 'Product name', type: 'text' },
+      { key: 'casesPurchased', label: 'Cases purchased', type: 'number' },
+      { key: 'unitsPerCase', label: 'Units per case', type: 'number', fillFrom: 'case_count' },
+      { key: 'caseCost', label: 'Cost per case', type: 'currency', fillFrom: 'case_price' },
+      { key: 'repurchasePercent', label: 'Restocked yearly (%)', type: 'number' }
+    ]
+  }
+};
 
 export type ComposedDefinition = { screens: ComposedScreen[]; inputFields: InputFieldDef[] };
 
@@ -72,6 +140,8 @@ export const BLOCK_LABELS: Record<ComposedBlock['kind'], string> = {
   questionGroup: 'Question group',
   smartFieldCard: 'Smart field card',
   chart: 'Chart',
+  singleUseItems: 'Single-use widget',
+  reusableItems: 'Reusables widget',
   button: 'Button'
 };
 
@@ -94,7 +164,16 @@ export function analyzeDependencies(
   const collectedKeys = new Set(
     definition.screens
       .flatMap(s => s.blocks)
-      .flatMap(b => (b.kind === 'inputField' ? [b.inputKey] : b.kind === 'questionGroup' ? b.inputKeys : []))
+      .flatMap(b =>
+        b.kind === 'inputField'
+          ? [b.inputKey]
+          : b.kind === 'questionGroup'
+            ? b.inputKeys
+            : // The purchasing widgets collect their fixed list keys.
+              b.kind === 'singleUseItems' || b.kind === 'reusableItems'
+              ? [WIDGET_INPUT_DEFS[b.kind].key]
+              : []
+      )
   );
 
   const requiredInputs = new Map<

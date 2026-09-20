@@ -10,6 +10,7 @@ import Head from 'next/head';
 import { ComposedProductRenderer } from 'components/products/ComposedProductRenderer';
 import type { SubmitResult } from 'components/products/ComposedProductRenderer';
 import type { ComposedDefinition, ComposedSmartField, ProductCatalog } from 'lib/products/composed';
+import { WIDGET_INPUT_DEFS, catalogKey } from 'lib/products/composed';
 import { buildVariableCatalog } from 'lib/smartFields/catalogServer';
 import type { FieldValues, SmartVariable } from 'lib/smartFields/variables';
 import type { EquationToken } from 'lib/smartFields/variables';
@@ -71,18 +72,32 @@ export const getServerSideProps: GetServerSideProps = async context => {
 
   // The product wizard's catalog rows, embedded server-side: only the databases this
   // product's questions actually reference, so a public product never opens a general
-  // database-reading door.
+  // database-reading door. Sources come from question definitions (by id) and from the
+  // built-in purchasing widgets (by NAME).
   const productCatalog: ProductCatalog = {};
-  const sources = definition.inputFields.flatMap(f => (f.productSource ? [f.productSource] : []));
+  const sources = [
+    ...definition.inputFields.flatMap(f => (f.productSource ? [f.productSource] : [])),
+    ...definition.screens
+      .flatMap(s => s.blocks)
+      .flatMap(b =>
+        b.kind === 'singleUseItems' || b.kind === 'reusableItems' ? [WIDGET_INPUT_DEFS[b.kind].productSource!] : []
+      )
+  ];
   if (sources.length) {
+    const ids = Array.from(new Set(sources.flatMap(s => (s.databaseId ? [s.databaseId] : []))));
+    const names = Array.from(new Set(sources.flatMap(s => (s.databaseName ? [s.databaseName] : []))));
     const catalogDbs = await prisma.factorDatabase.findMany({
-      where: { id: { in: Array.from(new Set(sources.map(s => s.databaseId))) } },
+      where: { OR: [{ id: { in: ids } }, { name: { in: names } }] },
       include: { rows: { orderBy: { rowIndex: 'asc' } } }
     });
-    for (const db of catalogDbs) {
-      const nameColumnKey = sources.find(s => s.databaseId === db.id)?.nameColumnKey ?? 'name';
-      productCatalog[db.id] = {
-        nameColumnKey,
+    for (const source of sources) {
+      const key = catalogKey(source);
+      const db = catalogDbs.find(d =>
+        source.databaseId ? d.id === source.databaseId : d.name === source.databaseName
+      );
+      if (!key || !db || productCatalog[key]) continue;
+      productCatalog[key] = {
+        nameColumnKey: source.nameColumnKey,
         rows: db.rows.map(r => r.data as Record<string, string | number | null>)
       };
     }

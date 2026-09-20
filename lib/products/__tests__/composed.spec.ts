@@ -54,4 +54,37 @@ describe('analyzeDependencies with chart blocks and comparisons', () => {
     const result = analyzeDependencies(definitionWith('smartFieldCard'), [withoutComparison], variables);
     expect(result.inputs.map(i => i.key).sort()).toEqual(['baselineWaterUse', 'forecastWaterUse']);
   });
+
+  it('a purchasing widget collects its fixed list key, satisfying SUM equations over it', () => {
+    const suField: ComposedSmartField = {
+      id: 'f2',
+      name: 'Annual items',
+      unit: 'items',
+      description: null,
+      equation: [
+        {
+          kind: 'aggregate',
+          fn: 'SUM',
+          group: 'singleUseProducts',
+          body: [
+            { kind: 'variable', key: 'casesPerYear' },
+            { kind: 'operator', value: '*' },
+            { kind: 'variable', key: 'unitsPerCase' }
+          ]
+        }
+      ]
+    };
+    const definition: ComposedDefinition = {
+      screens: [
+        { id: 's1', title: 'Purchasing', blocks: [{ id: 'w1', kind: 'singleUseItems' }] },
+        { id: 's2', title: 'Results', blocks: [{ id: 'b1', kind: 'smartFieldCard', smartFieldId: 'f2' }] }
+      ],
+      inputFields: []
+    };
+    const result = analyzeDependencies(definition, [suField], variables);
+    expect(result.uncollected).toHaveLength(0);
+    // Without the widget, the list is an uncollected requirement.
+    const bare: ComposedDefinition = { screens: [definition.screens[1]], inputFields: [] };
+    expect(analyzeDependencies(bare, [suField], variables).uncollected.map(u => u.key)).toEqual(['singleUseProducts']);
+  });
 });

@@ -13,6 +13,7 @@ import type {
   InputFieldDef,
   ProductCatalog
 } from 'lib/products/composed';
+import { WIDGET_INPUT_DEFS, catalogKey } from 'lib/products/composed';
 import type { FieldValues, GroupRow, SmartVariable } from 'lib/smartFields/variables';
 import { evaluateEquation, toVariableKey } from 'lib/smartFields/variables';
 
@@ -197,10 +198,12 @@ export function ComposedProductRenderer({
       const setRows = (next: GroupRow[]) => setValues(prev => ({ ...prev, [def.key]: next }));
       // The product wizard: an optional picker per row. Choosing a catalog product fills
       // every column it can match; anything can still be typed or corrected by hand.
-      const catalog = def.productSource ? productCatalog?.[def.productSource.databaseId] : undefined;
+      const catalog = def.productSource ? productCatalog?.[catalogKey(def.productSource) ?? ''] : undefined;
       const applyProduct = (rowIndex: number, name: string) => {
         if (!catalog || !def.productSource) return;
-        const picked = catalog.rows.find(r => String(r[def.productSource!.nameColumnKey] ?? '') === name);
+        // Compare trimmed: the dropdown options are trimmed, and catalog cells can carry
+        // stray whitespace (found 2026-09-20: "Ceramic Mug " filled nothing).
+        const picked = catalog.rows.find(r => String(r[def.productSource!.nameColumnKey] ?? '').trim() === name);
         if (!picked) return;
         setRows(
           rows.map((row, i) => {
@@ -305,6 +308,9 @@ export function ComposedProductRenderer({
                             min={0}
                             value={typeof row[column.key] === 'number' ? (row[column.key] as number) : undefined}
                             placeholder={column.label}
+                            // New rows seed 0 — select it on focus so typing REPLACES it
+                            // (found 2026-09-20: typing 40 into a 0 cell produced 400).
+                            onFocus={e => e.target.select()}
                             onChange={v =>
                               setRows(
                                 rows.map((r, i) =>
@@ -367,14 +373,19 @@ export function ComposedProductRenderer({
 
   function renderBlock(block: ComposedBlock) {
     const selectable = mode === 'builder';
+    // The row layout (Derek, 2026-09-20): a 'half' block takes half the row, so two
+    // consecutive halves sit side by side; a narrow container wraps them back to stacked.
+    const widthStyle: React.CSSProperties =
+      block.width === 'half' ? { width: 'calc(50% - 8px)', minWidth: 260 } : { width: '100%' };
     const wrapperStyle: React.CSSProperties = selectable
       ? {
+          ...widthStyle,
           cursor: 'pointer',
           borderRadius: 6,
           outline: selectedBlockId === block.id ? '2px solid #1677ff' : undefined,
           outlineOffset: 2
         }
-      : {};
+      : widthStyle;
     const wrap = (node: React.ReactNode) => (
       <div key={block.id} style={wrapperStyle} onClick={selectable ? () => onSelectBlock?.(block.id) : undefined}>
         {node}
@@ -476,6 +487,13 @@ export function ComposedProductRenderer({
           </Card>
         );
       }
+      case 'singleUseItems':
+      case 'reusableItems': {
+        // The purchasing widgets: the projections wizard's line-by-line entry, embeddable
+        // as a block. Their question definitions are built in (WIDGET_INPUT_DEFS).
+        const def = WIDGET_INPUT_DEFS[block.kind];
+        return wrap(renderInput(block.label ? { ...def, label: block.label } : def));
+      }
       case 'button': {
         if (mode === 'builder')
           return wrap(
@@ -521,7 +539,9 @@ export function ComposedProductRenderer({
           style={{ marginBottom: 24 }}
         />
       )}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>{screen.blocks.map(renderBlock)}</div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start', rowGap: 4, columnGap: 16 }}>
+        {screen.blocks.map(renderBlock)}
+      </div>
       {mode === 'live' && !screen.blocks.some(b => b.kind === 'button') && !isLast && (
         <Button type='primary' style={{ marginTop: 16 }} onClick={() => setStep(s => s + 1)}>
           Continue
