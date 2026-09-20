@@ -14,6 +14,7 @@ import type {
   ProductCatalog
 } from 'lib/products/composed';
 import { WIDGET_INPUT_DEFS, catalogKey } from 'lib/products/composed';
+import { PurchasingWidget } from 'components/products/PurchasingWidget';
 import type { FieldValues, GroupRow, SmartVariable } from 'lib/smartFields/variables';
 import { evaluateEquation, toVariableKey } from 'lib/smartFields/variables';
 
@@ -489,10 +490,22 @@ export function ComposedProductRenderer({
       }
       case 'singleUseItems':
       case 'reusableItems': {
-        // The purchasing widgets: the projections wizard's line-by-line entry, embeddable
-        // as a block. Their question definitions are built in (WIDGET_INPUT_DEFS).
+        // The purchasing widgets: the projections wizard's OWN experience — item rows and
+        // the stepped side-drawer picker — writing into this product's answers
+        // (components/products/PurchasingWidget.tsx).
         const def = WIDGET_INPUT_DEFS[block.kind];
-        return wrap(renderInput(block.label ? { ...def, label: block.label } : def));
+        const catalog = productCatalog?.[catalogKey(def.productSource!) ?? ''];
+        const widgetRows = Array.isArray(values[def.key]) ? (values[def.key] as GroupRow[]) : [];
+        return wrap(
+          <PurchasingWidget
+            kind={block.kind}
+            title={block.label || def.label}
+            help={def.help}
+            catalogRows={catalog?.rows ?? []}
+            rows={widgetRows}
+            setRows={next => setValues(prev => ({ ...prev, [def.key]: next }))}
+          />
+        );
       }
       case 'button': {
         if (mode === 'builder')

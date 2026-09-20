@@ -38,15 +38,15 @@ type FieldSeed = {
 // Shared sample rows so every field previews something real-looking in the builder.
 const SAMPLE_ROWS = {
   singleUseProducts: [
-    { productName: 'Hot cup', casesPerYear: 100, unitsPerCase: 1000, caseCost: 85, itemWeightLbs: 0.03, newCasesPerYear: 20 },
-    { productName: 'Clamshell', casesPerYear: 50, unitsPerCase: 200, caseCost: 60, itemWeightLbs: 0.02, newCasesPerYear: 10 }
+    { productName: 'Hot cup', casesPerYear: 100, unitsPerCase: 1000, caseCost: 85, newCaseCost: 85, itemWeightLbs: 0.03, newCasesPerYear: 20 },
+    { productName: 'Clamshell', casesPerYear: 50, unitsPerCase: 200, caseCost: 60, newCaseCost: 60, itemWeightLbs: 0.02, newCasesPerYear: 10 }
   ],
   reusableProducts: [{ productName: 'Reusable cup', casesPurchased: 10, unitsPerCase: 24, caseCost: 55, repurchasePercent: 10 }]
 };
 
 const BASELINE_COST = 'SUM(singleUseProducts, casesPerYear * caseCost)';
 const FORECAST_COST =
-  'SUM(singleUseProducts, newCasesPerYear * caseCost)' +
+  'SUM(singleUseProducts, newCasesPerYear * newCaseCost)' +
   ' + SUM(reusableProducts, casesPurchased * caseCost * repurchasePercent / 100)' +
   ' + racksPerDay * operatingDays * utilityCostPerRack' +
   ' + laborCostAnnual + otherRecurringCosts';

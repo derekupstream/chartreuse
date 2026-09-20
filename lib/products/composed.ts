@@ -102,7 +102,8 @@ export const WIDGET_INPUT_DEFS: Record<'singleUseItems' | 'reusableItems', Input
       { key: 'unitsPerCase', label: 'Units per case', type: 'number', fillFrom: 'case_count' },
       { key: 'caseCost', label: 'Cost per case', type: 'currency' },
       { key: 'itemWeightLbs', label: 'Item weight (lb)', type: 'number', fillFrom: 'item_weight_lbs' },
-      { key: 'newCasesPerYear', label: 'Cases / year after switch', type: 'number' }
+      { key: 'newCasesPerYear', label: 'Cases / year after switch', type: 'number' },
+      { key: 'newCaseCost', label: 'Cost per case after switch', type: 'currency' }
     ]
   },
   reusableItems: {
