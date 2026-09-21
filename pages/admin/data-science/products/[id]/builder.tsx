@@ -12,7 +12,9 @@ import {
   ArrowLeftOutlined,
   ArrowUpOutlined,
   BarChartOutlined,
+  ClearOutlined,
   DeleteOutlined,
+  DollarOutlined,
   DownOutlined,
   EyeOutlined,
   FontSizeOutlined,
@@ -67,7 +69,9 @@ import {
   HALF_CAPABLE_KINDS,
   WIDGET_INPUT_DEFS,
   analyzeDependencies,
+  blockDisplayLabel,
   catalogKey,
+  isWidgetKind,
   newBlockId
 } from 'lib/products/composed';
 import { detectRequirements } from 'lib/smartFields/variables';
@@ -121,10 +125,19 @@ const BLOCK_ICONS: Record<ComposedBlock['kind'], React.ReactNode> = {
   chart: <BarChartOutlined />,
   singleUseItems: <ShoppingCartOutlined />,
   reusableItems: <SyncOutlined />,
+  dishwashers: <ClearOutlined />,
+  additionalCosts: <DollarOutlined />,
   button: <RightCircleOutlined />
 };
 
-const PALETTE: { kind: ComposedBlock['kind']; hint: string }[] = [
+const PALETTE: {
+  kind: ComposedBlock['kind'];
+  hint: string;
+  /** Palette label override (the variant spelled out); defaults to BLOCK_LABELS. */
+  label?: string;
+  /** Extra fields preset on the new block (widget variants). */
+  preset?: Record<string, unknown>;
+}[] = [
   { kind: 'heading', hint: 'A screen title' },
   { kind: 'text', hint: 'Guidance or explanation' },
   { kind: 'questionGroup', hint: 'Several questions together under one title' },
@@ -133,11 +146,51 @@ const PALETTE: { kind: ComposedBlock['kind']; hint: string }[] = [
   { kind: 'chart', hint: 'A baseline-vs-forecast bar chart for a smart field' },
   {
     kind: 'singleUseItems',
-    hint: 'The wizard’s line-by-line single-use purchasing entry, backed by the Single-Use Products catalog (full width)'
+    label: 'Single-Use (Widget)',
+    preset: { variant: 'widget' },
+    hint: 'The real single-use purchasing experience: item rows plus the stepped drawer picker'
+  },
+  {
+    kind: 'singleUseItems',
+    label: 'Single-Use (Simple)',
+    preset: { variant: 'simple' },
+    hint: 'The compact inline table with a per-row catalog picker'
   },
   {
     kind: 'reusableItems',
-    hint: 'Line-by-line reusable purchasing entry, backed by the Reusable Products catalog (full width)'
+    label: 'Reusables (Widget)',
+    preset: { variant: 'widget' },
+    hint: 'The real reusables purchasing experience: item rows plus the stepped drawer picker'
+  },
+  {
+    kind: 'reusableItems',
+    label: 'Reusables (Simple)',
+    preset: { variant: 'simple' },
+    hint: 'The compact inline table with a per-row catalog picker'
+  },
+  {
+    kind: 'dishwashers',
+    label: 'Dishwasher (Widget)',
+    preset: { variant: 'widget' },
+    hint: 'The real dishwashing experience: machine rows plus the "Add dishwasher" drawer'
+  },
+  {
+    kind: 'dishwashers',
+    label: 'Dishwasher (Simple)',
+    preset: { variant: 'simple' },
+    hint: 'The compact inline table of dish machines'
+  },
+  {
+    kind: 'additionalCosts',
+    label: 'Additional Costs (Widget)',
+    preset: { variant: 'widget' },
+    hint: 'The real additional-costs experience: labor / hauling / other expenses with the drawer form'
+  },
+  {
+    kind: 'additionalCosts',
+    label: 'Additional Costs (Simple)',
+    preset: { variant: 'simple' },
+    hint: 'The compact inline table of expenses'
   },
   { kind: 'button', hint: 'Continue / back / save' }
 ];
@@ -219,9 +272,11 @@ export default function ProductUxBuilderPage(_: { user: DashboardUser }) {
       ...definition.inputFields.flatMap(f => (f.productSource ? [f.productSource] : [])),
       ...definition.screens
         .flatMap(s => s.blocks)
-        .flatMap(b =>
-          b.kind === 'singleUseItems' || b.kind === 'reusableItems' ? [WIDGET_INPUT_DEFS[b.kind].productSource!] : []
-        )
+        .flatMap(b => {
+          if (!isWidgetKind(b.kind)) return [];
+          const source = WIDGET_INPUT_DEFS[b.kind].productSource;
+          return source ? [source] : [];
+        })
     ];
     for (const source of wanted) {
       const key = catalogKey(source);
@@ -329,7 +384,7 @@ export default function ProductUxBuilderPage(_: { user: DashboardUser }) {
     setSelectedBlockId(blockId);
   }
 
-  function addBlock(kind: ComposedBlock['kind']) {
+  function addBlock(kind: ComposedBlock['kind'], preset: Record<string, unknown> = {}) {
     const idNew = newBlockId();
     // A new input block defaults to the first input NOT yet placed anywhere — adding three
     // questions in a row shouldn't require reassigning two of them (dogfooding 2026-09-19).
@@ -355,8 +410,8 @@ export default function ProductUxBuilderPage(_: { user: DashboardUser }) {
                       // A chart wants a field WITH a comparison; fall back to any field.
                       smartFieldId: (smartFields.find(f => f.comparison) ?? smartFields[0])?.id ?? ''
                     }
-                  : kind === 'singleUseItems' || kind === 'reusableItems'
-                    ? { id: idNew, kind }
+                  : isWidgetKind(kind)
+                    ? ({ id: idNew, kind, ...preset } as ComposedBlock)
                     : { id: idNew, kind: 'button', label: 'Continue', action: 'next' };
     update(d => {
       d.screens[screenIndex]?.blocks.push(block);
@@ -970,16 +1025,16 @@ export default function ProductUxBuilderPage(_: { user: DashboardUser }) {
                         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 6 }}>
                           {PALETTE.map(p => (
                             <Button
-                              key={p.kind}
+                              key={p.label ?? p.kind}
                               size='small'
                               icon={BLOCK_ICONS[p.kind]}
                               title={p.hint}
                               style={{ borderRadius: 6 }}
                               onClick={() =>
-                                p.kind === 'smartFieldCard' ? setFieldPickerOpen(true) : addBlock(p.kind)
+                                p.kind === 'smartFieldCard' ? setFieldPickerOpen(true) : addBlock(p.kind, p.preset)
                               }
                             >
-                              {BLOCK_LABELS[p.kind]}
+                              {p.label ?? BLOCK_LABELS[p.kind]}
                             </Button>
                           ))}
                           <Button
@@ -1032,7 +1087,7 @@ export default function ProductUxBuilderPage(_: { user: DashboardUser }) {
                                 <HolderOutlined style={{ color: '#bbb' }} />
                                 <Tag style={{ margin: 0 }} icon={BLOCK_ICONS[block.kind]}>
                                   {' '}
-                                  {BLOCK_LABELS[block.kind]}
+                                  {blockDisplayLabel(block)}
                                 </Tag>
                                 <Text type='secondary' ellipsis style={{ fontSize: 12, flex: 1 }}>
                                   {block.kind === 'heading' || block.kind === 'text'
@@ -1043,7 +1098,7 @@ export default function ProductUxBuilderPage(_: { user: DashboardUser }) {
                                         ? block.title || `${block.inputKeys.length} questions`
                                         : block.kind === 'smartFieldCard' || block.kind === 'chart'
                                           ? (composedFields.find(f => f.id === block.smartFieldId)?.name ?? '—')
-                                          : block.kind === 'singleUseItems' || block.kind === 'reusableItems'
+                                          : isWidgetKind(block.kind)
                                             ? (block.label ?? WIDGET_INPUT_DEFS[block.kind].label)
                                             : block.label}
                                 </Text>
@@ -1087,7 +1142,7 @@ export default function ProductUxBuilderPage(_: { user: DashboardUser }) {
                           </span>
                           <div>
                             <Text strong style={{ fontSize: 13, display: 'block' }}>
-                              {BLOCK_LABELS[selectedBlock.kind]}
+                              {blockDisplayLabel(selectedBlock)}
                             </Text>
                             <Text type='secondary' style={{ fontSize: 11 }}>
                               {PALETTE.find(p => p.kind === selectedBlock.kind)?.hint}
@@ -1419,20 +1474,40 @@ export default function ProductUxBuilderPage(_: { user: DashboardUser }) {
                             })()}
                           </>
                         )}
-                        {(selectedBlock.kind === 'singleUseItems' || selectedBlock.kind === 'reusableItems') && (
+                        {isWidgetKind(selectedBlock.kind) && (
                           <>
+                            <div style={{ marginTop: 8 }}>
+                              <Text type='secondary' style={{ fontSize: 12, display: 'block', marginBottom: 4 }}>
+                                Style — Widget is the real project experience (rows + drawer); Simple is the compact
+                                inline table
+                              </Text>
+                              <Segmented
+                                size='small'
+                                value={(selectedBlock as { variant?: string }).variant ?? 'widget'}
+                                onChange={variant => updateBlock(selectedBlock.id, { variant } as any)}
+                                options={[
+                                  { label: 'Widget', value: 'widget' },
+                                  { label: 'Simple', value: 'simple' }
+                                ]}
+                              />
+                            </div>
                             <Input
                               style={{ marginTop: 8 }}
                               placeholder={`Title (defaults to “${WIDGET_INPUT_DEFS[selectedBlock.kind].label}”)`}
-                              value={selectedBlock.label}
+                              value={(selectedBlock as { label?: string }).label}
                               onChange={e => updateBlock(selectedBlock.id, { label: e.target.value } as any)}
                             />
                             <Text type='secondary' style={{ fontSize: 12, display: 'block', marginTop: 8 }}>
-                              The wizard&apos;s line-by-line purchasing entry, backed by the{' '}
-                              <Text strong style={{ fontSize: 12 }}>
-                                {WIDGET_INPUT_DEFS[selectedBlock.kind].productSource?.databaseName}
-                              </Text>{' '}
-                              catalog. Equations reach its rows as the list{' '}
+                              {WIDGET_INPUT_DEFS[selectedBlock.kind].productSource?.databaseName ? (
+                                <>
+                                  Backed by the{' '}
+                                  <Text strong style={{ fontSize: 12 }}>
+                                    {WIDGET_INPUT_DEFS[selectedBlock.kind].productSource?.databaseName}
+                                  </Text>{' '}
+                                  table.{' '}
+                                </>
+                              ) : null}
+                              Equations reach its rows as the list{' '}
                               <Text code style={{ fontSize: 11 }}>
                                 {WIDGET_INPUT_DEFS[selectedBlock.kind].key}
                               </Text>{' '}

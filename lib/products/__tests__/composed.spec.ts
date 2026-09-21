@@ -87,4 +87,33 @@ describe('analyzeDependencies with chart blocks and comparisons', () => {
     const bare: ComposedDefinition = { screens: [definition.screens[1]], inputFields: [] };
     expect(analyzeDependencies(bare, [suField], variables).uncollected.map(u => u.key)).toEqual(['singleUseProducts']);
   });
+
+  it('the dishwasher and additional-costs widgets collect their fixed keys, in either variant', () => {
+    const field: ComposedSmartField = {
+      id: 'f3',
+      name: 'Forecast cost',
+      unit: '$',
+      description: null,
+      equation: [
+        { kind: 'aggregate', fn: 'SUM', group: 'dishwashers', body: [{ kind: 'variable', key: 'racksPerDay' }] },
+        { kind: 'operator', value: '+' },
+        { kind: 'aggregate', fn: 'SUM', group: 'additionalCosts', body: [{ kind: 'variable', key: 'amountPerYear' }] }
+      ]
+    };
+    const definition: ComposedDefinition = {
+      screens: [
+        {
+          id: 's1',
+          title: 'Operations',
+          blocks: [
+            { id: 'w1', kind: 'dishwashers', variant: 'widget' },
+            { id: 'w2', kind: 'additionalCosts', variant: 'simple' },
+            { id: 'b1', kind: 'smartFieldCard', smartFieldId: 'f3' }
+          ]
+        }
+      ],
+      inputFields: []
+    };
+    expect(analyzeDependencies(definition, [field], variables).uncollected).toHaveLength(0);
+  });
 });

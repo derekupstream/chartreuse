@@ -15,7 +15,7 @@
  * VERSIONED catalogs rather than the static ones.
  */
 import { DeleteOutlined, EditOutlined, LeftOutlined, PlusOutlined } from '@ant-design/icons';
-import { Button, Divider, Drawer, Empty, Form, InputNumber, Popconfirm, Radio, Select, Typography } from 'antd';
+import { Button, Divider, Drawer, Empty, Form, Input, InputNumber, Popconfirm, Radio, Select, Typography } from 'antd';
 import { useMemo, useState } from 'react';
 
 import type { GroupRow } from 'lib/smartFields/variables';
@@ -560,6 +560,514 @@ export function PurchasingWidget({
             </div>
           </Form>
         )}
+      </Drawer>
+    </div>
+  );
+}
+
+/* ────────────────────────────────────────────────────────────────────────────
+ * The Dishwashing widget — the real page's "Add dishwasher" experience
+ * (components/projects/[id]/dishwashing): machine rows with utility summaries,
+ * and a drawer form with type / temperature / Energy Star and the usage numbers.
+ * The machine list comes from the versioned Dishwasher Factors table.
+ * ──────────────────────────────────────────────────────────────────────────── */
+
+export function DishwasherWidget({
+  title,
+  help,
+  catalogRows,
+  rows,
+  setRows
+}: {
+  title: string;
+  help?: string;
+  catalogRows: CatalogRow[];
+  rows: GroupRow[];
+  setRows: (rows: GroupRow[]) => void;
+}) {
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [editIndex, setEditIndex] = useState<number | null>(null);
+  const [item, setItem] = useState<GroupRow>({});
+
+  const machineTypes = useMemo(
+    () => Array.from(new Set(catalogRows.map(r => cell(r, 'machine_type')).filter(Boolean))).sort(),
+    [catalogRows]
+  );
+  const temperatures = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          catalogRows
+            .filter(r => !item.machineType || cell(r, 'machine_type') === item.machineType)
+            .map(r => cell(r, 'temperature'))
+            .filter(Boolean)
+        )
+      ).sort(),
+    [catalogRows, item.machineType]
+  );
+  const factorRow = useMemo(
+    () =>
+      catalogRows.find(
+        r => cell(r, 'machine_type') === item.machineType && cell(r, 'temperature') === item.temperature
+      ) ?? null,
+    [catalogRows, item.machineType, item.temperature]
+  );
+  const isEnergyStar = item.energyStar !== 'No';
+  const waterPerRack = factorRow
+    ? num(factorRow, isEnergyStar ? 'water_gal_per_rack_energy_star' : 'water_gal_per_rack_conventional')
+    : undefined;
+
+  function openAdd() {
+    setEditIndex(null);
+    setItem({ energyStar: 'Yes' });
+    setDrawerOpen(true);
+  }
+  function openEdit(index: number) {
+    setEditIndex(index);
+    setItem({ ...rows[index] });
+    setDrawerOpen(true);
+  }
+  function save() {
+    const complete: GroupRow = { ...item };
+    if (waterPerRack !== undefined) complete.waterGalPerRack = waterPerRack;
+    if (complete.oneTimeCost === undefined) complete.oneTimeCost = 0;
+    const next = editIndex === null ? [...rows, complete] : rows.map((r, i) => (i === editIndex ? complete : r));
+    setRows(next);
+    setDrawerOpen(false);
+  }
+
+  const yearly = (row: GroupRow) =>
+    Number(row.racksPerDay ?? 0) * Number(row.operatingDays ?? 0) * Number(row.utilityCostPerRack ?? 0);
+  const totals = rows.reduce<{ utilities: number; oneTime: number }>(
+    (sum, row) => ({ utilities: sum.utilities + yearly(row), oneTime: sum.oneTime + Number(row.oneTimeCost ?? 0) }),
+    { utilities: 0, oneTime: 0 }
+  );
+  const canSave =
+    !!item.machineType && !!item.temperature && item.racksPerDay !== undefined && item.operatingDays !== undefined;
+
+  return (
+    <div style={{ marginBottom: 16 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 12 }}>
+        <Text strong style={{ fontSize: 16 }}>
+          {title}
+        </Text>
+        {rows.length > 0 && (
+          <Button type='primary' icon={<PlusOutlined />} onClick={openAdd}>
+            Add dishwasher
+          </Button>
+        )}
+      </div>
+      {help && (
+        <Text type='secondary' style={{ display: 'block', fontSize: 13, marginTop: 2 }}>
+          {help}
+        </Text>
+      )}
+
+      {rows.length === 0 && (
+        <div style={{ border: '1px dashed #d9d9d9', borderRadius: 8, padding: 24, marginTop: 12, textAlign: 'center' }}>
+          <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description='No dish machines yet.'>
+            <Button type='primary' icon={<PlusOutlined />} onClick={openAdd}>
+              Add dishwasher
+            </Button>
+          </Empty>
+        </div>
+      )}
+
+      {rows.map((row, index) => (
+        <div
+          key={index}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 12,
+            padding: '10px 12px',
+            border: '1px solid #ececea',
+            borderRadius: 8,
+            marginTop: 8,
+            background: '#fff',
+            flexWrap: 'wrap'
+          }}
+        >
+          <div style={{ flex: '2 1 220px', minWidth: 0 }}>
+            <Text strong>
+              {String(row.machineType ?? '—')} · {String(row.temperature ?? '')} temp
+              {row.energyStar !== 'No' ? ' · ENERGY STAR' : ''}
+            </Text>
+            <Text type='secondary' style={{ display: 'block', fontSize: 12 }}>
+              {row.racksPerDay ?? 0} racks/day × {row.operatingDays ?? 0} days ·{' '}
+              {money(Number(row.utilityCostPerRack ?? 0))}
+              /rack
+              {row.waterGalPerRack !== undefined ? ` · ${row.waterGalPerRack} gal/rack` : ''}
+            </Text>
+          </div>
+          <div style={{ flex: '1 0 130px' }}>
+            <Text type='secondary' style={{ fontSize: 11, display: 'block' }}>
+              Utilities / year
+            </Text>
+            <Text strong>{money(yearly(row))}</Text>
+          </div>
+          <div style={{ flex: '1 0 130px' }}>
+            <Text type='secondary' style={{ fontSize: 11, display: 'block' }}>
+              One-time cost
+            </Text>
+            <Text strong>{money(Number(row.oneTimeCost ?? 0))}</Text>
+          </div>
+          <div style={{ display: 'flex', gap: 4 }}>
+            <Button size='small' type='text' icon={<EditOutlined />} onClick={() => openEdit(index)} />
+            <Popconfirm title='Remove this dishwasher?' onConfirm={() => setRows(rows.filter((_, i) => i !== index))}>
+              <Button size='small' type='text' danger icon={<DeleteOutlined />} />
+            </Popconfirm>
+          </div>
+        </div>
+      ))}
+
+      {rows.length > 0 && (
+        <div
+          style={{
+            display: 'flex',
+            gap: 24,
+            padding: '10px 12px',
+            marginTop: 8,
+            borderRadius: 8,
+            background: '#f8faf3',
+            border: '1px solid #e4eecf',
+            flexWrap: 'wrap'
+          }}
+        >
+          <Text strong>Totals</Text>
+          <Text>
+            Utilities: <strong>{money(totals.utilities)}</strong>/yr
+          </Text>
+          <Text>
+            One-time: <strong>{money(totals.oneTime)}</strong>
+          </Text>
+        </div>
+      )}
+
+      <Drawer
+        title={editIndex !== null ? 'Update dishwashing expense' : 'Add dishwashing expense'}
+        placement='right'
+        width={Math.min(600, typeof window !== 'undefined' ? window.innerWidth - 40 : 600)}
+        open={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        destroyOnClose
+      >
+        <Form layout='vertical'>
+          <Form.Item label='Dishwasher type' required>
+            <Select
+              showSearch
+              placeholder='Select a machine type'
+              value={(item.machineType as string) || undefined}
+              options={machineTypes.map(t => ({ value: t, label: t }))}
+              onChange={machineType => setItem({ ...item, machineType, temperature: undefined as never })}
+            />
+          </Form.Item>
+          <Form.Item label='Temperature' required>
+            <Radio.Group
+              value={(item.temperature as string) || undefined}
+              onChange={e => setItem({ ...item, temperature: e.target.value })}
+            >
+              {temperatures.map(t => (
+                <Radio.Button key={t} value={t}>
+                  {t}
+                </Radio.Button>
+              ))}
+            </Radio.Group>
+          </Form.Item>
+          <Form.Item label='Energy star certification' required>
+            <Radio.Group
+              value={(item.energyStar as string) ?? 'Yes'}
+              onChange={e => setItem({ ...item, energyStar: e.target.value })}
+            >
+              <Radio.Button value='Yes'>Yes</Radio.Button>
+              <Radio.Button value='No'>No</Radio.Button>
+            </Radio.Group>
+          </Form.Item>
+          {factorRow && waterPerRack !== undefined && (
+            <Paragraph style={{ background: '#f8faf3', borderRadius: 6, padding: '8px 10px', fontSize: 13 }}>
+              This machine uses about <Text strong>{waterPerRack} gallons per rack</Text>
+              {isEnergyStar ? ' (ENERGY STAR)' : ' (conventional)'} — from the Dishwasher Factors table.
+            </Paragraph>
+          )}
+          <Form.Item label='Racks per day for reusables' required>
+            <InputNumber
+              min={0}
+              style={{ width: '100%' }}
+              value={item.racksPerDay !== undefined ? Number(item.racksPerDay) : undefined}
+              onChange={v => setItem({ ...item, racksPerDay: v ?? 0 })}
+            />
+          </Form.Item>
+          <Form.Item label='Dish machine operating days per year' required>
+            <InputNumber
+              min={0}
+              max={365}
+              style={{ width: '100%' }}
+              value={item.operatingDays !== undefined ? Number(item.operatingDays) : undefined}
+              onChange={v => setItem({ ...item, operatingDays: v ?? 0 })}
+            />
+          </Form.Item>
+          <Form.Item
+            label='Utility cost per rack'
+            help='Water + energy to wash one rack. A typical door machine runs $0.15–$0.30.'
+          >
+            <InputNumber
+              min={0}
+              step={0.01}
+              prefix='$'
+              style={{ width: '100%' }}
+              value={item.utilityCostPerRack !== undefined ? Number(item.utilityCostPerRack) : undefined}
+              onChange={v => setItem({ ...item, utilityCostPerRack: v ?? 0 })}
+            />
+          </Form.Item>
+          <Form.Item label='Purchase & installation cost (one-time, optional)'>
+            <InputNumber
+              min={0}
+              prefix='$'
+              style={{ width: '100%' }}
+              value={item.oneTimeCost !== undefined ? Number(item.oneTimeCost) : undefined}
+              onChange={v => setItem({ ...item, oneTimeCost: v ?? 0 })}
+            />
+          </Form.Item>
+          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <Button size='large' type='primary' disabled={!canSave} onClick={save}>
+              {editIndex !== null ? 'Save' : 'Add dishwasher'}
+            </Button>
+          </div>
+        </Form>
+      </Drawer>
+    </div>
+  );
+}
+
+/* ────────────────────────────────────────────────────────────────────────────
+ * The Additional-costs widget — the real page's Labor / Waste hauling / Other
+ * expense drawers folded into one: expense rows with per-year or one-time
+ * amounts (negative = savings), and a drawer form with category, frequency,
+ * amount and description.
+ * ──────────────────────────────────────────────────────────────────────────── */
+
+const EXPENSE_CATEGORIES = ['Labor', 'Waste hauling', 'Other'] as const;
+const EXPENSE_FREQUENCIES = ['One Time', 'Daily', 'Weekly', 'Monthly', 'Annually'] as const;
+
+export function AdditionalCostsWidget({
+  title,
+  help,
+  rows,
+  setRows
+}: {
+  title: string;
+  help?: string;
+  rows: GroupRow[];
+  setRows: (rows: GroupRow[]) => void;
+}) {
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [editIndex, setEditIndex] = useState<number | null>(null);
+  const [item, setItem] = useState<GroupRow>({});
+
+  function openAdd() {
+    setEditIndex(null);
+    setItem({ category: 'Labor', frequency: 'Annually' });
+    setDrawerOpen(true);
+  }
+  function openEdit(index: number) {
+    setEditIndex(index);
+    setItem({ ...rows[index] });
+    setDrawerOpen(true);
+  }
+  function save() {
+    const cost = Number(item.cost ?? 0);
+    const frequency = String(item.frequency ?? 'Annually');
+    const complete: GroupRow = {
+      ...item,
+      // The derived columns equations SUM over: recurring spend lands in amountPerYear,
+      // one-time spend in oneTimeAmount — never both.
+      amountPerYear: frequency === 'One Time' ? 0 : cost * annualOccurrence(frequency),
+      oneTimeAmount: frequency === 'One Time' ? cost : 0
+    };
+    const next = editIndex === null ? [...rows, complete] : rows.map((r, i) => (i === editIndex ? complete : r));
+    setRows(next);
+    setDrawerOpen(false);
+  }
+
+  const totals = rows.reduce<{ perYear: number; oneTime: number }>(
+    (sum, row) => ({
+      perYear: sum.perYear + Number(row.amountPerYear ?? 0),
+      oneTime: sum.oneTime + Number(row.oneTimeAmount ?? 0)
+    }),
+    { perYear: 0, oneTime: 0 }
+  );
+  const canSave = item.cost !== undefined && !!String(item.description ?? '').trim();
+
+  return (
+    <div style={{ marginBottom: 16 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 12 }}>
+        <Text strong style={{ fontSize: 16 }}>
+          {title}
+        </Text>
+        {rows.length > 0 && (
+          <Button type='primary' icon={<PlusOutlined />} onClick={openAdd}>
+            Add an expense
+          </Button>
+        )}
+      </div>
+      {help && (
+        <Text type='secondary' style={{ display: 'block', fontSize: 13, marginTop: 2 }}>
+          {help}
+        </Text>
+      )}
+
+      {rows.length === 0 && (
+        <div style={{ border: '1px dashed #d9d9d9', borderRadius: 8, padding: 24, marginTop: 12, textAlign: 'center' }}>
+          <Empty
+            image={Empty.PRESENTED_IMAGE_SIMPLE}
+            description='No additional costs yet. Add labor, waste hauling or other program expenses — or savings.'
+          >
+            <Button type='primary' icon={<PlusOutlined />} onClick={openAdd}>
+              Add an expense
+            </Button>
+          </Empty>
+        </div>
+      )}
+
+      {EXPENSE_CATEGORIES.map(category => {
+        const items = rows.map((row, index) => ({ row, index })).filter(({ row }) => row.category === category);
+        if (!items.length) return null;
+        return (
+          <div key={category}>
+            <Title level={5} style={{ marginBottom: 0, marginTop: 16 }}>
+              {category}
+            </Title>
+            <Divider style={{ margin: '8px 0' }} />
+            {items.map(({ row, index }) => {
+              const oneTime = Number(row.oneTimeAmount ?? 0) !== 0;
+              const amount = oneTime ? Number(row.oneTimeAmount ?? 0) : Number(row.amountPerYear ?? 0);
+              return (
+                <div
+                  key={index}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 12,
+                    padding: '10px 12px',
+                    border: '1px solid #ececea',
+                    borderRadius: 8,
+                    marginBottom: 8,
+                    background: '#fff',
+                    flexWrap: 'wrap'
+                  }}
+                >
+                  <div style={{ flex: '2 1 220px', minWidth: 0 }}>
+                    <Text strong>{String(row.description ?? '—')}</Text>
+                    <Text type='secondary' style={{ display: 'block', fontSize: 12 }}>
+                      {String(row.frequency ?? 'Annually')}
+                      {!oneTime && Number(row.cost ?? 0) !== amount ? ` · ${money(Number(row.cost ?? 0))} each` : ''}
+                    </Text>
+                  </div>
+                  <div style={{ flex: '1 0 150px' }}>
+                    <Text type='secondary' style={{ fontSize: 11, display: 'block' }}>
+                      {oneTime ? 'One-time' : 'Per year'}
+                    </Text>
+                    <Text strong style={{ color: amount < 0 ? '#3f8600' : undefined }}>
+                      {money(amount)}
+                      {amount < 0 ? ' (savings)' : ''}
+                    </Text>
+                  </div>
+                  <div style={{ display: 'flex', gap: 4 }}>
+                    <Button size='small' type='text' icon={<EditOutlined />} onClick={() => openEdit(index)} />
+                    <Popconfirm
+                      title='Remove this expense?'
+                      onConfirm={() => setRows(rows.filter((_, i) => i !== index))}
+                    >
+                      <Button size='small' type='text' danger icon={<DeleteOutlined />} />
+                    </Popconfirm>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        );
+      })}
+
+      {rows.length > 0 && (
+        <div
+          style={{
+            display: 'flex',
+            gap: 24,
+            padding: '10px 12px',
+            borderRadius: 8,
+            background: '#f8faf3',
+            border: '1px solid #e4eecf',
+            flexWrap: 'wrap'
+          }}
+        >
+          <Text strong>Totals</Text>
+          <Text>
+            Recurring: <strong>{money(totals.perYear)}</strong>/yr
+          </Text>
+          <Text>
+            One-time: <strong>{money(totals.oneTime)}</strong>
+          </Text>
+        </div>
+      )}
+
+      <Drawer
+        title={editIndex !== null ? 'Update expense' : 'Add an expense'}
+        placement='right'
+        width={Math.min(600, typeof window !== 'undefined' ? window.innerWidth - 40 : 600)}
+        open={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        destroyOnClose
+      >
+        <Form layout='vertical'>
+          <Form.Item label='Category' required>
+            <Radio.Group
+              value={(item.category as string) ?? 'Labor'}
+              onChange={e => setItem({ ...item, category: e.target.value })}
+            >
+              {EXPENSE_CATEGORIES.map(c => (
+                <Radio.Button key={c} value={c}>
+                  {c}
+                </Radio.Button>
+              ))}
+            </Radio.Group>
+          </Form.Item>
+          <Form.Item label='Frequency' required>
+            <Radio.Group
+              value={(item.frequency as string) ?? 'Annually'}
+              onChange={e => setItem({ ...item, frequency: e.target.value })}
+            >
+              {EXPENSE_FREQUENCIES.map(f => (
+                <Radio.Button key={f} value={f}>
+                  {f}
+                </Radio.Button>
+              ))}
+            </Radio.Group>
+          </Form.Item>
+          <Form.Item
+            label='Cost or savings'
+            help='A positive number is a cost; a negative number is a saving (for example a hauling bill that shrinks).'
+            required
+          >
+            <InputNumber
+              prefix='$'
+              style={{ width: '100%' }}
+              value={item.cost !== undefined ? Number(item.cost) : undefined}
+              onChange={v => setItem({ ...item, cost: v ?? 0 })}
+            />
+          </Form.Item>
+          <Form.Item label='Description' required>
+            <Input
+              value={(item.description as string) ?? ''}
+              placeholder='e.g. Dish room staffing, evening shift'
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setItem({ ...item, description: e.target.value })}
+            />
+          </Form.Item>
+          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <Button size='large' type='primary' disabled={!canSave} onClick={save}>
+              {editIndex !== null ? 'Save' : 'Add expense'}
+            </Button>
+          </div>
+        </Form>
       </Drawer>
     </div>
   );

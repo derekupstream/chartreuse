@@ -41,15 +41,24 @@ const SAMPLE_ROWS = {
     { productName: 'Hot cup', casesPerYear: 100, unitsPerCase: 1000, caseCost: 85, newCaseCost: 85, itemWeightLbs: 0.03, newCasesPerYear: 20 },
     { productName: 'Clamshell', casesPerYear: 50, unitsPerCase: 200, caseCost: 60, newCaseCost: 60, itemWeightLbs: 0.02, newCasesPerYear: 10 }
   ],
-  reusableProducts: [{ productName: 'Reusable cup', casesPurchased: 10, unitsPerCase: 24, caseCost: 55, repurchasePercent: 10 }]
+  reusableProducts: [
+    { productName: 'Reusable cup', casesPurchased: 10, unitsPerCase: 24, caseCost: 55, repurchasePercent: 10 }
+  ],
+  dishwashers: [
+    { machineType: 'Under Counter', temperature: 'Low', energyStar: 'Yes', racksPerDay: 6, operatingDays: 300, utilityCostPerRack: 0.21, oneTimeCost: 5000 }
+  ],
+  additionalCosts: [
+    { description: 'Dish room staffing', category: 'Labor', frequency: 'Annually', cost: 4000, amountPerYear: 4000, oneTimeAmount: 0 },
+    { description: 'Collection bins', category: 'Other', frequency: 'One Time', cost: 500, amountPerYear: 0, oneTimeAmount: 500 }
+  ]
 };
 
 const BASELINE_COST = 'SUM(singleUseProducts, casesPerYear * caseCost)';
 const FORECAST_COST =
   'SUM(singleUseProducts, newCasesPerYear * newCaseCost)' +
   ' + SUM(reusableProducts, casesPurchased * caseCost * repurchasePercent / 100)' +
-  ' + racksPerDay * operatingDays * utilityCostPerRack' +
-  ' + laborCostAnnual + otherRecurringCosts';
+  ' + SUM(dishwashers, racksPerDay * operatingDays * utilityCostPerRack)' +
+  ' + SUM(additionalCosts, amountPerYear)';
 
 const FIELDS: FieldSeed[] = [
   {
@@ -86,14 +95,7 @@ const FIELDS: FieldSeed[] = [
       'Yearly cost after the switch: remaining single-use purchases + reusable restocking ' +
       '(purchase cost × yearly restock %) + dishwashing utilities (racks × days × cost per rack) + labor + other costs.',
     equation: FORECAST_COST,
-    testInputs: {
-      ...SAMPLE_ROWS,
-      racksPerDay: 6,
-      operatingDays: 300,
-      utilityCostPerRack: 0.21,
-      laborCostAnnual: 4000,
-      otherRecurringCosts: 500
-    }
+    testInputs: SAMPLE_ROWS
   },
   {
     name: 'Annual Savings (Studio)',
@@ -103,14 +105,17 @@ const FIELDS: FieldSeed[] = [
     equation: `${BASELINE_COST} - (${FORECAST_COST})`,
     baseline: BASELINE_COST,
     forecast: FORECAST_COST,
-    testInputs: {
-      ...SAMPLE_ROWS,
-      racksPerDay: 6,
-      operatingDays: 300,
-      utilityCostPerRack: 0.21,
-      laborCostAnnual: 4000,
-      otherRecurringCosts: 500
-    }
+    testInputs: SAMPLE_ROWS
+  },
+  {
+    name: 'One-Time Investment (Studio)',
+    unit: '$',
+    category: 'Cost',
+    description:
+      'The up-front spend to start the program: reusable fleet purchase + dishwasher purchase & installation + one-time expenses.',
+    equation:
+      'SUM(reusableProducts, casesPurchased * caseCost) + SUM(dishwashers, oneTimeCost) + SUM(additionalCosts, oneTimeAmount)',
+    testInputs: SAMPLE_ROWS
   },
   {
     name: 'Annual Waste Reduction (Studio)',
@@ -167,18 +172,7 @@ async function main() {
   }
 
   // ── the product: screens mirroring the projections wizard ─────────────────
-  const inputFields: InputFieldDef[] = [
-    { key: 'racksPerDay', label: 'Dishwasher racks per day', type: 'number', unit: 'racks/day' },
-    { key: 'operatingDays', label: 'Operating days per year', type: 'number', unit: 'days' },
-    {
-      key: 'utilityCostPerRack',
-      label: 'Utility cost per rack',
-      type: 'currency',
-      help: 'Water + energy to wash one rack. A typical door machine runs $0.15–$0.30.'
-    },
-    { key: 'laborCostAnnual', label: 'Added yearly labor cost', type: 'currency' },
-    { key: 'otherRecurringCosts', label: 'Other yearly program costs', type: 'currency' }
-  ];
+  const inputFields: InputFieldDef[] = [];
 
   const screens: ComposedScreen[] = [
     {
@@ -224,9 +218,7 @@ async function main() {
       title: 'Dishwashing',
       blocks: [
         b('heading', { text: 'Dishwashing' }),
-        b('inputField', { inputKey: 'racksPerDay', width: 'half' }),
-        b('inputField', { inputKey: 'operatingDays', width: 'half' }),
-        b('inputField', { inputKey: 'utilityCostPerRack', width: 'half' }),
+        b('dishwashers'),
         b('button', { label: 'Next: additional costs', action: 'next' })
       ] as ComposedScreen['blocks']
     },
@@ -235,8 +227,7 @@ async function main() {
       title: 'Additional costs',
       blocks: [
         b('heading', { text: 'Additional costs' }),
-        b('inputField', { inputKey: 'laborCostAnnual', width: 'half' }),
-        b('inputField', { inputKey: 'otherRecurringCosts', width: 'half' }),
+        b('additionalCosts'),
         b('button', { label: 'See your dashboard', action: 'next' })
       ] as ComposedScreen['blocks']
     },
@@ -250,6 +241,7 @@ async function main() {
         b('smartFieldCard', { smartFieldId: fieldIds['Single-Use Items Avoided (Studio)'], width: 'half' }),
         b('smartFieldCard', { smartFieldId: fieldIds['Single-Use Purchasing Cost (Studio)'], width: 'half' }),
         b('smartFieldCard', { smartFieldId: fieldIds['Annual Waste Reduction (Studio)'], width: 'half' }),
+        b('smartFieldCard', { smartFieldId: fieldIds['One-Time Investment (Studio)'], width: 'half' }),
         b('chart', { smartFieldId: fieldIds['Annual Savings (Studio)'], label: 'Annual cost: today vs after the switch' }),
         b('button', { label: 'Save my results', action: 'submit' })
       ] as ComposedScreen['blocks']

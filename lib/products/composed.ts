@@ -24,15 +24,29 @@ export type ComposedBlock = { width?: BlockWidth } & (
   /** A larger baseline-vs-forecast bar chart for a smart field that has a comparison. */
   | { id: string; kind: 'chart'; smartFieldId: string; label?: string }
   /**
-   * The Single-Use purchasing widget from the projections wizard: line-by-line product
-   * entry backed by the Single-Use Products catalog. Writes rows under the fixed key
+   * The Single-Use purchasing widget from the projections wizard: variant 'widget'
+   * (default) is the real experience — item rows plus the stepped drawer picker;
+   * variant 'simple' is the compact inline table. Rows land under the fixed key
    * 'singleUseProducts' (see WIDGET_INPUT_DEFS) so equations can SUM over them.
    */
-  | { id: string; kind: 'singleUseItems'; label?: string }
+  | { id: string; kind: 'singleUseItems'; label?: string; variant?: WidgetVariant }
   /** The Reusables purchasing widget — rows under 'reusableProducts'. */
-  | { id: string; kind: 'reusableItems'; label?: string }
+  | { id: string; kind: 'reusableItems'; label?: string; variant?: WidgetVariant }
+  /** The Dishwashing widget (the real page's "Add dishwasher" drawer) — rows under 'dishwashers'. */
+  | { id: string; kind: 'dishwashers'; label?: string; variant?: WidgetVariant }
+  /** The Additional-costs widget (labor / hauling / other expenses) — rows under 'additionalCosts'. */
+  | { id: string; kind: 'additionalCosts'; label?: string; variant?: WidgetVariant }
   | { id: string; kind: 'button'; label: string; action: 'next' | 'back' | 'submit' }
 );
+
+/** 'widget' = the real project experience (rows + drawer); 'simple' = the inline table. */
+export type WidgetVariant = 'simple' | 'widget';
+
+/** The block kinds that are data-collecting widgets with fixed list keys. */
+export const WIDGET_KINDS = ['singleUseItems', 'reusableItems', 'dishwashers', 'additionalCosts'] as const;
+export type WidgetKind = (typeof WIDGET_KINDS)[number];
+export const isWidgetKind = (kind: ComposedBlock['kind']): kind is WidgetKind =>
+  (WIDGET_KINDS as readonly string[]).includes(kind);
 
 /** Blocks compact enough to share a row; everything else is always full width. */
 export const HALF_CAPABLE_KINDS: ComposedBlock['kind'][] = ['smartFieldCard', 'chart', 'inputField', 'text'];
@@ -89,7 +103,7 @@ export function catalogKey(source: { databaseId?: string; databaseName?: string 
  * can rely on them; columns mirror the projections wizard's line items, with catalog
  * auto-fill for units, weight and (for reusables) price.
  */
-export const WIDGET_INPUT_DEFS: Record<'singleUseItems' | 'reusableItems', InputFieldDef> = {
+export const WIDGET_INPUT_DEFS: Record<WidgetKind, InputFieldDef> = {
   singleUseItems: {
     key: 'singleUseProducts',
     label: 'Single-use purchases',
@@ -119,6 +133,32 @@ export const WIDGET_INPUT_DEFS: Record<'singleUseItems' | 'reusableItems', Input
       { key: 'caseCost', label: 'Cost per case', type: 'currency', fillFrom: 'case_price' },
       { key: 'repurchasePercent', label: 'Restocked yearly (%)', type: 'number' }
     ]
+  },
+  dishwashers: {
+    key: 'dishwashers',
+    label: 'Dishwashing',
+    type: 'group',
+    help: 'Add each dish machine the reuse program relies on.',
+    productSource: { databaseName: 'Dishwasher Factors', nameColumnKey: 'machine_type' },
+    columns: [
+      { key: 'machineType', label: 'Dishwasher type', type: 'text' },
+      { key: 'racksPerDay', label: 'Racks per day', type: 'number' },
+      { key: 'operatingDays', label: 'Operating days / year', type: 'number' },
+      { key: 'utilityCostPerRack', label: 'Utility cost per rack', type: 'currency' },
+      { key: 'oneTimeCost', label: 'Purchase & install (one-time)', type: 'currency' }
+    ]
+  },
+  additionalCosts: {
+    key: 'additionalCosts',
+    label: 'Additional costs',
+    type: 'group',
+    help: 'Labor, waste hauling, and other program expenses — or savings, entered as negative amounts.',
+    columns: [
+      { key: 'description', label: 'Description', type: 'text' },
+      { key: 'category', label: 'Category', type: 'text' },
+      { key: 'amountPerYear', label: 'Amount / year', type: 'currency' },
+      { key: 'oneTimeAmount', label: 'One-time amount', type: 'currency' }
+    ]
   }
 };
 
@@ -141,10 +181,19 @@ export const BLOCK_LABELS: Record<ComposedBlock['kind'], string> = {
   questionGroup: 'Question group',
   smartFieldCard: 'Smart field card',
   chart: 'Chart',
-  singleUseItems: 'Single-use widget',
-  reusableItems: 'Reusables widget',
+  singleUseItems: 'Single-Use',
+  reusableItems: 'Reusables',
+  dishwashers: 'Dishwasher',
+  additionalCosts: 'Additional Costs',
   button: 'Button'
 };
+
+/** Display name for a block, with the widget variant spelled out ("Single-Use (Widget)"). */
+export function blockDisplayLabel(block: Pick<ComposedBlock, 'kind'> & { variant?: WidgetVariant }): string {
+  const base = BLOCK_LABELS[block.kind];
+  if (!isWidgetKind(block.kind)) return base;
+  return `${base} (${block.variant === 'simple' ? 'Simple' : 'Widget'})`;
+}
 
 export const newBlockId = () => `b${Date.now().toString(36)}${Math.floor(Math.random() * 1e4).toString(36)}`;
 
@@ -170,8 +219,8 @@ export function analyzeDependencies(
           ? [b.inputKey]
           : b.kind === 'questionGroup'
             ? b.inputKeys
-            : // The purchasing widgets collect their fixed list keys.
-              b.kind === 'singleUseItems' || b.kind === 'reusableItems'
+            : // Widgets collect their fixed list keys, in either variant.
+              isWidgetKind(b.kind)
               ? [WIDGET_INPUT_DEFS[b.kind].key]
               : []
       )

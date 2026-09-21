@@ -3,8 +3,8 @@
  * /p/<slug> page both render through this, so what you build is exactly what ships
  * (docs/CR2-PRODUCT-STUDIO-SPEC.md §6-7).
  */
-import { Button, Card, Input as AntInput, InputNumber, Select, Steps, Tooltip, Typography, message } from 'antd';
-import { useMemo, useState } from 'react';
+import { Button, Card, Input as AntInput, InputNumber, Select, Tooltip, Typography, message } from 'antd';
+import { useEffect, useMemo, useState } from 'react';
 
 import type {
   ComposedBlock,
@@ -13,8 +13,8 @@ import type {
   InputFieldDef,
   ProductCatalog
 } from 'lib/products/composed';
-import { WIDGET_INPUT_DEFS, catalogKey } from 'lib/products/composed';
-import { PurchasingWidget } from 'components/products/PurchasingWidget';
+import { WIDGET_INPUT_DEFS, catalogKey, isWidgetKind } from 'lib/products/composed';
+import { AdditionalCostsWidget, DishwasherWidget, PurchasingWidget } from 'components/products/PurchasingWidget';
 import type { FieldValues, GroupRow, SmartVariable } from 'lib/smartFields/variables';
 import { evaluateEquation, toVariableKey } from 'lib/smartFields/variables';
 
@@ -164,6 +164,11 @@ export function ComposedProductRenderer({
   const current = mode === 'builder' ? (screenIndex ?? 0) : step;
   const screen = definition.screens[current];
   const isLast = current >= definition.screens.length - 1;
+  // The edit screen to return to when the Edit tab is clicked from the Dashboard tab.
+  const [lastEditStep, setLastEditStep] = useState(0);
+  useEffect(() => {
+    if (mode === 'live' && step < definition.screens.length - 1) setLastEditStep(step);
+  }, [mode, step, definition.screens.length]);
 
   function computeResults(): SubmitResult {
     const results: SubmitResult = {};
@@ -489,21 +494,44 @@ export function ComposedProductRenderer({
         );
       }
       case 'singleUseItems':
-      case 'reusableItems': {
-        // The purchasing widgets: the projections wizard's OWN experience — item rows and
-        // the stepped side-drawer picker — writing into this product's answers
-        // (components/products/PurchasingWidget.tsx).
+      case 'reusableItems':
+      case 'dishwashers':
+      case 'additionalCosts': {
+        // The data-collecting widgets. Variant 'widget' (default) is the projects
+        // wizard's OWN experience — item rows and the side-drawer forms; variant
+        // 'simple' is the compact inline table (renderInput).
         const def = WIDGET_INPUT_DEFS[block.kind];
-        const catalog = productCatalog?.[catalogKey(def.productSource!) ?? ''];
+        if (block.variant === 'simple') {
+          return wrap(renderInput(block.label ? { ...def, label: block.label } : def));
+        }
+        const catalog = def.productSource ? productCatalog?.[catalogKey(def.productSource) ?? ''] : undefined;
         const widgetRows = Array.isArray(values[def.key]) ? (values[def.key] as GroupRow[]) : [];
+        const setWidgetRows = (next: GroupRow[]) => setValues(prev => ({ ...prev, [def.key]: next }));
+        const title = block.label || def.label;
+        if (block.kind === 'dishwashers') {
+          return wrap(
+            <DishwasherWidget
+              title={title}
+              help={def.help}
+              catalogRows={catalog?.rows ?? []}
+              rows={widgetRows}
+              setRows={setWidgetRows}
+            />
+          );
+        }
+        if (block.kind === 'additionalCosts') {
+          return wrap(
+            <AdditionalCostsWidget title={title} help={def.help} rows={widgetRows} setRows={setWidgetRows} />
+          );
+        }
         return wrap(
           <PurchasingWidget
             kind={block.kind}
-            title={block.label || def.label}
+            title={title}
             help={def.help}
             catalogRows={catalog?.rows ?? []}
             rows={widgetRows}
-            setRows={next => setValues(prev => ({ ...prev, [def.key]: next }))}
+            setRows={setWidgetRows}
           />
         );
       }
@@ -543,14 +571,110 @@ export function ComposedProductRenderer({
 
   return (
     <div>
+      {/* Navigation cloned from the real project pages (Derek, 2026-09-21: "it should feel
+          like you're using the finished product"): the Dashboard/Edit tab bar with the
+          green underline, and the numbered-circle stepper across the edit screens. The
+          LAST screen is the product's dashboard. */}
       {mode === 'live' && definition.screens.length > 1 && (
-        <Steps
-          size='small'
-          current={current}
-          onChange={i => setStep(i)}
-          items={definition.screens.map(s => ({ title: s.title }))}
-          style={{ marginBottom: 24 }}
-        />
+        <div style={{ marginBottom: 20 }}>
+          <div style={{ display: 'flex', borderBottom: '2px solid #e8e8e8' }}>
+            {(
+              [
+                { label: 'Dashboard', active: current === definition.screens.length - 1 },
+                { label: 'Edit', active: current < definition.screens.length - 1 }
+              ] as const
+            ).map(tab => (
+              <a
+                key={tab.label}
+                onClick={() =>
+                  setStep(
+                    tab.label === 'Dashboard'
+                      ? definition.screens.length - 1
+                      : Math.min(lastEditStep, definition.screens.length - 2)
+                  )
+                }
+                style={{
+                  padding: '10px 24px',
+                  marginBottom: -2,
+                  borderBottom: `3px solid ${tab.active ? '#95ee49' : 'transparent'}`,
+                  fontSize: 15,
+                  fontWeight: tab.active ? 600 : 400,
+                  color: tab.active ? '#262626' : '#8c8c8c',
+                  whiteSpace: 'nowrap',
+                  cursor: 'pointer',
+                  transition: 'color 150ms'
+                }}
+              >
+                {tab.label}
+              </a>
+            ))}
+          </div>
+          {current < definition.screens.length - 1 && (
+            <div style={{ display: 'flex', alignItems: 'flex-start', padding: '16px 0 8px' }}>
+              {definition.screens.slice(0, -1).map((s, i) => {
+                const isCurrent = i === current;
+                const isPast = i < current;
+                return (
+                  <div key={s.id} style={{ display: 'contents' }}>
+                    {i > 0 && (
+                      <div
+                        style={{
+                          flex: 1,
+                          height: 2,
+                          background: isPast || isCurrent ? '#95ee49' : '#e8e8e8',
+                          margin: '14px 4px 0',
+                          minWidth: 16
+                        }}
+                      />
+                    )}
+                    <a
+                      onClick={() => setStep(i)}
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        gap: 6,
+                        flexShrink: 0,
+                        minWidth: 80,
+                        maxWidth: 120,
+                        textAlign: 'center',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: 28,
+                          height: 28,
+                          borderRadius: '50%',
+                          background: isCurrent ? '#95ee49' : isPast ? '#d9f7be' : '#f0f0f0',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: 13,
+                          fontWeight: 600,
+                          color: isCurrent ? '#262626' : isPast ? '#52c41a' : '#8c8c8c',
+                          flexShrink: 0
+                        }}
+                      >
+                        {isPast ? '✓' : i + 1}
+                      </div>
+                      <span
+                        style={{
+                          fontSize: 12,
+                          fontWeight: isCurrent ? 600 : 400,
+                          color: isCurrent ? '#262626' : isPast ? '#595959' : '#8c8c8c',
+                          lineHeight: 1.3
+                        }}
+                      >
+                        {s.title}
+                      </span>
+                    </a>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
       )}
       <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start', rowGap: 4, columnGap: 16 }}>
         {screen.blocks.map(renderBlock)}

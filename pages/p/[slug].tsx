@@ -10,7 +10,7 @@ import Head from 'next/head';
 import { ComposedProductRenderer } from 'components/products/ComposedProductRenderer';
 import type { SubmitResult } from 'components/products/ComposedProductRenderer';
 import type { ComposedDefinition, ComposedSmartField, ProductCatalog } from 'lib/products/composed';
-import { WIDGET_INPUT_DEFS, catalogKey } from 'lib/products/composed';
+import { WIDGET_INPUT_DEFS, catalogKey, isWidgetKind } from 'lib/products/composed';
 import { buildVariableCatalog } from 'lib/smartFields/catalogServer';
 import type { FieldValues, SmartVariable } from 'lib/smartFields/variables';
 import type { EquationToken } from 'lib/smartFields/variables';
@@ -79,9 +79,11 @@ export const getServerSideProps: GetServerSideProps = async context => {
     ...definition.inputFields.flatMap(f => (f.productSource ? [f.productSource] : [])),
     ...definition.screens
       .flatMap(s => s.blocks)
-      .flatMap(b =>
-        b.kind === 'singleUseItems' || b.kind === 'reusableItems' ? [WIDGET_INPUT_DEFS[b.kind].productSource!] : []
-      )
+      .flatMap(b => {
+        if (!isWidgetKind(b.kind)) return [];
+        const source = WIDGET_INPUT_DEFS[b.kind].productSource;
+        return source ? [source] : [];
+      })
   ];
   if (sources.length) {
     const ids = Array.from(new Set(sources.flatMap(s => (s.databaseId ? [s.databaseId] : []))));
