@@ -1,8 +1,8 @@
 import { CheckCircleFilled } from '@ant-design/icons';
-import { Button, Modal, Typography, message } from 'antd';
+import { Button, Modal, Spin, Typography, message } from 'antd';
 import type { GetServerSideProps } from 'next';
 import { useRouter } from 'next/router';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { Header } from 'components/common/Header';
 import { JoinFlow } from 'components/setup/onboarding/JoinFlow';
@@ -57,6 +57,46 @@ export default function Onboarding() {
   const [mode, setMode] = useState<Mode>('choose');
   const [requestedOrgName, setRequestedOrgName] = useState('');
   const [suggestions, setSuggestions] = useState<SuggestedOrg[]>([]);
+  const [autoJoining, setAutoJoining] = useState(false);
+  const autoJoinAttempted = useRef(false);
+
+  // Invite-link auto-join: /invite/<code> stores the code (localStorage, so it survives
+  // the email-confirmation hop to a new tab) and /onboarding?invite=<code> carries it in
+  // the URL. Either way, join that org directly instead of showing the chooser.
+  useEffect(() => {
+    if (!firebaseUser || autoJoinAttempted.current || !router.isReady) return;
+    let code = '';
+    try {
+      code = ((router.query.invite as string) || localStorage.getItem('pendingOrgInviteCode') || '').trim();
+    } catch {
+      // localStorage can throw in private windows — fall through to the normal chooser
+    }
+    if (!code) return;
+    autoJoinAttempted.current = true;
+    try {
+      localStorage.removeItem('pendingOrgInviteCode');
+      sessionStorage.removeItem('pendingOrgInviteCode');
+    } catch {}
+    setAutoJoining(true);
+    trigger(
+      {
+        id: firebaseUser.uid,
+        inviteCode: code,
+        email: firebaseUser.email ?? '',
+        name: firebaseUser.displayName ?? '',
+        title: '',
+        phone: '',
+        orgName: ''
+      },
+      {
+        onSuccess: () => router.push('/projects'),
+        onError: () => {
+          setAutoJoining(false);
+          message.error('That invite link is no longer valid. Ask your teammate for a new one, or continue below.');
+        }
+      }
+    );
+  }, [firebaseUser, router.isReady, router.query.invite, router, trigger]);
 
   useEffect(() => {
     let cancelled = false;
@@ -118,7 +158,7 @@ export default function Onboarding() {
         trigger(
           { id: firebaseUser.uid, title, email, name, phone, orgName, inviteCode, confirmCreate },
           {
-            onSuccess: () => router.push('/projects?view=templates'),
+            onSuccess: () => router.push('/projects'),
             onError: (err: any) => {
               const status = err?.response?.status ?? err?.status;
               const body = err?.response?.data ?? err?.body;
@@ -152,6 +192,24 @@ export default function Onboarding() {
     join: '',
     'request-sent': ''
   };
+
+  if (autoJoining) {
+    return (
+      <>
+        <Header title='Welcome' />
+        <main>
+          <FormPageTemplate title='Joining your organization' subtitle=''>
+            <div style={{ textAlign: 'center', padding: '32px 0' }}>
+              <Spin size='large' />
+              <Typography.Paragraph style={{ marginTop: 16, color: 'rgba(0,0,0,0.65)' }}>
+                Adding you to your team's Chart-Reuse workspace…
+              </Typography.Paragraph>
+            </div>
+          </FormPageTemplate>
+        </main>
+      </>
+    );
+  }
 
   return (
     <>

@@ -1,5 +1,5 @@
 import { GoogleOutlined } from '@ant-design/icons';
-import { Button, message } from 'antd';
+import { Button, Typography, message } from 'antd';
 import type { GetServerSideProps } from 'next';
 import { useRouter } from 'next/router';
 
@@ -44,15 +44,30 @@ export default function Invite({ org, error }: Props) {
   const router = useRouter();
   const orgInviteCode = router.query.orgInviteCode as string;
 
-  const handleSignInWithGoogle = async () => {
+  // localStorage (not sessionStorage): the email-confirmation link opens in a new tab,
+  // and only localStorage survives that hop. Consumed by /onboarding's auto-join.
+  const rememberInviteCode = () => {
     try {
       if (orgInviteCode) {
-        sessionStorage.setItem('pendingOrgInviteCode', orgInviteCode);
+        localStorage.setItem('pendingOrgInviteCode', orgInviteCode);
       }
+    } catch {
+      // private windows can refuse storage — the manual code entry still works
+    }
+  };
+
+  const handleSignInWithGoogle = async () => {
+    try {
+      rememberInviteCode();
       await signInWithGoogle();
     } catch (err: any) {
       message.error(err.message);
     }
+  };
+
+  const handleSignUpWithEmail = () => {
+    rememberInviteCode();
+    router.push('/login');
   };
 
   if (error) {
@@ -74,6 +89,16 @@ export default function Invite({ org, error }: Props) {
           <Button onClick={handleSignInWithGoogle} type='default' block size='large' icon={<GoogleOutlined />}>
             Join with Google
           </Button>
+          <Button onClick={handleSignUpWithEmail} type='default' block size='large' style={{ marginTop: 12 }}>
+            Sign up with email
+          </Button>
+          <Typography.Paragraph
+            type='secondary'
+            style={{ fontSize: 12, textAlign: 'center', marginTop: 16, marginBottom: 0 }}
+          >
+            Your invite code is <Typography.Text code>{orgInviteCode}</Typography.Text> — you can also enter it manually
+            during sign-up.
+          </Typography.Paragraph>
         </FormPageTemplate>
       </main>
     </>
