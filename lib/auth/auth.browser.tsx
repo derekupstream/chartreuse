@@ -117,5 +117,7 @@ export const AuthProvider: React.FC<{ children: any }> = ({ children }) => {
 };
 
 function isPublicUrl(url: string) {
-  return ['login', 'share', 'auth/callback'].some(path => url.includes(path));
+  // 'invite' covers /invite/<code> and /invite-signup-setup — the pages a not-yet-signed-up
+  // teammate lands on from an invite link; bouncing them to /login loses the org context.
+  return ['login', 'share', 'auth/callback', 'invite'].some(path => url.includes(path));
 }
