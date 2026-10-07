@@ -11,8 +11,9 @@
  */
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
 
-const TEMPLATES_DIR = path.join(__dirname, '..', 'lib', 'email', 'supabase-templates');
+const TEMPLATES_DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'lib', 'email', 'supabase-templates');
 
 /** file in supabase-templates/ → Management API config keys */
 const TEMPLATE_MAP: Record<string, { subjectKey: string; contentKey: string; subject: string }> = {
